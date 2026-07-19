@@ -31,6 +31,54 @@ export function createDroneSwarm(): Weapon {
   return getWeaponBase("drone");
 }
 
+export function createPlasmaRifle(): Weapon {
+  return getWeaponBase("plasma");
+}
+
+export function createRailgun(): Weapon {
+  return getWeaponBase("railgun");
+}
+
+export function createSwarmLauncher(): Weapon {
+  return getWeaponBase("swarm");
+}
+
+export function createGaussRifle(): Weapon {
+  return getWeaponBase("gauss");
+}
+
+export function createArcCaster(): Weapon {
+  return getWeaponBase("arcCaster");
+}
+
+export function createCryoLauncher(): Weapon {
+  return getWeaponBase("cryoLauncher");
+}
+
+export function createPlasmaBlade(): Weapon {
+  return getWeaponBase("plasmaBlade");
+}
+
+export function createNaniteSwarm(): Weapon {
+  return getWeaponBase("naniteSwarm");
+}
+
+export function createGravityWell(): Weapon {
+  return getWeaponBase("gravityWell");
+}
+
+export function createVortexCannon(): Weapon {
+  return getWeaponBase("vortexCannon");
+}
+
+export function createSeekerRifle(): Weapon {
+  return getWeaponBase("seekerRifle");
+}
+
+export function createShardRepeater(): Weapon {
+  return getWeaponBase("shardRepeater");
+}
+
 export const WEAPON_CREATORS: Record<WeaponId, () => Weapon> = {
   pulse: createPulseRifle,
   shotgun: createShotgun,
@@ -38,6 +86,18 @@ export const WEAPON_CREATORS: Record<WeaponId, () => Weapon> = {
   rocket: createRocketLauncher,
   flame: createFlamethrower,
   drone: createDroneSwarm,
+  plasma: createPlasmaRifle,
+  railgun: createRailgun,
+  swarm: createSwarmLauncher,
+  gauss: createGaussRifle,
+  arcCaster: createArcCaster,
+  cryoLauncher: createCryoLauncher,
+  plasmaBlade: createPlasmaBlade,
+  naniteSwarm: createNaniteSwarm,
+  gravityWell: createGravityWell,
+  vortexCannon: createVortexCannon,
+  seekerRifle: createSeekerRifle,
+  shardRepeater: createShardRepeater,
 };
 
 export function getStarterWeapons(): Weapon[] {
@@ -192,6 +252,30 @@ function getWeaponUpgradeDescription(weapon: Weapon): string {
       return "伤害 +18%，弹丸 +1，燃烧延长";
     case "drone":
       return "伤害 +22%，冷却 -10%，无人机 +1";
+    case "plasma":
+      return "伤害 +22%，冷却 -8%，溅射范围提升";
+    case "railgun":
+      return "伤害 +32%，冷却 -10%，穿透 +2";
+    case "swarm":
+      return "伤害 +18%，飞弹 +1，冷却 -8%";
+    case "gauss":
+      return "伤害 +24%，穿透 +1，射程提升";
+    case "arcCaster":
+      return "伤害 +22%，连锁次数 +1，跳跃距离提升";
+    case "cryoLauncher":
+      return "伤害 +24%，冻结延长，爆炸范围提升";
+    case "plasmaBlade":
+      return "伤害 +28%，斩击范围提升，穿透 +2";
+    case "naniteSwarm":
+      return "伤害 +20%，弹丸 +1，纳米层数提升";
+    case "gravityWell":
+      return "伤害 +26%，引力半径与牵引力提升";
+    case "vortexCannon":
+      return "伤害 +26%，冷却 -10%，穿透 +2";
+    case "seekerRifle":
+      return "伤害 +22%，弹丸 +1，追踪距离提升";
+    case "shardRepeater":
+      return "伤害 +18%，弹丸 +1，冷却 -8%";
     default:
       return "属性全面提升";
   }

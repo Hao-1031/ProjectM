@@ -1,4 +1,5 @@
-import type { GameModeType, NetworkMessage, NetworkPlayer, NetworkRole } from "@/lib/game/types";
+import type { GameModeType, SerializedGameState } from "@/lib/game/types";
+import type { ConnectionQuality, NetworkMessage, NetworkPlayer, NetworkRole } from "./types";
 import { PeerConnection } from "./peer";
 import { SignalingChannel } from "./signaling";
 
@@ -6,6 +7,7 @@ export interface RoomOptions {
   playerName: string;
   role: NetworkRole;
   maxPlayers?: number;
+  batchInterval?: number;
   onPeerConnect?: (peerId: string) => void;
   onPeerDisconnect?: (peerId: string) => void;
   onNetworkMessage?: (peerId: string, message: NetworkMessage) => void;
@@ -15,23 +17,34 @@ export interface RoomOptions {
   onPlayerListChange?: (players: NetworkPlayer[]) => void;
   onReconnecting?: (peerId: string) => void;
   onReconnected?: (peerId: string) => void;
+  onHostMigrated?: (newHostId: string) => void;
+  onConnectionQualityChange?: (peerId: string, quality: ConnectionQuality) => void;
 }
 
 interface ReconnectState {
   peerId: string;
   playerName: string;
   attempts: number;
-  timer: ReturnType<typeof setInterval> | null;
+  timer: ReturnType<typeof setTimeout> | null;
+}
+
+interface PendingPing {
+  peerId: string;
+  timestamp: number;
 }
 
 const HEARTBEAT_INTERVAL = 2000;
 const HEARTBEAT_TIMEOUT = 8000;
-const RECONNECT_INTERVAL = 3000;
+const RECONNECT_BASE_INTERVAL = 1000;
 const MAX_RECONNECT_ATTEMPTS = 5;
+const PING_INTERVAL = 1000;
+const DEFAULT_BATCH_INTERVAL = 50;
+const MAX_BATCH_SIZE = 16;
 
 export class GameRoomManager {
   roomCode: string;
   role: NetworkRole;
+  hostId: string;
   localPeerId: string;
   playerName: string;
   maxPlayers: number;
@@ -40,8 +53,15 @@ export class GameRoomManager {
   private signaling: SignalingChannel;
   private localReady = false;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private pingTimer: ReturnType<typeof setInterval> | null = null;
+  private batchTimer: ReturnType<typeof setInterval> | null = null;
   private lastSeen = new Map<string, number>();
   private reconnectStates = new Map<string, ReconnectState>();
+  private pendingPings = new Map<string, PendingPing>();
+  private connectionQuality = new Map<string, ConnectionQuality>();
+  private stateBatchQueue: SerializedGameState[] = [];
+  private stateBatchFrames: number[] = [];
+  private batchInterval: number;
   private onDiscoveryResponse?: (roomCode: string, hostId: string, playerName: string) => void;
 
   private onPeerConnect?: (peerId: string) => void;
@@ -53,13 +73,17 @@ export class GameRoomManager {
   private onPlayerListChange?: (players: NetworkPlayer[]) => void;
   private onReconnecting?: (peerId: string) => void;
   private onReconnected?: (peerId: string) => void;
+  private onHostMigrated?: (newHostId: string) => void;
+  private onConnectionQualityChange?: (peerId: string, quality: ConnectionQuality) => void;
 
   constructor(options: RoomOptions) {
     this.playerName = options.playerName;
     this.role = options.role;
     this.maxPlayers = options.maxPlayers ?? 4;
+    this.batchInterval = options.batchInterval ?? DEFAULT_BATCH_INTERVAL;
     this.localPeerId =
       this.role === "host" ? "host" : `peer_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    this.hostId = this.role === "host" ? this.localPeerId : "host";
     this.roomCode = this.role === "host" ? generateRoomCode() : "";
     this.onPeerConnect = options.onPeerConnect;
     this.onPeerDisconnect = options.onPeerDisconnect;
@@ -70,8 +94,14 @@ export class GameRoomManager {
     this.onPlayerListChange = options.onPlayerListChange;
     this.onReconnecting = options.onReconnecting;
     this.onReconnected = options.onReconnected;
+    this.onHostMigrated = options.onHostMigrated;
+    this.onConnectionQualityChange = options.onConnectionQualityChange;
 
-    this.signaling = new SignalingChannel({
+    this.signaling = this.createSignalingChannel();
+  }
+
+  private createSignalingChannel(): SignalingChannel {
+    return new SignalingChannel({
       roomCode: this.roomCode,
       localPeerId: this.localPeerId,
       onOffer: (peerId, offer) => this.handleOffer(peerId, offer),
@@ -87,6 +117,8 @@ export class GameRoomManager {
     if (this.role !== "host") throw new Error("Only host can create room");
     await this.signaling.open();
     this.startHeartbeat();
+    this.startPingTimer();
+    this.startBatchTimer();
     return this.roomCode;
   }
 
@@ -96,6 +128,8 @@ export class GameRoomManager {
     this.signaling.setRoomCode(roomCode);
     await this.signaling.open();
     this.startHeartbeat();
+    this.startPingTimer();
+    this.startBatchTimer();
   }
 
   discoverRooms(): void {
@@ -208,6 +242,7 @@ export class GameRoomManager {
     const wasConnected = this.peers.has(peerId);
     this.peers.delete(peerId);
     this.lastSeen.delete(peerId);
+    this.pendingPings.delete(peerId);
 
     const player = this.players.find((p) => p.peerId === peerId);
     if (player) {
@@ -217,7 +252,12 @@ export class GameRoomManager {
     this.onPeerDisconnect?.(peerId);
     this.broadcastPlayerList();
 
-    if (wasConnected && this.role === "client") {
+    if (wasConnected && this.role === "client" && peerId === this.hostId) {
+      const migrated = this.tryMigrateHost();
+      if (!migrated) {
+        this.startReconnect(peerId);
+      }
+    } else if (wasConnected && this.role === "client") {
       this.startReconnect(peerId);
     }
   }
@@ -242,8 +282,17 @@ export class GameRoomManager {
       case "state":
       case "input":
       case "event":
+      case "state_batch":
+      case "host_migration":
+      case "quality":
+        this.onNetworkMessage?.(peerId, message);
+        break;
       case "ping":
+        this.sendTo(peerId, { type: "pong", timestamp: message.timestamp });
+        this.onNetworkMessage?.(peerId, message);
+        break;
       case "pong":
+        this.handlePong(peerId, message.timestamp);
         this.onNetworkMessage?.(peerId, message);
         break;
       case "heartbeat":
@@ -351,6 +400,114 @@ export class GameRoomManager {
     }, HEARTBEAT_INTERVAL);
   }
 
+  private startPingTimer(): void {
+    if (this.pingTimer) return;
+    this.pingTimer = setInterval(() => {
+      const now = Date.now();
+      for (const peerId of this.peers.keys()) {
+        this.pendingPings.set(peerId, { peerId, timestamp: now });
+        this.sendTo(peerId, { type: "ping", timestamp: now });
+      }
+    }, PING_INTERVAL);
+  }
+
+  private handlePong(peerId: string, timestamp: number): void {
+    const pending = this.pendingPings.get(peerId);
+    if (!pending || pending.timestamp !== timestamp) return;
+    const rtt = Date.now() - timestamp;
+    const latency = Math.round(rtt / 2);
+    this.updatePeerLatency(peerId, latency, rtt);
+    this.pendingPings.delete(peerId);
+  }
+
+  private updatePeerLatency(peerId: string, latency: number, rtt: number): void {
+    const player = this.players.find((p) => p.peerId === peerId);
+    if (player) {
+      player.latency = latency;
+    }
+
+    const score: ConnectionQuality["score"] = rtt < 100 ? "good" : rtt < 250 ? "fair" : "poor";
+    const quality: ConnectionQuality = {
+      rtt,
+      packetLoss: 0,
+      jitter: 0,
+      score,
+    };
+    this.connectionQuality.set(peerId, quality);
+    this.onConnectionQualityChange?.(peerId, quality);
+  }
+
+  getConnectionQuality(peerId: string): ConnectionQuality {
+    return (
+      this.connectionQuality.get(peerId) ?? {
+        rtt: 0,
+        packetLoss: 0,
+        jitter: 0,
+        score: "unknown",
+      }
+    );
+  }
+
+  private startBatchTimer(): void {
+    if (this.batchTimer) return;
+    this.batchTimer = setInterval(() => this.flushBatchedState(), this.batchInterval);
+  }
+
+  queueBatchedState(state: SerializedGameState, frame: number): void {
+    if (this.role !== "host") return;
+    this.stateBatchQueue.push(state);
+    this.stateBatchFrames.push(frame);
+    if (this.stateBatchQueue.length >= MAX_BATCH_SIZE) {
+      this.flushBatchedState();
+    }
+  }
+
+  flushBatchedState(): void {
+    if (this.role !== "host" || this.stateBatchQueue.length === 0) return;
+    const message: NetworkMessage = {
+      type: "state_batch",
+      states: [...this.stateBatchQueue],
+      frameStart: this.stateBatchFrames[0] ?? 0,
+      frameEnd: this.stateBatchFrames[this.stateBatchFrames.length - 1] ?? 0,
+      timestamp: Date.now(),
+    };
+    this.broadcast(message);
+    this.stateBatchQueue.length = 0;
+    this.stateBatchFrames.length = 0;
+  }
+
+  private tryMigrateHost(): boolean {
+    const candidates = [this.localPeerId, ...this.players.map((p) => p.peerId)].filter(
+      (id) => id !== this.hostId
+    );
+    candidates.sort();
+
+    if (candidates.length === 0) return false;
+
+    const newHostId = candidates[0];
+    if (newHostId === this.localPeerId) {
+      this.promoteToHost();
+      return true;
+    }
+
+    return false;
+  }
+
+  private promoteToHost(): void {
+    this.role = "host";
+    this.hostId = this.localPeerId;
+    this.signaling.close();
+    this.signaling = this.createSignalingChannel();
+    this.signaling.open().catch((err) => this.onError?.(err));
+    this.broadcast({
+      type: "host_migration",
+      newHostId: this.localPeerId,
+      newHostPeerId: this.localPeerId,
+      timestamp: Date.now(),
+    });
+    this.onHostMigrated?.(this.localPeerId);
+  }
+
   private startReconnect(peerId: string): void {
     if (this.reconnectStates.has(peerId)) return;
 
@@ -362,28 +519,42 @@ export class GameRoomManager {
     };
     this.reconnectStates.set(peerId, state);
     this.onReconnecting?.(peerId);
+    this.scheduleReconnectAttempt(state);
+  }
 
-    state.timer = setInterval(() => {
-      state.attempts++;
-      if (state.attempts > MAX_RECONNECT_ATTEMPTS) {
-        this.clearReconnectTimer(state);
-        this.reconnectStates.delete(peerId);
-        this.onError?.(new Error("断线重连失败，已超过最大尝试次数"));
-        return;
-      }
-      this.broadcast({
-        type: "reconnect",
-        peerId: this.localPeerId,
-        playerName: this.playerName,
-        timestamp: Date.now(),
-      });
-      this.onReconnecting?.(peerId);
-    }, RECONNECT_INTERVAL);
+  private scheduleReconnectAttempt(state: ReconnectState): void {
+    if (state.attempts >= MAX_RECONNECT_ATTEMPTS) {
+      this.reconnectStates.delete(state.peerId);
+      this.onError?.(new Error("断线重连失败，已超过最大尝试次数"));
+      return;
+    }
+
+    const delay = RECONNECT_BASE_INTERVAL * Math.pow(2, state.attempts);
+    state.timer = setTimeout(() => this.attemptReconnect(state), delay);
+  }
+
+  private attemptReconnect(state: ReconnectState): void {
+    state.attempts++;
+    if (state.attempts > MAX_RECONNECT_ATTEMPTS) {
+      this.clearReconnectTimer(state);
+      this.reconnectStates.delete(state.peerId);
+      this.onError?.(new Error("断线重连失败，已超过最大尝试次数"));
+      return;
+    }
+
+    this.broadcast({
+      type: "reconnect",
+      peerId: this.localPeerId,
+      playerName: this.playerName,
+      timestamp: Date.now(),
+    });
+    this.onReconnecting?.(state.peerId);
+    this.scheduleReconnectAttempt(state);
   }
 
   private clearReconnectTimer(state: ReconnectState): void {
     if (state.timer) {
-      clearInterval(state.timer);
+      clearTimeout(state.timer);
       state.timer = null;
     }
   }
@@ -429,15 +600,49 @@ export class GameRoomManager {
     return this.role === "host";
   }
 
+  getRoomState(): {
+    roomCode: string;
+    hostId: string;
+    players: NetworkPlayer[];
+    maxPlayers: number;
+    status: "lobby" | "starting" | "playing";
+    seed: number;
+    mode: GameModeType;
+    localPeerId: string;
+    role: NetworkRole;
+  } {
+    return {
+      roomCode: this.roomCode,
+      hostId: this.hostId,
+      players: [...this.players],
+      maxPlayers: this.maxPlayers,
+      status: "lobby",
+      seed: 0,
+      mode: "campaign",
+      localPeerId: this.localPeerId,
+      role: this.role,
+    };
+  }
+
   close(): void {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
+    if (this.pingTimer) {
+      clearInterval(this.pingTimer);
+      this.pingTimer = null;
+    }
+    if (this.batchTimer) {
+      clearInterval(this.batchTimer);
+      this.batchTimer = null;
+    }
     for (const state of this.reconnectStates.values()) {
       this.clearReconnectTimer(state);
     }
     this.reconnectStates.clear();
+    this.pendingPings.clear();
+    this.connectionQuality.clear();
     this.peers.forEach((peer) => peer.close());
     this.peers.clear();
     this.players = [];

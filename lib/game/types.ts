@@ -1,3 +1,7 @@
+import type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom } from "@/lib/network/types";
+
+export type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom };
+
 export interface Vec2 {
   x: number;
   y: number;
@@ -19,9 +23,17 @@ export type GameStatus =
 
 export type GameModeType = "campaign" | "endless" | "daily" | "roguelike" | "defense";
 
-export type MissionType = "eliminate" | "survive" | "collect" | "rescue" | "extract";
+export type MissionType =
+  | "eliminate"
+  | "survive"
+  | "collect"
+  | "rescue"
+  | "extract"
+  | "defendCore"
+  | "captureNodes"
+  | "surviveTimer";
 
-export type HeroId = "scout" | "assault" | "medic" | "engineer";
+export type HeroId = "scout" | "assault" | "medic" | "engineer" | "vanguard";
 
 export interface HeroSkill {
   id: string;
@@ -93,6 +105,7 @@ export interface DefenseState {
   totalWaves: number;
   waveTimer: number;
   breakTimer: number;
+  spawnTimer?: number;
   waveInProgress: boolean;
   waves: DefenseWave[];
   deployables: Deployable[];
@@ -111,7 +124,25 @@ export interface Mission {
   elapsed: number;
 }
 
-export type WeaponId = "pulse" | "shotgun" | "laser" | "rocket" | "flame" | "drone";
+export type WeaponId =
+  | "pulse"
+  | "shotgun"
+  | "laser"
+  | "rocket"
+  | "flame"
+  | "drone"
+  | "plasma"
+  | "railgun"
+  | "swarm"
+  | "gauss"
+  | "arcCaster"
+  | "cryoLauncher"
+  | "plasmaBlade"
+  | "naniteSwarm"
+  | "gravityWell"
+  | "vortexCannon"
+  | "seekerRifle"
+  | "shardRepeater";
 
 export interface Weapon {
   id: WeaponId;
@@ -130,6 +161,14 @@ export interface Weapon {
   description: string;
   areaRadius?: number;
   burnDuration?: number;
+  chainCount?: number;
+  chainRange?: number;
+  freezeDuration?: number;
+  gravityRadius?: number;
+  pullStrength?: number;
+  homing?: boolean;
+  isMelee?: boolean;
+  swarmCount?: number;
 }
 
 export type PassiveId =
@@ -169,6 +208,8 @@ export interface Player {
   heroId: HeroId | null;
   activeSkill: HeroSkill | null;
   skillTimer: number;
+  // Deployable upgrade progression (talent-purchased permanent ranks)
+  deployableUpgrades: Record<string, number>;
   // Transient state
   knockbackX: number;
   knockbackY: number;
@@ -179,8 +220,6 @@ export interface Player {
   animation: SpriteAnimationState;
   animationTimer: number;
 }
-
-
 
 export type AffixId =
   | "shielded"
@@ -202,9 +241,29 @@ export type EnemyVariant =
   | "drone"
   | "sentinel"
   | "crusher"
-  | "sniper";
+  | "sniper"
+  | "stalker"
+  | "shielder"
+  | "harvester"
+  | "artillery"
+  | "disruptor"
+  | "scorcher"
+  | "bomber"
+  | "leech"
+  | "constructor"
+  | "raptor";
 
-export type BossId = "overlord" | "plaguebringer" | "titan" | "ravager" | "siren" | "colossus";
+export type BossId =
+  | "overlord"
+  | "plaguebringer"
+  | "titan"
+  | "ravager"
+  | "siren"
+  | "colossus"
+  | "dreadnought"
+  | "juggernaut"
+  | "annihilator"
+  | "hive";
 
 export interface Affix {
   id: AffixId;
@@ -290,6 +349,15 @@ export interface Projectile {
   burnDuration?: number;
   burnDamage?: number;
   isExplosive?: boolean;
+  chainCount?: number;
+  chainRange?: number;
+  freezeDuration?: number;
+  gravityRadius?: number;
+  pullStrength?: number;
+  homing?: boolean;
+  homingTarget?: string;
+  isMelee?: boolean;
+  swarmCount?: number;
 }
 
 export interface EnemyProjectile {
@@ -368,7 +436,7 @@ export interface Hazard {
   type: "acid" | "electric";
 }
 
-export type MapTheme = "industrial" | "frozen" | "biohazard";
+export type MapTheme = "industrial" | "frozen" | "biohazard" | "wasteland" | "orbital";
 
 export interface MapConfig {
   width: number;
@@ -378,9 +446,12 @@ export interface MapConfig {
   hazards: Hazard[];
 }
 
+export type GameEventType =
+  "airdrop" | "horde" | "eliteHunt" | "supply" | "empPulse" | "mechReinforcement" | "coreOverload";
+
 export interface GameEvent {
   id: string;
-  type: "airdrop" | "horde" | "eliteHunt" | "supply";
+  type: GameEventType;
   title: string;
   description: string;
   active: boolean;
@@ -388,6 +459,31 @@ export interface GameEvent {
   duration: number;
   x?: number;
   y?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface HeroTalent {
+  id: string;
+  name: string;
+  description: string;
+  maxLevel: number;
+  modifiers: {
+    damageMul?: number;
+    cooldownMul?: number;
+    rangeMul?: number;
+    areaMul?: number;
+    critAdd?: number;
+    armorAdd?: number;
+    regenAdd?: number;
+    speedMul?: number;
+    healthMul?: number;
+    skillDurationMul?: number;
+    deployableDamageMul?: number;
+    deployableHealthMul?: number;
+    deployableRangeMul?: number;
+    deployableCooldownMul?: number;
+    deployableDurationMul?: number;
+  };
 }
 
 export interface InputState {
@@ -487,7 +583,17 @@ export interface RunResult {
 }
 
 // Sprite / animation types
-export type SpriteAnimationState = "idle" | "move" | "attack" | "hit" | "death";
+export type SpriteAnimationState =
+  | "idle"
+  | "move"
+  | "attack"
+  | "hit"
+  | "death"
+  | "charge"
+  | "stun"
+  | "deploy"
+  | "recoil"
+  | "overheat";
 
 export interface SpriteFrame {
   x: number;
@@ -515,48 +621,7 @@ export interface RenderableEntity {
   color?: string;
 }
 
-// Networking types
-export type NetworkRole = "host" | "client";
-
-export type NetworkMessage =
-  | { type: "hello"; peerId: string; playerName: string; timestamp: number }
-  | { type: "state"; state: SerializedGameState; timestamp: number; frame: number }
-  | { type: "input"; input: InputState; timestamp: number; frame: number }
-  | { type: "ready"; peerId: string; ready: boolean }
-  | { type: "start"; seed: number; mode: GameModeType; timestamp: number }
-  | { type: "event"; event: string; data: unknown }
-  | { type: "ping"; timestamp: number }
-  | { type: "pong"; timestamp: number }
-  | { type: "heartbeat"; peerId: string; timestamp: number }
-  | { type: "reconnect"; peerId: string; playerName: string; timestamp: number }
-  | { type: "player_list"; players: NetworkPlayer[]; timestamp: number }
-  | { type: "kick"; peerId: string; reason: string; timestamp: number }
-  | { type: "discovery"; roomCode: string; hostId: string; playerName: string; timestamp: number }
-  | {
-      type: "discovery_response";
-      roomCode: string;
-      hostId: string;
-      playerName: string;
-      timestamp: number;
-    };
-
-export interface NetworkPlayer {
-  peerId: string;
-  playerName: string;
-  ready: boolean;
-  latency: number;
-  lastInputFrame: number;
-}
-
-export interface GameRoom {
-  roomCode: string;
-  hostId: string;
-  players: NetworkPlayer[];
-  maxPlayers: number;
-  status: "lobby" | "starting" | "playing";
-  seed: number;
-  mode: GameModeType;
-}
+// Networking types are re-exported from @/lib/network/types
 
 export interface SerializedGameState {
   status: GameStatus;

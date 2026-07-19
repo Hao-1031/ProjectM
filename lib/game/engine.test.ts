@@ -247,6 +247,53 @@ describe("GameEngine", () => {
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThanOrEqual(3);
     });
+
+    it("runner is faster than walker", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine["spawnEnemy"]("runner", false);
+      engine["spawnEnemy"]("walker", false);
+      const runner = engine.state.enemies.find((e) => e.variant === "runner")!;
+      const walker = engine.state.enemies.find((e) => e.variant === "walker")!;
+      expect(runner.speed).toBeGreaterThan(walker.speed);
+    });
+
+    it("tank is larger and healthier than walker", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine["spawnEnemy"]("tank", false);
+      engine["spawnEnemy"]("walker", false);
+      const tank = engine.state.enemies.find((e) => e.variant === "tank")!;
+      const walker = engine.state.enemies.find((e) => e.variant === "walker")!;
+      expect(tank.radius).toBeGreaterThan(walker.radius);
+      expect(tank.maxHealth).toBeGreaterThan(walker.maxHealth);
+      expect(tank.damage).toBeGreaterThan(walker.damage);
+    });
+
+    it("walker is melee and has no attack cooldown", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine["spawnEnemy"]("walker", false);
+      const walker = engine.state.enemies.find((e) => e.variant === "walker")!;
+      expect(walker.attackCooldown).toBe(0);
+    });
+
+    it("elite enemy receives affixes and increased stats", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine.state.difficulty = 10;
+      engine["spawnEnemy"]("runner", true);
+      const elite = engine.state.enemies[engine.state.enemies.length - 1];
+      engine["spawnEnemy"]("runner", false);
+      const normal = engine.state.enemies[engine.state.enemies.length - 1];
+      expect(elite.isElite).toBe(true);
+      expect(elite.affixes.length).toBeGreaterThan(0);
+      expect(elite.maxHealth).toBeGreaterThan(normal.maxHealth);
+    });
   });
 
   describe("environment", () => {
@@ -350,7 +397,9 @@ describe("GameEngine", () => {
 
       // Player should remain roughly outside the obstacle on the right side and be able to move.
       expect(engine.state.player.x).toBeGreaterThanOrEqual(obstacle.x + obstacle.width / 2 - 1);
-      expect(engine.state.player.x).toBeLessThanOrEqual(obstacle.x + obstacle.width / 2 + engine.state.player.radius + 2);
+      expect(engine.state.player.x).toBeLessThanOrEqual(
+        obstacle.x + obstacle.width / 2 + engine.state.player.radius + 2
+      );
     });
 
     it("hazard damages player over time", () => {

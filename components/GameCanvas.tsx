@@ -8,16 +8,20 @@ import type {
   GameModeType,
   NetworkPlayer,
   NetworkMessage,
+  BossId,
 } from "@/lib/game/types";
 import type { RoguelikeRewardBalance } from "@/lib/game/balance";
 import { useAppStore } from "@/lib/store";
 import { recordRun } from "@/lib/game/save";
+import { getBossTemplate } from "@/lib/game/bosses";
 import { GameRoomManager } from "@/lib/network/room";
 import UpgradeModal from "./UpgradeModal";
 import RoguelikeRewardModal from "./RoguelikeRewardModal";
 import Hud from "./Hud";
 import RunEndModal from "./RunEndModal";
 import MultiplayerLobby from "./MultiplayerLobby";
+import NotificationToast, { type GameNotification } from "./game/NotificationToast";
+import WaveAnnouncement, { type WavePhase } from "./game/WaveAnnouncement";
 
 interface GameCanvasProps {
   onExit?: () => void;
@@ -54,7 +58,26 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameModeType>("campaign");
+  const [notifications, setNotifications] = useState<GameNotification[]>([]);
+  const [waveAnnouncement, setWaveAnnouncement] = useState<{
+    visible: boolean;
+    wave: number;
+    phase: WavePhase;
+    bossName?: string;
+  }>({ visible: false, wave: 0, phase: "incoming" });
   const settings = useAppStore((s) => s.settings);
+  const prevWaveRef = useRef<number | null>(null);
+  const prevWaveInProgressRef = useRef<boolean | null>(null);
+  const prevBossRef = useRef<boolean>(false);
+
+  const addNotification = useCallback((notification: Omit<GameNotification, "id">) => {
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setNotifications((prev) => [...prev, { ...notification, id }]);
+  }, []);
+
+  const dismissNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
 
   useEffect(() => {
     audio?.setEnabled(settings.audioEnabled);
@@ -128,6 +151,75 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         engine.draw(ctx);
       }
 
+      // Defense mode notifications and announcements
+      const ds = engine.state.defenseState;
+      if (ds) {
+        const waveChanged = prevWaveRef.current !== ds.currentWave;
+        const progressChanged = prevWaveInProgressRef.current !== ds.waveInProgress;
+        const hasBoss = engine.state.enemies.some((e) => e.isBoss);
+        const corePct = ds.core.health / ds.core.maxHealth;
+
+        if (waveChanged && ds.waveInProgress) {
+          const isBossWave = ds.currentWave === ds.totalWaves - 1;
+          setWaveAnnouncement({
+            visible: true,
+            wave: ds.currentWave + 1,
+            phase: isBossWave ? "boss" : "incoming",
+            bossName: isBossWave ? "巨像" : undefined,
+          });
+          addNotification({
+            title: `第 ${ds.currentWave + 1} 波开始`,
+            message: isBossWave ? "侦测到首领级信号" : "敌潮已接近防线",
+            variant: isBossWave ? "danger" : "warning",
+            icon: isBossWave ? "danger" : "warning",
+            durationMs: 3000,
+          });
+        }
+
+        if (progressChanged && !ds.waveInProgress && prevWaveInProgressRef.current === true) {
+          setWaveAnnouncement({
+            visible: true,
+            wave: ds.currentWave + 1,
+            phase: "cleared",
+          });
+          addNotification({
+            title: "波次肃清",
+            message: "补给窗口已开启",
+            variant: "success",
+            icon: "success",
+            durationMs: 3000,
+          });
+        }
+
+        if (hasBoss && !prevBossRef.current) {
+          const boss = engine.state.enemies.find((e) => e.isBoss);
+          const bossName = boss
+            ? (getBossTemplate(boss.variant as BossId)?.name ?? boss.variant)
+            : "首领";
+          addNotification({
+            title: "首领出现",
+            message: `${bossName} 进入战场`,
+            variant: "danger",
+            icon: "danger",
+            durationMs: 4000,
+          });
+        }
+
+        if (corePct <= 0.25 && (prevWaveRef.current !== ds.currentWave || Math.random() < 0.005)) {
+          addNotification({
+            title: "核心危急",
+            message: "核心耐久低于 25%",
+            variant: "danger",
+            icon: "shield",
+            durationMs: 2500,
+          });
+        }
+
+        prevWaveRef.current = ds.currentWave;
+        prevWaveInProgressRef.current = ds.waveInProgress;
+        prevBossRef.current = hasBoss;
+      }
+
       const intensity =
         engine.state.enemies.length / 25 +
         (1 - engine.state.player.health / engine.state.player.maxHealth) * 0.4;
@@ -161,7 +253,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       input.unbind();
       roomRef.current?.close();
     };
-  }, [settings.vibrationEnabled]);
+  }, [settings.vibrationEnabled, addNotification]);
 
   useEffect(() => {
     if (!multiplayer) return;
@@ -333,6 +425,13 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setFrame((f) => f + 1);
   }, []);
 
+  const handleUseSkill = useCallback(() => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.useHeroSkill();
+    setFrame((f) => f + 1);
+  }, []);
+
   const handleUpgrade = useCallback((option: UpgradeOption) => {
     engineRef.current?.selectUpgrade(option);
     setUpgradeOptions(null);
@@ -359,6 +458,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   const status = engine?.state.status ?? "idle";
   const paused = status === "paused";
   const isTouch = typeof window !== "undefined" && "ontouchstart" in window;
+  const ds = engine?.state.defenseState;
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-background">
@@ -375,8 +475,24 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           paused={paused}
           onPauseToggle={handlePauseToggle}
           extractionTimer={engine.state.extractionTimer}
+          onUseSkill={handleUseSkill}
         />
       )}
+
+      <NotificationToast
+        notifications={notifications}
+        onDismiss={dismissNotification}
+        position="top-right"
+      />
+
+      <WaveAnnouncement
+        wave={waveAnnouncement.wave}
+        totalWaves={ds?.totalWaves}
+        phase={waveAnnouncement.phase}
+        bossName={waveAnnouncement.bossName}
+        visible={waveAnnouncement.visible}
+        onComplete={() => setWaveAnnouncement((prev) => ({ ...prev, visible: false }))}
+      />
 
       {multiplayer && (
         <button

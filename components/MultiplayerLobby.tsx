@@ -51,7 +51,12 @@ const MODES: { id: GameModeType; name: string; description: string; icon: typeof
   { id: "campaign", name: "战役撤离", description: "完成 4 项任务后抵达撤离点", icon: Target },
   { id: "endless", name: "无尽生存", description: "无限波次，挑战极限存活时间", icon: Infinity },
   { id: "daily", name: "每日挑战", description: "固定种子与每日修饰符", icon: Calendar },
-  { id: "roguelike", name: "Roguelike", description: "分阶段推进，选择奖励节点", icon: TreeStructure },
+  {
+    id: "roguelike",
+    name: "Roguelike",
+    description: "分阶段推进，选择奖励节点",
+    icon: TreeStructure,
+  },
 ];
 
 const TABS = [
@@ -86,7 +91,8 @@ export default function MultiplayerLobby({
   const [localReady, setLocalReady] = useState(false);
 
   useEffect(() => {
-    const saved = typeof localStorage !== "undefined" ? localStorage.getItem("pm_player_name") : null;
+    const saved =
+      typeof localStorage !== "undefined" ? localStorage.getItem("pm_player_name") : null;
     if (saved) setPlayerName(saved);
   }, []);
 
@@ -361,7 +367,11 @@ export default function MultiplayerLobby({
                 onClick={handleCopyInvite}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs transition-colors hover:border-primary/40 hover:text-primary focus-ring active:scale-95"
               >
-                {copied ? <Check size={14} weight="bold" className="text-success" /> : <Copy size={14} weight="bold" />}
+                {copied ? (
+                  <Check size={14} weight="bold" className="text-success" />
+                ) : (
+                  <Copy size={14} weight="bold" />
+                )}
                 {copied ? "已复制" : "复制邀请"}
               </button>
             </div>

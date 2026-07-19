@@ -255,11 +255,11 @@ pm2 monit               # 资源监控
 
 在阿里云 ECS 控制台 > 安全组规则中放行：
 
-| 类型 | 端口 | 授权对象 |
-| ---- | ---- | -------- |
+| 类型       | 端口 | 授权对象            |
+| ---------- | ---- | ------------------- |
 | 自定义 TCP | 3000 | 0.0.0.0/0 或指定 IP |
-| 自定义 TCP | 80 | 0.0.0.0/0 |
-| 自定义 TCP | 443 | 0.0.0.0/0 |
+| 自定义 TCP | 80   | 0.0.0.0/0           |
+| 自定义 TCP | 443  | 0.0.0.0/0           |
 
 #### 5.2 UFW
 
@@ -384,6 +384,333 @@ pm2 set pm2-logrotate:retain 10
 - 检查端口是否监听：`ss -tlnp | grep 3000`
 - 检查 Nginx 配置：`nginx -t`
 
+#### 9.5 深度排错（Ubuntu 22.04）
+
+**PM2 状态为 `errored`**
+
+```bash
+pm2 logs project-m --lines 100
+pm2 describe project-m
+```
+
+常见原因与修复：
+
+- `.next/standalone/server.js` 不存在：未成功执行 `pnpm build`，或 `next.config.mjs` 未设置 `output: "standalone"`。
+- 权限不足：确认 `/var/www/project-m` 归运行用户所有。
+
+  ```bash
+  chown -R $USER:$USER /var/www/project-m
+  ```
+
+- Node 版本不对：Ubuntu 默认源可能安装 Node 12。使用 Nodesource 20.x 重新安装。
+
+  ```bash
+  node -v
+  # 应输出 v20.x.x
+  ```
+
+**进程被 OOM Killer 终止**
+
+```bash
+dmesg -T | grep -i "killed process"
+```
+
+若看到 `Out of memory: Killed process ... (node)`，说明物理内存不足。建议：
+
+1. 添加 2-4 GB Swap：
+
+   ```bash
+   fallocate -l 4G /swapfile
+   chmod 600 /swapfile
+   mkswap /swapfile
+   swapon /swapfile
+   echo '/swapfile none swap sw 0 0' >> /etc/fstab
+   ```
+
+2. 降低 Node 堆内存上限，或在 `ecosystem.config.cjs` 中限制 `max_memory_restart`。
+
+**文件描述符耗尽**
+
+大量并发连接或日志文件未轮转可能导致 `EMFILE` 错误：
+
+```bash
+ulimit -n
+# 若小于 65535，修改 /etc/security/limits.conf
+```
+
+```text
+* soft nofile 65535
+* hard nofile 65535
+```
+
+同时提升 inotify 监听上限：
+
+```bash
+echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
+sysctl -p
+```
+
+**端口被占用**
+
+```bash
+ss -tlnp | grep :3000
+# 或
+lsof -i :3000
+```
+
+终止占用进程后重新启动 PM2：
+
+```bash
+pm2 restart project-m
+```
+
+**构建卡在 `Collecting build traces ...`**
+
+本地未配置 Sentry 时通常不会卡住，但若遇到，可清理缓存：
+
+```bash
+rm -rf .next
+SENTRY_AUTH_TOKEN="" pnpm build
+```
+
+**HTTPS 证书续期失败**
+
+```bash
+certbot renew --dry-run
+```
+
+若 80 端口被占用，先停止 Nginx 或临时释放端口：
+
+```bash
+systemctl stop nginx
+certbot renew
+systemctl start nginx
+```
+
+#### 9.6 性能调优（Ubuntu 22.04）
+
+**Node.js 运行时调优**
+
+在 `ecosystem.config.cjs` 中为应用增加 Node 参数：
+
+```js
+node_args: "--max-old-space-size=4096 --optimize-for-size",
+```
+
+对于 2 GB 内存服务器，建议设置为 `--max-old-space-size=1536`；4 GB 服务器可设置为 3072-4096。
+
+**PM2 配置优化**
+
+- `max_memory_restart` 建议设置为物理内存的 60%-70%。
+- `restart_delay` 在崩溃后避免抖动重启。
+- `min_uptime` 确保应用在 10 秒内稳定运行，否则视为启动失败。
+
+已提供的 `ecosystem.config.cjs` 已包含这些默认值，可根据服务器规格调整。
+
+**Nginx 性能优化**
+
+在 `/etc/nginx/nginx.conf` 的 `http` 块中启用 gzip/brotli 与静态缓存：
+
+```nginx
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+
+# 若已安装 ngx_brotli
+brotli on;
+brotli_comp_level 6;
+brotli_types text/plain text/css application/javascript application/json;
+
+# 静态资源长期缓存
+location /_next/static {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+
+location /static {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+**系统级优化**
+
+```bash
+# 降低 swap 使用倾向，避免游戏进程被换出
+sysctl vm.swappiness=10
+echo "vm.swappiness=10" >> /etc/sysctl.conf
+
+# 开启 TCP BBR（Ubuntu 22.04 默认已启用）
+sysctl net.ipv4.tcp_congestion_control
+```
+
+**Next.js 构建优化**
+
+- 生产构建使用 `pnpm build`，不要带 `NODE_ENV=development`。
+- 确保 `public/icon-192.png` 与 `public/icon-512.png` 已生成，否则 PWA 资源缺失会导致额外网络请求。
+- 未配置 Sentry 时，`next.config.mjs` 会自动跳过 sourcemap 上传，避免构建等待。
+
+#### 9.7 备份与恢复
+
+**每日自动备份脚本**
+
+创建 `/var/backups/project-m/backup.sh`：
+
+```bash
+#!/bin/bash
+set -e
+
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/var/backups/project-m"
+SOURCE="/var/www/project-m"
+KEEP_DAYS=14
+
+mkdir -p "$BACKUP_DIR"
+
+tar czf "$BACKUP_DIR/project-m_$DATE.tar.gz" \
+  --exclude="$SOURCE/node_modules" \
+  --exclude="$SOURCE/.next" \
+  --exclude="$SOURCE/.git/objects" \
+  -C /var/www project-m
+
+# 备份关键环境文件（如已存在）
+cp "$SOURCE/.env.local" "$BACKUP_DIR/env_$DATE.local" 2>/dev/null || true
+cp "$SOURCE/ecosystem.config.cjs" "$BACKUP_DIR/ecosystem_$DATE.cjs" 2>/dev/null || true
+
+# 保留最近 14 天
+find "$BACKUP_DIR" -type f -mtime +$KEEP_DAYS -delete
+```
+
+赋予执行权限并加入 cron：
+
+```bash
+chmod +x /var/backups/project-m/backup.sh
+crontab -e
+```
+
+```text
+0 3 * * * /var/backups/project-m/backup.sh >> /var/log/project-m-backup.log 2>&1
+```
+
+**恢复到上一版本**
+
+```bash
+# 停止应用
+pm2 stop project-m
+
+# 解压备份
+cd /var/www
+tar xzf /var/backups/project-m/project-m_YYYYMMDD_HHMMSS.tar.gz
+
+# 恢复环境文件
+cp /var/backups/project-m/env_YYYYMMDD_HHMMSS.local /var/www/project-m/.env.local
+
+# 重新安装依赖并构建
+cd /var/www/project-m
+pnpm install --frozen-lockfile
+pnpm generate-icons
+pnpm build
+
+# 启动
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+```
+
+**异地备份（可选）**
+
+将备份目录同步到对象存储或另一台服务器：
+
+```bash
+rsync -avz --delete /var/backups/project-m/ user@backup-server:/backups/project-m/
+```
+
+或使用阿里云 OSS 工具 `ossutil`：
+
+```bash
+ossutil cp -r /var/backups/project-m/ oss://your-bucket/project-m-backups/
+```
+
+#### 9.8 监控与告警
+
+**PM2 日志管理**
+
+PM2 默认日志路径为 `/var/log/pm2/project-m/`。查看实时日志：
+
+```bash
+pm2 logs project-m
+pm2 logs project-m --lines 200
+```
+
+日志轮转：
+
+```bash
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 100M
+pm2 set pm2-logrotate:retain 20
+pm2 set pm2-logrotate:compress true
+pm2 save
+```
+
+**系统资源监控**
+
+```bash
+pm2 monit
+```
+
+或使用 `htop`、`vmstat`、`iostat`：
+
+```bash
+vmstat 1 10
+iostat -x 1 5
+```
+
+**基础健康检查脚本**
+
+创建 `/usr/local/bin/project-m-health.sh`：
+
+```bash
+#!/bin/bash
+URL="http://127.0.0.1:3000"
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+
+if [ "$STATUS" != "200" ]; then
+  echo "$(date) - Health check failed: HTTP $STATUS" >> /var/log/project-m-health.log
+  pm2 reload project-m
+else
+  echo "$(date) - OK" >> /var/log/project-m-health.log
+fi
+```
+
+加入 cron，每 5 分钟检查一次：
+
+```text
+*/5 * * * * /usr/local/bin/project-m-health.sh
+```
+
+**Sentry 告警**
+
+生产环境配置 `SENTRY_AUTH_TOKEN` 与 `NEXT_PUBLIC_SENTRY_DSN` 后，错误会自动上报到 Sentry。建议在 Sentry 中设置：
+
+- Issue Alert：当 5 分钟内出现超过 10 次相同错误时发送邮件或钉钉/飞书 webhook。
+- Metric Alert：当页面加载时间超过 3 秒或错误率超过 1% 时触发告警。
+
+**systemd 开机自启**
+
+执行 PM2 提供的 systemd 生成命令：
+
+```bash
+pm2 startup systemd
+```
+
+复制并执行输出的命令，然后：
+
+```bash
+pm2 save
+```
+
+这样服务器重启后，PM2 与 `project-m` 会自动启动。
+
 ### 10. 部署检查清单
 
 - [ ] Ubuntu 22.04 64 位已安装 Node.js 20 LTS、Git、pnpm、PM2
@@ -397,6 +724,9 @@ pm2 set pm2-logrotate:retain 10
 - [ ] HTTPS 证书已部署（如使用）
 - [ ] 浏览器可正常访问域名并进入游戏
 - [ ] 角色移动、障碍物碰撞、据点防守模式已验证
+- [ ] 已配置 Swap 与文件描述符限制
+- [ ] 已启用 PM2 日志轮转
+- [ ] 已配置每日自动备份
 
 ---
 

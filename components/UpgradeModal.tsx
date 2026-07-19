@@ -10,13 +10,37 @@ interface UpgradeModalProps {
 function typeMeta(type: UpgradeOption["type"]) {
   switch (type) {
     case "weapon":
-      return { label: "武器", Icon: Crosshair, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" };
+      return {
+        label: "武器",
+        Icon: Crosshair,
+        color: "text-primary",
+        bg: "bg-primary/10",
+        border: "border-primary/30",
+      };
     case "passive":
-      return { label: "被动", Icon: Shield, color: "text-success", bg: "bg-success/10", border: "border-success/30" };
+      return {
+        label: "被动",
+        Icon: Shield,
+        color: "text-success",
+        bg: "bg-success/10",
+        border: "border-success/30",
+      };
     case "heroTalent":
-      return { label: "天赋", Icon: Star, color: "text-accent", bg: "bg-accent/10", border: "border-accent/30" };
+      return {
+        label: "天赋",
+        Icon: Star,
+        color: "text-accent",
+        bg: "bg-accent/10",
+        border: "border-accent/30",
+      };
     default:
-      return { label: "属性", Icon: TrendUp, color: "text-foreground", bg: "bg-[var(--panel-raised)]", border: "border-border" };
+      return {
+        label: "属性",
+        Icon: TrendUp,
+        color: "text-foreground",
+        bg: "bg-[var(--panel-raised)]",
+        border: "border-border",
+      };
   }
 }
 
@@ -98,9 +122,7 @@ export default function UpgradeModal({ options, onSelect }: UpgradeModalProps) {
                   </div>
 
                   <h3
-                    className={`mt-4 font-bold ${
-                      isFeatured ? "text-xl md:text-2xl" : "text-lg"
-                    }`}
+                    className={`mt-4 font-bold ${isFeatured ? "text-xl md:text-2xl" : "text-lg"}`}
                   >
                     {option.name}
                   </h3>

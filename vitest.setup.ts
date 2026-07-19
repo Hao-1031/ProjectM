@@ -1,4 +1,41 @@
 import "@testing-library/jest-dom";
+import { useEffect } from "react";
+import { vi } from "vitest";
+
+class MockHowl {
+  private _playing = false;
+  play = vi.fn(() => {
+    this._playing = true;
+    return 0;
+  });
+  stop = vi.fn(() => {
+    this._playing = false;
+  });
+  pause = vi.fn();
+  playing = vi.fn(() => this._playing);
+  volume = vi.fn((value?: number) => (value === undefined ? 1 : undefined));
+  mute = vi.fn();
+  unload = vi.fn();
+  loop = vi.fn();
+  rate = vi.fn((value?: number) => (value === undefined ? 1 : undefined));
+  pos = vi.fn((x?: number, y?: number, z?: number) => {
+    if (x === undefined) return { x: 0, y: 0, z: 0 };
+    return undefined;
+  });
+  stereo = vi.fn((value?: number) => (value === undefined ? 0 : undefined));
+}
+
+const MockHowler = {
+  mute: vi.fn(),
+  volume: vi.fn(),
+  unload: vi.fn(),
+  pos: vi.fn(),
+};
+
+vi.mock("howler", () => ({
+  Howl: MockHowl,
+  Howler: MockHowler,
+}));
 
 class MockLocalStorage {
   private store = new Map<string, string>();
@@ -132,3 +169,91 @@ document.createElement = ((tagName: string, options?: ElementCreationOptions) =>
   }
   return originalCreateElement(tagName, options);
 }) as typeof document.createElement;
+
+interface MockTween {
+  fromTo: ReturnType<typeof vi.fn>;
+  to: ReturnType<typeof vi.fn>;
+  kill: ReturnType<typeof vi.fn>;
+  pause: ReturnType<typeof vi.fn>;
+  play: ReturnType<typeof vi.fn>;
+  restart: ReturnType<typeof vi.fn>;
+  reverse: ReturnType<typeof vi.fn>;
+  seek: ReturnType<typeof vi.fn>;
+  progress: ReturnType<typeof vi.fn>;
+}
+
+const mockTween: MockTween = {
+  fromTo: vi.fn(() => mockTween),
+  to: vi.fn(() => mockTween),
+  kill: vi.fn(),
+  pause: vi.fn(),
+  play: vi.fn(),
+  restart: vi.fn(),
+  reverse: vi.fn(),
+  seek: vi.fn(),
+  progress: vi.fn(),
+};
+
+vi.mock("gsap", () => ({
+  gsap: {
+    registerPlugin: vi.fn(),
+    to: vi.fn(() => mockTween),
+    fromTo: vi.fn(() => mockTween),
+    timeline: vi.fn(() => mockTween),
+    utils: {
+      toArray: vi.fn(() => []),
+    },
+  },
+}));
+
+vi.mock("gsap/ScrollTrigger", () => ({
+  ScrollTrigger: {
+    create: vi.fn(),
+    getAll: vi.fn(() => []),
+    killAll: vi.fn(),
+  },
+}));
+
+vi.mock("@gsap/react", () => ({
+  useGSAP: (fn: () => void) => {
+    useEffect(() => {
+      fn();
+    }, []);
+  },
+}));
+
+class MockIntersectionObserver implements IntersectionObserver {
+  root: Element | Document | null = null;
+  rootMargin = "0px";
+  thresholds: readonly number[] = [0];
+
+  constructor(private callback: IntersectionObserverCallback) {}
+
+  observe(target: Element): void {
+    this.callback(
+      [
+        {
+          target,
+          isIntersecting: true,
+          intersectionRatio: 1,
+          boundingClientRect: {} as DOMRectReadOnly,
+          intersectionRect: {} as DOMRectReadOnly,
+          rootBounds: null,
+          time: Date.now(),
+        },
+      ],
+      this
+    );
+  }
+
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+Object.defineProperty(globalThis, "IntersectionObserver", {
+  value: MockIntersectionObserver,
+  writable: true,
+});

@@ -1,6 +1,13 @@
 import { motion } from "framer-motion";
 import type { RoguelikeRewardBalance } from "@/lib/game/balance";
-import { Heartbeat, Sword, ShieldCheck, ShootingStar, Sparkle, CaretRight } from "@phosphor-icons/react";
+import {
+  Heartbeat,
+  Sword,
+  ShieldCheck,
+  ShootingStar,
+  Sparkle,
+  CaretRight,
+} from "@phosphor-icons/react";
 
 interface RoguelikeRewardModalProps {
   options: RoguelikeRewardBalance[];

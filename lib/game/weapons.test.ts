@@ -6,6 +6,7 @@ import {
   createRocketLauncher,
   createFlamethrower,
   createDroneSwarm,
+  WEAPON_CREATORS,
   getStarterWeapons,
   upgradeWeapon,
   generateUpgradeOptions,
@@ -34,12 +35,13 @@ const basePlayer = (): Player => ({
   critChance: 0,
   cooldownReduction: 0,
   areaMultiplier: 1,
-    regen: 0,
-    heroId: null,
-    activeSkill: null,
-    skillTimer: 0,
-    knockbackX: 0,
-    knockbackY: 0,
+  regen: 0,
+  heroId: null,
+  activeSkill: null,
+  skillTimer: 0,
+  deployableUpgrades: {},
+  knockbackX: 0,
+  knockbackY: 0,
   burnDuration: 0,
   burnDamage: 0,
   facing: 0,
@@ -263,6 +265,53 @@ describe("weapons", () => {
       };
       const next = applyUpgrade(basePlayer(), option);
       expect(next.speed).toBeCloseTo(260 * 1.06);
+    });
+  });
+
+  describe("additional weapon behavior", () => {
+    it("all weapon creators produce level 1 weapons", () => {
+      const ids = ["pulse", "shotgun", "laser", "rocket", "flame", "drone"] as const;
+      for (const id of ids) {
+        const weapon = WEAPON_CREATORS[id]();
+        expect(weapon.id).toBe(id);
+        expect(weapon.level).toBe(1);
+        expect(weapon.maxLevel).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it("drone swarm gains additional drones on upgrade", () => {
+      const drone = createDroneSwarm();
+      const upgraded = upgradeWeapon(drone);
+      expect(upgraded.count).toBeGreaterThan(drone.count);
+    });
+
+    it("laser gains additional pierce on upgrade", () => {
+      const laser = createLaser();
+      const upgraded = upgradeWeapon(laser);
+      expect(upgraded.pierce).toBeGreaterThan(laser.pierce);
+    });
+
+    it("rocket launcher damage and area radius increase on upgrade", () => {
+      const rocket = createRocketLauncher();
+      const upgraded = upgradeWeapon(rocket);
+      expect(upgraded.damage).toBeGreaterThan(rocket.damage);
+      expect(upgraded.areaRadius ?? 0).toBeGreaterThan(rocket.areaRadius ?? 0);
+    });
+
+    it("flamethrower burn duration increases on upgrade", () => {
+      const flame = createFlamethrower();
+      const upgraded = upgradeWeapon(flame);
+      expect(upgraded.burnDuration ?? 0).toBeGreaterThan(flame.burnDuration ?? 0);
+    });
+
+    it("upgrading at max level keeps weapon at max level", () => {
+      let weapon = createPulseRifle();
+      for (let i = 1; i < weapon.maxLevel; i++) {
+        weapon = upgradeWeapon(weapon);
+      }
+      expect(weapon.level).toBe(weapon.maxLevel);
+      const atMax = upgradeWeapon(weapon);
+      expect(atMax.level).toBe(weapon.maxLevel);
     });
   });
 });

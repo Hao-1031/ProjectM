@@ -117,7 +117,11 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
 
         <section>
           <div className="flex items-center gap-2">
-            <Vibrate size={18} weight="bold" className={settings.vibrationEnabled ? "text-success" : "text-muted"} />
+            <Vibrate
+              size={18}
+              weight="bold"
+              className={settings.vibrationEnabled ? "text-success" : "text-muted"}
+            />
             <h3 className="text-sm font-semibold">震动反馈</h3>
           </div>
           <p className="mt-1 text-xs text-muted">受击、任务完成与撤离就绪时震动</p>
@@ -145,7 +149,9 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             <PersonSimpleRun size={18} weight="bold" className="text-warning" />
             <h3 className="text-sm font-semibold">减少动画</h3>
           </div>
-          <p className="mt-1 text-xs text-muted">弱化界面转场，并尊重系统 prefers-reduced-motion 设置</p>
+          <p className="mt-1 text-xs text-muted">
+            弱化界面转场，并尊重系统 prefers-reduced-motion 设置
+          </p>
           <button
             type="button"
             onClick={() => setReducedMotion(!settings.reducedMotion)}
@@ -184,7 +190,9 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm font-bold ${settings.graphicsQuality === q.value ? "text-primary" : "text-foreground"}`}>
+                  <span
+                    className={`text-sm font-bold ${settings.graphicsQuality === q.value ? "text-primary" : "text-foreground"}`}
+                  >
                     {q.label}
                   </span>
                   {settings.graphicsQuality === q.value && (

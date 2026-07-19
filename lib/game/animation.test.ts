@@ -53,6 +53,27 @@ function createSheet(): SpriteSheet {
         { x: 128, y: 256, width: 64, height: 64 },
         { x: 192, y: 256, width: 64, height: 64 },
       ],
+      charge: [
+        { x: 0, y: 320, width: 64, height: 64 },
+        { x: 64, y: 320, width: 64, height: 64 },
+      ],
+      stun: [
+        { x: 0, y: 384, width: 64, height: 64 },
+        { x: 64, y: 384, width: 64, height: 64 },
+      ],
+      deploy: [
+        { x: 0, y: 448, width: 64, height: 64 },
+        { x: 64, y: 448, width: 64, height: 64 },
+        { x: 128, y: 448, width: 64, height: 64 },
+      ],
+      recoil: [
+        { x: 0, y: 512, width: 64, height: 64 },
+        { x: 64, y: 512, width: 64, height: 64 },
+      ],
+      overheat: [
+        { x: 0, y: 576, width: 64, height: 64 },
+        { x: 64, y: 576, width: 64, height: 64 },
+      ],
     },
   };
 }

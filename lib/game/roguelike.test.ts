@@ -41,6 +41,7 @@ function makePlayer(): Player {
     heroId: null,
     activeSkill: null,
     skillTimer: 0,
+    deployableUpgrades: {},
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,

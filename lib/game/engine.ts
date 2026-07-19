@@ -45,8 +45,19 @@ import {
   advanceMission,
   addKill,
   addResource,
+  addNodeCapture,
   getCurrentMission,
+  grantMissionReward,
+  grantCurrentMissionReward,
+  calculateDefenseCompletionRewards,
 } from "./missions";
+import {
+  startGameEvent,
+  tickGameEvent,
+  pickRandomEventType,
+  calculateEventCompletionReward,
+  grantEventReward,
+} from "./events";
 import { audio } from "./audio";
 import {
   applyAffixes,
@@ -64,7 +75,15 @@ import {
   seededRandom,
 } from "./modes";
 import { getEnemySprite, getPlayerSprite } from "./sprites";
-import { getCurrentFrameIndex, setFacing, transitionAnimation, updateAnimation } from "./animation";
+import {
+  getCurrentFrameIndex,
+  setFacing,
+  transitionAnimation,
+  updateAnimation,
+  triggerRecoil,
+} from "./animation";
+import { FXSystem } from "./fx";
+import { ParticlePool } from "./particles";
 import type { RoguelikeRunState } from "./roguelike";
 import type { RoguelikeRewardBalance } from "./balance";
 import {
@@ -86,10 +105,20 @@ import {
   getXpValue,
   applyDailyModifiers,
 } from "./balance";
-import { createDefenseMap, createDefenseState, activateNodeForWave, getActiveNode } from "./defense";
+import {
+  createDefenseMap,
+  createDefenseState,
+  activateNodeForWave,
+  getActiveNode,
+  updateNodeCapture,
+  damageCore,
+  isDefenseVictory,
+  isDefenseDefeat,
+  getCapturedNodeCount,
+} from "./defense";
 import {
   applyHeroToPlayer,
-  useHeroSkill,
+  useHeroSkill as triggerHeroSkill,
   updateHeroSkillsAndDeployables,
   handleDeployableShieldCollisions,
   handleMineProximity,
@@ -103,6 +132,8 @@ const THEMES: Record<MapTheme, { bg: string; grid: string; border: string; accen
   industrial: { bg: "#03040a", grid: "#11152a", border: "#1c2033", accent: "#22d3ee" },
   frozen: { bg: "#050a12", grid: "#0f2438", border: "#1a3a52", accent: "#38bdf8" },
   biohazard: { bg: "#0a0805", grid: "#1a2410", border: "#2a3a18", accent: "#84cc16" },
+  wasteland: { bg: "#0a0907", grid: "#1c1812", border: "#2a2318", accent: "#d97706" },
+  orbital: { bg: "#05070a", grid: "#0f172a", border: "#1e293b", accent: "#818cf8" },
 };
 
 export interface GameCallbacks {
@@ -120,17 +151,19 @@ export class GameEngine {
   state: GameState;
   private canvasWidth = 0;
   private canvasHeight = 0;
-  private screenShake = 0;
   private callbacks: GameCallbacks;
   private pendingUpgradeOptions: UpgradeOption[] | null = null;
   private seed = 0;
   private rng: () => number;
+  private fx = new FXSystem();
+  private particlePool = new ParticlePool(768);
 
   constructor(callbacks: GameCallbacks = {}, mode: GameModeType = getDefaultMode(), seed?: number) {
     this.callbacks = callbacks;
     this.seed = seed ?? Math.floor(Math.random() * 1000000);
     this.rng = seededRandom(this.seed);
     this.state = this.createInitialState(mode);
+    this.state.particles = this.particlePool.getParticles();
   }
 
   private createInitialState(mode: GameModeType): GameState {
@@ -230,6 +263,7 @@ export class GameEngine {
       heroId: null,
       activeSkill: null,
       skillTimer: 0,
+      deployableUpgrades: {},
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -241,7 +275,7 @@ export class GameEngine {
   }
 
   private randomTheme(): MapTheme {
-    const themes: MapTheme[] = ["industrial", "frozen", "biohazard"];
+    const themes: MapTheme[] = ["industrial", "frozen", "biohazard", "wasteland", "orbital"];
     return themes[Math.floor(this.rng() * themes.length)];
   }
 
@@ -249,7 +283,16 @@ export class GameEngine {
     const obstacles: Obstacle[] = [];
     const hazards: Hazard[] = [];
 
-    const obstacleCount = theme === "industrial" ? 18 : theme === "frozen" ? 14 : 20;
+    const obstacleCount =
+      theme === "industrial"
+        ? 18
+        : theme === "frozen"
+          ? 14
+          : theme === "biohazard"
+            ? 20
+            : theme === "wasteland"
+              ? 16
+              : 12;
     const minPlayerPassage = 60;
     const spawnX = MAP_WIDTH / 2;
     const spawnY = MAP_HEIGHT / 2;
@@ -332,6 +375,11 @@ export class GameEngine {
     return this.state.status === "running";
   }
 
+  useHeroSkill() {
+    if (this.state.status !== "running") return;
+    triggerHeroSkill(this.state.player, this.state);
+  }
+
   restart(mode: GameModeType = this.state.mode, seed?: number) {
     if (seed !== undefined) {
       this.seed = seed;
@@ -340,7 +388,10 @@ export class GameEngine {
       this.seed = Math.floor(Math.random() * 1000000);
       this.rng = seededRandom(this.seed);
     }
+    this.fx.reset();
+    this.particlePool.clear();
     this.state = this.createInitialState(mode);
+    this.state.particles = this.particlePool.getParticles();
     this.start();
   }
 
@@ -366,12 +417,11 @@ export class GameEngine {
     this.updateMissionsAndExtraction(dt);
     this.updateEvents(dt);
     this.updateWave(dt);
+    this.updateDefenseState(dt);
     this.handleCollisions();
     this.updateCamera();
 
-    if (this.screenShake > 0) {
-      this.screenShake = Math.max(0, this.screenShake - dt * 10);
-    }
+    this.fx.update(dt);
   }
 
   private updatePlayer(input: InputState, dt: number) {
@@ -420,11 +470,12 @@ export class GameEngine {
       player.burnDuration -= dt;
       player.health -= player.burnDamage * dt;
       if (Math.random() < dt * 4) {
-        this.spawnParticle(
+        this.particlePool.spawnPreset(
+          "spark",
           player.x + randomRange(-10, 10),
           player.y + randomRange(-10, 10),
           "#fb923c",
-          2
+          { intensity: 0.5 }
         );
       }
       if (player.health <= 0) {
@@ -480,6 +531,7 @@ export class GameEngine {
   private fireWeapon(weapon: (typeof this.state.player.weapons)[number]) {
     const player = this.state.player;
     transitionAnimation(player, "attack");
+    triggerRecoil(player);
 
     if (weapon.id === "drone") {
       this.fireDrone(weapon);
@@ -734,7 +786,7 @@ export class GameEngine {
       burnDuration: 0,
       phase: 0,
       phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
-      targetCore: false,
+      targetCore: this.state.mode === "defense",
       facing: 0,
       animation: "move",
       animationTimer: 0,
@@ -746,16 +798,20 @@ export class GameEngine {
 
   private updateEnemies(dt: number) {
     const player = this.state.player;
+    const ds = this.state.defenseState;
+    const core = ds?.core;
+
     for (const enemy of this.state.enemies) {
       if (enemy.burnDuration > 0) {
         enemy.burnDuration -= dt;
         enemy.health -= 5 * dt;
         if (Math.random() < dt * 6) {
-          this.spawnParticle(
+          this.particlePool.spawnPreset(
+            "spark",
             enemy.x + randomRange(-enemy.radius, enemy.radius),
             enemy.y + randomRange(-enemy.radius, enemy.radius),
             "#fb923c",
-            3
+            { intensity: 0.8 }
           );
         }
       }
@@ -769,19 +825,25 @@ export class GameEngine {
         const changed = checkBossPhaseTransition(enemy, this);
         if (changed) {
           this.callbacks.onBossPhaseChange?.(enemy, enemy.phase);
-          this.spawnExplosion(enemy.x, enemy.y, enemy.color, 16);
+          this.particlePool.spawnPreset("energy", enemy.x, enemy.y, enemy.color, {
+            intensity: 1.5,
+          });
+          this.fx.addShake(2, 0);
+          this.fx.triggerFlash({ duration: 0.25, color: enemy.color, opacity: 0.25 });
         }
       }
 
       enemy.knockbackX *= Math.max(0, 1 - dt * 5);
       enemy.knockbackY *= Math.max(0, 1 - dt * 5);
 
-      const dx = player.x - enemy.x;
-      const dy = player.y - enemy.y;
+      // Defense mode: enemies with targetCore move toward the core
+      const target = ds && enemy.targetCore && core ? core : player;
+      const dx = target.x - enemy.x;
+      const dy = target.y - enemy.y;
       const len = Math.hypot(dx, dy);
 
       if (len > 0) {
-        setFacing(enemy, player.x, player.y);
+        setFacing(enemy, target.x, target.y);
       }
 
       if (
@@ -898,7 +960,7 @@ export class GameEngine {
         const dist = distance(player, hazard);
         if (dist <= hazard.radius + player.radius) {
           this.damagePlayer(hazard.damage, false);
-          this.screenShake = 0.5;
+          this.fx.addShake(0.5, 0);
         }
         for (const enemy of this.state.enemies) {
           if (distance(enemy, hazard) <= hazard.radius + enemy.radius) {
@@ -925,14 +987,8 @@ export class GameEngine {
   }
 
   private updateParticles(dt: number) {
-    const particles = this.state.particles;
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.life -= dt;
-      if (p.life <= 0) particles.splice(i, 1);
-    }
+    this.particlePool.update(dt);
+    this.state.particles = this.particlePool.getParticles();
   }
 
   private updateDamageNumbers(dt: number) {
@@ -1025,19 +1081,21 @@ export class GameEngine {
   }
 
   private updateEvents(dt: number) {
-    if (this.state.activeEvent) {
-      const event = this.state.activeEvent;
-      event.timer -= dt;
-      if (event.timer <= 0) {
-        this.state.activeEvent = null;
-      }
-      return;
+    const previousEvent = this.state.activeEvent;
+    tickGameEvent(this.state, dt);
+
+    if (previousEvent && !this.state.activeEvent) {
+      // Event completed - grant completion reward
+      const reward = calculateEventCompletionReward(previousEvent.type);
+      grantEventReward(this.state, reward);
     }
 
-    this.state.eventTimer -= dt;
-    if (this.state.eventTimer <= 0) {
-      this.startRandomEvent();
-      this.state.eventTimer = randomRange(25, 40);
+    if (!this.state.activeEvent) {
+      this.state.eventTimer -= dt;
+      if (this.state.eventTimer <= 0) {
+        this.startRandomEvent();
+        this.state.eventTimer = randomRange(25, 40);
+      }
     }
   }
 
@@ -1063,72 +1121,121 @@ export class GameEngine {
     }
   }
 
-  private startRandomEvent() {
-    const types: GameEvent["type"][] = ["airdrop", "horde", "eliteHunt", "supply"];
-    const type = randomChoice(types);
-    const pos = randomPointInBounds(this.state.map.width, this.state.map.height, 200);
-    const event: GameEvent = {
-      id: uid("event"),
-      type,
-      title: "",
-      description: "",
-      active: true,
-      timer: 0,
-      duration: 0,
-      x: pos.x,
-      y: pos.y,
-    };
+  private updateDefenseState(dt: number) {
+    const ds = this.state.defenseState;
+    if (!ds || this.state.mode !== "defense") return;
 
-    switch (type) {
-      case "airdrop":
-        event.title = "物资空投";
-        event.description = "空投补给已抵达战场";
-        event.duration = 15;
-        event.timer = event.duration;
-        this.spawnAirdrop(event.x!, event.y!);
-        break;
-      case "horde":
-        event.title = "感染者潮";
-        event.description = "大量感染者正在接近";
-        event.duration = 20;
-        event.timer = event.duration;
-        break;
-      case "eliteHunt":
-        event.title = "精英猎杀";
-        event.description = "一只精英感染者出现";
-        event.duration = 30;
-        event.timer = event.duration;
-        this.spawnEnemy("elite", true);
-        break;
-      case "supply":
-        event.title = "战场补给";
-        event.description = `拾取范围提升 ${DEFAULT_BALANCE.pickups.magnetBoostDuration} 秒`;
-        event.duration = DEFAULT_BALANCE.pickups.magnetBoostDuration;
-        event.timer = event.duration;
-        this.state.player.magnetRange *= DEFAULT_BALANCE.pickups.magnetBoostMul;
-        setTimeout(() => {
-          if (this.state.player)
-            this.state.player.magnetRange /= DEFAULT_BALANCE.pickups.magnetBoostMul;
-        }, event.duration * 1000);
-        break;
+    // Victory / defeat checks
+    if (isDefenseVictory(ds)) {
+      const reward = calculateDefenseCompletionRewards(this.state);
+      grantMissionReward(this.state, reward);
+      this.endRun(true);
+      return;
+    }
+    if (isDefenseDefeat(ds)) {
+      this.endRun(false);
+      return;
     }
 
-    this.state.activeEvent = event;
-    this.callbacks.onEventStart?.(event);
-    audio?.play("alert");
+    // Node capture by all players
+    const players = [this.state.player, ...this.state.players];
+    for (const player of players) {
+      updateNodeCapture(ds, player, dt);
+    }
+
+    const previousCaptured = getCapturedNodeCount(ds);
+
+    // Wave management
+    if (!ds.waveInProgress) {
+      ds.breakTimer -= dt;
+      if (ds.breakTimer <= 0 && ds.currentWave < ds.totalWaves) {
+        ds.waveInProgress = true;
+        ds.waveTimer = 0;
+        activateNodeForWave(ds, ds.currentWave);
+      }
+    } else {
+      const wave = ds.waves[ds.currentWave];
+      if (wave) {
+        ds.waveTimer += dt;
+
+        // Spawn wave enemies
+        if (ds.spawnTimer === undefined) {
+          ds.spawnTimer = 0;
+        }
+        ds.spawnTimer -= dt;
+        if (ds.spawnTimer <= 0) {
+          ds.spawnTimer = Math.max(0.35, 1.4 - ds.currentWave * 0.1);
+          const remainingSlots = wave.enemyCount - this.state.enemies.length;
+          const spawnBatch = Math.min(3, Math.max(1, Math.floor(remainingSlots / 4)));
+          for (let i = 0; i < spawnBatch && this.state.enemies.length < wave.enemyCount; i++) {
+            const variant = this.pickDefenseWaveVariant(wave);
+            this.spawnEnemy(variant, false);
+          }
+        }
+
+        // Spawn elites
+        if (wave.eliteCount > 0 && this.rng() < 0.008 * dt * 60) {
+          this.spawnEnemy("elite", true);
+          wave.eliteCount--;
+        }
+
+        // Spawn boss on final wave
+        if (
+          ds.currentWave === ds.totalWaves - 1 &&
+          wave.bossVariant &&
+          this.state.enemies.length > 0 &&
+          this.state.enemies.every((e) => !e.isBoss)
+        ) {
+          const bossId = wave.bossVariant as import("./types").BossId;
+          this.spawnEnemy(bossId as import("./types").EnemyVariant, true);
+        }
+
+        // End wave when duration elapsed and enemies cleared
+        if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
+          ds.waveInProgress = false;
+          ds.currentWave += 1;
+          ds.breakTimer = 8;
+          this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+        }
+      }
+    }
+
+    // Core damage from enemies that reach it
+    if (ds.core.health > 0) {
+      for (const enemy of this.state.enemies) {
+        const dist = Math.hypot(enemy.x - ds.core.x, enemy.y - ds.core.y);
+        if (dist <= ds.core.radius + enemy.radius) {
+          damageCore(ds, enemy.damage * dt * 2);
+          enemy.health -= 20 * dt;
+        }
+      }
+    }
+
+    // Track node captures for missions
+    const currentCaptured = getCapturedNodeCount(ds);
+    if (currentCaptured > previousCaptured) {
+      addNodeCapture(this.state, currentCaptured - previousCaptured);
+    }
   }
 
-  private spawnAirdrop(x: number, y: number) {
-    this.state.pickups.push({
-      id: uid("pickup"),
-      x,
-      y,
-      radius: 14,
-      type: "chest",
-      value: 0,
-      color: "#e879f9",
-      magnetized: false,
-    });
+  private pickDefenseWaveVariant(
+    wave: import("./types").DefenseWave
+  ): import("./types").EnemyVariant {
+    const fallback: import("./types").EnemyVariant[] = ["drone", "sentinel"];
+    const variants = wave.enemyVariants.length > 0 ? wave.enemyVariants : fallback;
+    return variants[Math.floor(this.rng() * variants.length)];
+  }
+
+  private startRandomEvent() {
+    const type = pickRandomEventType(this.state, this.rng);
+    const event = startGameEvent(type, this.state);
+
+    if (type === "eliteHunt") {
+      this.spawnEnemy("elite", true);
+    }
+
+    this.callbacks.onEventStart?.(event);
+    audio?.play("alert");
   }
 
   private handleCollisions() {
@@ -1214,7 +1321,8 @@ export class GameEngine {
     if (withInvincibility) {
       player.invincible = 0.5;
     }
-    this.screenShake = 1;
+    this.fx.addShake(1, 0);
+    this.fx.addTrauma(0.15);
     audio?.play("hurt");
     this.spawnDamageNumber(player.x, player.y, reduced, "#f43f5e");
 
@@ -1250,8 +1358,9 @@ export class GameEngine {
 
   private explodeProjectile(p: Projectile) {
     const radius = p.areaRadius ?? 60;
-    this.spawnExplosion(p.x, p.y, p.color, 12);
-    this.screenShake = 1.5;
+    this.particlePool.spawnPreset("explosion", p.x, p.y, p.color, { intensity: 1.2 });
+    this.fx.addShake(1.5, 0);
+    this.fx.addTrauma(0.2);
     for (const enemy of this.state.enemies) {
       if (distance(enemy, p) <= radius + enemy.radius) {
         const damage = p.damage * 0.6;
@@ -1278,7 +1387,12 @@ export class GameEngine {
           if (obs.destructible) {
             obs.health -= p.damage;
             if (obs.health <= 0) {
-              this.spawnExplosion(obs.x, obs.y, obs.color, 10);
+              this.particlePool.spawnPreset("smoke", obs.x, obs.y, obs.color, {
+                intensity: 1,
+              });
+              this.particlePool.spawnPreset("spark", obs.x, obs.y, "#f59e0b", {
+                intensity: 0.6,
+              });
             }
           }
           projectiles.splice(i, 1);
@@ -1302,12 +1416,15 @@ export class GameEngine {
     transitionAnimation(enemy, "death");
 
     if (shouldExplodeOnDeath(enemy)) {
-      this.spawnExplosion(enemy.x, enemy.y, enemy.color, 12);
+      this.particlePool.spawnPreset("explosion", enemy.x, enemy.y, enemy.color, {
+        intensity: 1.4,
+      });
       const explosionRadius = 80;
       if (distance(this.state.player, enemy) <= explosionRadius + this.state.player.radius) {
         this.damagePlayer(enemy.damage * 1.5, true);
       }
-      this.screenShake = 1.5;
+      this.fx.addShake(1.5, 0);
+      this.fx.addTrauma(0.25);
     }
 
     if (shouldSplitOnDeath(enemy)) {
@@ -1333,10 +1450,19 @@ export class GameEngine {
       this.state.stats.bossesKilled++;
       this.state.eliteKillStreak = 0;
     }
-    this.spawnExplosion(enemy.x, enemy.y, enemy.color, enemy.isBoss ? 24 : 10);
+    this.particlePool.spawnPreset("explosion", enemy.x, enemy.y, enemy.color, {
+      intensity: enemy.isBoss ? 2.5 : enemy.isElite ? 1.4 : 1,
+    });
+    if (enemy.isBoss) {
+      this.particlePool.spawnPreset("energy", enemy.x, enemy.y, "#ffffff", {
+        intensity: 1.5,
+      });
+      this.fx.triggerFlash({ duration: 0.35, color: enemy.color, opacity: 0.35 });
+    }
     this.dropPickup(enemy);
     audio?.play("explosion");
-    this.screenShake = enemy.isBoss ? 3 : enemy.isElite ? 1.2 : 0.6;
+    this.fx.addShake(enemy.isBoss ? 3 : enemy.isElite ? 1.2 : 0.6, 0);
+    this.fx.addTrauma(enemy.isBoss ? 0.4 : enemy.isElite ? 0.2 : 0.1);
   }
 
   private dropPickup(enemy: Enemy) {
@@ -1492,37 +1618,15 @@ export class GameEngine {
   }
 
   private spawnExplosion(x: number, y: number, color: string, count = 8) {
-    for (let i = 0; i < count; i++) {
-      const angle = randomRange(0, Math.PI * 2);
-      const speed = randomRange(40, 160);
-      this.state.particles.push({
-        id: uid("particle"),
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: randomRange(2, 6),
-        color,
-        life: randomRange(0.3, 0.8),
-        maxLife: 0.8,
-      });
-    }
+    this.particlePool.spawnPreset("explosion", x, y, color, {
+      intensity: count / 12,
+    });
   }
 
   private spawnParticle(x: number, y: number, color: string, count = 1) {
-    for (let i = 0; i < count; i++) {
-      this.state.particles.push({
-        id: uid("particle"),
-        x: x + randomRange(-5, 5),
-        y: y + randomRange(-5, 5),
-        vx: randomRange(-30, 30),
-        vy: randomRange(-30, 30),
-        radius: randomRange(1, 3),
-        color,
-        life: randomRange(0.2, 0.5),
-        maxLife: 0.5,
-      });
-    }
+    this.particlePool.spawnPreset("trail", x, y, color, {
+      intensity: count * 0.5,
+    });
   }
 
   private spawnDamageNumber(
@@ -1594,7 +1698,11 @@ export class GameEngine {
     this.state.projectiles = serialized.projectiles;
     this.state.enemyProjectiles = serialized.enemyProjectiles;
     this.state.pickups = serialized.pickups;
-    this.state.particles = serialized.particles;
+    this.particlePool.clear();
+    for (const p of serialized.particles) {
+      this.particlePool.addRaw({ ...p });
+    }
+    this.state.particles = this.particlePool.getParticles();
     this.state.damageNumbers = serialized.damageNumbers;
     this.state.missions = serialized.missions;
     this.state.currentMissionIndex = serialized.currentMissionIndex;
@@ -1640,13 +1748,11 @@ export class GameEngine {
 
   draw(ctx: CanvasRenderingContext2D) {
     const { camera } = this.state;
-    const shakeX =
-      this.screenShake > 0 ? randomRange(-this.screenShake * 6, this.screenShake * 6) : 0;
-    const shakeY =
-      this.screenShake > 0 ? randomRange(-this.screenShake * 6, this.screenShake * 6) : 0;
+    const shake = this.fx.getDetailedShakeOffset();
 
     ctx.save();
-    ctx.translate(this.canvasWidth / 2 + shakeX, this.canvasHeight / 2 + shakeY);
+    ctx.translate(this.canvasWidth / 2 + shake.x, this.canvasHeight / 2 + shake.y);
+    ctx.rotate(shake.rotation);
     ctx.scale(camera.scale, camera.scale);
     ctx.translate(-camera.x, -camera.y);
 
@@ -1665,6 +1771,8 @@ export class GameEngine {
     this.drawEvent(ctx);
 
     ctx.restore();
+
+    this.fx.drawFlash(ctx, this.canvasWidth, this.canvasHeight);
   }
 
   private drawBackground(ctx: CanvasRenderingContext2D) {

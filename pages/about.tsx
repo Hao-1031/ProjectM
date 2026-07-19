@@ -1,35 +1,192 @@
 import Layout from "@/components/Layout";
+import FeatureCard from "@/components/FeatureCard";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  Target,
+  Shield,
+  Eye,
+  Lock,
+  Code,
+  Cpu,
+  Globe,
+  Monitor,
+  DeviceMobile,
+  Bug,
+  MusicNotes,
+  Pulse,
+} from "@phosphor-icons/react";
+
+const techStack = [
+  { name: "Next.js", role: "路由与渲染", icon: Globe },
+  { name: "React + TS", role: "组件与类型", icon: Code },
+  { name: "HTML5 Canvas", role: "游戏渲染", icon: Monitor },
+  { name: "Zustand", role: "状态管理", icon: Cpu },
+  { name: "Howler.js", role: "程序化音效", icon: MusicNotes },
+  { name: "next-pwa", role: "离线支持", icon: DeviceMobile },
+  { name: "Sentry", role: "错误监控", icon: Bug },
+  { name: "Framer Motion", role: "界面动效", icon: Pulse },
+];
+
+const values = [
+  {
+    icon: <Target size={26} weight="bold" className="text-primary" />,
+    title: "目标明确",
+    description: "不为复杂而复杂。移动、射击、撤离，每个系统都围绕这一核心循环展开。",
+  },
+  {
+    icon: <Shield size={26} weight="bold" className="text-success" />,
+    title: "本地优先",
+    description: "你的数据属于你自己。存档、设置、战绩全部保留在浏览器本地，不上传服务器。",
+  },
+  {
+    icon: <Eye size={26} weight="bold" className="text-accent" />,
+    title: "透明可见",
+    description: "平衡数值、武器参数、敌人属性都写在代码里，任何人都能读懂规则。",
+  },
+  {
+    icon: <Lock size={26} weight="bold" className="text-danger" />,
+    title: "隐私默认",
+    description: "没有追踪脚本、没有广告 ID、没有社交登录。打开即玩，无需账户。",
+  },
+];
 
 export default function AboutPage() {
+  const reducedMotion = useReducedMotion();
+
   return (
     <Layout title="关于">
-      <article className="mx-auto max-w-3xl px-4 py-8 md:py-12">
-        <h2 className="text-3xl font-bold">关于 Project M</h2>
-        <p className="mt-4 text-muted">
-          Project M 是一款冷色调科技末日风格的 Rogue-lite
-          幸存者游戏。玩家只需控制移动，武器会自动索敌射击。在有限的时间内完成清剿、坚守、回收与营救任务，最终抵达撤离点。
-        </p>
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 opacity-30">
+          <div className="absolute right-[10%] top-0 h-[600px] w-px bg-gradient-to-b from-transparent via-accent/20 to-transparent" />
+          <div className="absolute left-[20%] top-[20%] h-px w-[40%] bg-gradient-to-r from-transparent via-border to-transparent" />
+        </div>
 
-        <section className="mt-8 rounded-2xl border border-border bg-panel p-6">
-          <h3 className="text-xl font-bold">技术栈</h3>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-            <li>Next.js Pages Router + React + TypeScript</li>
-            <li>原生 HTML5 Canvas 游戏渲染</li>
-            <li>Zustand 状态管理</li>
-            <li>Howler.js 程序化音效</li>
-            <li>next-pwa 离线支持</li>
-            <li>Sentry 错误监控</li>
-          </ul>
+        <section className="relative mx-auto max-w-7xl px-4 pt-16 md:pt-24">
+          <div className="grid gap-10 md:grid-cols-12">
+            <motion.div
+              initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="md:col-span-7"
+            >
+              <span className="inline-block rounded bg-primary/10 px-2 py-1 font-mono text-xs uppercase tracking-widest text-primary">
+                关于 Project M
+              </span>
+              <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
+                为喜欢自己掌控数据的玩家设计。
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
+                Project M 是一款冷色调科技末日风格的 Rogue-lite
+                幸存者游戏。你只需控制移动，武器会自动索敌射击。在有限时间内完成清剿、坚守、回收与营救任务，最终抵达撤离点。
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={reducedMotion ? undefined : { opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="md:col-span-5"
+            >
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-6 md:p-8">
+                <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
+                <p className="relative font-mono text-xs uppercase tracking-widest text-muted">
+                  设计信条
+                </p>
+                <blockquote className="relative mt-4 text-lg font-medium leading-relaxed">
+                  “不要让界面替玩家思考。给出清晰的信息、真实的反馈、可预知的规则，然后把战场交还给他们。”
+                </blockquote>
+              </div>
+            </motion.div>
+          </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-border bg-panel p-6">
-          <h3 className="text-xl font-bold">隐私承诺</h3>
-          <p className="mt-3 text-sm text-muted">
-            你的所有游戏数据（存档、设置、战绩）仅保存在本地浏览器中。Project M
-            不会收集、出售或上传任何个人数据。Sentry 仅用于捕获运行时错误，不包含可识别个人信息。
-          </p>
+        <section className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">我们相信什么</h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {values.map((value, index) => (
+              <FeatureCard
+                key={value.title}
+                icon={value.icon}
+                title={value.title}
+                description={value.description}
+                variant={index % 2 === 0 ? "muted" : "primary"}
+                className="h-full"
+              />
+            ))}
+          </div>
         </section>
-      </article>
+
+        <section className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
+          <div className="grid gap-10 md:grid-cols-12">
+            <div className="md:col-span-5">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                一座可以重复进入的废墟
+              </h2>
+              <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
+                <p>
+                  我们希望每次开局都能带来新的压力与选择：是优先提升射程在远处风筝，还是堆叠护甲冲入敌群？是单人潜行完成回收，还是和朋友分工守住据点？
+                </p>
+                <p>
+                  Project M
+                  不会用体力、抽卡或每日签到把你绑住。它更像一张放在桌角的街机卡带：想玩的时候打开，退出时数据还在原地。
+                </p>
+              </div>
+            </div>
+            <div className="md:col-span-7">
+              <div className="grid grid-flow-dense grid-cols-2 overflow-hidden rounded-3xl border border-border bg-panel">
+                {techStack.map((tech, index) => {
+                  const Icon = tech.icon;
+                  const isWide = index === 0 || index === 5;
+                  return (
+                    <motion.div
+                      key={tech.name}
+                      initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-60px" }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
+                      className={`border-b border-r border-border/50 p-5 transition-colors hover:bg-panel-raised ${
+                        isWide ? "col-span-2" : ""
+                      }`}
+                    >
+                      <Icon size={22} weight="bold" className="text-primary" />
+                      <p className="mt-3 font-semibold">{tech.name}</p>
+                      <p className="text-xs text-muted">{tech.role}</p>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative mx-auto max-w-7xl px-4 py-16 md:pb-24">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-8 md:p-12">
+            <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+            <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                  隐私是功能，不是免责声明
+                </h2>
+                <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted">
+                  你的所有游戏数据（存档、设置、战绩）仅保存在本地浏览器中。Project M
+                  不会收集、出售或上传任何个人数据。Sentry
+                  仅用于捕获运行时错误，不包含可识别个人信息。
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 md:justify-end">
+                <div className="inline-flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-2 text-sm text-success">
+                  <Lock size={16} weight="bold" />
+                  本地加密存储
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-4 py-2 text-sm text-muted">
+                  <Eye size={16} />
+                  无追踪脚本
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </Layout>
   );
 }

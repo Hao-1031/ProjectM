@@ -74,7 +74,12 @@ export interface RectBounds {
   bottom: number;
 }
 
-export function rectBounds(rect: { x: number; y: number; width: number; height: number }): RectBounds {
+export function rectBounds(rect: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}): RectBounds {
   return {
     left: rect.x - rect.width / 2,
     right: rect.x + rect.width / 2,
@@ -112,7 +117,10 @@ export function resolveCircleRectCollision(
 ): { x: number; y: number } | null {
   const bounds = rectBounds(rect);
   const inside =
-    circle.x >= bounds.left && circle.x <= bounds.right && circle.y >= bounds.top && circle.y <= bounds.bottom;
+    circle.x >= bounds.left &&
+    circle.x <= bounds.right &&
+    circle.y >= bounds.top &&
+    circle.y <= bounds.bottom;
 
   if (inside) {
     // Center is inside rectangle. Push out through the nearest edge so the

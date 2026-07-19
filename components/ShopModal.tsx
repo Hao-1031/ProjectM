@@ -33,10 +33,7 @@ interface ShopModalProps {
   loading?: boolean;
 }
 
-const TYPE_META: Record<
-  ShopItemType,
-  { label: string; icon: typeof Crosshair; color: string }
-> = {
+const TYPE_META: Record<ShopItemType, { label: string; icon: typeof Crosshair; color: string }> = {
   weapon: { label: "武器", icon: Crosshair, color: "text-primary" },
   passive: { label: "被动", icon: Shield, color: "text-success" },
   consumable: { label: "消耗", icon: FirstAid, color: "text-danger" },
@@ -63,7 +60,10 @@ export default function ShopModal({
   onReroll,
   loading = false,
 }: ShopModalProps) {
-  const affordable = useMemo(() => new Set(items.filter((i) => i.cost <= resources).map((i) => i.id)), [items, resources]);
+  const affordable = useMemo(
+    () => new Set(items.filter((i) => i.cost <= resources).map((i) => i.id)),
+    [items, resources]
+  );
 
   return (
     <AnimatePresence>
@@ -145,7 +145,9 @@ export default function ShopModal({
                             ease: [0.22, 1, 0.36, 1],
                           }}
                           className={`group relative flex flex-col rounded-2xl border border-border bg-[var(--panel-raised)] p-4 transition-all hover:border-primary/40 hover:bg-panel md:p-5 ${
-                            isFeatured ? "col-span-2 row-span-2 md:col-span-2 md:row-span-2" : "col-span-1"
+                            isFeatured
+                              ? "col-span-2 row-span-2 md:col-span-2 md:row-span-2"
+                              : "col-span-1"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -164,14 +166,18 @@ export default function ShopModal({
                             {item.description}
                           </p>
 
-                          {(item.level !== undefined && item.maxLevel !== undefined && item.maxLevel > 0) && (
-                            <p className="mt-3 font-mono text-[10px] text-muted">
-                              Lv.{item.level} / {item.maxLevel}
-                            </p>
-                          )}
+                          {item.level !== undefined &&
+                            item.maxLevel !== undefined &&
+                            item.maxLevel > 0 && (
+                              <p className="mt-3 font-mono text-[10px] text-muted">
+                                Lv.{item.level} / {item.maxLevel}
+                              </p>
+                            )}
 
                           <div className="mt-4 flex items-center justify-between gap-3">
-                            <div className={`flex items-center gap-1 font-mono text-sm font-bold ${canAfford ? "text-accent" : "text-muted"}`}>
+                            <div
+                              className={`flex items-center gap-1 font-mono text-sm font-bold ${canAfford ? "text-accent" : "text-muted"}`}
+                            >
                               <Coins size={14} weight="bold" />
                               {item.cost}
                             </div>

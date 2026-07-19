@@ -2,13 +2,16 @@ import type { SpriteSheet, SpriteAnimationState, BossId, MapTheme } from "./type
 
 const SPRITE_SIZE = 64;
 
-function createCanvas(size: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+function createCanvas(
+  width: number,
+  height?: number
+): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
   if (typeof document === "undefined") {
     return { canvas: {} as HTMLCanvasElement, ctx: {} as CanvasRenderingContext2D };
   }
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = width;
+  canvas.height = height ?? width;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Failed to get 2d context");
   return { canvas, ctx };
@@ -35,10 +38,31 @@ function generateFrames(row: number, count: number) {
 }
 
 export function createPlayerSpriteSheet(primaryColor: string, secondaryColor: string): SpriteSheet {
-  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4);
-
-  const rows: SpriteAnimationState[] = ["idle", "move", "attack", "hit", "death"];
-  const frameCounts = { idle: 2, move: 4, attack: 3, hit: 2, death: 4 };
+  const rows: SpriteAnimationState[] = [
+    "idle",
+    "move",
+    "attack",
+    "hit",
+    "death",
+    "charge",
+    "stun",
+    "deploy",
+    "recoil",
+    "overheat",
+  ];
+  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4, SPRITE_SIZE * rows.length);
+  const frameCounts = {
+    idle: 2,
+    move: 4,
+    attack: 3,
+    hit: 2,
+    death: 4,
+    charge: 2,
+    stun: 2,
+    deploy: 3,
+    recoil: 2,
+    overheat: 2,
+  };
 
   rows.forEach((anim, rowIndex) => {
     for (let i = 0; i < frameCounts[anim]; i++) {
@@ -118,6 +142,11 @@ export function createPlayerSpriteSheet(primaryColor: string, secondaryColor: st
     attack: generateFrames(2, frameCounts.attack),
     hit: generateFrames(3, frameCounts.hit),
     death: generateFrames(4, frameCounts.death),
+    charge: generateFrames(5, frameCounts.charge),
+    stun: generateFrames(6, frameCounts.stun),
+    deploy: generateFrames(7, frameCounts.deploy),
+    recoil: generateFrames(8, frameCounts.recoil),
+    overheat: generateFrames(9, frameCounts.overheat),
   };
 
   return {
@@ -135,10 +164,31 @@ export function createEnemySpriteSheet(
   primaryColor: string,
   secondaryColor: string
 ): SpriteSheet {
-  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4);
-
-  const rows: SpriteAnimationState[] = ["idle", "move", "attack", "hit", "death"];
-  const frameCounts = { idle: 2, move: 4, attack: 3, hit: 2, death: 4 };
+  const rows: SpriteAnimationState[] = [
+    "idle",
+    "move",
+    "attack",
+    "hit",
+    "death",
+    "charge",
+    "stun",
+    "deploy",
+    "recoil",
+    "overheat",
+  ];
+  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4, SPRITE_SIZE * rows.length);
+  const frameCounts = {
+    idle: 2,
+    move: 4,
+    attack: 3,
+    hit: 2,
+    death: 4,
+    charge: 3,
+    stun: 2,
+    deploy: 3,
+    recoil: 2,
+    overheat: 2,
+  };
 
   rows.forEach((anim, rowIndex) => {
     for (let i = 0; i < frameCounts[anim]; i++) {
@@ -229,6 +279,11 @@ export function createEnemySpriteSheet(
     attack: generateFrames(2, frameCounts.attack),
     hit: generateFrames(3, frameCounts.hit),
     death: generateFrames(4, frameCounts.death),
+    charge: generateFrames(5, frameCounts.charge),
+    stun: generateFrames(6, frameCounts.stun),
+    deploy: generateFrames(7, frameCounts.deploy),
+    recoil: generateFrames(8, frameCounts.recoil),
+    overheat: generateFrames(9, frameCounts.overheat),
   };
 
   return {
@@ -301,10 +356,31 @@ export function createBossSpriteSheet(
   primaryColor: string,
   secondaryColor: string
 ): SpriteSheet {
-  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4);
-
-  const rows: SpriteAnimationState[] = ["idle", "move", "attack", "hit", "death"];
-  const frameCounts = { idle: 2, move: 4, attack: 3, hit: 2, death: 4 };
+  const rows: SpriteAnimationState[] = [
+    "idle",
+    "move",
+    "attack",
+    "hit",
+    "death",
+    "charge",
+    "stun",
+    "deploy",
+    "recoil",
+    "overheat",
+  ];
+  const { canvas, ctx } = createCanvas(SPRITE_SIZE * 4, SPRITE_SIZE * rows.length);
+  const frameCounts = {
+    idle: 2,
+    move: 4,
+    attack: 3,
+    hit: 2,
+    death: 4,
+    charge: 3,
+    stun: 2,
+    deploy: 3,
+    recoil: 2,
+    overheat: 2,
+  };
 
   function drawBossShape(
     ox: number,
@@ -489,6 +565,11 @@ export function createBossSpriteSheet(
     attack: generateFrames(2, frameCounts.attack),
     hit: generateFrames(3, frameCounts.hit),
     death: generateFrames(4, frameCounts.death),
+    charge: generateFrames(5, frameCounts.charge),
+    stun: generateFrames(6, frameCounts.stun),
+    deploy: generateFrames(7, frameCounts.deploy),
+    recoil: generateFrames(8, frameCounts.recoil),
+    overheat: generateFrames(9, frameCounts.overheat),
   };
 
   return {
@@ -507,6 +588,8 @@ const THEME_PALETTES: Record<MapTheme, { primary: string; secondary: string; sha
   industrial: { primary: "#57534e", secondary: "#a8a29e", shadow: "#292524" },
   frozen: { primary: "#93c5fd", secondary: "#e0f2fe", shadow: "#1e3a8a" },
   biohazard: { primary: "#86efac", secondary: "#bbf7d0", shadow: "#14532d" },
+  wasteland: { primary: "#a8a29e", secondary: "#d6d3d1", shadow: "#44403c" },
+  orbital: { primary: "#94a3b8", secondary: "#cbd5e1", shadow: "#1e293b" },
 };
 
 export function createDecorSprite(type: DecorType, theme: MapTheme = "industrial"): string {

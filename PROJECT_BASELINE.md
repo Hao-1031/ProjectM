@@ -17,19 +17,19 @@ Project-M 是一款基于 Next.js + TypeScript 的轻量Roguelike射击网页游
 
 ### 2.1 技术栈
 
-| 层级 | 技术 |
-| ---- | ---- |
-| 框架 | Next.js 14.2.35（Pages Router） |
-| 运行时 | Node.js 20 LTS |
-| 包管理 | pnpm 9 |
-| 样式 | Tailwind CSS 3.4 + CSS 变量 |
-| 字体 | Geist Sans / Geist Mono |
-| 图标 | Phosphor Icons |
-| 动画 | Framer Motion |
-| 状态 | Zustand |
-| 音频 | Howler + Web Audio API |
-| 测试 | Vitest + Testing Library |
-| 监控 | Sentry Next.js SDK |
+| 层级   | 技术                            |
+| ------ | ------------------------------- |
+| 框架   | Next.js 14.2.35（Pages Router） |
+| 运行时 | Node.js 20 LTS                  |
+| 包管理 | pnpm 9                          |
+| 样式   | Tailwind CSS 3.4 + CSS 变量     |
+| 字体   | Geist Sans / Geist Mono         |
+| 图标   | Phosphor Icons                  |
+| 动画   | Framer Motion                   |
+| 状态   | Zustand                         |
+| 音频   | Howler + Web Audio API          |
+| 测试   | Vitest + Testing Library        |
+| 监控   | Sentry Next.js SDK              |
 
 ### 2.2 核心模块
 
@@ -90,14 +90,14 @@ lib/store.ts        # 全局设置状态
 
 ### 3.1 已知债务
 
-| 编号 | 债务项 | 影响 | 建议处理 |
-| ---- | ------ | ---- | -------- |
-| D01 | Windows 本地 standalone 构建因 pnpm symlink 权限失败 | 仅影响 Windows 本地预览 | 使用 `pnpm start` 或切换至 Ubuntu/Docker 构建 |
-| D02 | 部分 UI 组件仍使用内联样式与硬编码颜色 | 维护成本略高 | 逐步迁移至 CSS 变量与 Tailwind 配置 |
-| D03 | 网络同步对可部署实体与防御状态覆盖不完整 | 多人据点防守体验可能不一致 | 补充 `GameRoomManager` 对 defenseState 的序列化同步 |
-| D04 | 音效系统依赖 Howler，单元测试环境打印大量 `Not implemented` 警告 | 测试日志嘈杂 | 增加测试 stub 或切换至 Web Audio 轻量封装 |
-| D05 | 英雄天赋与商店商品缺少高级动画与空状态深度设计 | 视觉节奏可进一步提升 | 后续迭代补充骨架屏与微交互 |
-| D06 | `PROJECT_BASELINE.md` 需随版本持续更新 | 基线可能过期 | 每次大版本迭代同步 |
+| 编号 | 债务项                                                           | 影响                       | 建议处理                                            |
+| ---- | ---------------------------------------------------------------- | -------------------------- | --------------------------------------------------- |
+| D01  | Windows 本地 standalone 构建因 pnpm symlink 权限失败             | 仅影响 Windows 本地预览    | 使用 `pnpm start` 或切换至 Ubuntu/Docker 构建       |
+| D02  | 部分 UI 组件仍使用内联样式与硬编码颜色                           | 维护成本略高               | 逐步迁移至 CSS 变量与 Tailwind 配置                 |
+| D03  | 网络同步对可部署实体与防御状态覆盖不完整                         | 多人据点防守体验可能不一致 | 补充 `GameRoomManager` 对 defenseState 的序列化同步 |
+| D04  | 音效系统依赖 Howler，单元测试环境打印大量 `Not implemented` 警告 | 测试日志嘈杂               | 增加测试 stub 或切换至 Web Audio 轻量封装           |
+| D05  | 英雄天赋与商店商品缺少高级动画与空状态深度设计                   | 视觉节奏可进一步提升       | 后续迭代补充骨架屏与微交互                          |
+| D06  | `PROJECT_BASELINE.md` 需随版本持续更新                           | 基线可能过期               | 每次大版本迭代同步                                  |
 
 ### 3.2 代码统计参考
 
@@ -109,15 +109,15 @@ lib/store.ts        # 全局设置状态
 
 ## 4. 风险清单
 
-| 编号 | 风险 | 可能性 | 影响 | 缓解措施 |
-| ---- | ---- | ------ | ---- | -------- |
-| R01 | 阿里云 ECS 首次构建因网络/权限失败 | 中 | 高 | 使用 `scripts/deploy-ubuntu.sh` 自动化，预留手动回退步骤 |
-| R02 | WebRTC P2P 在不同网络环境下无法直连 | 高 | 中 | 准备 TURN 服务器配置说明 |
-| R03 | 据点防守多人同步延迟导致节点占领不同步 | 中 | 高 | 主机 authoritative，客户端预测 + 状态校验 |
-| R04 | Boss 巨像数值过强/过弱影响首日体验 | 中 | 中 | 预留热更新平衡参数能力 |
-| R05 | Sentry 未配置 token 时构建仍尝试上传 | 低 | 中 | 已在 `next.config.mjs` 中自动禁用 sourcemap 上传 |
-| R06 | 移动端/平板适配未完全验证 | 中 | 中 | PC 大屏优先，后续专项优化 pad 端 |
-| R07 | 大量动画在低配设备上导致掉帧 | 中 | 中 | 已支持 `prefers-reduced-motion` 与画质设置 |
+| 编号 | 风险                                   | 可能性 | 影响 | 缓解措施                                                 |
+| ---- | -------------------------------------- | ------ | ---- | -------------------------------------------------------- |
+| R01  | 阿里云 ECS 首次构建因网络/权限失败     | 中     | 高   | 使用 `scripts/deploy-ubuntu.sh` 自动化，预留手动回退步骤 |
+| R02  | WebRTC P2P 在不同网络环境下无法直连    | 高     | 中   | 准备 TURN 服务器配置说明                                 |
+| R03  | 据点防守多人同步延迟导致节点占领不同步 | 中     | 高   | 主机 authoritative，客户端预测 + 状态校验                |
+| R04  | Boss 巨像数值过强/过弱影响首日体验     | 中     | 中   | 预留热更新平衡参数能力                                   |
+| R05  | Sentry 未配置 token 时构建仍尝试上传   | 低     | 中   | 已在 `next.config.mjs` 中自动禁用 sourcemap 上传         |
+| R06  | 移动端/平板适配未完全验证              | 中     | 中   | PC 大屏优先，后续专项优化 pad 端                         |
+| R07  | 大量动画在低配设备上导致掉帧           | 中     | 中   | 已支持 `prefers-reduced-motion` 与画质设置               |
 
 ---
 

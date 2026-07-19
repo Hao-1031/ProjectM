@@ -2,7 +2,16 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import type { RunResult } from "@/lib/game/types";
 import { formatTime } from "@/lib/game/math";
-import { Trophy, Skull, Clock, Sword, Target, ChartBar, House, ArrowClockwise } from "@phosphor-icons/react";
+import {
+  Trophy,
+  Skull,
+  Clock,
+  Sword,
+  Target,
+  ChartBar,
+  House,
+  ArrowClockwise,
+} from "@phosphor-icons/react";
 
 interface RunEndModalProps {
   result: RunResult;
@@ -42,7 +51,9 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
       >
         <div
           className={`absolute inset-x-0 top-0 h-1 ${
-            victory ? "bg-gradient-to-r from-success/0 via-success/60 to-success/0" : "bg-gradient-to-r from-danger/0 via-danger/60 to-danger/0"
+            victory
+              ? "bg-gradient-to-r from-success/0 via-success/60 to-success/0"
+              : "bg-gradient-to-r from-danger/0 via-danger/60 to-danger/0"
           }`}
         />
 

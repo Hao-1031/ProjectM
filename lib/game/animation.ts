@@ -6,7 +6,28 @@ const ANIMATION_FPS: Record<SpriteAnimationState, number> = {
   attack: 12,
   hit: 12,
   death: 6,
+  charge: 10,
+  stun: 8,
+  deploy: 8,
+  recoil: 16,
+  overheat: 7,
 };
+
+const LOOPING_STATES: Set<SpriteAnimationState> = new Set([
+  "idle",
+  "move",
+  "charge",
+  "stun",
+  "overheat",
+]);
+
+const ONE_SHOT_STATES: Set<SpriteAnimationState> = new Set([
+  "attack",
+  "hit",
+  "death",
+  "deploy",
+  "recoil",
+]);
 
 export function updateAnimation(
   entity: RenderableEntity,
@@ -29,10 +50,10 @@ export function updateAnimation(
   const totalDuration = frames.length * frameDuration;
 
   if (totalDuration > 0 && entity.animationTimer >= totalDuration) {
-    if (entity.animation === "death") {
-      entity.animationTimer = totalDuration - 0.001;
-    } else {
+    if (LOOPING_STATES.has(entity.animation)) {
       entity.animationTimer %= totalDuration;
+    } else {
+      entity.animationTimer = totalDuration - 0.001;
     }
   }
 }
@@ -56,12 +77,11 @@ export function transitionAnimation(
 }
 
 export function isAnimationFinished(entity: RenderableEntity, sheet: SpriteSheet): boolean {
-  if (entity.animation === "death") {
-    const fps = ANIMATION_FPS.death;
-    const frames = sheet.animations.death ?? [];
-    return entity.animationTimer >= frames.length / fps;
-  }
-  return false;
+  const frames = sheet.animations[entity.animation] ?? [];
+  if (frames.length === 0) return true;
+  if (LOOPING_STATES.has(entity.animation)) return false;
+  const fps = ANIMATION_FPS[entity.animation] ?? 8;
+  return entity.animationTimer >= frames.length / fps;
 }
 
 export function setFacing(entity: RenderableEntity, targetX: number, targetY: number): void {
@@ -70,4 +90,59 @@ export function setFacing(entity: RenderableEntity, targetX: number, targetY: nu
   if (dx !== 0 || dy !== 0) {
     entity.facing = Math.atan2(dy, dx);
   }
+}
+
+// Mechanical enemy helpers
+export function transitionToCharge(entity: RenderableEntity): void {
+  transitionAnimation(entity, "charge");
+}
+
+export function transitionToStun(entity: RenderableEntity): void {
+  transitionAnimation(entity, "stun");
+}
+
+export function transitionToOverheat(entity: RenderableEntity): void {
+  transitionAnimation(entity, "overheat");
+}
+
+// Weapon recoil helper
+export function triggerRecoil(entity: RenderableEntity): void {
+  transitionAnimation(entity, "recoil", { reset: true });
+}
+
+// Deployable helper
+export function transitionToDeploy(entity: RenderableEntity): void {
+  transitionAnimation(entity, "deploy");
+}
+
+export function returnToIdleAfterDeploy(entity: RenderableEntity, sheet: SpriteSheet): boolean {
+  if (entity.animation === "deploy" && isAnimationFinished(entity, sheet)) {
+    transitionAnimation(entity, "idle");
+    return true;
+  }
+  return false;
+}
+
+export function returnToMoveAfterRecoil(entity: RenderableEntity, sheet: SpriteSheet): boolean {
+  if (entity.animation === "recoil" && isAnimationFinished(entity, sheet)) {
+    transitionAnimation(entity, "move");
+    return true;
+  }
+  return false;
+}
+
+export function getAnimationProgress(entity: RenderableEntity, sheet: SpriteSheet): number {
+  const fps = ANIMATION_FPS[entity.animation] ?? 8;
+  const frames = sheet.animations[entity.animation] ?? [];
+  if (frames.length === 0) return 1;
+  const totalDuration = frames.length / fps;
+  return Math.min(1, entity.animationTimer / totalDuration);
+}
+
+export function isLoopingState(state: SpriteAnimationState): boolean {
+  return LOOPING_STATES.has(state);
+}
+
+export function isOneShotState(state: SpriteAnimationState): boolean {
+  return ONE_SHOT_STATES.has(state);
 }

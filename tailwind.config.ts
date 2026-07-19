@@ -9,6 +9,7 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         panel: "var(--panel)",
+        "panel-raised": "var(--panel-raised)",
         border: "var(--border)",
         primary: {
           DEFAULT: "var(--primary)",

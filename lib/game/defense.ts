@@ -1,4 +1,12 @@
-import type { DefenseState, DefenseCore, EnergyNode, DefenseWave, EnemyVariant, MapConfig, Obstacle } from "./types";
+import type {
+  DefenseState,
+  DefenseCore,
+  EnergyNode,
+  DefenseWave,
+  EnemyVariant,
+  MapConfig,
+  Obstacle,
+} from "./types";
 import { uid, randomRange, randomPointInBounds, distance, rectOverlap } from "./math";
 
 const DEFENSE_MAP_WIDTH = 2200;
@@ -189,6 +197,73 @@ export function getActiveNode(state: DefenseState): EnergyNode | null {
 
 export function getCapturedNodeCount(state: DefenseState): number {
   return state.nodes.filter((n) => n.captured).length;
+}
+
+export interface DefenseShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  type: "repair" | "speed" | "energy";
+}
+
+export function updateNodeCapture(
+  state: DefenseState,
+  player: { x: number; y: number; radius: number },
+  dt: number
+): void {
+  const node = getActiveNode(state);
+  if (!node) return;
+
+  const dx = player.x - node.x;
+  const dy = player.y - node.y;
+  const range = node.radius + player.radius;
+  if (dx * dx + dy * dy > range * range) return;
+
+  node.captureProgress += dt / node.captureTime;
+  if (node.captureProgress >= 1) {
+    node.captureProgress = 1;
+    node.captured = true;
+    state.energy += node.energyValue;
+  }
+}
+
+export function damageCore(state: DefenseState, damage: number): void {
+  state.core.health = Math.max(0, state.core.health - damage);
+}
+
+export function isDefenseVictory(state: DefenseState): boolean {
+  return state.energy >= state.targetEnergy;
+}
+
+export function isDefenseDefeat(state: DefenseState): boolean {
+  return state.core.health <= 0;
+}
+
+export function generateDefenseShopOptions(): DefenseShopItem[] {
+  return [
+    {
+      id: "repair_core",
+      name: "核心修复",
+      description: "恢复核心 800 点生命值",
+      cost: 300,
+      type: "repair",
+    },
+    {
+      id: "capture_boost",
+      name: "占领加速",
+      description: "占领速度 +25%",
+      cost: 200,
+      type: "speed",
+    },
+    {
+      id: "energy_bonus",
+      name: "能量灌注",
+      description: "立即获得 200 点能量",
+      cost: 250,
+      type: "energy",
+    },
+  ];
 }
 
 function seededRandom(seed: number): () => number {

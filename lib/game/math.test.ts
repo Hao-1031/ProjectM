@@ -131,16 +131,28 @@ describe("math utilities", () => {
 
   describe("rectOverlap", () => {
     it("detects overlapping rectangles", () => {
-      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 5, y: 0, width: 10, height: 10 })).toBe(true);
+      expect(
+        rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 5, y: 0, width: 10, height: 10 })
+      ).toBe(true);
     });
 
     it("returns false for separated rectangles", () => {
-      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 20, y: 0, width: 10, height: 10 })).toBe(false);
+      expect(
+        rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 20, y: 0, width: 10, height: 10 })
+      ).toBe(false);
     });
 
     it("respects padding", () => {
-      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 12, y: 0, width: 10, height: 10 }, 5)).toBe(true);
-      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 12, y: 0, width: 10, height: 10 })).toBe(false);
+      expect(
+        rectOverlap(
+          { x: 0, y: 0, width: 10, height: 10 },
+          { x: 12, y: 0, width: 10, height: 10 },
+          5
+        )
+      ).toBe(true);
+      expect(
+        rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 12, y: 0, width: 10, height: 10 })
+      ).toBe(false);
     });
   });
 
@@ -177,7 +189,12 @@ describe("math utilities", () => {
     });
 
     it("returns null when circle is far away", () => {
-      expect(resolveCircleRectCollision({ x: 20, y: 20, radius: 2 }, { x: 0, y: 0, width: 10, height: 10 })).toBeNull();
+      expect(
+        resolveCircleRectCollision(
+          { x: 20, y: 20, radius: 2 },
+          { x: 0, y: 0, width: 10, height: 10 }
+        )
+      ).toBeNull();
     });
   });
 

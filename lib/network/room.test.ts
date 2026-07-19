@@ -327,8 +327,169 @@ describe("GameRoomManager", () => {
       onReconnecting,
     });
     room["peers"].set("host", { close: vi.fn() } as never);
+    room["players"] = [
+      { peerId: "host", playerName: "Host", ready: false, latency: 0, lastInputFrame: 0 },
+      { peerId: "aaa_peer", playerName: "PeerA", ready: false, latency: 0, lastInputFrame: 0 },
+    ];
     room["handlePeerClose"]("host");
     expect(onReconnecting).toHaveBeenCalledWith("host");
+    room.close();
+  });
+
+  it("tracks connection quality from pong responses", () => {
+    const room = createHost();
+    room["handleMessage"]("peer_2", {
+      type: "hello",
+      peerId: "peer_2",
+      playerName: "Player2",
+      timestamp: Date.now(),
+    });
+
+    const now = Date.now();
+    room["pendingPings"].set("peer_2", { peerId: "peer_2", timestamp: now - 50 });
+    room["handleMessage"]("peer_2", { type: "pong", timestamp: now - 50 });
+
+    expect(room.getLatency("peer_2")).toBeGreaterThan(0);
+    expect(room.getConnectionQuality("peer_2").score).toBe("good");
+    room.close();
+  });
+
+  it("forwards quality and host migration messages", () => {
+    const onNetworkMessage = vi.fn();
+    const room = new GameRoomManager({
+      playerName: "Client",
+      role: "client",
+      maxPlayers: 4,
+      onNetworkMessage,
+    });
+
+    room["handleMessage"]("host", {
+      type: "quality",
+      peerId: "host",
+      quality: { rtt: 60, packetLoss: 0, jitter: 2, score: "good" },
+      timestamp: Date.now(),
+    });
+    room["handleMessage"]("host", {
+      type: "host_migration",
+      newHostId: "peer_2",
+      newHostPeerId: "peer_2",
+      timestamp: Date.now(),
+    });
+
+    expect(onNetworkMessage).toHaveBeenCalledTimes(2);
+    room.close();
+  });
+
+  it("host batches state sync messages", () => {
+    const room = createHost();
+    const fakePeer = { send: vi.fn(), close: vi.fn() };
+    room["peers"].set("peer_2", fakePeer as never);
+
+    room.queueBatchedState({ status: "running" } as never, 1);
+    room.queueBatchedState({ status: "running" } as never, 2);
+    room["flushBatchedState"]();
+
+    expect(fakePeer.send).toHaveBeenCalledTimes(1);
+    const message = fakePeer.send.mock.calls[0][0];
+    expect(message.type).toBe("state_batch");
+    expect(message.states.length).toBe(2);
+    expect(message.frameStart).toBe(1);
+    expect(message.frameEnd).toBe(2);
+    room.close();
+  });
+
+  it("non-host cannot queue or flush batched state", () => {
+    const room = createClient();
+    const fakePeer = { send: vi.fn(), close: vi.fn() };
+    room["peers"].set("host", fakePeer as never);
+
+    room.queueBatchedState({ status: "running" } as never, 1);
+    room["flushBatchedState"]();
+
+    expect(fakePeer.send).not.toHaveBeenCalled();
+    room.close();
+  });
+
+  it("promotes client to host when original host disconnects", () => {
+    const onHostMigrated = vi.fn();
+    const room = new GameRoomManager({
+      playerName: "Client",
+      role: "client",
+      maxPlayers: 4,
+      onHostMigrated,
+    });
+    room["hostId"] = "host";
+    room["localPeerId"] = "a_client";
+    room["peers"].set("host", { close: vi.fn() } as never);
+
+    room["handlePeerClose"]("host");
+
+    expect(room.isHost()).toBe(true);
+    expect(room.hostId).toBe("a_client");
+    expect(onHostMigrated).toHaveBeenCalledWith("a_client");
+    room.close();
+  });
+
+  it("starts reconnecting when a peer disconnects", () => {
+    const onReconnecting = vi.fn();
+    const room = new GameRoomManager({
+      playerName: "Client",
+      role: "client",
+      maxPlayers: 4,
+      onReconnecting,
+    });
+    room["peers"].set("peer_2", { close: vi.fn() } as never);
+
+    room["handlePeerClose"]("peer_2");
+
+    expect(onReconnecting).toHaveBeenCalledWith("peer_2");
+    expect(room["reconnectStates"].has("peer_2")).toBe(true);
+    room.close();
+  });
+
+  it("gives up reconnecting after max attempts", () => {
+    const onError = vi.fn();
+    const room = new GameRoomManager({
+      playerName: "Client",
+      role: "client",
+      maxPlayers: 4,
+      onError,
+    });
+
+    const state = {
+      peerId: "host",
+      playerName: "Client",
+      attempts: 5,
+      timer: null,
+    };
+    room["reconnectStates"].set("host", state);
+    room["scheduleReconnectAttempt"](state);
+
+    expect(onError).toHaveBeenCalled();
+    expect(room["reconnectStates"].has("host")).toBe(false);
+    room.close();
+  });
+
+  it("broadcasts reconnect message during reconnection attempt", () => {
+    const room = new GameRoomManager({
+      playerName: "Client",
+      role: "client",
+      maxPlayers: 4,
+    });
+    const fakePeer = { send: vi.fn(), close: vi.fn() };
+    room["peers"].set("host", fakePeer as never);
+
+    const state = {
+      peerId: "host",
+      playerName: "Client",
+      attempts: 0,
+      timer: null,
+    };
+    room["reconnectStates"].set("host", state);
+    room["attemptReconnect"](state);
+
+    expect(fakePeer.send).toHaveBeenCalled();
+    expect(fakePeer.send.mock.calls[0][0].type).toBe("reconnect");
     room.close();
   });
 });
