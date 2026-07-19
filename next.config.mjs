@@ -5,6 +5,13 @@ const nextConfig = {
   reactStrictMode: true,
   images: { unoptimized: true },
   output: "standalone",
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.(test|spec)\.(tsx|ts|jsx|js)$/,
+      loader: "./loaders/ignore-loader.js",
+    });
+    return config;
+  },
 };
 
 const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN);

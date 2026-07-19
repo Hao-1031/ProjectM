@@ -4,41 +4,47 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Play,
   Users,
-  Crosshair,
   Target,
   Calendar,
   Shield,
   Shuffle,
   Clock,
-  GameController,
   ArrowRight,
   Sword,
   Skull,
-  Ghost,
+  Trophy,
+  Gear,
+  Question,
+  Info,
+  Crown,
+  Lightning,
+  Crosshair,
+  CaretRight,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
+import type { GameModeType } from "@/lib/game/types";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
-import FeatureCard from "@/components/FeatureCard";
-import StatCard from "@/components/StatCard";
-import Footer from "@/components/Footer";
-import GSAPScrollReveal from "@/components/effects/GSAPScrollReveal";
-import GSAPTextReveal from "@/components/effects/GSAPTextReveal";
-import GSAPStagger from "@/components/effects/GSAPStagger";
-import GSAPCounter from "@/components/effects/GSAPCounter";
-import GSAPCardStack from "@/components/effects/GSAPCardStack";
+
+const MODES: { type: GameModeType; label: string; icon: typeof Target; accent: string; desc: string }[] = [
+  { type: "defense", label: "据点防守", icon: Shield, accent: "#4ecdc4", desc: "2-4 人合作" },
+  { type: "campaign", label: "战役模式", icon: Target, accent: "#f4a261", desc: "连续任务" },
+  { type: "endless", label: "无尽生存", icon: Clock, accent: "#e05a6a", desc: "极限存活" },
+  { type: "daily", label: "每日挑战", icon: Calendar, accent: "#e9c46a", desc: "全球排行" },
+  { type: "roguelike", label: "冒险模式", icon: Shuffle, accent: "#52b788", desc: "关卡树" },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 },
+    transition: { staggerChildren: 0.06 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
@@ -46,8 +52,29 @@ const itemVariants = {
   },
 };
 
+function RankBadge({ runs }: { runs: number }) {
+  const ranks = [
+    { min: 0, name: "新兵", color: "#6c7280" },
+    { min: 5, name: "列兵", color: "#52b788" },
+    { min: 20, name: "中士", color: "#4ecdc4" },
+    { min: 50, name: "上尉", color: "#f4a261" },
+    { min: 100, name: "指挥官", color: "#e05a6a" },
+  ];
+  const rank = [...ranks].reverse().find((r) => runs >= r.min) ?? ranks[0];
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold"
+      style={{ borderColor: `${rank.color}40`, color: rank.color, backgroundColor: `${rank.color}10` }}
+    >
+      <Crown size={12} weight="fill" />
+      {rank.name}
+    </span>
+  );
+}
+
 export default function HomePage() {
   const [save, setSave] = useState<SaveData | null>(null);
+  const [selectedMode, setSelectedMode] = useState<GameModeType>("defense");
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -59,387 +86,322 @@ export default function HomePage() {
   const weapons = Object.values(DEFAULT_BALANCE.weapons);
   const bossNames = Object.values(DEFAULT_BALANCE.bosses).map((b) => b.name);
 
+  const playHref = selectedMode === "defense" ? "/game?mode=defense&multiplayer=1" : `/game?mode=${selectedMode}`;
+
   return (
-    <div className="relative overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-40">
-        <div className="absolute left-[12%] top-0 h-full w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent" />
-        <div className="absolute left-[64%] top-0 h-full w-px bg-gradient-to-b from-transparent via-primary/10 to-transparent" />
-        <div className="absolute left-0 top-[38%] h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+    <div className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground">
+      {/* Background atmosphere */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(78,205,196,0.08),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(244,162,97,0.05),transparent_40%)]" />
+        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <motion.div
+          animate={reducedMotion ? undefined : { y: ["0%", "100%"] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="absolute left-0 top-0 h-full w-full opacity-[0.04] [background:linear-gradient(to_bottom,transparent_0%,rgba(78,205,196,0.4)_50%,transparent_100%)]"
+        />
       </div>
 
-      <section className="relative z-10 mx-auto min-h-[100dvh] max-w-7xl px-4 pt-20 md:pt-24">
-        <div className="grid items-end gap-8 pb-12 md:grid-cols-12 md:pb-16">
-          <div className="md:col-span-7">
-            <motion.span
-              initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="inline-block rounded bg-primary/10 px-2 py-1 font-mono text-xs uppercase tracking-widest text-primary"
-            >
-              末世幸存者指挥终端
-            </motion.span>
-            <motion.h1
-              initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.05 }}
-              className="mt-5 max-w-xl text-4xl font-bold leading-[1.1] tracking-tight md:text-6xl"
-            >
-              自动射击 <span className="text-primary">.</span>
-              <br />
-              手动生存 <span className="text-accent">.</span>
-            </motion.h1>
-            <motion.p
-              initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.12 }}
-              className="mt-4 max-w-md text-sm leading-relaxed text-muted md:text-base"
-            >
-              在科技末日的废墟中移动、射击、撤离。完成 4 项任务，解锁武器与英雄，与队友死守据点。
-            </motion.p>
+      {/* Top bar */}
+      <motion.header
+        initial={reducedMotion ? undefined : { opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-4 py-4"
+      >
+        <Link href="/" className="group flex items-center gap-2 focus-ring rounded-lg">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+            <Crosshair size={18} weight="bold" />
+          </span>
+          <div className="flex flex-col">
+            <span className="font-mono text-sm font-bold uppercase tracking-widest">Project M</span>
+            <span className="text-[10px] text-muted">L3V100 创世版</span>
+          </div>
+        </Link>
+        <nav className="flex items-center gap-1">
+          {[
+            { href: "/leaderboard", label: "战绩", icon: Trophy },
+            { href: "/help", label: "指南", icon: Question },
+            { href: "/about", label: "关于", icon: Info },
+            { href: "/settings", label: "设置", icon: Gear },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-all hover:bg-panel hover:text-foreground focus-ring"
+              >
+                <Icon size={14} className="transition-colors group-hover:text-primary" />
+                <span className="hidden sm:inline">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </motion.header>
+
+      {/* Main menu */}
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 md:pt-8">
+        <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+          {/* Left: title + play */}
+          <div className="flex flex-col justify-center lg:col-span-7">
             <motion.div
-              initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
+              initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.2 }}
-              className="mt-8 flex flex-wrap items-center gap-3"
+              transition={{ duration: 0.5 }}
+            >
+              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                系统在线
+              </span>
+              <h1 className="mt-5 text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
+                自动射击
+                <br />
+                <span className="text-primary">手动生存</span>
+              </h1>
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-muted md:text-base">
+                选择模式、英雄与武器，在科技末日废墟中完成任务并撤离。据点防守支持 2-4 人联机合作。
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
             >
               <Link
-                href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 hover:shadow-primary/25 focus-ring active:scale-95"
+                href={playHref}
+                className="group relative inline-flex h-16 items-center justify-center gap-3 overflow-hidden rounded-2xl bg-primary px-10 text-lg font-bold text-background shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95 md:h-20 md:text-xl"
               >
-                <Play size={18} weight="fill" />
+                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                <Play size={28} weight="fill" />
                 <span className="whitespace-nowrap">立即部署</span>
-                <ArrowRight size={16} />
+                <CaretRight size={20} weight="bold" />
               </Link>
               <Link
                 href="/game?multiplayer=1"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel px-5 py-3 text-sm font-medium text-foreground transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring active:scale-95"
+                className="inline-flex h-16 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-6 text-sm font-semibold transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring active:scale-95"
               >
-                <Users size={18} />
-                <span className="whitespace-nowrap">组队生存</span>
+                <Users size={20} />
+                <span className="whitespace-nowrap">组队大厅</span>
               </Link>
+            </motion.div>
+
+            {/* Mode quick selector */}
+            <motion.div
+              initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mt-8"
+            >
+              <p className="mb-3 font-mono text-xs uppercase tracking-widest text-muted">选择任务类型</p>
+              <div className="flex flex-wrap gap-2">
+                {MODES.map((mode) => {
+                  const active = selectedMode === mode.type;
+                  const Icon = mode.icon;
+                  return (
+                    <button
+                      key={mode.type}
+                      type="button"
+                      onClick={() => setSelectedMode(mode.type)}
+                      className={`group inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all focus-ring ${
+                        active
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon size={16} weight={active ? "bold" : "regular"} style={{ color: active ? mode.accent : undefined }} />
+                      <span>{mode.label}</span>
+                      <span className="hidden text-xs text-muted sm:inline">{mode.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </motion.div>
           </div>
 
+          {/* Right: player profile */}
           <motion.div
-            initial={reducedMotion ? undefined : { opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative md:col-span-5"
+            initial={reducedMotion ? undefined : { opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.15 }}
+            className="lg:col-span-5"
           >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-panel p-6">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(78,205,196,0.12),transparent_50%)]" />
-              <div className="absolute right-6 top-6 flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1 text-xs text-muted">
-                <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                系统在线
-              </div>
-              <div className="absolute bottom-6 left-6">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">当前战绩</p>
-                <div className="mt-2 flex gap-6">
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-6 shadow-2xl shadow-black/20 md:p-8">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+              <div className="relative">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-2xl font-bold">{save?.totalRuns ?? 0}</p>
-                    <p className="text-xs text-muted">出战</p>
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted">指挥官档案</p>
+                    <h2 className="mt-1 text-2xl font-bold tracking-tight">匿名幸存者</h2>
+                    <div className="mt-2">
+                      <RankBadge runs={save?.totalRuns ?? 0} />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{save?.totalKills ?? 0}</p>
-                    <p className="text-xs text-muted">击杀</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{save?.bestRun?.stats.kills ?? 0}</p>
-                    <p className="text-xs text-muted">最佳</p>
+                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-background">
+                    <Crosshair size={28} weight="bold" className="text-primary" />
                   </div>
                 </div>
-              </div>
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="relative h-32 w-32">
-                  <div className="absolute inset-0 rounded-full border border-primary/30" />
-                  <div className="absolute inset-3 rounded-full border border-accent/30" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Crosshair size={40} className="text-primary/80" weight="bold" />
+
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-border bg-background/50 p-4">
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted">出战</p>
+                    <p className="mt-1 text-3xl font-bold">{save?.totalRuns ?? 0}</p>
                   </div>
-                  <motion.div
-                    animate={reducedMotion ? undefined : { rotate: 360 }}
-                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border-b border-primary/50"
-                  />
+                  <div className="rounded-xl border border-border bg-background/50 p-4">
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted">击杀</p>
+                    <p className="mt-1 text-3xl font-bold">{save?.totalKills ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background/50 p-4">
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted">最佳</p>
+                    <p className="mt-1 text-3xl font-bold">{save?.bestRun?.stats.kills ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background/50 p-4">
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted">武器</p>
+                    <p className="mt-1 text-3xl font-bold">{save?.unlockedWeapons.length ?? 1}</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between border-t border-border pt-5">
+                  <div className="text-xs text-muted">
+                    <p>数据仅存于本地浏览器</p>
+                  </div>
+                  <Link
+                    href="/leaderboard"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline focus-ring rounded"
+                  >
+                    查看战绩 <ArrowRight size={12} />
+                  </Link>
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
-      </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <GSAPScrollReveal as="div" className="mb-8 flex items-end justify-between" direction="left">
-          <GSAPTextReveal as="h2" className="text-2xl font-bold tracking-tight md:text-3xl">
-            选择任务类型
-          </GSAPTextReveal>
-          <Link
-            href="/help"
-            className="hidden items-center gap-1 text-sm text-muted transition-colors hover:text-foreground md:flex"
+        {/* Mode tiles */}
+        <motion.section
+          initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-10 md:mt-14"
+        >
+          <div className="mb-4 flex items-end justify-between">
+            <p className="font-mono text-xs uppercase tracking-widest text-muted">快速进入</p>
+            <Link href="/modes" className="inline-flex items-center gap-1 text-xs text-muted hover:text-foreground focus-ring rounded">
+              全部模式 <ArrowRight size={12} />
+            </Link>
+          </div>
+          <motion.div
+            variants={reducedMotion ? undefined : containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
           >
-            查看规则 <ArrowRight size={14} />
-          </Link>
-        </GSAPScrollReveal>
-
-        <motion.div
-          variants={reducedMotion ? undefined : containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-flow-dense grid-cols-12 overflow-hidden rounded-3xl border border-border bg-panel"
-        >
-          {modes.map((mode, index) => {
-            const spans = [
-              "col-span-12 md:col-span-7 md:row-span-2",
-              "col-span-12 md:col-span-5",
-              "col-span-12 md:col-span-4",
-              "col-span-12 md:col-span-4",
-              "col-span-12 md:col-span-4",
-            ];
-            const icons = [Target, Clock, Calendar, Shuffle, Shield];
-            const variants: Array<"primary" | "accent" | "muted"> = [
-              "primary",
-              "accent",
-              "muted",
-              "muted",
-              "muted",
-            ];
-            const Icon = icons[index] ?? Target;
-            return (
-              <motion.div
-                key={mode.type}
-                variants={reducedMotion ? undefined : itemVariants}
-                className={spans[index]}
-              >
-                <FeatureCard
-                  as="link"
-                  href={`/game?mode=${mode.type}`}
-                  icon={<Icon size={28} weight="bold" className="text-primary" />}
-                  title={mode.name}
-                  description={mode.description}
-                  variant={variants[index]}
-                  className="h-full rounded-none border-0 border-b border-r border-border/50"
-                />
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <GSAPScrollReveal as="div" className="mb-8">
-          <GSAPTextReveal as="h2" className="text-2xl font-bold tracking-tight md:text-3xl">
-            构成撤离的要素
-          </GSAPTextReveal>
-        </GSAPScrollReveal>
-
-        <GSAPStagger
-          as="div"
-          childClassName="contents"
-          className="grid gap-4 md:grid-cols-12 md:gap-5"
-          stagger={0.06}
-        >
-          <div className="md:col-span-7">
-            <FeatureCard
-              icon={<Users size={24} weight="bold" className="text-accent" />}
-              title="英雄小队"
-              description="每位英雄提供独特战术技能：侦察信标、冲锋护盾、治疗无人机、自动炮塔。"
-              variant="accent"
-              className="h-full"
-            >
-              <div className="mt-4 flex flex-wrap gap-2">
-                {heroes.map((hero) => (
-                  <span
-                    key={hero.id}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs"
+            {MODES.map((mode, index) => {
+              const Icon = mode.icon;
+              const featured = mode.type === "defense";
+              return (
+                <motion.div key={mode.type} variants={itemVariants} className={featured ? "sm:col-span-2 lg:col-span-2" : ""}>
+                  <Link
+                    href={mode.type === "defense" ? "/game?mode=defense&multiplayer=1" : `/game?mode=${mode.type}`}
+                    className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-panel p-5 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
+                    style={{ borderColor: featured ? `${mode.accent}30` : undefined }}
                   >
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: hero.color }}
+                    <div
+                      className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full blur-3xl transition-opacity duration-500 opacity-30 group-hover:opacity-60"
+                      style={{ backgroundColor: mode.accent }}
                     />
-                    {hero.name}
-                  </span>
-                ))}
-              </div>
-            </FeatureCard>
-          </div>
+                    <div className="relative flex items-start justify-between">
+                      <div
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: `${mode.accent}15`, color: mode.accent }}
+                      >
+                        <Icon size={22} weight="bold" />
+                      </div>
+                      {featured && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+                          <Lightning size={10} weight="fill" />
+                          主打
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative mt-8">
+                      <h3 className="text-lg font-bold tracking-tight">{mode.label}</h3>
+                      <p className="mt-1 text-xs text-muted">{modes.find((m) => m.type === mode.type)?.description}</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </motion.section>
 
-          <div className="md:col-span-5">
-            <FeatureCard
-              icon={<Sword size={24} weight="bold" className="text-primary" />}
-              title="武器库"
-              description="脉冲步枪、霰弹爆破、贯穿激光、集束火箭、等离子喷火器与浮游无人机。"
-              variant="primary"
-              className="h-full"
-            >
-              <div className="mt-4 flex flex-wrap gap-2">
-                {weapons.map((weapon) => (
-                  <span
-                    key={weapon.name}
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted"
-                  >
-                    {weapon.name}
-                  </span>
-                ))}
-              </div>
-            </FeatureCard>
-          </div>
-
-          <div className="md:col-span-5">
-            <FeatureCard
-              icon={<Skull size={24} weight="bold" className="text-danger" />}
-              title="威胁图鉴"
-              description="游荡者、狂奔者、坦克、喷吐者、狙击者与精英变体，后期还会出现首领单位。"
-              variant="muted"
-              className="h-full"
-            >
-              <div className="mt-4 flex flex-wrap gap-2">
-                {["游荡者", "狂奔者", "坦克", "喷吐者", "狙击者"].map((name) => (
-                  <span
-                    key={name}
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted"
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </FeatureCard>
-          </div>
-
-          <div className="md:col-span-7">
-            <FeatureCard
-              icon={<Ghost size={24} weight="bold" className="text-success" />}
-              title="首领威胁"
-              description={`当前已配置 ${bossNames.length} 位首领：${bossNames.join("、")}。每位首领拥有 3 阶段攻击模式，需要团队配合或足够火力才能击退。`}
-              variant="muted"
-              className="h-full"
-            />
-          </div>
-        </GSAPStagger>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <GSAPScrollReveal as="div" className="mb-8 grid gap-6 md:grid-cols-2 md:items-end">
-          <GSAPTextReveal as="h2" className="text-2xl font-bold tracking-tight md:text-3xl">
-            你的部署记录
-          </GSAPTextReveal>
-          <p className="max-w-md text-sm text-muted">
-            所有数据保存在浏览器本地。没有账户、没有云同步、没有数据挖掘。
-          </p>
-        </GSAPScrollReveal>
-
-        <GSAPStagger
-          as="div"
-          childClassName="contents"
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-          stagger={0.08}
+        {/* Encyclopedia shortcuts */}
+        <motion.section
+          initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-8"
         >
-          <StatCard
-            value={<GSAPCounter value={save?.totalRuns ?? 0} />}
-            label="总出战次数"
-            icon={<GameController size={20} />}
-            variant="primary"
-          />
-          <StatCard
-            value={<GSAPCounter value={save?.totalKills ?? 0} />}
-            label="累计击杀"
-            icon={<Skull size={20} />}
-            variant="muted"
-          />
-          <StatCard
-            value={<GSAPCounter value={save?.bestRun?.stats.kills ?? 0} />}
-            label="最佳击杀"
-            icon={<Target size={20} />}
-            variant="accent"
-          />
-          <StatCard
-            value={<GSAPCounter value={save?.unlockedWeapons.length ?? 1} />}
-            label="已解锁武器"
-            icon={<Sword size={20} />}
-            variant="success"
-          />
-        </GSAPStagger>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <GSAPScrollReveal as="div" className="mb-8">
-          <GSAPTextReveal as="h2" className="text-2xl font-bold tracking-tight md:text-3xl">
-            战场节奏
-          </GSAPTextReveal>
-          <p className="mt-3 max-w-md text-sm text-muted">
-            从部署到撤离，每个阶段都需要不同的决策与配合。
-          </p>
-        </GSAPScrollReveal>
-        <GSAPCardStack
-          cards={[
-            {
-              id: "deploy",
-              title: "部署阶段",
-              description:
-                "选择任务模式、英雄与初始武器，进入随机生成的废墟战场。侦察技能可以提前暴露敌人分布，工程技能则能部署防御设施。",
-              meta: "Phase 01",
-              color: "primary",
-            },
-            {
-              id: "defend",
-              title: "据点防守",
-              description:
-                "占领能量节点以获取资源，保护核心不被机械敌人摧毁。波次之间进入补给站，购买升级或强化天赋。",
-              meta: "Phase 02",
-              color: "accent",
-            },
-            {
-              id: "extract",
-              title: "撤离行动",
-              description:
-                "完成目标后撤离点开启。在倒计时内抵达撤离区域即可获胜，失败则保留部分进度用于下一局。",
-              meta: "Phase 03",
-              color: "success",
-            },
-          ]}
-        />
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <GSAPScrollReveal
-          as="div"
-          className="relative overflow-hidden rounded-3xl border border-border bg-panel p-8 md:p-12"
-        >
-          <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-          <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
-            <div>
-              <GSAPTextReveal as="h2" className="text-2xl font-bold tracking-tight md:text-3xl">
-                准备进入废墟？
-              </GSAPTextReveal>
-              <p className="mt-3 max-w-md text-sm text-muted">
-                每次部署都是新的战局。选择模式、英雄和武器，完成任务并抵达撤离点。
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 md:justify-end">
-              <Link
-                href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
-              >
-                <Play size={18} weight="fill" />
-                <span className="whitespace-nowrap">单人战役</span>
-              </Link>
-              <Link
-                href="/game?multiplayer=1"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-3 text-sm font-medium transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring active:scale-95"
-              >
-                <Users size={18} />
-                <span className="whitespace-nowrap">联机合作</span>
-              </Link>
-            </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Link
+              href="/heroes"
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring"
+            >
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <Users size={20} weight="bold" />
+              </div>
+              <div>
+                <p className="font-semibold">{heroes.length} 位英雄</p>
+                <p className="text-xs text-muted">查看技能与天赋</p>
+              </div>
+              <CaretRight size={16} className="ml-auto text-muted transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/armory"
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
+            >
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Sword size={20} weight="bold" />
+              </div>
+              <div>
+                <p className="font-semibold">{weapons.length} 种武器</p>
+                <p className="text-xs text-muted">升级路线与数值</p>
+              </div>
+              <CaretRight size={16} className="ml-auto text-muted transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/modes"
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-danger/40 hover:bg-panel-raised focus-ring"
+            >
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                <Skull size={20} weight="bold" />
+              </div>
+              <div>
+                <p className="font-semibold">{bossNames.length} 位首领</p>
+                <p className="text-xs text-muted">威胁图鉴与机制</p>
+              </div>
+              <CaretRight size={16} className="ml-auto text-muted transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
-        </GSAPScrollReveal>
-      </section>
+        </motion.section>
 
-      <Footer
-        totalRuns={save?.totalRuns ?? 0}
-        totalKills={save?.totalKills ?? 0}
-        bestKills={save?.bestRun?.stats.kills ?? 0}
-      />
+        {/* Footer note */}
+        <motion.footer
+          initial={reducedMotion ? undefined : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-xs text-muted sm:flex-row"
+        >
+          <p>Project M · 本地优先 · 数据永不离开浏览器</p>
+          <div className="flex gap-4">
+            <Link href="/about" className="hover:text-foreground focus-ring rounded">关于</Link>
+            <Link href="/settings" className="hover:text-foreground focus-ring rounded">设置</Link>
+          </div>
+        </motion.footer>
+      </main>
     </div>
   );
 }
