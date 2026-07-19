@@ -1,0 +1,1234 @@
+import type {
+  Weapon,
+  WeaponId,
+  Enemy,
+  EnemyVariant,
+  Player,
+  PassiveId,
+  GameState,
+  RoguelikeStage,
+  AffixId,
+} from "./types";
+
+// ========================================================================
+// 全局平衡配置
+// ========================================================================
+
+export interface BalanceConfig {
+  player: PlayerBalance;
+  weapons: Record<WeaponId, WeaponBalance>;
+  enemies: Record<EnemyVariant | "base", EnemyBalance>;
+  affixes: Record<AffixId, AffixBalance>;
+  bosses: Record<string, BossBalance>;
+  difficulty: DifficultyBalance;
+  progression: ProgressionBalance;
+  pickups: PickupBalance;
+  modes: ModeBalance;
+}
+
+export interface PlayerBalance {
+  baseHealth: number;
+  baseSpeed: number;
+  baseRadius: number;
+  baseMagnetRange: number;
+  invincibilityDuration: number;
+  knockbackDecay: number;
+  regenCap: number;
+  armorCap: number;
+  critDamageMultiplier: number;
+  levelXpCurve: number;
+  levelXpMultiplier: number;
+}
+
+export interface WeaponBalance {
+  name: string;
+  description: string;
+  color: string;
+  base: WeaponStatBlock;
+  maxLevel: number;
+  upgrades: WeaponUpgradeStep[];
+}
+
+export interface WeaponStatBlock {
+  damage: number;
+  cooldown: number;
+  range: number;
+  projectileSpeed: number;
+  count: number;
+  spread: number;
+  pierce: number;
+  areaRadius?: number;
+  burnDuration?: number;
+}
+
+export interface WeaponUpgradeStep {
+  level: number;
+  damageMul?: number;
+  cooldownMul?: number;
+  rangeMul?: number;
+  countAdd?: number;
+  pierceAdd?: number;
+  areaMul?: number;
+  burnAdd?: number;
+}
+
+export interface EnemyBalance {
+  healthMul: number;
+  speed: number;
+  damage: number;
+  radius: number;
+  xpValue: number;
+  color: string;
+  attackCooldown?: number;
+  eliteHealthMul?: number;
+  eliteDamageMul?: number;
+  eliteSpeedMul?: number;
+  eliteXpMul?: number;
+}
+
+export interface AffixBalance {
+  healthMul?: number;
+  damageMul?: number;
+  speedMul?: number;
+  radiusAdd?: number;
+  xpMul?: number;
+  regenPercent?: number;
+  shieldPercent?: number;
+}
+
+export interface BossBalance {
+  name: string;
+  description: string;
+  radius: number;
+  speed: number;
+  health: number;
+  damage: number;
+  color: string;
+  secondaryColor: string;
+  phases: BossPhaseBalance[];
+  phaseThresholds: number[];
+}
+
+export interface BossPhaseBalance {
+  name: string;
+  attackPattern: "single" | "spread" | "burst" | "summon" | "laser" | "charge";
+  attackCooldown: number;
+  projectileCount: number;
+  moveSpeedMul: number;
+  onEnter?: (boss: Enemy) => Partial<Enemy>;
+}
+
+export interface DifficultyBalance {
+  baseInterval: number;
+  intervalDecay: number;
+  minInterval: number;
+  baseCount: number;
+  countGrowth: number;
+  maxCount: number;
+  difficultyGrowth: number;
+  eliteChanceBase: number;
+  eliteChanceGrowth: number;
+  eliteChanceMax: number;
+  affixCountThresholds: number[];
+  hordeSpawnInterval: number;
+  hordeSpawnCount: number;
+}
+
+export interface ProgressionBalance {
+  xpBase: number;
+  xpGrowth: number;
+  xpCurve: number;
+  passiveMaxLevel: number;
+  weaponMaxLevel: number;
+  maxWeapons: number;
+}
+
+export interface PickupBalance {
+  xpBaseValue: number;
+  xpDifficultyScale: number;
+  healthValue: number;
+  resourceValue: number;
+  chestDropCount: number;
+  chestEliteChance: number;
+  magnetBoostMul: number;
+  magnetBoostDuration: number;
+}
+
+export interface ModeBalance {
+  campaignMissions: MissionTemplateBalance[];
+  endlessWaveDuration: number;
+  endlessDifficultyBump: number;
+  endlessBossWaveInterval: number;
+  dailyModifiers: DailyModifierBalance[];
+  roguelikeStages: RoguelikeStageTemplate[];
+  roguelikeRewards: RoguelikeRewardBalance[];
+}
+
+export interface MissionTemplateBalance {
+  type: "eliminate" | "survive" | "collect" | "rescue" | "extract";
+  title: string;
+  description: string;
+  target: number;
+  timeLimit?: number;
+}
+
+export interface DailyModifierBalance {
+  id: string;
+  title: string;
+  description: string;
+  apply: (state: GameState) => void;
+  revert?: (state: GameState) => void;
+}
+
+export interface RoguelikeStageTemplate {
+  type: "combat" | "elite" | "reward" | "boss";
+  name: string;
+  targetMul: number;
+}
+
+export interface RoguelikeRewardBalance {
+  id: string;
+  name: string;
+  description: string;
+  apply: (player: Player) => void;
+}
+
+// ========================================================================
+// 默认配置
+// ========================================================================
+
+export const DEFAULT_BALANCE: BalanceConfig = {
+  player: {
+    baseHealth: 100,
+    baseSpeed: 260,
+    baseRadius: 14,
+    baseMagnetRange: 120,
+    invincibilityDuration: 0.5,
+    knockbackDecay: 6,
+    regenCap: 20,
+    armorCap: 0.75,
+    critDamageMultiplier: 2,
+    levelXpCurve: 1.18,
+    levelXpMultiplier: 50,
+  },
+
+  weapons: {
+    pulse: {
+      name: "脉冲步枪",
+      description: "高射速能量弹，可穿透一个目标",
+      color: "#22d3ee",
+      maxLevel: 5,
+      base: {
+        damage: 20,
+        cooldown: 0.34,
+        range: 520,
+        projectileSpeed: 920,
+        count: 1,
+        spread: 0.05,
+        pierce: 1,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.22, cooldownMul: 0.9, pierceAdd: 1 },
+        { level: 3, damageMul: 1.22, cooldownMul: 0.9, countAdd: 1 },
+        { level: 4, damageMul: 1.22, cooldownMul: 0.9, pierceAdd: 1 },
+        { level: 5, damageMul: 1.22, cooldownMul: 0.9, rangeMul: 1.1, pierceAdd: 1 },
+      ],
+    },
+    shotgun: {
+      name: "霰弹爆破",
+      description: "扇形散射，近距离爆发",
+      color: "#f59e0b",
+      maxLevel: 5,
+      base: {
+        damage: 15,
+        cooldown: 0.88,
+        range: 380,
+        projectileSpeed: 720,
+        count: 5,
+        spread: 0.34,
+        pierce: 0,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.18, countAdd: 1, cooldownMul: 0.92 },
+        { level: 3, damageMul: 1.18, countAdd: 1, cooldownMul: 0.92 },
+        { level: 4, damageMul: 1.18, countAdd: 1, cooldownMul: 0.92 },
+        { level: 5, damageMul: 1.18, countAdd: 1, cooldownMul: 0.92, pierceAdd: 1 },
+      ],
+    },
+    laser: {
+      name: "贯穿激光",
+      description: "高能光束，穿透多个敌人",
+      color: "#a855f7",
+      maxLevel: 5,
+      base: {
+        damage: 34,
+        cooldown: 0.68,
+        range: 720,
+        projectileSpeed: 1250,
+        count: 1,
+        spread: 0,
+        pierce: 5,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 2 },
+        { level: 3, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 2 },
+        { level: 4, damageMul: 1.28, cooldownMul: 0.88, countAdd: 1 },
+        { level: 5, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 3, rangeMul: 1.12 },
+      ],
+    },
+    rocket: {
+      name: "集束火箭",
+      description: "命中后爆炸，造成范围伤害",
+      color: "#f43f5e",
+      maxLevel: 5,
+      base: {
+        damage: 55,
+        cooldown: 1.05,
+        range: 620,
+        projectileSpeed: 580,
+        count: 1,
+        spread: 0.08,
+        pierce: 0,
+        areaRadius: 62,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.3, cooldownMul: 0.9, areaMul: 1.18 },
+        { level: 3, damageMul: 1.3, cooldownMul: 0.9, countAdd: 1 },
+        { level: 4, damageMul: 1.3, cooldownMul: 0.9, areaMul: 1.18 },
+        { level: 5, damageMul: 1.3, cooldownMul: 0.9, areaMul: 1.18, pierceAdd: 1 },
+      ],
+    },
+    flame: {
+      name: "等离子喷火器",
+      description: "持续喷射，附带燃烧效果",
+      color: "#fb923c",
+      maxLevel: 5,
+      base: {
+        damage: 9,
+        cooldown: 0.11,
+        range: 280,
+        projectileSpeed: 520,
+        count: 2,
+        spread: 0.24,
+        pierce: 2,
+        burnDuration: 2,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.2, countAdd: 1, rangeMul: 1.08, burnAdd: 0.5 },
+        { level: 3, damageMul: 1.2, countAdd: 1, rangeMul: 1.08, burnAdd: 0.5 },
+        { level: 4, damageMul: 1.2, countAdd: 1, rangeMul: 1.08, burnAdd: 0.5 },
+        { level: 5, damageMul: 1.2, countAdd: 1, rangeMul: 1.08, burnAdd: 0.5, pierceAdd: 1 },
+      ],
+    },
+    drone: {
+      name: "浮游无人机",
+      description: "追踪最近目标的自动无人机",
+      color: "#34d399",
+      maxLevel: 5,
+      base: {
+        damage: 24,
+        cooldown: 0.52,
+        range: 480,
+        projectileSpeed: 680,
+        count: 2,
+        spread: 0.14,
+        pierce: 1,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.24, cooldownMul: 0.88, countAdd: 1 },
+        { level: 3, damageMul: 1.24, cooldownMul: 0.88 },
+        { level: 4, damageMul: 1.24, cooldownMul: 0.88, countAdd: 1 },
+        { level: 5, damageMul: 1.24, cooldownMul: 0.88, pierceAdd: 1 },
+      ],
+    },
+  },
+
+  enemies: {
+    base: {
+      healthMul: 1,
+      speed: 110,
+      damage: 12,
+      radius: 14,
+      xpValue: 6,
+      color: "#fb923c",
+    },
+    walker: {
+      healthMul: 1,
+      speed: 105,
+      damage: 12,
+      radius: 14,
+      xpValue: 6,
+      color: "#fb923c",
+      eliteHealthMul: 2.8,
+      eliteDamageMul: 1.5,
+      eliteSpeedMul: 1.08,
+      eliteXpMul: 3,
+    },
+    runner: {
+      healthMul: 0.55,
+      speed: 175,
+      damage: 9,
+      radius: 10,
+      xpValue: 4,
+      color: "#34d399",
+      eliteHealthMul: 2.8,
+      eliteDamageMul: 1.55,
+      eliteSpeedMul: 1.12,
+      eliteXpMul: 3,
+    },
+    tank: {
+      healthMul: 3.2,
+      speed: 78,
+      damage: 22,
+      radius: 22,
+      xpValue: 14,
+      color: "#f43f5e",
+      eliteHealthMul: 2.4,
+      eliteDamageMul: 1.45,
+      eliteSpeedMul: 1.05,
+      eliteXpMul: 3,
+    },
+    spitter: {
+      healthMul: 0.8,
+      speed: 92,
+      damage: 9,
+      radius: 12,
+      xpValue: 9,
+      color: "#a3e635",
+      attackCooldown: 2,
+      eliteHealthMul: 2.8,
+      eliteDamageMul: 1.55,
+      eliteSpeedMul: 1.1,
+      eliteXpMul: 3,
+    },
+    elite: {
+      healthMul: 5.5,
+      speed: 128,
+      damage: 28,
+      radius: 18,
+      xpValue: 28,
+      color: "#f59e0b",
+      attackCooldown: 1.4,
+      eliteHealthMul: 1,
+      eliteDamageMul: 1,
+      eliteSpeedMul: 1,
+      eliteXpMul: 1,
+    },
+    boss: {
+      healthMul: 30,
+      speed: 72,
+      damage: 45,
+      radius: 40,
+      xpValue: 250,
+      color: "#e879f9",
+      attackCooldown: 1.1,
+      eliteHealthMul: 1,
+      eliteDamageMul: 1,
+      eliteSpeedMul: 1,
+      eliteXpMul: 1,
+    },
+    drone: {
+      healthMul: 0.35,
+      speed: 200,
+      damage: 7,
+      radius: 8,
+      xpValue: 4,
+      color: "#94a3b8",
+      eliteHealthMul: 2.6,
+      eliteDamageMul: 1.5,
+      eliteSpeedMul: 1.15,
+      eliteXpMul: 3,
+    },
+    sentinel: {
+      healthMul: 1.4,
+      speed: 95,
+      damage: 14,
+      radius: 15,
+      xpValue: 7,
+      color: "#64748b",
+      eliteHealthMul: 2.8,
+      eliteDamageMul: 1.55,
+      eliteSpeedMul: 1.1,
+      eliteXpMul: 3,
+    },
+    crusher: {
+      healthMul: 4.5,
+      speed: 62,
+      damage: 28,
+      radius: 26,
+      xpValue: 18,
+      color: "#f97316",
+      eliteHealthMul: 2.4,
+      eliteDamageMul: 1.45,
+      eliteSpeedMul: 1.05,
+      eliteXpMul: 3,
+    },
+    sniper: {
+      healthMul: 0.7,
+      speed: 78,
+      damage: 11,
+      radius: 11,
+      xpValue: 8,
+      color: "#22d3ee",
+      attackCooldown: 2.2,
+      eliteHealthMul: 2.6,
+      eliteDamageMul: 1.6,
+      eliteSpeedMul: 1.08,
+      eliteXpMul: 3,
+    },
+  },
+
+  affixes: {
+    shielded: { healthMul: 1.4, shieldPercent: 0.3 },
+    splitting: { xpMul: 0.6 },
+    explosive: { radiusAdd: 4 },
+    swift: { speedMul: 1.5 },
+    corrosive: { damageMul: 0.8, radiusAdd: 2 },
+    regenerating: { healthMul: 1.25, regenPercent: 0.02 },
+    freezing: { damageMul: 0.9, speedMul: 1.2 },
+    taunting: { radiusAdd: 6, healthMul: 1.6 },
+  },
+
+  bosses: {
+    overlord: {
+      name: "支配者",
+      description: "高速突袭型 Boss，低血量时进入狂暴并召唤分身",
+      radius: 38,
+      speed: 90,
+      health: 3000,
+      damage: 35,
+      color: "#e879f9",
+      secondaryColor: "#f0abfc",
+      phases: [
+        {
+          name: "猎杀",
+          attackPattern: "burst",
+          attackCooldown: 1.2,
+          projectileCount: 3,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "狂暴",
+          attackPattern: "burst",
+          attackCooldown: 0.7,
+          projectileCount: 5,
+          moveSpeedMul: 1.4,
+        },
+        {
+          name: "绝望",
+          attackPattern: "spread",
+          attackCooldown: 0.9,
+          projectileCount: 8,
+          moveSpeedMul: 1.6,
+        },
+      ],
+      phaseThresholds: [0.65, 0.35],
+    },
+    plaguebringer: {
+      name: "疫祸",
+      description: "范围毒雾型 Boss，持续施放腐蚀弹幕和自爆虫群",
+      radius: 42,
+      speed: 55,
+      health: 4500,
+      damage: 28,
+      color: "#84cc16",
+      secondaryColor: "#bef264",
+      phases: [
+        {
+          name: "瘟疫",
+          attackPattern: "spread",
+          attackCooldown: 1.5,
+          projectileCount: 6,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "虫巢",
+          attackPattern: "summon",
+          attackCooldown: 2,
+          projectileCount: 0,
+          moveSpeedMul: 1.1,
+        },
+        {
+          name: "灭绝",
+          attackPattern: "laser",
+          attackCooldown: 1.8,
+          projectileCount: 1,
+          moveSpeedMul: 0.8,
+        },
+      ],
+      phaseThresholds: [0.7, 0.3],
+    },
+    titan: {
+      name: "泰坦",
+      description: "高护甲重装型 Boss，周期性召唤护盾并释放震荡波",
+      radius: 48,
+      speed: 45,
+      health: 6000,
+      damage: 50,
+      color: "#f43f5e",
+      secondaryColor: "#fda4af",
+      phases: [
+        {
+          name: "碾压",
+          attackPattern: "single",
+          attackCooldown: 1.8,
+          projectileCount: 1,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "护盾",
+          attackPattern: "single",
+          attackCooldown: 1.4,
+          projectileCount: 2,
+          moveSpeedMul: 1.2,
+        },
+        {
+          name: "震荡",
+          attackPattern: "spread",
+          attackCooldown: 1.5,
+          projectileCount: 12,
+          moveSpeedMul: 0.9,
+        },
+      ],
+      phaseThresholds: [0.6, 0.25],
+    },
+    ravager: {
+      name: "掠夺者",
+      description: "极速猎杀型 Boss，闪避弹幕并发动连续冲锋",
+      radius: 32,
+      speed: 120,
+      health: 3600,
+      damage: 40,
+      color: "#f59e0b",
+      secondaryColor: "#fcd34d",
+      phases: [
+        {
+          name: "掠食",
+          attackPattern: "burst",
+          attackCooldown: 0.9,
+          projectileCount: 2,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "奔袭",
+          attackPattern: "charge",
+          attackCooldown: 1.2,
+          projectileCount: 0,
+          moveSpeedMul: 1.6,
+        },
+        {
+          name: "撕裂",
+          attackPattern: "spread",
+          attackCooldown: 0.6,
+          projectileCount: 5,
+          moveSpeedMul: 1.3,
+        },
+      ],
+      phaseThresholds: [0.7, 0.3],
+    },
+    siren: {
+      name: "塞壬",
+      description: "精神控制型 Boss，召唤信徒并释放追踪音波",
+      radius: 34,
+      speed: 65,
+      health: 4200,
+      damage: 32,
+      color: "#8b5cf6",
+      secondaryColor: "#c4b5fd",
+      phases: [
+        {
+          name: "低语",
+          attackPattern: "single",
+          attackCooldown: 1.4,
+          projectileCount: 1,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "合唱",
+          attackPattern: "summon",
+          attackCooldown: 2,
+          projectileCount: 0,
+          moveSpeedMul: 1.1,
+        },
+        {
+          name: "狂想",
+          attackPattern: "burst",
+          attackCooldown: 0.8,
+          projectileCount: 6,
+          moveSpeedMul: 1.4,
+        },
+      ],
+      phaseThresholds: [0.65, 0.3],
+    },
+    colossus: {
+      name: "巨像",
+      description: "机械据点核心，能召唤大量无人机并释放震荡波",
+      radius: 52,
+      speed: 38,
+      health: 9000,
+      damage: 55,
+      color: "#f43f5e",
+      secondaryColor: "#fda4af",
+      phases: [
+        {
+          name: "压制",
+          attackPattern: "spread",
+          attackCooldown: 1.6,
+          projectileCount: 8,
+          moveSpeedMul: 1,
+        },
+        {
+          name: "召唤",
+          attackPattern: "summon",
+          attackCooldown: 2.2,
+          projectileCount: 0,
+          moveSpeedMul: 1.1,
+        },
+        {
+          name: "毁灭",
+          attackPattern: "laser",
+          attackCooldown: 1.4,
+          projectileCount: 1,
+          moveSpeedMul: 0.8,
+        },
+      ],
+      phaseThresholds: [0.7, 0.35],
+    },
+  },
+
+  difficulty: {
+    baseInterval: 1.45,
+    intervalDecay: 0.035,
+    minInterval: 0.32,
+    baseCount: 1,
+    countGrowth: 0.5,
+    maxCount: 12,
+    difficultyGrowth: 0.022,
+    eliteChanceBase: 0,
+    eliteChanceGrowth: 0.012,
+    eliteChanceMax: 0.22,
+    affixCountThresholds: [3, 6, 10, 15],
+    hordeSpawnInterval: 0.22,
+    hordeSpawnCount: 4,
+  },
+
+  progression: {
+    xpBase: 6,
+    xpGrowth: 0.5,
+    xpCurve: 1.18,
+    passiveMaxLevel: 5,
+    weaponMaxLevel: 5,
+    maxWeapons: 3,
+  },
+
+  pickups: {
+    xpBaseValue: 6,
+    xpDifficultyScale: 0.15,
+    healthValue: 25,
+    resourceValue: 1,
+    chestDropCount: 4,
+    chestEliteChance: 0.25,
+    magnetBoostMul: 1.8,
+    magnetBoostDuration: 8,
+  },
+
+  modes: {
+    campaignMissions: [
+      { type: "eliminate", title: "外围清剿", description: "消灭 30 个感染者", target: 30 },
+      { type: "collect", title: "资源回收", description: "收集 15 个补给箱", target: 15 },
+      {
+        type: "rescue",
+        title: "营救信号",
+        description: "抵达信标并防守 30 秒",
+        target: 30,
+        timeLimit: 45,
+      },
+      {
+        type: "extract",
+        title: "安全撤离",
+        description: "抵达撤离点并存活至直升机到达",
+        target: 1,
+      },
+    ],
+    endlessWaveDuration: 60,
+    endlessDifficultyBump: 0.5,
+    endlessBossWaveInterval: 5,
+    dailyModifiers: [
+      {
+        id: "ammo_shortage",
+        title: "弹药短缺",
+        description: "所有武器射速降低 25%",
+        apply: (state) => {
+          for (const weapon of state.player.weapons) {
+            weapon.cooldown *= 1.25;
+          }
+        },
+        revert: (state) => {
+          for (const weapon of state.player.weapons) {
+            weapon.cooldown /= 1.25;
+          }
+        },
+      },
+      {
+        id: "infection_surge",
+        title: "感染加剧",
+        description: "敌人移动速度提升 20%",
+        apply: (state) => {
+          state.difficulty += 2;
+        },
+      },
+      {
+        id: "resource_drought",
+        title: "资源匮乏",
+        description: "经验获取降低 30%",
+        apply: (state) => {
+          state.player.xpToNext *= 1.3;
+        },
+      },
+      {
+        id: "elite_swarm",
+        title: "精英横行",
+        description: "精英敌人出现概率翻倍",
+        apply: () => {
+          // Applied in spawn logic via daily modifier flag
+        },
+      },
+      {
+        id: "glass_cannon",
+        title: "玻璃大炮",
+        description: "玩家伤害 +50%，生命值上限 -30%",
+        apply: (state) => {
+          state.player.maxHealth *= 0.7;
+          state.player.health = Math.min(state.player.health, state.player.maxHealth);
+          for (const weapon of state.player.weapons) {
+            weapon.damage *= 1.5;
+          }
+        },
+      },
+      {
+        id: "dense_horde",
+        title: "密集尸潮",
+        description: "敌人生成数量 +2，但生命值降低 20%",
+        apply: () => {
+          // Spawn count offset applied in engine via modifier flag
+        },
+      },
+      {
+        id: "volatile_kills",
+        title: "连锁爆炸",
+        description: "敌人死亡时 25% 几率引发小范围爆炸",
+        apply: () => {
+          // Applied in engine death logic via modifier flag
+        },
+      },
+      {
+        id: "rapid_evolution",
+        title: "急速进化",
+        description: "难度增长速度翻倍",
+        apply: () => {
+          // Applied in engine difficulty growth via modifier flag
+        },
+      },
+    ],
+    roguelikeStages: [
+      { type: "combat", name: "区域 1", targetMul: 20 },
+      { type: "combat", name: "区域 2", targetMul: 28 },
+      { type: "elite", name: "精英据点", targetMul: 15 },
+      { type: "combat", name: "区域 3", targetMul: 36 },
+      { type: "reward", name: "补给站", targetMul: 0 },
+      { type: "boss", name: "最终决战", targetMul: 1 },
+    ],
+    roguelikeRewards: [
+      {
+        id: "health_boost",
+        name: "生命增幅",
+        description: "最大生命值 +30",
+        apply: (player) => {
+          player.maxHealth += 30;
+          player.health += 30;
+        },
+      },
+      {
+        id: "speed_boost",
+        name: "机动超载",
+        description: "移动速度 +15%",
+        apply: (player) => {
+          player.speed *= 1.15;
+        },
+      },
+      {
+        id: "damage_boost",
+        name: "武器过载",
+        description: "所有武器伤害 +20%",
+        apply: (player) => {
+          for (const weapon of player.weapons) {
+            weapon.damage *= 1.2;
+          }
+        },
+      },
+      {
+        id: "cooldown_boost",
+        name: "极速核心",
+        description: "所有武器冷却 -15%",
+        apply: (player) => {
+          for (const weapon of player.weapons) {
+            weapon.cooldown *= 0.85;
+          }
+        },
+      },
+      {
+        id: "magnet_boost",
+        name: "引力增强",
+        description: "拾取范围 +30%",
+        apply: (player) => {
+          player.magnetRange *= 1.3;
+        },
+      },
+      {
+        id: "armor_boost",
+        name: "装甲镀层",
+        description: "护甲 +12%",
+        apply: (player) => {
+          player.armor += 0.12;
+        },
+      },
+    ],
+  },
+};
+
+// ========================================================================
+// 计算辅助函数
+// ========================================================================
+
+export function getWeaponBase(id: WeaponId): Weapon {
+  const cfg = DEFAULT_BALANCE.weapons[id];
+  return {
+    id,
+    name: cfg.name,
+    level: 1,
+    maxLevel: cfg.maxLevel,
+    cooldown: cfg.base.cooldown,
+    timer: 0,
+    damage: cfg.base.damage,
+    range: cfg.base.range,
+    projectileSpeed: cfg.base.projectileSpeed,
+    count: cfg.base.count,
+    spread: cfg.base.spread,
+    pierce: cfg.base.pierce,
+    color: cfg.color,
+    description: cfg.description,
+    areaRadius: cfg.base.areaRadius,
+    burnDuration: cfg.base.burnDuration,
+  };
+}
+
+export function upgradeWeaponFromBalance(weapon: Weapon): Weapon {
+  const cfg = DEFAULT_BALANCE.weapons[weapon.id];
+  const next = { ...weapon };
+  if (next.level >= next.maxLevel) return next;
+  next.level += 1;
+
+  const step = cfg.upgrades.find((u) => u.level === next.level);
+  if (!step) return next;
+
+  if (step.damageMul) next.damage = Math.round(next.damage * step.damageMul);
+  if (step.cooldownMul) next.cooldown *= step.cooldownMul;
+  if (step.rangeMul) next.range *= step.rangeMul;
+  if (step.countAdd) next.count += step.countAdd;
+  if (step.pierceAdd) next.pierce += step.pierceAdd;
+  if (step.areaMul) next.areaRadius = (next.areaRadius ?? 60) * step.areaMul;
+  if (step.burnAdd) next.burnDuration = (next.burnDuration ?? 2) + step.burnAdd;
+
+  return next;
+}
+
+export function getWeaponDps(weapon: Weapon): number {
+  const effectiveCooldown = Math.max(0.04, weapon.cooldown);
+  const projectilesPerSecond = weapon.count / effectiveCooldown;
+  return weapon.damage * projectilesPerSecond;
+}
+
+export function getDifficultyScaledHealth(difficulty: number, variant: EnemyVariant): number {
+  const base = DEFAULT_BALANCE.enemies.base;
+  const v = DEFAULT_BALANCE.enemies[variant] ?? base;
+  const baseHealth = 30 + difficulty * 8;
+  return Math.floor(baseHealth * v.healthMul);
+}
+
+export function getSpawnInterval(difficulty: number): number {
+  const cfg = DEFAULT_BALANCE.difficulty;
+  return Math.max(cfg.minInterval, cfg.baseInterval - difficulty * cfg.intervalDecay);
+}
+
+export function getSpawnCount(difficulty: number): number {
+  const cfg = DEFAULT_BALANCE.difficulty;
+  return Math.min(cfg.maxCount, Math.floor(cfg.baseCount + difficulty * cfg.countGrowth));
+}
+
+export function getEliteSpawnChance(difficulty: number): number {
+  const cfg = DEFAULT_BALANCE.difficulty;
+  if (difficulty < 3) return 0;
+  return Math.min(
+    cfg.eliteChanceMax,
+    cfg.eliteChanceBase + (difficulty - 3) * cfg.eliteChanceGrowth
+  );
+}
+
+export function getEliteAffixCountFromBalance(difficulty: number): number {
+  const thresholds = DEFAULT_BALANCE.difficulty.affixCountThresholds;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (difficulty < thresholds[i]) return i + 1;
+  }
+  return thresholds.length;
+}
+
+export function getXpToNext(level: number): number {
+  const cfg = DEFAULT_BALANCE.player;
+  return Math.floor(cfg.levelXpMultiplier * Math.pow(cfg.levelXpCurve, level - 1));
+}
+
+export function getXpValue(enemy: Enemy, difficulty: number): number {
+  const cfg = DEFAULT_BALANCE.pickups;
+  return Math.floor(enemy.xpValue * (1 + difficulty * cfg.xpDifficultyScale));
+}
+
+export function applyDailyModifiers(state: GameState): void {
+  const modifiers = getDailyModifiersFromBalance();
+  for (const mod of modifiers) {
+    mod.apply(state);
+  }
+}
+
+export function getDailyModifiersFromBalance(): DailyModifierBalance[] {
+  const cfg = DEFAULT_BALANCE.modes.dailyModifiers;
+  const seed = generateDailySeed();
+  const rng = seededRandom(Number.parseInt(seed, 10));
+  const count = 1 + Math.floor(rng() * 2);
+  const result: DailyModifierBalance[] = [];
+  const pool = [...cfg];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    const idx = Math.floor(rng() * pool.length);
+    result.push(pool[idx]);
+    pool.splice(idx, 1);
+  }
+  return result;
+}
+
+export function generateRoguelikeStagesFromBalance(seed: number): RoguelikeStage[] {
+  const cfg = DEFAULT_BALANCE.modes.roguelikeStages;
+  const rng = seededRandom(seed);
+  return cfg.map((stage, index) => {
+    const isBoss = stage.type === "boss";
+    const isElite = stage.type === "elite";
+    const target = isBoss ? 1 : isElite ? stage.targetMul + index * 5 : stage.targetMul + index * 8;
+    return {
+      id: `rl_${index}`,
+      name: stage.name,
+      type: stage.type,
+      mission: {
+        id: `rl_m_${index}`,
+        type: isBoss ? "eliminate" : "eliminate",
+        title: isBoss ? "击败区域首领" : isElite ? "清剿精英" : "清剿感染者",
+        description: `消灭 ${target} 个感染者`,
+        target,
+        progress: 0,
+        completed: false,
+        elapsed: 0,
+      },
+      rewardOptions: stage.type === "reward" ? 3 : undefined,
+      cleared: false,
+    };
+  });
+}
+
+export function getRoguelikeRewards(count: number, player: Player): RoguelikeRewardBalance[] {
+  const cfg = DEFAULT_BALANCE.modes.roguelikeRewards;
+  const rewards: RoguelikeRewardBalance[] = [];
+  const pool = [...cfg];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    rewards.push(pool[idx]);
+    pool.splice(idx, 1);
+  }
+  return rewards;
+}
+
+export function applyRoguelikeReward(player: Player, rewardId: string): boolean {
+  const reward = DEFAULT_BALANCE.modes.roguelikeRewards.find((r) => r.id === rewardId);
+  if (!reward) return false;
+  reward.apply(player);
+  return true;
+}
+
+export function generateCampaignMissionsFromBalance(): import("./types").Mission[] {
+  const cfg = DEFAULT_BALANCE.modes.campaignMissions;
+  return cfg.map((template, index) => ({
+    id: `m${index + 1}`,
+    type: template.type,
+    title: template.title,
+    description: template.description,
+    target: template.target,
+    progress: 0,
+    completed: false,
+    elapsed: 0,
+    timeLimit: template.timeLimit,
+  }));
+}
+
+export function generateEndlessMissionsFromBalance(wave: number): import("./types").Mission[] {
+  return [
+    {
+      id: "endless_survive",
+      type: "survive",
+      title: "坚守",
+      description: `在无尽感染潮中存活 ${120 + wave * 30} 秒`,
+      target: 120 + wave * 30,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function seededRandom(seed: number): () => number {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+export function getModeDifficultyMultiplier(
+  mode: import("./types").GameModeType,
+  stageIndex = 0
+): number {
+  switch (mode) {
+    case "campaign":
+      return 1;
+    case "endless":
+      return 1 + stageIndex * 0.08;
+    case "daily":
+      return 1.15;
+    case "roguelike":
+      return 1 + stageIndex * 0.12;
+    case "defense":
+      return 1 + stageIndex * 0.1;
+    default:
+      return 1;
+  }
+}
+
+export function scaleHealthForMode(
+  health: number,
+  mode: import("./types").GameModeType,
+  stageIndex = 0
+): number {
+  return Math.floor(health * getModeDifficultyMultiplier(mode, stageIndex));
+}
+
+export function getDailyModifierIds(): string[] {
+  return DEFAULT_BALANCE.modes.dailyModifiers.map((m) => m.id);
+}
+
+export function generateDailySeed(): string {
+  const now = new Date();
+  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+}
+
+// ========================================================================
+// 被动道具配置（与 balance 同步）
+// ========================================================================
+
+export interface PassiveBalanceDef {
+  id: PassiveId;
+  name: string;
+  description: string;
+  color: string;
+  maxLevel: number;
+  apply: (p: Player) => void;
+}
+
+export const PASSIVE_BALANCE_DEFS: PassiveBalanceDef[] = [
+  {
+    id: "maxHealth",
+    name: "生命强化",
+    description: "最大生命值 +20",
+    color: "#f43f5e",
+    maxLevel: 5,
+    apply: (p) => {
+      p.maxHealth += 20;
+      p.health += 20;
+    },
+  },
+  {
+    id: "speed",
+    name: "机动增强",
+    description: "移动速度 +6%",
+    color: "#22d3ee",
+    maxLevel: 5,
+    apply: (p) => {
+      p.speed *= 1.06;
+    },
+  },
+  {
+    id: "magnet",
+    name: "磁力拾取",
+    description: "拾取范围 +18%",
+    color: "#f59e0b",
+    maxLevel: 5,
+    apply: (p) => {
+      p.magnetRange *= 1.18;
+    },
+  },
+  {
+    id: "regen",
+    name: "纳米修复",
+    description: "每秒恢复 +1 生命",
+    color: "#34d399",
+    maxLevel: 5,
+    apply: (p) => {
+      p.regen += 1;
+    },
+  },
+  {
+    id: "armor",
+    name: "外骨骼装甲",
+    description: "受到伤害 -8%",
+    color: "#64748b",
+    maxLevel: 5,
+    apply: (p) => {
+      p.armor += 0.08;
+    },
+  },
+  {
+    id: "crit",
+    name: "弱点解析",
+    description: "暴击几率 +5%",
+    color: "#ef4444",
+    maxLevel: 5,
+    apply: (p) => {
+      p.critChance += 0.05;
+    },
+  },
+  {
+    id: "cooldown",
+    name: "超频核心",
+    description: "武器冷却 -5%",
+    color: "#a855f7",
+    maxLevel: 5,
+    apply: (p) => {
+      p.cooldownReduction += 0.05;
+    },
+  },
+  {
+    id: "area",
+    name: "范围增幅",
+    description: "范围效果 +10%",
+    color: "#38bdf8",
+    maxLevel: 5,
+    apply: (p) => {
+      p.areaMultiplier += 0.1;
+    },
+  },
+];

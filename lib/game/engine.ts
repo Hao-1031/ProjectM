@@ -1,0 +1,2002 @@
+import type {
+  GameState,
+  Player,
+  Enemy,
+  EnemyVariant,
+  Projectile,
+  Pickup,
+  Particle,
+  DamageNumber,
+  UpgradeOption,
+  RunResult,
+  InputState,
+  MapConfig,
+  Obstacle,
+  Hazard,
+  EnemyProjectile,
+  GameEvent,
+  MapTheme,
+  GameModeType,
+  GameModeConfig,
+  SerializedGameState,
+  HeroId,
+  DefenseState,
+} from "./types";
+import {
+  uid,
+  clamp,
+  distance,
+  normalize,
+  angleBetween,
+  randomRange,
+  randomPointOnBorder,
+  randomPointInBounds,
+  randomChoice,
+  circleCollision,
+  circleRectCollision,
+  formatTime,
+} from "./math";
+import { getStarterWeapons, applyUpgrade, generateUpgradeOptions } from "./weapons";
+import {
+  generateMissions,
+  updateMissions,
+  advanceMission,
+  addKill,
+  addResource,
+  getCurrentMission,
+} from "./missions";
+import { audio } from "./audio";
+import {
+  applyAffixes,
+  getEliteAffixCount,
+  getRegenRate,
+  shouldExplodeOnDeath,
+  shouldSplitOnDeath,
+} from "./affixes";
+import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId } from "./bosses";
+import {
+  createGameModeConfig,
+  generateCampaignMissions,
+  generateEndlessMissions,
+  getDefaultMode,
+  seededRandom,
+} from "./modes";
+import { getEnemySprite, getPlayerSprite } from "./sprites";
+import { getCurrentFrameIndex, setFacing, transitionAnimation, updateAnimation } from "./animation";
+import type { RoguelikeRunState } from "./roguelike";
+import type { RoguelikeRewardBalance } from "./balance";
+import {
+  createRoguelikeRun,
+  getCurrentStage,
+  isStageComplete,
+  markCurrentStageComplete,
+  advanceStage,
+  generateRewardOptions,
+  applyReward,
+  shouldOfferReward,
+} from "./roguelike";
+import {
+  DEFAULT_BALANCE,
+  getSpawnInterval,
+  getSpawnCount,
+  getEliteSpawnChance,
+  getDifficultyScaledHealth,
+  getXpValue,
+  applyDailyModifiers,
+} from "./balance";
+import { createDefenseMap, createDefenseState, activateNodeForWave, getActiveNode } from "./defense";
+import {
+  applyHeroToPlayer,
+  useHeroSkill,
+  updateHeroSkillsAndDeployables,
+  handleDeployableShieldCollisions,
+  handleMineProximity,
+  createNullHeroState,
+} from "./heroes";
+
+const MAP_WIDTH = 2400;
+const MAP_HEIGHT = 1800;
+
+const THEMES: Record<MapTheme, { bg: string; grid: string; border: string; accent: string }> = {
+  industrial: { bg: "#03040a", grid: "#11152a", border: "#1c2033", accent: "#22d3ee" },
+  frozen: { bg: "#050a12", grid: "#0f2438", border: "#1a3a52", accent: "#38bdf8" },
+  biohazard: { bg: "#0a0805", grid: "#1a2410", border: "#2a3a18", accent: "#84cc16" },
+};
+
+export interface GameCallbacks {
+  onLevelUp?: (options: UpgradeOption[]) => void;
+  onVictory?: (result: RunResult) => void;
+  onDefeat?: (result: RunResult) => void;
+  onMissionComplete?: () => void;
+  onExtractionReady?: () => void;
+  onEventStart?: (event: GameEvent) => void;
+  onBossPhaseChange?: (boss: Enemy, phase: number) => void;
+  onRoguelikeRewardOffer?: (options: RoguelikeRewardBalance[]) => void;
+}
+
+export class GameEngine {
+  state: GameState;
+  private canvasWidth = 0;
+  private canvasHeight = 0;
+  private screenShake = 0;
+  private callbacks: GameCallbacks;
+  private pendingUpgradeOptions: UpgradeOption[] | null = null;
+  private seed = 0;
+  private rng: () => number;
+
+  constructor(callbacks: GameCallbacks = {}, mode: GameModeType = getDefaultMode(), seed?: number) {
+    this.callbacks = callbacks;
+    this.seed = seed ?? Math.floor(Math.random() * 1000000);
+    this.rng = seededRandom(this.seed);
+    this.state = this.createInitialState(mode);
+  }
+
+  private createInitialState(mode: GameModeType): GameState {
+    const modeConfig = createGameModeConfig(mode, this.seed);
+    const theme = this.randomTheme();
+    const roguelikeRunState = mode === "roguelike" ? createRoguelikeRun(this.seed) : undefined;
+    const defenseState = mode === "defense" ? createDefenseState(this.seed) : undefined;
+    const missions = modeConfig.allowMissions
+      ? mode === "roguelike"
+        ? roguelikeRunState
+          ? [roguelikeRunState.stages[0].mission]
+          : generateCampaignMissions()
+        : generateCampaignMissions()
+      : modeConfig.endless
+        ? generateEndlessMissions(1)
+        : [];
+
+    const map = mode === "defense" ? createDefenseMap(this.seed) : this.createMap(theme);
+    const startX = mode === "defense" ? map.width / 2 : MAP_WIDTH / 2;
+    const startY = mode === "defense" ? map.height / 2 : MAP_HEIGHT / 2;
+
+    const player = this.createPlayer("player", startX, startY);
+    if (mode === "defense" && this.state?.selectedHero) {
+      applyHeroToPlayer(player, this.state.selectedHero);
+    }
+
+    return {
+      status: "idle",
+      mode,
+      modeConfig,
+      seed: this.seed,
+      lastTime: 0,
+      time: 0,
+      map,
+      camera: { x: startX, y: startY, scale: 1 },
+      player,
+      players: [],
+      enemies: [],
+      projectiles: [],
+      enemyProjectiles: [],
+      pickups: [],
+      particles: [],
+      damageNumbers: [],
+      missions,
+      currentMissionIndex: 0,
+      extraction: null,
+      extractionTimer: 0,
+      spawnTimer: 0,
+      eventTimer: 25,
+      difficulty: 1,
+      intensity: 0,
+      wave: 1,
+      waveTimer: 0,
+      stats: {
+        kills: 0,
+        damageDealt: 0,
+        damageTaken: 0,
+        xpCollected: 0,
+        resourcesCollected: 0,
+        timeSurvived: 0,
+        chestsOpened: 0,
+        elitesKilled: 0,
+        bossesKilled: 0,
+        wavesCleared: 0,
+        score: 0,
+      },
+      activeEvent: null,
+      eliteKillStreak: 0,
+      roguelikeRunState,
+      defenseState,
+      selectedHero: this.state?.selectedHero,
+    };
+  }
+
+  private createPlayer(id: string, x: number, y: number): Player {
+    const cfg = DEFAULT_BALANCE.player;
+    return {
+      id,
+      x,
+      y,
+      radius: cfg.baseRadius,
+      speed: cfg.baseSpeed,
+      maxHealth: cfg.baseHealth,
+      health: cfg.baseHealth,
+      level: 1,
+      xp: 0,
+      xpToNext: cfg.levelXpMultiplier,
+      weapons: getStarterWeapons(),
+      passives: [],
+      invincible: 0,
+      magnetRange: cfg.baseMagnetRange,
+      armor: 0,
+      critChance: 0,
+      cooldownReduction: 0,
+      areaMultiplier: 1,
+      regen: 0,
+      knockbackX: 0,
+      knockbackY: 0,
+      burnDuration: 0,
+      burnDamage: 0,
+      facing: 0,
+      animation: "idle",
+      animationTimer: 0,
+    };
+  }
+
+  private randomTheme(): MapTheme {
+    const themes: MapTheme[] = ["industrial", "frozen", "biohazard"];
+    return themes[Math.floor(this.rng() * themes.length)];
+  }
+
+  private createMap(theme: MapTheme): MapConfig {
+    const obstacles: Obstacle[] = [];
+    const hazards: Hazard[] = [];
+
+    const obstacleCount = theme === "industrial" ? 18 : theme === "frozen" ? 14 : 20;
+    for (let i = 0; i < obstacleCount; i++) {
+      const width = randomRange(60, 180);
+      const height = randomRange(60, 180);
+      const pos = randomPointInBounds(MAP_WIDTH, MAP_HEIGHT, 250);
+      const color = theme === "industrial" ? "#1c2033" : theme === "frozen" ? "#1a3a52" : "#2a3a18";
+      obstacles.push({
+        id: uid("obs"),
+        x: pos.x,
+        y: pos.y,
+        width,
+        height,
+        color,
+        health: theme === "biohazard" ? 80 : 120,
+        maxHealth: theme === "biohazard" ? 80 : 120,
+        destructible: true,
+      });
+    }
+
+    const hazardCount = theme === "industrial" ? 4 : theme === "frozen" ? 6 : 8;
+    for (let i = 0; i < hazardCount; i++) {
+      const pos = randomPointInBounds(MAP_WIDTH, MAP_HEIGHT, 300);
+      hazards.push({
+        id: uid("haz"),
+        x: pos.x,
+        y: pos.y,
+        radius: randomRange(50, 90),
+        damage: theme === "biohazard" ? 8 : 5,
+        interval: 0.8,
+        timer: 0,
+        color: theme === "industrial" ? "#f59e0b" : theme === "frozen" ? "#22d3ee" : "#84cc16",
+        type: theme === "industrial" ? "electric" : "acid",
+      });
+    }
+
+    return { width: MAP_WIDTH, height: MAP_HEIGHT, theme, obstacles, hazards };
+  }
+
+  resize(width: number, height: number) {
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+    this.updateCamera();
+  }
+
+  start() {
+    this.state.status = "running";
+    this.state.lastTime = performance.now();
+  }
+
+  pause() {
+    if (this.state.status === "running") {
+      this.state.status = "paused";
+    } else if (this.state.status === "paused") {
+      this.state.status = "running";
+      this.state.lastTime = performance.now();
+    }
+  }
+
+  isPaused() {
+    return this.state.status === "paused";
+  }
+
+  isRunning() {
+    return this.state.status === "running";
+  }
+
+  restart(mode: GameModeType = this.state.mode, seed?: number) {
+    if (seed !== undefined) {
+      this.seed = seed;
+      this.rng = seededRandom(seed);
+    } else {
+      this.seed = Math.floor(Math.random() * 1000000);
+      this.rng = seededRandom(this.seed);
+    }
+    this.state = this.createInitialState(mode);
+    this.start();
+  }
+
+  update(input: InputState, now: number) {
+    if (this.state.status !== "running") return;
+
+    const dt = Math.min((now - this.state.lastTime) / 1000, 0.05);
+    this.state.lastTime = now;
+    this.state.time += dt;
+    this.state.stats.timeSurvived += dt;
+
+    this.updatePlayer(input, dt);
+    this.updateRemotePlayers(dt);
+    this.updateWeapons(dt);
+    this.updateProjectiles(dt);
+    this.updateEnemyProjectiles(dt);
+    this.spawnEnemies(dt);
+    this.updateEnemies(dt);
+    this.updateHazards(dt);
+    this.updatePickups(dt);
+    this.updateParticles(dt);
+    this.updateDamageNumbers(dt);
+    this.updateMissionsAndExtraction(dt);
+    this.updateEvents(dt);
+    this.updateWave(dt);
+    this.handleCollisions();
+    this.updateCamera();
+
+    if (this.screenShake > 0) {
+      this.screenShake = Math.max(0, this.screenShake - dt * 10);
+    }
+  }
+
+  private updatePlayer(input: InputState, dt: number) {
+    const player = this.state.player;
+    const move = normalize(input.move);
+
+    const accel = 1800;
+    player.knockbackX *= Math.max(0, 1 - dt * 6);
+    player.knockbackY *= Math.max(0, 1 - dt * 6);
+
+    if (move.x !== 0 || move.y !== 0) {
+      player.knockbackX +=
+        (move.x * player.speed - player.knockbackX) * Math.min(1, (accel * dt) / player.speed);
+      player.knockbackY +=
+        (move.y * player.speed - player.knockbackY) * Math.min(1, (accel * dt) / player.speed);
+      transitionAnimation(player, "move");
+    } else {
+      transitionAnimation(player, "idle");
+    }
+
+    player.x += player.knockbackX * dt;
+    player.y += player.knockbackY * dt;
+
+    this.resolveObstacleCollisions(player);
+
+    player.x = clamp(player.x, player.radius, this.state.map.width - player.radius);
+    player.y = clamp(player.y, player.radius, this.state.map.height - player.radius);
+
+    if (input.aim.x !== 0 || input.aim.y !== 0) {
+      setFacing(player, player.x + input.aim.x, player.y + input.aim.y);
+    } else if (move.x !== 0 || move.y !== 0) {
+      setFacing(player, player.x + move.x, player.y + move.y);
+    }
+
+    updateAnimation(player, dt, getPlayerSprite("#22d3ee", "#0b0d17"));
+
+    if (player.invincible > 0) {
+      player.invincible -= dt;
+    }
+
+    if (player.regen > 0) {
+      player.health = Math.min(player.maxHealth, player.health + player.regen * dt);
+    }
+
+    if (player.burnDuration > 0) {
+      player.burnDuration -= dt;
+      player.health -= player.burnDamage * dt;
+      if (Math.random() < dt * 4) {
+        this.spawnParticle(
+          player.x + randomRange(-10, 10),
+          player.y + randomRange(-10, 10),
+          "#fb923c",
+          2
+        );
+      }
+      if (player.health <= 0) {
+        this.endRun(false);
+      }
+    }
+  }
+
+  private updateRemotePlayers(dt: number) {
+    for (const player of this.state.players) {
+      if (player.id === this.state.player.id) continue;
+      player.knockbackX *= Math.max(0, 1 - dt * 6);
+      player.knockbackY *= Math.max(0, 1 - dt * 6);
+      player.x += player.knockbackX * dt;
+      player.y += player.knockbackY * dt;
+      this.resolveObstacleCollisions(player);
+      player.x = clamp(player.x, player.radius, this.state.map.width - player.radius);
+      player.y = clamp(player.y, player.radius, this.state.map.height - player.radius);
+      if (player.invincible > 0) player.invincible -= dt;
+      updateAnimation(player, dt, getPlayerSprite("#f59e0b", "#0b0d17"));
+    }
+  }
+
+  private resolveObstacleCollisions(entity: { x: number; y: number; radius: number }) {
+    for (const obs of this.state.map.obstacles) {
+      if (circleRectCollision(entity, obs)) {
+        const closestX = clamp(entity.x, obs.x - obs.width / 2, obs.x + obs.width / 2);
+        const closestY = clamp(entity.y, obs.y - obs.height / 2, obs.y + obs.height / 2);
+        const dx = entity.x - closestX;
+        const dy = entity.y - closestY;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0 && dist < entity.radius) {
+          const push = (entity.radius - dist) / dist;
+          entity.x += dx * push;
+          entity.y += dy * push;
+        }
+      }
+    }
+  }
+
+  private updateWeapons(dt: number) {
+    const player = this.state.player;
+    for (const weapon of player.weapons) {
+      const effectiveCooldown = weapon.cooldown * (1 - player.cooldownReduction);
+      weapon.timer -= dt;
+      if (weapon.timer <= 0) {
+        this.fireWeapon(weapon);
+        weapon.timer = Math.max(0.04, effectiveCooldown);
+      }
+    }
+  }
+
+  private fireWeapon(weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    transitionAnimation(player, "attack");
+
+    if (weapon.id === "drone") {
+      this.fireDrone(weapon);
+      return;
+    }
+
+    if (weapon.id === "flame") {
+      this.fireFlame(weapon);
+      return;
+    }
+
+    const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
+    if (!nearest) return;
+
+    const angle = angleBetween(player, nearest);
+    const halfSpread = weapon.spread / 2;
+
+    for (let i = 0; i < weapon.count; i++) {
+      const spread = weapon.count === 1 ? 0 : randomRange(-halfSpread, halfSpread);
+      const theta = angle + spread;
+      const speed = weapon.projectileSpeed;
+      const projectile: Projectile = {
+        id: uid("proj"),
+        x: player.x + Math.cos(theta) * 20,
+        y: player.y + Math.sin(theta) * 20,
+        vx: Math.cos(theta) * speed,
+        vy: Math.sin(theta) * speed,
+        radius: weapon.id === "rocket" ? 6 : 4,
+        damage: weapon.damage,
+        speed,
+        color: weapon.color,
+        pierce: weapon.pierce,
+        weaponId: weapon.id,
+        life: weapon.range / speed,
+      };
+      if (weapon.id === "rocket") {
+        projectile.isExplosive = true;
+        projectile.areaRadius = 60 * player.areaMultiplier;
+      }
+      this.state.projectiles.push(projectile);
+    }
+    audio?.play("shoot");
+  }
+
+  private fireDrone(weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    for (let i = 0; i < weapon.count; i++) {
+      const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
+      if (!nearest) break;
+      const angle = angleBetween(player, nearest) + randomRange(-0.2, 0.2);
+      const speed = weapon.projectileSpeed;
+      this.state.projectiles.push({
+        id: uid("proj"),
+        x: player.x + Math.cos(angle) * 24,
+        y: player.y + Math.sin(angle) * 24,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 5,
+        damage: weapon.damage,
+        speed,
+        color: weapon.color,
+        pierce: 1,
+        weaponId: weapon.id,
+        life: weapon.range / speed,
+      });
+    }
+    if (this.state.projectiles.some((p) => p.weaponId === "drone")) {
+      audio?.play("shoot");
+    }
+  }
+
+  private fireFlame(weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
+    const angle = nearest ? angleBetween(player, nearest) : 0;
+    for (let i = 0; i < weapon.count; i++) {
+      const spread = randomRange(-weapon.spread / 2, weapon.spread / 2);
+      const theta = angle + spread;
+      const speed = weapon.projectileSpeed * randomRange(0.8, 1.1);
+      this.state.projectiles.push({
+        id: uid("proj"),
+        x: player.x + Math.cos(theta) * 18,
+        y: player.y + Math.sin(theta) * 18,
+        vx: Math.cos(theta) * speed,
+        vy: Math.sin(theta) * speed,
+        radius: 5,
+        damage: weapon.damage,
+        speed,
+        color: weapon.color,
+        pierce: weapon.pierce,
+        weaponId: weapon.id,
+        life: weapon.range / speed,
+        burnDuration: weapon.burnDuration ?? 2,
+        burnDamage: weapon.damage * 0.4,
+      });
+    }
+    audio?.play("shoot");
+  }
+
+  private findNearestEnemy(x: number, y: number, range: number) {
+    let best: Enemy | null = null;
+    let bestDist = range;
+    for (const enemy of this.state.enemies) {
+      const dist = distance({ x, y }, enemy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = enemy;
+      }
+    }
+    return best;
+  }
+
+  private updateProjectiles(dt: number) {
+    const projectiles = this.state.projectiles;
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (
+        p.life <= 0 ||
+        p.x < -50 ||
+        p.x > this.state.map.width + 50 ||
+        p.y < -50 ||
+        p.y > this.state.map.height + 50
+      ) {
+        if (p.isExplosive) {
+          this.explodeProjectile(p);
+        }
+        projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  private updateEnemyProjectiles(dt: number) {
+    const projectiles = this.state.enemyProjectiles;
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (
+        p.life <= 0 ||
+        p.x < -50 ||
+        p.x > this.state.map.width + 50 ||
+        p.y < -50 ||
+        p.y > this.state.map.height + 50
+      ) {
+        projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  private spawnEnemies(dt: number) {
+    this.state.spawnTimer -= dt;
+
+    if (this.state.activeEvent?.type === "horde") {
+      if (this.state.spawnTimer <= 0) {
+        this.state.spawnTimer = DEFAULT_BALANCE.difficulty.hordeSpawnInterval;
+        for (let i = 0; i < DEFAULT_BALANCE.difficulty.hordeSpawnCount; i++) this.spawnEnemy();
+      }
+      return;
+    }
+
+    if (this.state.spawnTimer > 0) return;
+
+    const difficulty = this.state.difficulty;
+    this.state.spawnTimer = getSpawnInterval(difficulty);
+
+    const count = getSpawnCount(difficulty);
+    for (let i = 0; i < count; i++) {
+      this.spawnEnemy();
+    }
+
+    this.state.difficulty += DEFAULT_BALANCE.difficulty.difficultyGrowth;
+  }
+
+  private spawnEnemy(variantOverride?: EnemyVariant, elite = false) {
+    const pos = randomPointOnBorder(this.state.map.width, this.state.map.height);
+    const roll = Math.random();
+    const difficulty = this.state.difficulty;
+    let variant: EnemyVariant = variantOverride ?? "walker";
+    if (!variantOverride) {
+      if (roll > 0.88) variant = "tank";
+      else if (roll > 0.72) variant = "runner";
+      else if (roll > 0.58 && difficulty > 3) variant = "spitter";
+      else if (roll < getEliteSpawnChance(difficulty) && difficulty > 6) variant = "elite";
+    }
+
+    const balance = DEFAULT_BALANCE.enemies[variant] ?? DEFAULT_BALANCE.enemies.base;
+    let baseHealth = getDifficultyScaledHealth(difficulty, variant);
+    let speed = balance.speed;
+    let damage = balance.damage;
+    let radius = balance.radius;
+    let xpValue = balance.xpValue;
+    let color = balance.color;
+    let attackCooldown = balance.attackCooldown ?? 0;
+
+    if (variant === "elite" || variant === "boss") {
+      elite = true;
+    }
+
+    if (elite && variant !== "elite" && variant !== "boss") {
+      const e = balance;
+      baseHealth = Math.floor(baseHealth * (e.eliteHealthMul ?? 3));
+      damage *= e.eliteDamageMul ?? 1.6;
+      speed *= e.eliteSpeedMul ?? 1.1;
+      xpValue *= e.eliteXpMul ?? 3;
+      radius *= 1.15;
+    }
+
+    const affixes: Enemy["affixes"] = [];
+    if (elite || variant === "elite") {
+      const count = getEliteAffixCount(difficulty);
+      const pool = [
+        "shielded",
+        "swift",
+        "explosive",
+        "regenerating",
+        "taunting",
+        "freezing",
+        "corrosive",
+        "splitting",
+      ] as Enemy["affixes"];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        affixes.push(pool[idx]);
+        pool.splice(idx, 1);
+      }
+    }
+
+    const enemy: Enemy = {
+      id: uid("enemy"),
+      x: pos.x,
+      y: pos.y,
+      radius,
+      speed,
+      health: baseHealth,
+      maxHealth: baseHealth,
+      damage,
+      xpValue,
+      color,
+      variant,
+      slow: 0,
+      isElite: elite,
+      isBoss: variant === "boss",
+      affixes,
+      attackTimer: randomRange(0, attackCooldown),
+      attackCooldown,
+      knockbackX: 0,
+      knockbackY: 0,
+      burnDuration: 0,
+      phase: 0,
+      phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
+      facing: 0,
+      animation: "move",
+      animationTimer: 0,
+    };
+
+    applyAffixes(enemy);
+    this.state.enemies.push(enemy);
+  }
+
+  private updateEnemies(dt: number) {
+    const player = this.state.player;
+    for (const enemy of this.state.enemies) {
+      if (enemy.burnDuration > 0) {
+        enemy.burnDuration -= dt;
+        enemy.health -= 5 * dt;
+        if (Math.random() < dt * 6) {
+          this.spawnParticle(
+            enemy.x + randomRange(-enemy.radius, enemy.radius),
+            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            "#fb923c",
+            3
+          );
+        }
+      }
+
+      const regen = getRegenRate(enemy);
+      if (regen > 0) {
+        enemy.health = Math.min(enemy.maxHealth, enemy.health + regen * dt);
+      }
+
+      if (enemy.isBoss) {
+        const changed = checkBossPhaseTransition(enemy, this);
+        if (changed) {
+          this.callbacks.onBossPhaseChange?.(enemy, enemy.phase);
+          this.spawnExplosion(enemy.x, enemy.y, enemy.color, 16);
+        }
+      }
+
+      enemy.knockbackX *= Math.max(0, 1 - dt * 5);
+      enemy.knockbackY *= Math.max(0, 1 - dt * 5);
+
+      const dx = player.x - enemy.x;
+      const dy = player.y - enemy.y;
+      const len = Math.hypot(dx, dy);
+
+      if (len > 0) {
+        setFacing(enemy, player.x, player.y);
+      }
+
+      if (
+        (enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) &&
+        enemy.attackCooldown > 0
+      ) {
+        enemy.attackTimer -= dt;
+        const preferredDistance = enemy.variant === "spitter" ? 300 : enemy.isBoss ? 280 : 220;
+        if (len > 0) {
+          const dirX = dx / len;
+          const dirY = dy / len;
+          if (len < preferredDistance - 40) {
+            enemy.x -= dirX * enemy.speed * dt * 0.6;
+            enemy.y -= dirY * enemy.speed * dt * 0.6;
+          } else if (len > preferredDistance + 40) {
+            enemy.x += dirX * enemy.speed * dt;
+            enemy.y += dirY * enemy.speed * dt;
+          }
+          if (enemy.attackTimer <= 0) {
+            this.fireEnemyProjectile(enemy);
+            enemy.attackTimer = enemy.attackCooldown;
+          }
+        }
+      } else if (len > 0) {
+        enemy.x += (dx / len) * enemy.speed * dt;
+        enemy.y += (dy / len) * enemy.speed * dt;
+      }
+
+      enemy.x += enemy.knockbackX * dt;
+      enemy.y += enemy.knockbackY * dt;
+
+      this.resolveObstacleCollisions(enemy);
+
+      enemy.x = clamp(enemy.x, enemy.radius, this.state.map.width - enemy.radius);
+      enemy.y = clamp(enemy.y, enemy.radius, this.state.map.height - enemy.radius);
+
+      updateAnimation(
+        enemy,
+        dt,
+        getEnemySprite(enemy.variant, enemy.color, enemy.burnDuration > 0 ? "#fb923c" : "#000000")
+      );
+    }
+  }
+
+  private fireEnemyProjectile(enemy: Enemy) {
+    const player = this.state.player;
+    const pattern = getBossAttackPattern(enemy);
+    const baseAngle = angleBetween(enemy, player);
+    const speed = enemy.isBoss ? 320 : 240;
+    const count = pattern.projectileCount;
+
+    if (pattern.attackPattern === "summon") {
+      for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 * i) / 3;
+        const dist = 60;
+        this.spawnEnemy("walker", false);
+        const minion = this.state.enemies[this.state.enemies.length - 1];
+        minion.x = enemy.x + Math.cos(angle) * dist;
+        minion.y = enemy.y + Math.sin(angle) * dist;
+      }
+      return;
+    }
+
+    if (pattern.attackPattern === "laser") {
+      const steps = 12;
+      for (let i = 0; i < steps; i++) {
+        const angle = baseAngle + (i - steps / 2) * 0.15;
+        this.state.enemyProjectiles.push({
+          id: uid("eproj"),
+          x: enemy.x + Math.cos(angle) * (enemy.radius + 8),
+          y: enemy.y + Math.sin(angle) * (enemy.radius + 8),
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 6,
+          damage: enemy.damage,
+          speed,
+          color: enemy.color,
+          life: 4,
+        });
+      }
+      return;
+    }
+
+    for (let i = 0; i < count; i++) {
+      let spread = 0;
+      if (pattern.attackPattern === "spread") {
+        spread = count === 1 ? 0 : (i - (count - 1) / 2) * 0.25;
+      } else if (pattern.attackPattern === "burst") {
+        spread = randomRange(-0.2, 0.2);
+      }
+      const theta = baseAngle + spread;
+      this.state.enemyProjectiles.push({
+        id: uid("eproj"),
+        x: enemy.x + Math.cos(theta) * (enemy.radius + 8),
+        y: enemy.y + Math.sin(theta) * (enemy.radius + 8),
+        vx: Math.cos(theta) * speed,
+        vy: Math.sin(theta) * speed,
+        radius: enemy.isBoss ? 8 : 5,
+        damage: enemy.damage,
+        speed,
+        color: enemy.color,
+        life: 4,
+      });
+    }
+    audio?.play("enemyShoot");
+  }
+
+  private updateHazards(dt: number) {
+    const player = this.state.player;
+    for (const hazard of this.state.map.hazards) {
+      hazard.timer += dt;
+      if (hazard.timer >= hazard.interval) {
+        hazard.timer = 0;
+        const dist = distance(player, hazard);
+        if (dist <= hazard.radius + player.radius) {
+          this.damagePlayer(hazard.damage, false);
+          this.screenShake = 0.5;
+        }
+        for (const enemy of this.state.enemies) {
+          if (distance(enemy, hazard) <= hazard.radius + enemy.radius) {
+            enemy.health -= hazard.damage * 2;
+          }
+        }
+      }
+    }
+  }
+
+  private updatePickups(dt: number) {
+    const player = this.state.player;
+    for (const pickup of this.state.pickups) {
+      const dist = distance(player, pickup);
+      if (dist <= player.magnetRange) {
+        pickup.magnetized = true;
+      }
+      if (pickup.magnetized) {
+        const t = Math.min(1, dt * 8);
+        pickup.x = lerp(pickup.x, player.x, t);
+        pickup.y = lerp(pickup.y, player.y, t);
+      }
+    }
+  }
+
+  private updateParticles(dt: number) {
+    const particles = this.state.particles;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  private updateDamageNumbers(dt: number) {
+    const numbers = this.state.damageNumbers;
+    for (let i = numbers.length - 1; i >= 0; i--) {
+      const n = numbers[i];
+      n.y -= 20 * dt;
+      n.life -= dt;
+      if (n.life <= 0) numbers.splice(i, 1);
+    }
+  }
+
+  private updateMissionsAndExtraction(dt: number) {
+    if (this.state.mode === "roguelike" && this.state.roguelikeRunState) {
+      this.updateRoguelikeProgress(dt);
+      return;
+    }
+
+    if (this.state.modeConfig.allowMissions) {
+      updateMissions(this.state, dt);
+
+      const current = getCurrentMission(this.state);
+      if (current && current.completed) {
+        advanceMission(this.state);
+        this.callbacks.onMissionComplete?.();
+        if (this.state.currentMissionIndex >= this.state.missions.length) {
+          this.callbacks.onExtractionReady?.();
+          audio?.play("alert");
+        }
+      }
+    }
+
+    if (this.state.extraction && this.state.currentMissionIndex >= this.state.missions.length) {
+      this.state.extractionTimer -= dt;
+      const player = this.state.player;
+      const ex = this.state.extraction;
+      const dx = player.x - ex.x;
+      const dy = player.y - ex.y;
+      if (dx * dx + dy * dy <= ex.radius * ex.radius) {
+        this.endRun(true);
+      }
+      if (this.state.extractionTimer <= 0) {
+        this.endRun(false);
+      }
+    }
+  }
+
+  private updateRoguelikeProgress(dt: number) {
+    const run = this.state.roguelikeRunState!;
+    if (run.completed) return;
+
+    const stage = getCurrentStage(run);
+    if (!stage) return;
+
+    updateMissions(this.state, dt);
+
+    if (isStageComplete(stage) && this.state.status === "running") {
+      if (stage.type === "reward" && shouldOfferReward(run)) {
+        const options = generateRewardOptions(run, this.state.player);
+        this.state.status = "reward";
+        this.callbacks.onRoguelikeRewardOffer?.(options);
+        return;
+      }
+
+      this.advanceRoguelikeStage();
+    }
+  }
+
+  private advanceRoguelikeStage() {
+    const run = this.state.roguelikeRunState!;
+    markCurrentStageComplete(run);
+    const advanced = advanceStage(run);
+
+    if (!advanced) {
+      if (run.victory) {
+        this.endRun(true);
+      }
+      return;
+    }
+
+    const nextStage = getCurrentStage(run);
+    this.state.missions = nextStage ? [nextStage.mission] : [];
+    this.state.currentMissionIndex = 0;
+
+    if (nextStage?.type === "boss") {
+      this.spawnEnemy("boss", true);
+    } else if (nextStage?.type === "elite") {
+      this.spawnEnemy("elite", true);
+    }
+  }
+
+  private updateEvents(dt: number) {
+    if (this.state.activeEvent) {
+      const event = this.state.activeEvent;
+      event.timer -= dt;
+      if (event.timer <= 0) {
+        this.state.activeEvent = null;
+      }
+      return;
+    }
+
+    this.state.eventTimer -= dt;
+    if (this.state.eventTimer <= 0) {
+      this.startRandomEvent();
+      this.state.eventTimer = randomRange(25, 40);
+    }
+  }
+
+  private updateWave(dt: number) {
+    if (!this.state.modeConfig.endless) return;
+    this.state.waveTimer += dt;
+    const waveDuration = DEFAULT_BALANCE.modes.endlessWaveDuration;
+    if (this.state.waveTimer >= waveDuration) {
+      this.state.waveTimer -= waveDuration;
+      this.state.wave += 1;
+      this.state.difficulty += DEFAULT_BALANCE.modes.endlessDifficultyBump;
+      this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+      if (
+        this.state.mode === "endless" &&
+        this.state.wave % DEFAULT_BALANCE.modes.endlessBossWaveInterval === 0
+      ) {
+        this.spawnEnemy("boss", true);
+      }
+      if (this.state.mode === "daily") {
+        this.state.missions = generateEndlessMissions(this.state.wave);
+        this.state.currentMissionIndex = 0;
+      }
+    }
+  }
+
+  private startRandomEvent() {
+    const types: GameEvent["type"][] = ["airdrop", "horde", "eliteHunt", "supply"];
+    const type = randomChoice(types);
+    const pos = randomPointInBounds(this.state.map.width, this.state.map.height, 200);
+    const event: GameEvent = {
+      id: uid("event"),
+      type,
+      title: "",
+      description: "",
+      active: true,
+      timer: 0,
+      duration: 0,
+      x: pos.x,
+      y: pos.y,
+    };
+
+    switch (type) {
+      case "airdrop":
+        event.title = "物资空投";
+        event.description = "空投补给已抵达战场";
+        event.duration = 15;
+        event.timer = event.duration;
+        this.spawnAirdrop(event.x!, event.y!);
+        break;
+      case "horde":
+        event.title = "感染者潮";
+        event.description = "大量感染者正在接近";
+        event.duration = 20;
+        event.timer = event.duration;
+        break;
+      case "eliteHunt":
+        event.title = "精英猎杀";
+        event.description = "一只精英感染者出现";
+        event.duration = 30;
+        event.timer = event.duration;
+        this.spawnEnemy("elite", true);
+        break;
+      case "supply":
+        event.title = "战场补给";
+        event.description = `拾取范围提升 ${DEFAULT_BALANCE.pickups.magnetBoostDuration} 秒`;
+        event.duration = DEFAULT_BALANCE.pickups.magnetBoostDuration;
+        event.timer = event.duration;
+        this.state.player.magnetRange *= DEFAULT_BALANCE.pickups.magnetBoostMul;
+        setTimeout(() => {
+          if (this.state.player)
+            this.state.player.magnetRange /= DEFAULT_BALANCE.pickups.magnetBoostMul;
+        }, event.duration * 1000);
+        break;
+    }
+
+    this.state.activeEvent = event;
+    this.callbacks.onEventStart?.(event);
+    audio?.play("alert");
+  }
+
+  private spawnAirdrop(x: number, y: number) {
+    this.state.pickups.push({
+      id: uid("pickup"),
+      x,
+      y,
+      radius: 14,
+      type: "chest",
+      value: 0,
+      color: "#e879f9",
+      magnetized: false,
+    });
+  }
+
+  private handleCollisions() {
+    this.handleProjectileEnemyCollisions();
+    this.handleEnemyProjectilePlayerCollisions();
+    this.handleEnemyPlayerCollisions();
+    this.handlePickupCollisions();
+    this.handleProjectileObstacleCollisions();
+    this.cleanDeadEnemies();
+  }
+
+  private handleProjectileEnemyCollisions() {
+    const projectiles = this.state.projectiles;
+    const enemies = this.state.enemies;
+
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      let hit = false;
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        const enemy = enemies[j];
+        if (circleCollision(p, enemy)) {
+          hit = true;
+          const isCrit = Math.random() < this.state.player.critChance;
+          let damage = p.damage * (isCrit ? 2 : 1);
+          damage = this.applyDamage(enemy, damage, p.burnDuration, p.burnDamage);
+          p.pierce -= 1;
+          this.state.stats.damageDealt += damage;
+          this.spawnDamageNumber(enemy.x, enemy.y, damage, p.color, isCrit);
+
+          const knockbackPower =
+            p.weaponId === "shotgun" ? 120 : p.weaponId === "rocket" ? 200 : 40;
+          const dx = enemy.x - p.x;
+          const dy = enemy.y - p.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          enemy.knockbackX += (dx / dist) * knockbackPower;
+          enemy.knockbackY += (dy / dist) * knockbackPower;
+
+          if (p.isExplosive) {
+            this.explodeProjectile(p);
+            projectiles.splice(i, 1);
+            break;
+          }
+
+          if (p.pierce < 0) {
+            projectiles.splice(i, 1);
+            break;
+          }
+        }
+      }
+      if (hit && p.pierce < 0) {
+        continue;
+      }
+    }
+  }
+
+  private handleEnemyProjectilePlayerCollisions() {
+    const player = this.state.player;
+    for (let i = this.state.enemyProjectiles.length - 1; i >= 0; i--) {
+      const p = this.state.enemyProjectiles[i];
+      if (circleCollision(p, player)) {
+        this.damagePlayer(p.damage, true);
+        this.state.enemyProjectiles.splice(i, 1);
+      }
+    }
+  }
+
+  private handleEnemyPlayerCollisions() {
+    const player = this.state.player;
+    for (const enemy of this.state.enemies) {
+      if (circleCollision(player, enemy)) {
+        this.damagePlayer(enemy.damage, true, enemy);
+      }
+    }
+  }
+
+  private damagePlayer(rawDamage: number, withInvincibility: boolean, source?: Enemy) {
+    const player = this.state.player;
+    if (withInvincibility && player.invincible > 0) return;
+
+    const reduced = rawDamage * (1 - Math.min(0.75, player.armor));
+    player.health -= reduced;
+    this.state.stats.damageTaken += reduced;
+    if (withInvincibility) {
+      player.invincible = 0.5;
+    }
+    this.screenShake = 1;
+    audio?.play("hurt");
+    this.spawnDamageNumber(player.x, player.y, reduced, "#f43f5e");
+
+    if (source) {
+      const dx = player.x - source.x;
+      const dy = player.y - source.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const power = source.isBoss ? 300 : 120;
+      player.knockbackX += (dx / dist) * power;
+      player.knockbackY += (dy / dist) * power;
+      source.knockbackX -= (dx / dist) * power * 0.5;
+      source.knockbackY -= (dy / dist) * power * 0.5;
+    }
+
+    if (player.health <= 0) {
+      this.endRun(false);
+    }
+  }
+
+  private applyDamage(
+    enemy: Enemy,
+    rawDamage: number,
+    burnDuration?: number,
+    burnDamage?: number
+  ): number {
+    enemy.health -= rawDamage;
+    if (burnDuration && burnDamage) {
+      enemy.burnDuration = burnDuration;
+    }
+    audio?.play("hit");
+    return rawDamage;
+  }
+
+  private explodeProjectile(p: Projectile) {
+    const radius = p.areaRadius ?? 60;
+    this.spawnExplosion(p.x, p.y, p.color, 12);
+    this.screenShake = 1.5;
+    for (const enemy of this.state.enemies) {
+      if (distance(enemy, p) <= radius + enemy.radius) {
+        const damage = p.damage * 0.6;
+        this.applyDamage(enemy, damage);
+        this.spawnDamageNumber(enemy.x, enemy.y, damage, p.color);
+        const dx = enemy.x - p.x;
+        const dy = enemy.y - p.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        enemy.knockbackX += (dx / dist) * 180;
+        enemy.knockbackY += (dy / dist) * 180;
+      }
+    }
+  }
+
+  private handleProjectileObstacleCollisions() {
+    const projectiles = this.state.projectiles;
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      for (const obs of this.state.map.obstacles) {
+        if (circleRectCollision(p, obs)) {
+          if (p.isExplosive) {
+            this.explodeProjectile(p);
+          }
+          if (obs.destructible) {
+            obs.health -= p.damage;
+            if (obs.health <= 0) {
+              this.spawnExplosion(obs.x, obs.y, obs.color, 10);
+            }
+          }
+          projectiles.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  private cleanDeadEnemies() {
+    const enemies = this.state.enemies;
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const enemy = enemies[j];
+      if (enemy.health <= 0) {
+        this.killEnemy(enemy, j);
+      }
+    }
+  }
+
+  private killEnemy(enemy: Enemy, index: number) {
+    transitionAnimation(enemy, "death");
+
+    if (shouldExplodeOnDeath(enemy)) {
+      this.spawnExplosion(enemy.x, enemy.y, enemy.color, 12);
+      const explosionRadius = 80;
+      if (distance(this.state.player, enemy) <= explosionRadius + this.state.player.radius) {
+        this.damagePlayer(enemy.damage * 1.5, true);
+      }
+      this.screenShake = 1.5;
+    }
+
+    if (shouldSplitOnDeath(enemy)) {
+      for (let i = 0; i < 2; i++) {
+        this.spawnEnemy(enemy.variant === "walker" ? "runner" : "walker", false);
+        const split = this.state.enemies[this.state.enemies.length - 1];
+        split.x = enemy.x + randomRange(-20, 20);
+        split.y = enemy.y + randomRange(-20, 20);
+        split.radius *= 0.7;
+        split.maxHealth *= 0.5;
+        split.health = split.maxHealth;
+        split.damage *= 0.6;
+      }
+    }
+
+    this.state.enemies.splice(index, 1);
+    addKill(this.state);
+    if (enemy.isElite) {
+      this.state.stats.elitesKilled++;
+      this.state.eliteKillStreak++;
+    }
+    if (enemy.isBoss) {
+      this.state.stats.bossesKilled++;
+      this.state.eliteKillStreak = 0;
+    }
+    this.spawnExplosion(enemy.x, enemy.y, enemy.color, enemy.isBoss ? 24 : 10);
+    this.dropPickup(enemy);
+    audio?.play("explosion");
+    this.screenShake = enemy.isBoss ? 3 : enemy.isElite ? 1.2 : 0.6;
+  }
+
+  private dropPickup(enemy: Enemy) {
+    const roll = Math.random();
+    const pickupCfg = DEFAULT_BALANCE.pickups;
+    if (enemy.isBoss || (enemy.isElite && roll < pickupCfg.chestEliteChance)) {
+      this.state.pickups.push({
+        id: uid("pickup"),
+        x: enemy.x,
+        y: enemy.y,
+        radius: 16,
+        type: "chest",
+        value: 0,
+        color: "#e879f9",
+        magnetized: false,
+      });
+      if (enemy.isBoss) return;
+    }
+    if (roll < 0.06) {
+      this.state.pickups.push({
+        id: uid("pickup"),
+        x: enemy.x,
+        y: enemy.y,
+        radius: 8,
+        type: "health",
+        value: pickupCfg.healthValue,
+        color: "#34d399",
+        magnetized: false,
+      });
+    } else if (roll < 0.14) {
+      this.state.pickups.push({
+        id: uid("pickup"),
+        x: enemy.x,
+        y: enemy.y,
+        radius: 7,
+        type: "resource",
+        value: pickupCfg.resourceValue,
+        color: "#f59e0b",
+        magnetized: false,
+      });
+    } else {
+      this.state.pickups.push({
+        id: uid("pickup"),
+        x: enemy.x,
+        y: enemy.y,
+        radius: enemy.isElite ? 8 : 5,
+        type: "xp",
+        value: getXpValue(enemy, this.state.difficulty),
+        color: "#22d3ee",
+        magnetized: false,
+      });
+    }
+  }
+
+  private handlePickupCollisions() {
+    const player = this.state.player;
+    const pickups = this.state.pickups;
+    for (let i = pickups.length - 1; i >= 0; i--) {
+      const pickup = pickups[i];
+      if (circleCollision(player, pickup)) {
+        if (pickup.type === "xp") {
+          player.xp += pickup.value;
+          this.state.stats.xpCollected += pickup.value;
+          audio?.play("pickup");
+          this.checkLevelUp();
+        } else if (pickup.type === "health") {
+          player.health = Math.min(player.maxHealth, player.health + pickup.value);
+          audio?.play("pickup");
+        } else if (pickup.type === "resource") {
+          addResource(this.state, pickup.value);
+          audio?.play("pickup");
+        } else if (pickup.type === "chest") {
+          this.openChest(pickup);
+          audio?.play("pickup");
+        }
+        pickups.splice(i, 1);
+      }
+    }
+  }
+
+  private openChest(pickup: Pickup) {
+    const player = this.state.player;
+    this.state.stats.chestsOpened++;
+    const drops = [
+      { type: "health" as const, value: 30, color: "#34d399" },
+      { type: "xp" as const, value: Math.floor(player.xpToNext * 0.4), color: "#22d3ee" },
+      { type: "resource" as const, value: 3, color: "#f59e0b" },
+    ];
+    for (const drop of drops) {
+      this.state.pickups.push({
+        id: uid("pickup"),
+        x: pickup.x + randomRange(-30, 30),
+        y: pickup.y + randomRange(-30, 30),
+        radius: drop.type === "health" ? 8 : 6,
+        type: drop.type,
+        value: drop.value,
+        color: drop.color,
+        magnetized: false,
+      });
+    }
+  }
+
+  private checkLevelUp() {
+    const player = this.state.player;
+    while (player.xp >= player.xpToNext) {
+      player.xp -= player.xpToNext;
+      player.level += 1;
+      player.xpToNext = Math.floor(player.xpToNext * 1.25 + 20);
+      audio?.play("levelup");
+      this.triggerLevelUp();
+    }
+  }
+
+  private triggerLevelUp() {
+    this.pendingUpgradeOptions = generateUpgradeOptions(this.state.player);
+    this.state.status = "levelup";
+    this.callbacks.onLevelUp?.(this.pendingUpgradeOptions);
+  }
+
+  selectUpgrade(option: UpgradeOption) {
+    if (this.state.status !== "levelup") return;
+    this.state.player = applyUpgrade(this.state.player, option);
+    this.pendingUpgradeOptions = null;
+    this.state.status = "running";
+    this.state.lastTime = performance.now();
+  }
+
+  selectRoguelikeReward(rewardId: string) {
+    if (this.state.status !== "reward" || !this.state.roguelikeRunState) return;
+    const success = applyReward(this.state.roguelikeRunState, this.state.player, rewardId);
+    if (!success) return;
+    this.state.status = "running";
+    this.state.lastTime = performance.now();
+    this.advanceRoguelikeStage();
+  }
+
+  private endRun(victory: boolean) {
+    this.state.status = victory ? "victory" : "defeat";
+    const result: RunResult = {
+      victory,
+      stats: { ...this.state.stats },
+      completedMissions: this.state.missions.filter((m) => m.completed).length,
+      elapsed: this.state.stats.timeSurvived,
+      mode: this.state.mode,
+    };
+    if (victory) {
+      audio?.play("levelup");
+      this.callbacks.onVictory?.(result);
+    } else {
+      audio?.play("alert");
+      this.callbacks.onDefeat?.(result);
+    }
+  }
+
+  private spawnExplosion(x: number, y: number, color: string, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = randomRange(0, Math.PI * 2);
+      const speed = randomRange(40, 160);
+      this.state.particles.push({
+        id: uid("particle"),
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: randomRange(2, 6),
+        color,
+        life: randomRange(0.3, 0.8),
+        maxLife: 0.8,
+      });
+    }
+  }
+
+  private spawnParticle(x: number, y: number, color: string, count = 1) {
+    for (let i = 0; i < count; i++) {
+      this.state.particles.push({
+        id: uid("particle"),
+        x: x + randomRange(-5, 5),
+        y: y + randomRange(-5, 5),
+        vx: randomRange(-30, 30),
+        vy: randomRange(-30, 30),
+        radius: randomRange(1, 3),
+        color,
+        life: randomRange(0.2, 0.5),
+        maxLife: 0.5,
+      });
+    }
+  }
+
+  private spawnDamageNumber(
+    x: number,
+    y: number,
+    value: number,
+    color: string,
+    isCritical = false
+  ) {
+    this.state.damageNumbers.push({
+      id: uid("dmg"),
+      x,
+      y,
+      text: String(Math.round(value)),
+      color,
+      life: 0.7,
+      isCritical,
+    });
+  }
+
+  private updateCamera() {
+    const player = this.state.player;
+    const targetX = player.x;
+    const targetY = player.y;
+    this.state.camera.x += (targetX - this.state.camera.x) * 0.12;
+    this.state.camera.y += (targetY - this.state.camera.y) * 0.12;
+  }
+
+  // Networking
+  serialize(): SerializedGameState {
+    return {
+      status: this.state.status,
+      mode: this.state.mode,
+      seed: this.state.seed,
+      time: this.state.time,
+      map: this.state.map,
+      player: this.state.player,
+      players: this.state.players,
+      enemies: this.state.enemies,
+      projectiles: this.state.projectiles,
+      enemyProjectiles: this.state.enemyProjectiles,
+      pickups: this.state.pickups,
+      particles: this.state.particles,
+      damageNumbers: this.state.damageNumbers,
+      missions: this.state.missions,
+      currentMissionIndex: this.state.currentMissionIndex,
+      extraction: this.state.extraction,
+      extractionTimer: this.state.extractionTimer,
+      spawnTimer: this.state.spawnTimer,
+      eventTimer: this.state.eventTimer,
+      difficulty: this.state.difficulty,
+      intensity: this.state.intensity,
+      wave: this.state.wave,
+      waveTimer: this.state.waveTimer,
+      stats: this.state.stats,
+      activeEvent: this.state.activeEvent,
+      waveEnemiesRemaining: this.state.enemies.length,
+      roguelikeRunState: this.state.roguelikeRunState,
+    };
+  }
+
+  applySerialized(serialized: SerializedGameState): void {
+    this.state.status = serialized.status;
+    this.state.time = serialized.time;
+    this.state.map = serialized.map;
+    this.state.player = serialized.player;
+    this.state.players = serialized.players;
+    this.state.enemies = serialized.enemies;
+    this.state.projectiles = serialized.projectiles;
+    this.state.enemyProjectiles = serialized.enemyProjectiles;
+    this.state.pickups = serialized.pickups;
+    this.state.particles = serialized.particles;
+    this.state.damageNumbers = serialized.damageNumbers;
+    this.state.missions = serialized.missions;
+    this.state.currentMissionIndex = serialized.currentMissionIndex;
+    this.state.extraction = serialized.extraction;
+    this.state.extractionTimer = serialized.extractionTimer;
+    this.state.spawnTimer = serialized.spawnTimer;
+    this.state.eventTimer = serialized.eventTimer;
+    this.state.difficulty = serialized.difficulty;
+    this.state.intensity = serialized.intensity;
+    this.state.wave = serialized.wave;
+    this.state.waveTimer = serialized.waveTimer;
+    this.state.stats = serialized.stats;
+    this.state.activeEvent = serialized.activeEvent;
+    if (serialized.roguelikeRunState) {
+      this.state.roguelikeRunState = serialized.roguelikeRunState;
+    }
+  }
+
+  addRemotePlayer(id: string, x: number, y: number): void {
+    if (this.state.players.find((p) => p.id === id)) return;
+    this.state.players.push(this.createPlayer(id, x, y));
+  }
+
+  updateRemotePlayerInput(id: string, input: InputState, dt: number): void {
+    const player = this.state.players.find((p) => p.id === id);
+    if (!player) return;
+    const move = normalize(input.move);
+    if (move.x !== 0 || move.y !== 0) {
+      player.x += move.x * player.speed * dt;
+      player.y += move.y * player.speed * dt;
+      transitionAnimation(player, "move");
+    } else {
+      transitionAnimation(player, "idle");
+    }
+    if (input.aim.x !== 0 || input.aim.y !== 0) {
+      setFacing(player, player.x + input.aim.x, player.y + input.aim.y);
+    }
+  }
+
+  removeRemotePlayer(id: string): void {
+    this.state.players = this.state.players.filter((p) => p.id !== id);
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    const { camera } = this.state;
+    const shakeX =
+      this.screenShake > 0 ? randomRange(-this.screenShake * 6, this.screenShake * 6) : 0;
+    const shakeY =
+      this.screenShake > 0 ? randomRange(-this.screenShake * 6, this.screenShake * 6) : 0;
+
+    ctx.save();
+    ctx.translate(this.canvasWidth / 2 + shakeX, this.canvasHeight / 2 + shakeY);
+    ctx.scale(camera.scale, camera.scale);
+    ctx.translate(-camera.x, -camera.y);
+
+    this.drawBackground(ctx);
+    this.drawHazards(ctx);
+    this.drawObstacles(ctx);
+    this.drawExtraction(ctx);
+    this.drawPickups(ctx);
+    this.drawParticles(ctx);
+    this.drawEnemyProjectiles(ctx);
+    this.drawEnemies(ctx);
+    this.drawRemotePlayers(ctx);
+    this.drawPlayer(ctx);
+    this.drawProjectiles(ctx);
+    this.drawDamageNumbers(ctx);
+    this.drawEvent(ctx);
+
+    ctx.restore();
+  }
+
+  private drawBackground(ctx: CanvasRenderingContext2D) {
+    const map = this.state.map;
+    const theme = THEMES[map.theme];
+
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(0, 0, map.width, map.height);
+
+    ctx.strokeStyle = theme.grid;
+    ctx.lineWidth = 2;
+    const gridSize = 80;
+    ctx.beginPath();
+    for (let x = 0; x <= map.width; x += gridSize) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, map.height);
+    }
+    for (let y = 0; y <= map.height; y += gridSize) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(map.width, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = theme.border;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(0, 0, map.width, map.height);
+  }
+
+  private drawObstacles(ctx: CanvasRenderingContext2D) {
+    for (const obs of this.state.map.obstacles) {
+      if (obs.health <= 0) continue;
+      ctx.save();
+      ctx.translate(obs.x, obs.y);
+      ctx.fillStyle = obs.color;
+      ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height);
+      ctx.strokeStyle = "#2a3050";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height);
+      if (obs.health < obs.maxHealth) {
+        const pct = obs.health / obs.maxHealth;
+        ctx.fillStyle = "#1c2033";
+        ctx.fillRect(-obs.width / 2, -obs.height / 2 - 8, obs.width, 4);
+        ctx.fillStyle = pct > 0.5 ? "#34d399" : "#f43f5e";
+        ctx.fillRect(-obs.width / 2, -obs.height / 2 - 8, obs.width * pct, 4);
+      }
+      ctx.restore();
+    }
+  }
+
+  private drawHazards(ctx: CanvasRenderingContext2D) {
+    const time = this.state.time;
+    for (const hazard of this.state.map.hazards) {
+      const pulse = Math.sin(time * 4 + hazard.x) * 0.1 + 0.9;
+      ctx.save();
+      ctx.translate(hazard.x, hazard.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, hazard.radius * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `${hazard.color}22`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, hazard.radius * 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = `${hazard.color}33`;
+      ctx.fill();
+      ctx.strokeStyle = hazard.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, hazard.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  private drawExtraction(ctx: CanvasRenderingContext2D) {
+    const ex = this.state.extraction;
+    if (!ex || !ex.active) return;
+
+    const isFinal = this.state.currentMissionIndex >= this.state.missions.length;
+    const color = isFinal ? "#22d3ee" : "#f59e0b";
+    ctx.save();
+    ctx.translate(ex.x, ex.y);
+    ctx.beginPath();
+    ctx.arc(0, 0, ex.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `${color}22`;
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 10]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (isFinal) {
+      ctx.fillStyle = color;
+      ctx.font = "bold 16px var(--font-geist-sans), sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("撤离点", 0, 5);
+    } else {
+      ctx.fillStyle = color;
+      ctx.font = "bold 14px var(--font-geist-sans), sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("信标", 0, 5);
+    }
+    ctx.restore();
+  }
+
+  private drawPlayer(ctx: CanvasRenderingContext2D) {
+    this.drawEntity(ctx, this.state.player, "#22d3ee", "#0b0d17");
+  }
+
+  private drawRemotePlayers(ctx: CanvasRenderingContext2D) {
+    for (const player of this.state.players) {
+      if (player.id !== this.state.player.id) {
+        this.drawEntity(ctx, player, "#f59e0b", "#0b0d17");
+      }
+    }
+  }
+
+  private drawEntity(
+    ctx: CanvasRenderingContext2D,
+    entity: Player,
+    primaryColor: string,
+    secondaryColor: string
+  ) {
+    const flicker = entity.invincible > 0 && Math.floor(this.state.time * 20) % 2 === 0;
+    if (flicker) ctx.globalAlpha = 0.5;
+
+    ctx.save();
+    ctx.translate(entity.x, entity.y);
+    ctx.rotate(entity.facing);
+
+    const sheet = getPlayerSprite(primaryColor, secondaryColor);
+    const frameIndex = getCurrentFrameIndex(entity, sheet);
+    const frames = sheet.animations[entity.animation] ?? sheet.animations.idle;
+    const frame = frames[frameIndex] ?? frames[0];
+
+    if (sheet.image && sheet.image.complete && frame) {
+      ctx.drawImage(
+        sheet.image,
+        frame.x,
+        frame.y,
+        frame.width,
+        frame.height,
+        -entity.radius,
+        -entity.radius,
+        entity.radius * 2,
+        entity.radius * 2
+      );
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, entity.radius, 0, Math.PI * 2);
+      ctx.fillStyle = secondaryColor;
+      ctx.fill();
+      ctx.strokeStyle = primaryColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = primaryColor;
+      ctx.fillRect(entity.radius * 0.5, -3, entity.radius, 6);
+    }
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  private drawEnemies(ctx: CanvasRenderingContext2D) {
+    for (const enemy of this.state.enemies) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.rotate(enemy.facing);
+
+      if (enemy.isElite || enemy.isBoss) {
+        ctx.beginPath();
+        ctx.arc(0, 0, enemy.radius + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      const secondaryColor = enemy.burnDuration > 0 ? "#fb923c" : "#000000";
+      const sheet = getEnemySprite(enemy.variant, enemy.color, secondaryColor);
+      const frameIndex = getCurrentFrameIndex(enemy, sheet);
+      const frames = sheet.animations[enemy.animation] ?? sheet.animations.move;
+      const frame = frames[frameIndex] ?? frames[0];
+
+      if (sheet.image && sheet.image.complete && frame) {
+        ctx.drawImage(
+          sheet.image,
+          frame.x,
+          frame.y,
+          frame.width,
+          frame.height,
+          -enemy.radius,
+          -enemy.radius,
+          enemy.radius * 2,
+          enemy.radius * 2
+        );
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
+        ctx.fillStyle = enemy.color;
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = enemy.isBoss ? "#ffffff" : "#000000";
+        ctx.lineWidth = enemy.isBoss ? 2 : 1;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      const healthPct = enemy.health / enemy.maxHealth;
+      ctx.fillStyle = "#1c2033";
+      ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 8, enemy.radius * 2, 4);
+      ctx.fillStyle = healthPct > 0.5 ? "#34d399" : "#f43f5e";
+      ctx.fillRect(
+        enemy.x - enemy.radius,
+        enemy.y - enemy.radius - 8,
+        enemy.radius * 2 * healthPct,
+        4
+      );
+    }
+  }
+
+  private drawProjectiles(ctx: CanvasRenderingContext2D) {
+    for (const p of this.state.projectiles) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+
+      if (p.weaponId === "rocket") {
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(-6, 5);
+        ctx.lineTo(-6, -5);
+        ctx.closePath();
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+      } else if (p.weaponId === "flame") {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius * (1 + Math.random()), 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = 0.7;
+        ctx.fill();
+      } else {
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        ctx.beginPath();
+        ctx.rect(-6, -2, 12, 4);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  }
+
+  private drawEnemyProjectiles(ctx: CanvasRenderingContext2D) {
+    for (const p of this.state.enemyProjectiles) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  }
+
+  private drawPickups(ctx: CanvasRenderingContext2D) {
+    for (const pickup of this.state.pickups) {
+      ctx.save();
+      ctx.translate(pickup.x, pickup.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, pickup.radius, 0, Math.PI * 2);
+      ctx.fillStyle = pickup.color;
+      ctx.shadowColor = pickup.color;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      if (pickup.type === "chest") {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-6, -5, 12, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(-2, -5, 4, 10);
+      }
+      ctx.restore();
+    }
+  }
+
+  private drawParticles(ctx: CanvasRenderingContext2D) {
+    for (const p of this.state.particles) {
+      const alpha = p.life / p.maxLife;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  private drawDamageNumbers(ctx: CanvasRenderingContext2D) {
+    for (const n of this.state.damageNumbers) {
+      const alpha = Math.min(1, n.life * 2);
+      ctx.save();
+      ctx.translate(n.x, n.y);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = n.color;
+      ctx.font = n.isCritical
+        ? "bold 20px var(--font-geist-mono), monospace"
+        : "bold 14px var(--font-geist-mono), monospace";
+      ctx.textAlign = "center";
+      if (n.isCritical) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.strokeText(n.text, 0, 0);
+      }
+      ctx.fillText(n.text, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  private drawEvent(ctx: CanvasRenderingContext2D) {
+    const event = this.state.activeEvent;
+    if (!event || !event.x || !event.y) return;
+
+    if (event.type === "airdrop") {
+      ctx.save();
+      ctx.translate(event.x, event.y);
+      ctx.strokeStyle = "#e879f9";
+      ctx.setLineDash([6, 6]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 40, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  get formatTimeSurvived() {
+    return formatTime(this.state.stats.timeSurvived);
+  }
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
