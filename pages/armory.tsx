@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
   Crosshair,
   Target,
@@ -9,10 +10,24 @@ import {
   Sparkle,
   CaretRight,
   Swap,
+  Coin,
+  Lock,
+  Check,
+  Plus,
+  Minus,
+  ShoppingCart,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import type { WeaponBalance, WeaponStatBlock } from "@/lib/game/balance";
+import type { WeaponId } from "@/lib/game/types";
+import {
+  loadSave,
+  buyWeapon,
+  equipWeapon,
+  unequipWeapon,
+  type SaveData,
+} from "@/lib/game/save";
 
 const TAG_ICONS: Record<string, typeof Crosshair> = {
   kinetic: Target,
@@ -56,18 +71,74 @@ function StatBar({ label, value, max, color }: { label: string; value: number; m
   );
 }
 
-function WeaponCard({
-  id,
-  weapon,
-  index,
-}: {
-  id: string;
+function getWeaponTags(id: string, stats: WeaponStatBlock) {
+  const tags: { label: string; icon: typeof Crosshair; color: string }[] = [];
+  if (stats.isMelee) tags.push({ label: "近战", icon: Crosshair, color: "#f43f5e" });
+  else tags.push({ label: "远程", icon: Target, color: "#22d3ee" });
+
+  if (id.includes("plasma") || id.includes("arc") || id.includes("laser")) {
+    tags.push({ label: "能量", icon: Lightning, color: "#38bdf8" });
+  } else if (id.includes("flame") || id.includes("thermal")) {
+    tags.push({ label: "热能", icon: Fire, color: "#f97316" });
+  } else if (id.includes("cryo") || stats.freezeDuration) {
+    tags.push({ label: "冰冻", icon: Snowflake, color: "#60a5fa" });
+  } else if (id.includes("gravity") || stats.gravityRadius) {
+    tags.push({ label: "重力", icon: Magnet, color: "#a855f7" });
+  } else {
+    tags.push({ label: "动能", icon: Target, color: "#94a3b8" });
+  }
+
+  if (stats.homing) tags.push({ label: "追踪", icon: Crosshair, color: "#34d399" });
+  if (stats.pierce > 1) tags.push({ label: "穿透", icon: Crosshair, color: "#f59e0b" });
+  if (stats.chainCount) tags.push({ label: "连锁", icon: Lightning, color: "#e879f9" });
+
+  return tags;
+}
+
+function formatUpgradeDescription(upgrade: import("@/lib/game/balance").WeaponUpgradeStep): string {
+  const parts: string[] = [];
+  if (upgrade.damageMul !== undefined)
+    parts.push(`伤害 ${upgrade.damageMul > 1 ? "+" : ""}${Math.round((upgrade.damageMul - 1) * 100)}%`);
+  if (upgrade.cooldownMul !== undefined)
+    parts.push(`冷却 ${upgrade.cooldownMul < 1 ? "-" : "+"}${Math.round(Math.abs(1 - upgrade.cooldownMul) * 100)}%`);
+  if (upgrade.rangeMul !== undefined)
+    parts.push(`射程 ${upgrade.rangeMul > 1 ? "+" : ""}${Math.round((upgrade.rangeMul - 1) * 100)}%`);
+  if (upgrade.countAdd) parts.push(`弹丸 +${upgrade.countAdd}`);
+  if (upgrade.pierceAdd) parts.push(`穿透 +${upgrade.pierceAdd}`);
+  if (upgrade.areaMul !== undefined)
+    parts.push(`范围 ${upgrade.areaMul > 1 ? "+" : ""}${Math.round((upgrade.areaMul - 1) * 100)}%`);
+  if (upgrade.burnAdd) parts.push(`灼烧 +${upgrade.burnAdd}s`);
+  if (upgrade.chainCountAdd) parts.push(`连锁 +${upgrade.chainCountAdd}`);
+  if (upgrade.freezeDurationAdd) parts.push(`冰冻 +${upgrade.freezeDurationAdd}s`);
+  if (upgrade.gravityRadiusMul !== undefined)
+    parts.push(`重力范围 +${Math.round((upgrade.gravityRadiusMul - 1) * 100)}%`);
+  if (upgrade.pullStrengthMul !== undefined)
+    parts.push(`牵引 +${Math.round((upgrade.pullStrengthMul - 1) * 100)}%`);
+  if (upgrade.swarmCountAdd) parts.push(`无人机 +${upgrade.swarmCountAdd}`);
+  if (parts.length === 0) return `等级 ${upgrade.level} 强化`;
+  return `等级 ${upgrade.level}: ${parts.join("，")}`;
+}
+
+interface WeaponCardProps {
+  id: WeaponId;
   weapon: WeaponBalance;
   index: number;
-}) {
+  save: SaveData;
+  canAfford: boolean;
+  onBuy: (id: WeaponId) => void;
+  onEquip: (id: WeaponId) => void;
+  onUnequip: (id: WeaponId) => void;
+}
+
+function WeaponCard({ id, weapon, index, save, canAfford, onBuy, onEquip, onUnequip }: WeaponCardProps) {
   const reducedMotion = useReducedMotion();
   const stats = weapon.base;
   const tags = getWeaponTags(id, stats);
+  const unlocked = save.unlockedWeapons.includes(id);
+  const equipped = save.equippedWeapons.includes(id);
+  const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
+  const atCapacity = save.equippedWeapons.length >= maxWeapons;
+  const totalDamage = stats.damage * stats.count;
 
   return (
     <motion.article
@@ -94,10 +165,20 @@ function WeaponCard({
         {tags.map((tag) => (
           <WeaponTag key={tag.label} {...tag} />
         ))}
+        {stats.count > 1 && (
+          <WeaponTag label={`×${stats.count}`} icon={Crosshair} color={weapon.color} />
+        )}
       </div>
 
       <div className="mt-5 grid gap-3">
-        <StatBar label="伤害" value={stats.damage} max={180} color={weapon.color} />
+        {stats.count > 1 ? (
+          <>
+            <StatBar label="单发伤害" value={stats.damage} max={180} color={weapon.color} />
+            <StatBar label="总伤害" value={totalDamage} max={180} color={weapon.color} />
+          </>
+        ) : (
+          <StatBar label="伤害" value={stats.damage} max={180} color={weapon.color} />
+        )}
         <StatBar label="射速" value={1 / (stats.cooldown || 0.1)} max={12} color={weapon.color} />
         <StatBar label="射程" value={stats.range} max={500} color={weapon.color} />
         <StatBar label="弹速" value={stats.projectileSpeed} max={700} color={weapon.color} />
@@ -117,55 +198,108 @@ function WeaponCard({
           ))}
         </ul>
       </div>
+
+      <div className="mt-auto pt-5">
+        {unlocked ? (
+          equipped ? (
+            <button
+              type="button"
+              onClick={() => onUnequip(id)}
+              disabled={save.equippedWeapons.length <= 1}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-[var(--panel-raised)] py-2.5 text-sm font-medium transition-all hover:border-danger/40 hover:bg-danger/10 hover:text-danger focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            >
+              <Minus size={16} weight="bold" />
+              卸下
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onEquip(id)}
+              disabled={atCapacity}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-background transition-all hover:bg-primary/90 focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            >
+              <Plus size={16} weight="bold" />
+              装备
+            </button>
+          )
+        ) : (
+          <button
+            type="button"
+            onClick={() => onBuy(id)}
+            disabled={!canAfford}
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            style={{
+              backgroundColor: canAfford ? `${weapon.color}18` : undefined,
+              color: canAfford ? weapon.color : undefined,
+              border: `1px solid ${canAfford ? `${weapon.color}40` : "var(--border)"}`,
+            }}
+          >
+            {canAfford ? <ShoppingCart size={16} weight="bold" /> : <Lock size={16} weight="bold" />}
+            {weapon.cost}
+            <Coin size={14} weight="fill" />
+          </button>
+        )}
+      </div>
     </motion.article>
   );
 }
 
-function formatUpgradeDescription(upgrade: import("@/lib/game/balance").WeaponUpgradeStep): string {
-  const parts: string[] = [];
-  if (upgrade.damageMul !== undefined) parts.push(`伤害 ${upgrade.damageMul > 1 ? "+" : ""}${Math.round((upgrade.damageMul - 1) * 100)}%`);
-  if (upgrade.cooldownMul !== undefined) parts.push(`冷却 ${upgrade.cooldownMul < 1 ? "-" : "+"}${Math.round(Math.abs((1 - upgrade.cooldownMul)) * 100)}%`);
-  if (upgrade.rangeMul !== undefined) parts.push(`射程 ${upgrade.rangeMul > 1 ? "+" : ""}${Math.round((upgrade.rangeMul - 1) * 100)}%`);
-  if (upgrade.countAdd) parts.push(`弹丸 +${upgrade.countAdd}`);
-  if (upgrade.pierceAdd) parts.push(`穿透 +${upgrade.pierceAdd}`);
-  if (upgrade.areaMul !== undefined) parts.push(`范围 ${upgrade.areaMul > 1 ? "+" : ""}${Math.round((upgrade.areaMul - 1) * 100)}%`);
-  if (upgrade.burnAdd) parts.push(`灼烧 +${upgrade.burnAdd}s`);
-  if (upgrade.chainCountAdd) parts.push(`连锁 +${upgrade.chainCountAdd}`);
-  if (upgrade.freezeDurationAdd) parts.push(`冰冻 +${upgrade.freezeDurationAdd}s`);
-  if (upgrade.gravityRadiusMul !== undefined) parts.push(`重力范围 +${Math.round((upgrade.gravityRadiusMul - 1) * 100)}%`);
-  if (upgrade.pullStrengthMul !== undefined) parts.push(`牵引 +${Math.round((upgrade.pullStrengthMul - 1) * 100)}%`);
-  if (upgrade.swarmCountAdd) parts.push(`无人机 +${upgrade.swarmCountAdd}`);
-  if (parts.length === 0) return `等级 ${upgrade.level} 强化`;
-  return `等级 ${upgrade.level}: ${parts.join("，")}`;
-}
-
-function getWeaponTags(id: string, stats: WeaponStatBlock) {
-  const tags: { label: string; icon: typeof Crosshair; color: string }[] = [];
-  if (stats.isMelee) tags.push({ label: "近战", icon: Crosshair, color: "#f43f5e" });
-  else tags.push({ label: "远程", icon: Target, color: "#22d3ee" });
-
-  if (id.includes("plasma") || id.includes("arc") || id.includes("laser")) {
-    tags.push({ label: "能量", icon: Lightning, color: "#38bdf8" });
-  } else if (id.includes("flame") || id.includes("thermal")) {
-    tags.push({ label: "热能", icon: Fire, color: "#f97316" });
-  } else if (id.includes("cryo") || stats.freezeDuration) {
-    tags.push({ label: "冰冻", icon: Snowflake, color: "#60a5fa" });
-  } else if (id.includes("gravity") || stats.gravityRadius) {
-    tags.push({ label: "重力", icon: Magnet, color: "#a855f7" });
-  } else {
-    tags.push({ label: "动能", icon: Target, color: "#94a3b8" });
-  }
-
-  if (stats.homing) tags.push({ label: "追踪", icon: Crosshair, color: "#34d399" });
-  if (stats.pierce > 1) tags.push({ label: "穿透", icon: Crosshair, color: "#f59e0b" });
-  if (stats.chainCount) tags.push({ label: "连锁", icon: Lightning, color: "#e879f9" });
-
-  return tags;
-}
-
 export default function ArmoryPage() {
   const reducedMotion = useReducedMotion();
-  const weapons = Object.entries(DEFAULT_BALANCE.weapons);
+  const [save, setSave] = useState<SaveData | null>(null);
+  const [notice, setNotice] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    setSave(loadSave());
+  }, []);
+
+  const fallbackSave = useMemo(() => loadSave(), []);
+
+  const showNotice = useCallback((message: string, type: "success" | "error") => {
+    setNotice({ message, type });
+    window.setTimeout(() => setNotice(null), 2200);
+  }, []);
+
+  const handleBuy = useCallback(
+    (id: WeaponId) => {
+      const ok = buyWeapon(id);
+      if (ok) {
+        setSave(loadSave());
+        showNotice("武器已解锁", "success");
+      } else {
+        showNotice("游戏币不足", "error");
+      }
+    },
+    [showNotice]
+  );
+
+  const handleEquip = useCallback(
+    (id: WeaponId) => {
+      const ok = equipWeapon(id);
+      if (ok) {
+        setSave(loadSave());
+      } else {
+        showNotice("装备槽已满", "error");
+      }
+    },
+    [showNotice]
+  );
+
+  const handleUnequip = useCallback(
+    (id: WeaponId) => {
+      const ok = unequipWeapon(id);
+      if (ok) {
+        setSave(loadSave());
+      } else {
+        showNotice("至少需要保留一把武器", "error");
+      }
+    },
+    [showNotice]
+  );
+
+  const weapons = Object.entries(DEFAULT_BALANCE.weapons) as [WeaponId, WeaponBalance][];
+  const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
+  const coins = save?.coins ?? 0;
 
   return (
     <Layout title="军械库">
@@ -180,17 +314,68 @@ export default function ArmoryPage() {
             <Crosshair weight="duotone" size={14} />
             军械库
           </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">
-            武器与装备
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-            从制式脉冲步枪到实验级重力井，每把武器都有独特的升级路线。合理搭配是据点防守胜利的关键。
-          </p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">武器与装备</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
+                用任务奖励的游戏币解锁武器，并装配到出战栏位。合理搭配是据点防守胜利的关键。
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 self-start rounded-2xl border border-border bg-panel px-4 py-3 sm:self-auto">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-warning/10 text-warning">
+                <Coin size={18} weight="fill" />
+              </span>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted">游戏币</p>
+                <p className="font-mono text-xl font-bold">{coins}</p>
+              </div>
+            </div>
+          </div>
+
+          {save && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-panel px-2 py-1">
+                <Check size={12} weight="bold" className="text-success" />
+                已解锁 {save.unlockedWeapons.length} / {weapons.length}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-lg bg-panel px-2 py-1">
+                <Crosshair size={12} weight="bold" className="text-primary" />
+                已装备 {save.equippedWeapons.length} / {maxWeapons}
+              </span>
+            </div>
+          )}
         </motion.div>
+
+        <AnimatePresence>
+          {notice && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className={`mb-6 rounded-xl border px-4 py-3 text-sm font-medium ${
+                notice.type === "success"
+                  ? "border-success/30 bg-success/10 text-success"
+                  : "border-danger/30 bg-danger/10 text-danger"
+              }`}
+            >
+              {notice.message}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {weapons.map(([id, weapon], index) => (
-            <WeaponCard key={id} id={id} weapon={weapon} index={index} />
+            <WeaponCard
+              key={id}
+              id={id}
+              weapon={weapon}
+              index={index}
+              save={save ?? fallbackSave}
+              canAfford={(save?.coins ?? 0) >= weapon.cost}
+              onBuy={handleBuy}
+              onEquip={handleEquip}
+              onUnequip={handleUnequip}
+            />
           ))}
         </div>
 

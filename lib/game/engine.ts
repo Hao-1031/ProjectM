@@ -20,6 +20,7 @@ import type {
   GameModeConfig,
   SerializedGameState,
   HeroId,
+  WeaponId,
   DefenseState,
 } from "./types";
 import {
@@ -38,7 +39,7 @@ import {
   rectOverlap,
   formatTime,
 } from "./math";
-import { getStarterWeapons, applyUpgrade, generateUpgradeOptions } from "./weapons";
+import { getStarterWeapons, applyUpgrade, generateUpgradeOptions, WEAPON_CREATORS } from "./weapons";
 import {
   generateMissions,
   updateMissions,
@@ -147,6 +148,11 @@ export interface GameCallbacks {
   onRoguelikeRewardOffer?: (options: RoguelikeRewardBalance[]) => void;
 }
 
+export interface Loadout {
+  heroId?: HeroId | null;
+  weaponIds?: WeaponId[];
+}
+
 export class GameEngine {
   state: GameState;
   private canvasWidth = 0;
@@ -157,11 +163,21 @@ export class GameEngine {
   private rng: () => number;
   private fx = new FXSystem();
   private particlePool = new ParticlePool(768);
+  private loadout: Required<Loadout>;
 
-  constructor(callbacks: GameCallbacks = {}, mode: GameModeType = getDefaultMode(), seed?: number) {
+  constructor(
+    callbacks: GameCallbacks = {},
+    mode: GameModeType = getDefaultMode(),
+    seed?: number,
+    loadout?: Loadout
+  ) {
     this.callbacks = callbacks;
     this.seed = seed ?? Math.floor(Math.random() * 1000000);
     this.rng = seededRandom(this.seed);
+    this.loadout = {
+      heroId: loadout?.heroId ?? null,
+      weaponIds: loadout?.weaponIds?.slice(0, DEFAULT_BALANCE.progression.maxWeapons) ?? [],
+    };
     this.state = this.createInitialState(mode);
     this.state.particles = this.particlePool.getParticles();
   }
@@ -186,8 +202,9 @@ export class GameEngine {
     const startY = mode === "defense" ? map.height / 2 : MAP_HEIGHT / 2;
 
     const player = this.createPlayer("player", startX, startY);
-    if (mode === "defense" && this.state?.selectedHero) {
-      applyHeroToPlayer(player, this.state.selectedHero);
+    const heroId = this.loadout.heroId ?? this.state?.selectedHero;
+    if (heroId) {
+      applyHeroToPlayer(player, heroId);
     }
 
     return {
@@ -234,7 +251,7 @@ export class GameEngine {
       eliteKillStreak: 0,
       roguelikeRunState,
       defenseState,
-      selectedHero: this.state?.selectedHero,
+      selectedHero: heroId ?? this.state?.selectedHero,
     };
   }
 
@@ -251,7 +268,12 @@ export class GameEngine {
       level: 1,
       xp: 0,
       xpToNext: cfg.levelXpMultiplier,
-      weapons: getStarterWeapons(),
+      weapons:
+        this.loadout.weaponIds.length > 0
+          ? this.loadout.weaponIds
+              .slice(0, DEFAULT_BALANCE.progression.maxWeapons)
+              .map((id) => WEAPON_CREATORS[id]())
+          : getStarterWeapons(),
       passives: [],
       invincible: 0,
       magnetRange: cfg.baseMagnetRange,
@@ -356,6 +378,28 @@ export class GameEngine {
   start() {
     this.state.status = "running";
     this.state.lastTime = performance.now();
+  }
+
+  setLoadout(loadout: Loadout) {
+    if (loadout.heroId !== undefined) {
+      this.loadout.heroId = loadout.heroId;
+    }
+    if (loadout.weaponIds !== undefined) {
+      this.loadout.weaponIds = loadout.weaponIds.slice(0, DEFAULT_BALANCE.progression.maxWeapons);
+    }
+
+    const heroId = this.loadout.heroId;
+    this.state.selectedHero = heroId ?? this.state.selectedHero;
+
+    if (this.state.status === "idle") {
+      const player = this.state.player;
+      if (heroId) {
+        applyHeroToPlayer(player, heroId);
+      }
+      if (this.loadout.weaponIds.length > 0) {
+        player.weapons = this.loadout.weaponIds.map((id) => WEAPON_CREATORS[id]());
+      }
+    }
   }
 
   pause() {

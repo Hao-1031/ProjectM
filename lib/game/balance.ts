@@ -44,6 +44,7 @@ export interface WeaponBalance {
   name: string;
   description: string;
   color: string;
+  cost: number;
   base: WeaponStatBlock;
   maxLevel: number;
   upgrades: WeaponUpgradeStep[];
@@ -236,7 +237,7 @@ export interface RoguelikeRewardBalance {
 
 export const DEFAULT_BALANCE: BalanceConfig = {
   player: {
-    baseHealth: 100,
+    baseHealth: 200,
     baseSpeed: 260,
     baseRadius: 14,
     baseMagnetRange: 120,
@@ -254,6 +255,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "脉冲步枪",
       description: "高射速能量弹，可穿透一个目标",
       color: "#22d3ee",
+      cost: 0,
       maxLevel: 5,
       base: {
         damage: 20,
@@ -275,6 +277,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "霰弹爆破",
       description: "扇形散射，近距离爆发",
       color: "#f59e0b",
+      cost: 300,
       maxLevel: 5,
       base: {
         damage: 15,
@@ -296,6 +299,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "贯穿激光",
       description: "高能光束，穿透多个敌人",
       color: "#a855f7",
+      cost: 500,
       maxLevel: 5,
       base: {
         damage: 34,
@@ -317,6 +321,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "集束火箭",
       description: "命中后爆炸，造成范围伤害",
       color: "#f43f5e",
+      cost: 600,
       maxLevel: 5,
       base: {
         damage: 55,
@@ -339,6 +344,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "等离子喷火器",
       description: "持续喷射，附带燃烧效果",
       color: "#fb923c",
+      cost: 400,
       maxLevel: 5,
       base: {
         damage: 9,
@@ -361,6 +367,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "浮游无人机",
       description: "追踪最近目标的自动无人机",
       color: "#34d399",
+      cost: 450,
       maxLevel: 5,
       base: {
         damage: 24,
@@ -382,6 +389,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "等离子步枪",
       description: "不稳定等离子弹，命中后分裂溅射",
       color: "#38bdf8",
+      cost: 350,
       maxLevel: 5,
       base: {
         damage: 26,
@@ -404,6 +412,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "磁轨炮",
       description: "高能穿透射线，对路径上所有敌人造成伤害",
       color: "#60a5fa",
+      cost: 800,
       maxLevel: 5,
       base: {
         damage: 72,
@@ -425,6 +434,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "蜂群发射器",
       description: "发射追踪微型飞弹，覆盖多个目标",
       color: "#fbbf24",
+      cost: 550,
       maxLevel: 5,
       base: {
         damage: 16,
@@ -446,6 +456,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "高斯步枪",
       description: "高穿透穿甲弹，对重装单位造成额外伤害",
       color: "#94a3b8",
+      cost: 500,
       maxLevel: 5,
       base: {
         damage: 38,
@@ -467,6 +478,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "电弧发射器",
       description: "释放连锁电弧，命中后跳跃至附近多个目标",
       color: "#facc15",
+      cost: 500,
       maxLevel: 5,
       base: {
         damage: 26,
@@ -490,6 +502,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "冷冻榴弹",
       description: "范围冰霜爆炸，降低敌人移动速度",
       color: "#67e8f9",
+      cost: 450,
       maxLevel: 5,
       base: {
         damage: 34,
@@ -513,6 +526,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "等离子刃",
       description: "近身高伤害斩击，可穿透路径上所有敌人",
       color: "#e879f9",
+      cost: 600,
       maxLevel: 5,
       base: {
         damage: 64,
@@ -535,6 +549,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "纳米虫群",
       description: "释放持续侵蚀敌人的微型机器人，可叠加多层",
       color: "#34d399",
+      cost: 550,
       maxLevel: 5,
       base: {
         damage: 5,
@@ -557,6 +572,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "重力井投射器",
       description: "制造引力场吸引敌人并造成持续伤害",
       color: "#818cf8",
+      cost: 700,
       maxLevel: 5,
       base: {
         damage: 18,
@@ -587,6 +603,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "涡流加农炮",
       description: "发射持续穿透的螺旋能量弹，对直线上敌人重复伤害",
       color: "#f472b6",
+      cost: 650,
       maxLevel: 5,
       base: {
         damage: 42,
@@ -608,6 +625,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "追踪步枪",
       description: "发射自动追踪最近目标的智能子弹",
       color: "#a78bfa",
+      cost: 500,
       maxLevel: 5,
       base: {
         damage: 30,
@@ -630,6 +648,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       name: "晶片连射器",
       description: "高速发射脆弱但数量众多的能量晶片",
       color: "#2dd4bf",
+      cost: 400,
       maxLevel: 5,
       base: {
         damage: 11,
@@ -661,7 +680,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     walker: {
       healthMul: 1,
       speed: 105,
-      damage: 12,
+      damage: 16,
       radius: 14,
       xpValue: 6,
       color: "#fb923c",
@@ -672,8 +691,8 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     },
     runner: {
       healthMul: 0.55,
-      speed: 175,
-      damage: 9,
+      speed: 150,
+      damage: 12,
       radius: 10,
       xpValue: 4,
       color: "#34d399",
@@ -685,7 +704,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     tank: {
       healthMul: 3.2,
       speed: 78,
-      damage: 22,
+      damage: 28,
       radius: 22,
       xpValue: 14,
       color: "#f43f5e",
@@ -697,7 +716,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     spitter: {
       healthMul: 0.8,
       speed: 92,
-      damage: 9,
+      damage: 12,
       radius: 12,
       xpValue: 9,
       color: "#a3e635",
@@ -710,7 +729,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     elite: {
       healthMul: 5.5,
       speed: 128,
-      damage: 28,
+      damage: 36,
       radius: 18,
       xpValue: 28,
       color: "#f59e0b",
@@ -723,7 +742,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     boss: {
       healthMul: 30,
       speed: 72,
-      damage: 45,
+      damage: 58,
       radius: 40,
       xpValue: 250,
       color: "#e879f9",
@@ -735,8 +754,8 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     },
     drone: {
       healthMul: 0.35,
-      speed: 200,
-      damage: 7,
+      speed: 180,
+      damage: 9,
       radius: 8,
       xpValue: 4,
       color: "#94a3b8",
@@ -748,7 +767,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     sentinel: {
       healthMul: 1.4,
       speed: 95,
-      damage: 14,
+      damage: 18,
       radius: 15,
       xpValue: 7,
       color: "#64748b",
@@ -760,7 +779,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     crusher: {
       healthMul: 4.5,
       speed: 62,
-      damage: 28,
+      damage: 36,
       radius: 26,
       xpValue: 18,
       color: "#f97316",
@@ -772,7 +791,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     sniper: {
       healthMul: 0.7,
       speed: 78,
-      damage: 11,
+      damage: 14,
       radius: 11,
       xpValue: 8,
       color: "#22d3ee",
@@ -784,8 +803,8 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     },
     stalker: {
       healthMul: 0.65,
-      speed: 210,
-      damage: 10,
+      speed: 185,
+      damage: 13,
       radius: 10,
       xpValue: 5,
       color: "#94a3b8",
@@ -798,7 +817,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     shielder: {
       healthMul: 2.8,
       speed: 85,
-      damage: 16,
+      damage: 21,
       radius: 20,
       xpValue: 13,
       color: "#64748b",
@@ -811,7 +830,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     harvester: {
       healthMul: 1.1,
       speed: 100,
-      damage: 9,
+      damage: 12,
       radius: 13,
       xpValue: 10,
       color: "#f59e0b",
@@ -824,7 +843,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     artillery: {
       healthMul: 1.2,
       speed: 55,
-      damage: 24,
+      damage: 31,
       radius: 14,
       xpValue: 12,
       color: "#78716c",
@@ -837,7 +856,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     disruptor: {
       healthMul: 0.9,
       speed: 115,
-      damage: 8,
+      damage: 10,
       radius: 12,
       xpValue: 9,
       color: "#22d3ee",
@@ -850,7 +869,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     scorcher: {
       healthMul: 1.2,
       speed: 100,
-      damage: 16,
+      damage: 21,
       radius: 15,
       xpValue: 11,
       color: "#f97316",
@@ -863,7 +882,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     bomber: {
       healthMul: 0.7,
       speed: 135,
-      damage: 22,
+      damage: 28,
       radius: 11,
       xpValue: 10,
       color: "#fbbf24",
@@ -876,7 +895,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     leech: {
       healthMul: 0.85,
       speed: 110,
-      damage: 7,
+      damage: 9,
       radius: 12,
       xpValue: 8,
       color: "#a78bfa",
@@ -889,7 +908,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     constructor: {
       healthMul: 1.8,
       speed: 65,
-      damage: 10,
+      damage: 13,
       radius: 18,
       xpValue: 13,
       color: "#64748b",
@@ -901,8 +920,8 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     },
     raptor: {
       healthMul: 0.5,
-      speed: 220,
-      damage: 8,
+      speed: 195,
+      damage: 10,
       radius: 9,
       xpValue: 5,
       color: "#38bdf8",

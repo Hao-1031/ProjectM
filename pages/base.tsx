@@ -23,6 +23,7 @@ import { loadSave, type SaveData } from "@/lib/game/save";
 import { formatTime } from "@/lib/game/math";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
+import type { WeaponId } from "@/lib/game/types";
 
 const weaponIcons: Record<string, React.ComponentType<any>> = {
   pulse: Crosshair,
@@ -52,11 +53,11 @@ export default function BasePage() {
   const best = save?.bestRun;
   const heroes = Object.values(HERO_DEFS);
   const weapons = Object.entries(DEFAULT_BALANCE.weapons).map(([id, cfg]) => ({
-    id,
+    id: id as WeaponId,
     name: cfg.name,
     description: cfg.description,
     color: cfg.color,
-    unlocked: save?.unlockedWeapons.includes(id) ?? false,
+    unlocked: save?.unlockedWeapons.includes(id as WeaponId) ?? false,
   }));
 
   return (

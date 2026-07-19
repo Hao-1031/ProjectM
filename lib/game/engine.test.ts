@@ -28,7 +28,7 @@ describe("GameEngine", () => {
   it("initializes in idle state", () => {
     const engine = new GameEngine();
     expect(engine.state.status).toBe("idle");
-    expect(engine.state.player.health).toBe(100);
+    expect(engine.state.player.health).toBe(200);
   });
 
   it("starts running", () => {
@@ -148,7 +148,7 @@ describe("GameEngine", () => {
     engine.state.status = "defeat";
     engine.restart();
     expect(engine.state.status).toBe("running");
-    expect(engine.state.player.health).toBe(100);
+    expect(engine.state.player.health).toBe(200);
     expect(engine.state.stats.kills).toBe(0);
   });
 

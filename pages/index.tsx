@@ -20,6 +20,7 @@ import {
   Lightning,
   Crosshair,
   CaretRight,
+  Coin,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -31,8 +32,6 @@ const MODES: { type: GameModeType; label: string; icon: typeof Target; accent: s
   { type: "defense", label: "据点防守", icon: Shield, accent: "#4ecdc4", desc: "2-4 人合作" },
   { type: "campaign", label: "战役模式", icon: Target, accent: "#f4a261", desc: "连续任务" },
   { type: "endless", label: "无尽生存", icon: Clock, accent: "#e05a6a", desc: "极限存活" },
-  { type: "daily", label: "每日挑战", icon: Calendar, accent: "#e9c46a", desc: "全球排行" },
-  { type: "roguelike", label: "冒险模式", icon: Shuffle, accent: "#52b788", desc: "关卡树" },
 ];
 
 const containerVariants = {
@@ -264,8 +263,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-6 flex items-center justify-between border-t border-border pt-5">
-                  <div className="text-xs text-muted">
-                    <p>数据仅存于本地浏览器</p>
+                  <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/50 px-3 py-2">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                      <Coin size={16} weight="fill" />
+                    </span>
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">游戏币</p>
+                      <p className="font-mono text-lg font-bold">{save?.coins ?? 0}</p>
+                    </div>
                   </div>
                   <Link
                     href="/leaderboard"
@@ -297,7 +302,7 @@ export default function HomePage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
           >
             {MODES.map((mode, index) => {
               const Icon = mode.icon;
@@ -395,7 +400,7 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-xs text-muted sm:flex-row"
         >
-          <p>Project M · 本地优先 · 数据永不离开浏览器</p>
+          <p>公平竞技 · 无付费加成 · Project M</p>
           <div className="flex gap-4">
             <Link href="/about" className="hover:text-foreground focus-ring rounded">关于</Link>
             <Link href="/settings" className="hover:text-foreground focus-ring rounded">设置</Link>

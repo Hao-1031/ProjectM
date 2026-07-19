@@ -17,13 +17,13 @@ describe("ModesPage", () => {
     expect(screen.getByText("选择你的战场")).toBeInTheDocument();
   });
 
-  it("lists all five game modes", () => {
+  it("lists active game modes", () => {
     render(<ModesPage />);
     expect(screen.getByText("战役模式")).toBeInTheDocument();
     expect(screen.getByText("无尽生存")).toBeInTheDocument();
-    expect(screen.getByText("每日挑战")).toBeInTheDocument();
-    expect(screen.getByText("冒险模式")).toBeInTheDocument();
     expect(screen.getByText("据点防守")).toBeInTheDocument();
+    expect(screen.queryByText("每日挑战")).not.toBeInTheDocument();
+    expect(screen.queryByText("冒险模式")).not.toBeInTheDocument();
   });
 
   it("highlights defense mode as featured", () => {

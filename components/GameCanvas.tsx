@@ -12,7 +12,7 @@ import type {
 } from "@/lib/game/types";
 import type { RoguelikeRewardBalance } from "@/lib/game/balance";
 import { useAppStore } from "@/lib/store";
-import { recordRun } from "@/lib/game/save";
+import { recordRun, getLoadout } from "@/lib/game/save";
 import { getBossTemplate } from "@/lib/game/bosses";
 import { GameRoomManager } from "@/lib/network/room";
 import UpgradeModal from "./UpgradeModal";
@@ -22,6 +22,9 @@ import RunEndModal from "./RunEndModal";
 import MultiplayerLobby from "./MultiplayerLobby";
 import NotificationToast, { type GameNotification } from "./game/NotificationToast";
 import WaveAnnouncement, { type WavePhase } from "./game/WaveAnnouncement";
+import LoadoutModal from "./game/LoadoutModal";
+import type { HeroId, WeaponId } from "@/lib/game/types";
+
 
 interface GameCanvasProps {
   onExit?: () => void;
@@ -57,8 +60,15 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<GameModeType>("campaign");
+  const [selectedMode, setSelectedMode] = useState<GameModeType>(() => {
+    if (typeof window === "undefined") return "campaign";
+    const params = new URLSearchParams(window.location.search);
+    const m = params.get("mode") as GameModeType | null;
+    return m && ["campaign", "endless", "daily", "roguelike", "defense"].includes(m) ? m : "campaign";
+  });
   const [notifications, setNotifications] = useState<GameNotification[]>([]);
+  const [showLoadout, setShowLoadout] = useState(true);
+  const [loadoutSnapshot, setLoadoutSnapshot] = useState(() => getLoadout());
   const [waveAnnouncement, setWaveAnnouncement] = useState<{
     visible: boolean;
     wave: number;
@@ -85,13 +95,15 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     audio?.setBgmVolume(settings.bgmVolume ?? 0.35);
   }, [settings.audioEnabled, settings.volume, settings.bgmVolume]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const engine = new GameEngine({
-      onLevelUp: (options) => setUpgradeOptions(options),
+    const engine = new GameEngine(
+      {
+        onLevelUp: (options) => setUpgradeOptions(options),
       onVictory: (result) => {
         setRunResult(result);
         recordRun(result);
@@ -120,7 +132,11 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       onRoguelikeRewardOffer: (options) => {
         setRoguelikeRewardOptions(options);
       },
-    });
+    },
+    selectedMode,
+    undefined,
+    loadoutSnapshot
+    );
     engineRef.current = engine;
 
     const input = new InputManager(container);
@@ -420,6 +436,15 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setIsStarted(true);
   }, []);
 
+  const handleLoadoutConfirm = useCallback(
+    (loadout: { heroId: HeroId; weaponIds: WeaponId[] }) => {
+      engineRef.current?.setLoadout(loadout);
+      setShowLoadout(false);
+      handleStart();
+    },
+    [handleStart]
+  );
+
   const handlePauseToggle = useCallback(() => {
     engineRef.current?.pause();
     setFrame((f) => f + 1);
@@ -447,11 +472,9 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setUpgradeOptions(null);
     setRoguelikeRewardOptions(null);
     setIsStarted(false);
+    setShowLoadout(true);
+    setLoadoutSnapshot(getLoadout());
     engineRef.current?.restart();
-    setTimeout(() => {
-      engineRef.current?.start();
-      setIsStarted(true);
-    }, 100);
   }, []);
 
   const engine = engineRef.current;
@@ -547,38 +570,14 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         />
       )}
 
-      {!isStarted && status === "idle" && !lobbyOpen && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
-          <div className="max-w-md rounded-2xl border border-border bg-panel p-6 text-center shadow-2xl sm:p-8">
-            <h2 className="text-2xl font-bold">准备部署</h2>
-            <p className="mt-2 text-sm text-muted">
-              {isTouch
-                ? "在屏幕左侧拖动虚拟摇杆移动，武器自动射击。完成所有任务后抵达撤离点。"
-                : "WASD / 方向键移动，武器自动射击。完成所有任务后抵达撤离点。"}
-            </p>
-            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-              <button
-                onClick={handleStart}
-                className="rounded-lg bg-primary px-6 py-3 text-sm font-bold text-background transition-transform hover:scale-105 focus-ring active:scale-95"
-              >
-                开始任务
-              </button>
-              {onExit && (
-                <button
-                  onClick={onExit}
-                  className="rounded-lg border border-border px-6 py-3 text-sm transition-colors hover:bg-panel focus-ring active:scale-95"
-                >
-                  返回
-                </button>
-              )}
-            </div>
-            {isTouch && (
-              <p className="mt-4 text-xs text-muted">
-                提示：横屏体验更佳。点击浏览器菜单可安装到主屏幕离线游玩。
-              </p>
-            )}
-          </div>
-        </div>
+      {showLoadout && status === "idle" && !lobbyOpen && (
+        <LoadoutModal
+          mode={selectedMode}
+          initialHero={loadoutSnapshot.heroId}
+          initialWeapons={loadoutSnapshot.weaponIds}
+          onConfirm={handleLoadoutConfirm}
+          onCancel={onExit}
+        />
       )}
 
       {paused && (
