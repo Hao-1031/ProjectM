@@ -232,6 +232,50 @@ export const BOSSES: Record<BossId, BossTemplate> = {
       }
     },
   },
+  colossus: {
+    id: "colossus",
+    name: "巨像",
+    description: "超重型攻城 Boss，缓慢推进并释放毁灭性震荡波",
+    radius: 52,
+    speed: 35,
+    health: 8000,
+    damage: 60,
+    color: "#78716c",
+    secondaryColor: "#d6d3d1",
+    phases: [
+      {
+        index: 0,
+        name: "碾压",
+        attackPattern: "single",
+        attackCooldown: 2,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "护盾",
+        attackPattern: "spread",
+        attackCooldown: 1.6,
+        projectileCount: 8,
+        moveSpeedMultiplier: 1.1,
+      },
+      {
+        index: 2,
+        name: "毁灭",
+        attackPattern: "laser",
+        attackCooldown: 2.2,
+        projectileCount: 1,
+        moveSpeedMultiplier: 0.8,
+      },
+    ],
+    phaseThresholds: [0.7, 0.35],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.maxHealth = Math.round(boss.maxHealth * 1.1);
+        boss.health = Math.min(boss.health + boss.maxHealth * 0.1, boss.maxHealth);
+      }
+    },
+  },
 };
 
 export function getBossTemplate(id: BossId): BossTemplate {
@@ -301,6 +345,7 @@ export const BOSS_SUMMONS: Record<BossId, BossSummonInfo[]> = {
     { variant: "walker", count: 5, radius: 12, offsetRadius: 80, eliteChance: 0 },
     { variant: "elite", count: 1, radius: 14, offsetRadius: 100, eliteChance: 1 },
   ],
+  colossus: [{ variant: "tank", count: 3, radius: 16, offsetRadius: 120, eliteChance: 0.3 }],
 };
 
 export interface BossAbility {
@@ -382,6 +427,7 @@ export function createBossEnemy(id: BossId, x: number, y: number): Enemy {
     burnDuration: 0,
     phase: 0,
     phaseThresholds: [...template.phaseThresholds],
+    targetCore: false,
     facing: 0,
     animation: "move",
     animationTimer: 0,

@@ -125,6 +125,7 @@ describe("GameEngine", () => {
       affixes: [],
       phase: 0,
       phaseThresholds: [],
+      targetCore: false,
       facing: 0,
       animation: "move",
       animationTimer: 0,
@@ -205,6 +206,7 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
+        targetCore: false,
       });
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThan(0);
@@ -230,6 +232,7 @@ describe("GameEngine", () => {
         affixes: [],
         phase: 0,
         phaseThresholds: [0.65, 0.35],
+        targetCore: false,
         facing: 0,
         animation: "move",
         animationTimer: 0,
@@ -277,6 +280,77 @@ describe("GameEngine", () => {
       expect(engine.state.player.x).toBeGreaterThanOrEqual(
         obstacle.x + obstacle.width / 2 + engine.state.player.radius
       );
+    });
+
+    it("unsticks player when placed inside obstacle", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine.state.map.obstacles = [
+        {
+          id: "obs_test",
+          x: 400,
+          y: 300,
+          width: 120,
+          height: 120,
+          color: "#1c2033",
+          health: 120,
+          maxHealth: 120,
+          destructible: true,
+        },
+      ];
+      const obstacle = engine.state.map.obstacles[0];
+      // Place player center inside obstacle.
+      engine.state.player.x = obstacle.x;
+      engine.state.player.y = obstacle.y;
+      engine.update(idleInput, 16);
+      // After resolution the player should no longer collide with the obstacle.
+      expect(
+        engine.state.player.x < obstacle.x - obstacle.width / 2 - engine.state.player.radius ||
+          engine.state.player.x > obstacle.x + obstacle.width / 2 + engine.state.player.radius ||
+          engine.state.player.y < obstacle.y - obstacle.height / 2 - engine.state.player.radius ||
+          engine.state.player.y > obstacle.y + obstacle.height / 2 + engine.state.player.radius
+      ).toBe(true);
+    });
+
+    it("keeps player movable after repeated updates near obstacles", () => {
+      const engine = new GameEngine();
+      engine.resize(800, 600);
+      engine.start();
+      engine.state.map.obstacles = [
+        {
+          id: "obs_test",
+          x: 400,
+          y: 300,
+          width: 120,
+          height: 120,
+          color: "#1c2033",
+          health: 120,
+          maxHealth: 120,
+          destructible: true,
+        },
+      ];
+      const obstacle = engine.state.map.obstacles[0];
+      // Start just outside the right edge.
+      engine.state.player.x = obstacle.x + obstacle.width / 2 + engine.state.player.radius + 2;
+      engine.state.player.y = obstacle.y;
+
+      let time = 16;
+      for (let i = 0; i < 60; i++) {
+        engine.update(
+          {
+            move: { x: -1, y: 0 },
+            aim: { x: -1, y: 0 },
+            fire: false,
+            pause: false,
+          },
+          (time += 16)
+        );
+      }
+
+      // Player should remain roughly outside the obstacle on the right side and be able to move.
+      expect(engine.state.player.x).toBeGreaterThanOrEqual(obstacle.x + obstacle.width / 2 - 1);
+      expect(engine.state.player.x).toBeLessThanOrEqual(obstacle.x + obstacle.width / 2 + engine.state.player.radius + 2);
     });
 
     it("hazard damages player over time", () => {
@@ -398,6 +472,7 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
+        targetCore: false,
       });
       engine.update(idleInput, 16);
       expect(engine.state.stats.damageTaken).toBe(20);
@@ -435,6 +510,7 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
+        targetCore: false,
       });
       engine.update(rightInput, performance.now() + 100);
       const critNumber = engine.state.damageNumbers.find((n) => n.isCritical);

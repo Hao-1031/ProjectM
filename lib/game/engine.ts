@@ -34,6 +34,8 @@ import {
   randomChoice,
   circleCollision,
   circleRectCollision,
+  resolveCircleRectCollision,
+  rectOverlap,
   formatTime,
 } from "./math";
 import { getStarterWeapons, applyUpgrade, generateUpgradeOptions } from "./weapons";
@@ -225,6 +227,9 @@ export class GameEngine {
       cooldownReduction: 0,
       areaMultiplier: 1,
       regen: 0,
+      heroId: null,
+      activeSkill: null,
+      skillTimer: 0,
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -245,22 +250,39 @@ export class GameEngine {
     const hazards: Hazard[] = [];
 
     const obstacleCount = theme === "industrial" ? 18 : theme === "frozen" ? 14 : 20;
+    const minPlayerPassage = 60;
+    const spawnX = MAP_WIDTH / 2;
+    const spawnY = MAP_HEIGHT / 2;
+    const spawnClearance = 350;
+
     for (let i = 0; i < obstacleCount; i++) {
       const width = randomRange(60, 180);
       const height = randomRange(60, 180);
-      const pos = randomPointInBounds(MAP_WIDTH, MAP_HEIGHT, 250);
-      const color = theme === "industrial" ? "#1c2033" : theme === "frozen" ? "#1a3a52" : "#2a3a18";
-      obstacles.push({
+      let pos = randomPointInBounds(MAP_WIDTH, MAP_HEIGHT, 250);
+      let candidate: Obstacle = {
         id: uid("obs"),
         x: pos.x,
         y: pos.y,
         width,
         height,
-        color,
+        color: theme === "industrial" ? "#1c2033" : theme === "frozen" ? "#1a3a52" : "#2a3a18",
         health: theme === "biohazard" ? 80 : 120,
         maxHealth: theme === "biohazard" ? 80 : 120,
         destructible: true,
-      });
+      };
+
+      let attempts = 0;
+      while (
+        attempts < 20 &&
+        (distance(pos, { x: spawnX, y: spawnY }) < spawnClearance ||
+          obstacles.some((o) => rectOverlap(candidate, o, minPlayerPassage)))
+      ) {
+        pos = randomPointInBounds(MAP_WIDTH, MAP_HEIGHT, 250);
+        candidate = { ...candidate, x: pos.x, y: pos.y };
+        attempts++;
+      }
+
+      obstacles.push(candidate);
     }
 
     const hazardCount = theme === "industrial" ? 4 : theme === "frozen" ? 6 : 8;
@@ -427,19 +449,19 @@ export class GameEngine {
   }
 
   private resolveObstacleCollisions(entity: { x: number; y: number; radius: number }) {
-    for (const obs of this.state.map.obstacles) {
-      if (circleRectCollision(entity, obs)) {
-        const closestX = clamp(entity.x, obs.x - obs.width / 2, obs.x + obs.width / 2);
-        const closestY = clamp(entity.y, obs.y - obs.height / 2, obs.y + obs.height / 2);
-        const dx = entity.x - closestX;
-        const dy = entity.y - closestY;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 0 && dist < entity.radius) {
-          const push = (entity.radius - dist) / dist;
-          entity.x += dx * push;
-          entity.y += dy * push;
+    const maxIterations = 5;
+    for (let i = 0; i < maxIterations; i++) {
+      let resolved = true;
+      for (const obs of this.state.map.obstacles) {
+        if (obs.health <= 0) continue;
+        const displacement = resolveCircleRectCollision(entity, obs);
+        if (displacement) {
+          entity.x += displacement.x;
+          entity.y += displacement.y;
+          resolved = false;
         }
       }
+      if (resolved) break;
     }
   }
 
@@ -712,6 +734,7 @@ export class GameEngine {
       burnDuration: 0,
       phase: 0,
       phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
+      targetCore: false,
       facing: 0,
       animation: "move",
       animationTimer: 0,

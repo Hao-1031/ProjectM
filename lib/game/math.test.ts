@@ -9,6 +9,8 @@ import {
   randomRange,
   circleCollision,
   circleRectCollision,
+  rectOverlap,
+  resolveCircleRectCollision,
   pointInRect,
   randomPointOnBorder,
   randomPointInBounds,
@@ -124,6 +126,58 @@ describe("math utilities", () => {
       expect(
         circleRectCollision({ x: 20, y: 20, radius: 2 }, { x: 0, y: 0, width: 10, height: 10 })
       ).toBe(false);
+    });
+  });
+
+  describe("rectOverlap", () => {
+    it("detects overlapping rectangles", () => {
+      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 5, y: 0, width: 10, height: 10 })).toBe(true);
+    });
+
+    it("returns false for separated rectangles", () => {
+      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 20, y: 0, width: 10, height: 10 })).toBe(false);
+    });
+
+    it("respects padding", () => {
+      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 12, y: 0, width: 10, height: 10 }, 5)).toBe(true);
+      expect(rectOverlap({ x: 0, y: 0, width: 10, height: 10 }, { x: 12, y: 0, width: 10, height: 10 })).toBe(false);
+    });
+  });
+
+  describe("resolveCircleRectCollision", () => {
+    it("pushes circle out from inside rectangle", () => {
+      const circle = { x: 0, y: 0, radius: 5 };
+      const rect = { x: 0, y: 0, width: 10, height: 10 };
+      const displacement = resolveCircleRectCollision(circle, rect);
+      expect(displacement).not.toBeNull();
+      circle.x += displacement!.x;
+      circle.y += displacement!.y;
+      expect(circleRectCollision(circle, rect)).toBe(false);
+    });
+
+    it("pushes circle out from rectangle edge", () => {
+      const circle = { x: 7, y: 0, radius: 5 };
+      const rect = { x: 0, y: 0, width: 10, height: 10 };
+      const displacement = resolveCircleRectCollision(circle, rect);
+      expect(displacement).not.toBeNull();
+      circle.x += displacement!.x;
+      circle.y += displacement!.y;
+      expect(circleRectCollision(circle, rect)).toBe(false);
+      expect(circle.x).toBeGreaterThan(7);
+    });
+
+    it("pushes circle out from rectangle corner", () => {
+      const circle = { x: 7, y: 7, radius: 4 };
+      const rect = { x: 0, y: 0, width: 10, height: 10 };
+      const displacement = resolveCircleRectCollision(circle, rect);
+      expect(displacement).not.toBeNull();
+      circle.x += displacement!.x;
+      circle.y += displacement!.y;
+      expect(circleRectCollision(circle, rect)).toBe(false);
+    });
+
+    it("returns null when circle is far away", () => {
+      expect(resolveCircleRectCollision({ x: 20, y: 20, radius: 2 }, { x: 0, y: 0, width: 10, height: 10 })).toBeNull();
     });
   });
 

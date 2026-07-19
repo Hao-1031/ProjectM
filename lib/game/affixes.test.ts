@@ -34,6 +34,7 @@ function createBaseEnemy(overrides: Partial<Enemy> = {}): Enemy {
     burnDuration: 0,
     phase: 0,
     phaseThresholds: [],
+    targetCore: false,
     facing: 0,
     animation: "move",
     animationTimer: 0,

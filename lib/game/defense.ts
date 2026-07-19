@@ -1,5 +1,5 @@
 import type { DefenseState, DefenseCore, EnergyNode, DefenseWave, EnemyVariant, MapConfig, Obstacle } from "./types";
-import { uid, randomRange, randomPointInBounds, distance } from "./math";
+import { uid, randomRange, randomPointInBounds, distance, rectOverlap } from "./math";
 
 const DEFENSE_MAP_WIDTH = 2200;
 const DEFENSE_MAP_HEIGHT = 1600;
@@ -13,9 +13,11 @@ export function createDefenseMap(seed: number): MapConfig {
   const obstacles: Obstacle[] = [];
   const rng = seededRandom(seed);
 
-  // Core perimeter walls
   const coreX = DEFENSE_MAP_WIDTH / 2;
   const coreY = DEFENSE_MAP_HEIGHT / 2;
+  const minPlayerPassage = 60;
+
+  // Core perimeter walls
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2;
     const dist = 160 + rng() * 40;
@@ -23,7 +25,7 @@ export function createDefenseMap(seed: number): MapConfig {
     const h = 24 + rng() * 30;
     const x = coreX + Math.cos(angle) * dist;
     const y = coreY + Math.sin(angle) * dist;
-    obstacles.push({
+    const wall: Obstacle = {
       id: uid("obs"),
       x,
       y,
@@ -33,15 +35,36 @@ export function createDefenseMap(seed: number): MapConfig {
       health: 400,
       maxHealth: 400,
       destructible: true,
-    });
+    };
+
+    // Skip wall if it overlaps an existing one; keeps core ring passable.
+    if (!obstacles.some((o) => rectOverlap(wall, o, minPlayerPassage))) {
+      obstacles.push(wall);
+    }
   }
 
   // Scattered cover
   for (let i = 0; i < 16; i++) {
-    const pos = randomPointInBounds(DEFENSE_MAP_WIDTH, DEFENSE_MAP_HEIGHT, 200);
-    // avoid core area
+    let pos = randomPointInBounds(DEFENSE_MAP_WIDTH, DEFENSE_MAP_HEIGHT, 200);
+    let attempts = 0;
+    while (
+      attempts < 20 &&
+      (distance(pos, { x: coreX, y: coreY }) < 260 ||
+        obstacles.some((o) =>
+          rectOverlap(
+            { x: pos.x, y: pos.y, width: randomRange(40, 120), height: randomRange(40, 120) },
+            o,
+            minPlayerPassage
+          )
+        ))
+    ) {
+      pos = randomPointInBounds(DEFENSE_MAP_WIDTH, DEFENSE_MAP_HEIGHT, 200);
+      attempts++;
+    }
+
     if (distance(pos, { x: coreX, y: coreY }) < 220) continue;
-    obstacles.push({
+
+    const cover: Obstacle = {
       id: uid("obs"),
       x: pos.x,
       y: pos.y,
@@ -51,7 +74,11 @@ export function createDefenseMap(seed: number): MapConfig {
       health: 300,
       maxHealth: 300,
       destructible: true,
-    });
+    };
+
+    if (!obstacles.some((o) => rectOverlap(cover, o, minPlayerPassage))) {
+      obstacles.push(cover);
+    }
   }
 
   return {

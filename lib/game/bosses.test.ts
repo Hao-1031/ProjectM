@@ -34,6 +34,7 @@ function createBossFromTemplate(id: BossId, overrides: Partial<Enemy> = {}): Ene
     burnDuration: 0,
     phase: 0,
     phaseThresholds: [...template.phaseThresholds],
+    targetCore: false,
     facing: 0,
     animation: "move",
     animationTimer: 0,
@@ -43,8 +44,8 @@ function createBossFromTemplate(id: BossId, overrides: Partial<Enemy> = {}): Ene
 
 describe("bosses", () => {
   describe("BOSS registry", () => {
-    it("contains five bosses", () => {
-      expect(Object.keys(BOSSES)).toHaveLength(5);
+    it("contains six bosses", () => {
+      expect(Object.keys(BOSSES)).toHaveLength(6);
     });
 
     it("every boss has required fields", () => {

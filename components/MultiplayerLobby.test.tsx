@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import MultiplayerLobby from "./MultiplayerLobby";
 
 describe("MultiplayerLobby", () => {
@@ -24,14 +24,16 @@ describe("MultiplayerLobby", () => {
 
   it("renders create room tab by default", () => {
     render(<MultiplayerLobby {...baseProps} />);
-    expect(screen.getAllByText("创建房间").length).toBe(2);
+    expect(screen.getByText("创建房间")).toBeInTheDocument();
     expect(screen.getByText("战役撤离")).toBeInTheDocument();
   });
 
-  it("switches to join room tab", () => {
+  it("switches to join room tab", async () => {
     render(<MultiplayerLobby {...baseProps} />);
-    fireEvent.click(screen.getByText("加入房间"));
-    expect(screen.getByPlaceholderText("XXXXXX")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("加入"));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("XXXXXX")).toBeInTheDocument();
+    });
   });
 
   it("calls onCreateRoom with player name and mode", () => {
@@ -39,19 +41,19 @@ describe("MultiplayerLobby", () => {
     render(<MultiplayerLobby {...baseProps} onCreateRoom={onCreateRoom} />);
     const input = screen.getByPlaceholderText("输入你的代号");
     fireEvent.change(input, { target: { value: "Alpha" } });
-    fireEvent.click(screen.getAllByText("创建房间").pop()!);
+    fireEvent.click(screen.getByText("创建房间"));
     expect(onCreateRoom).toHaveBeenCalledWith("Alpha", "campaign");
   });
 
-  it("calls onJoinRoom with code and name", () => {
+  it("calls onJoinRoom with code and name", async () => {
     const onJoinRoom = vi.fn();
     render(<MultiplayerLobby {...baseProps} onJoinRoom={onJoinRoom} />);
-    fireEvent.click(screen.getByText("加入房间"));
+    fireEvent.click(screen.getByText("加入"));
     const nameInput = screen.getByPlaceholderText("输入你的代号");
-    const codeInput = screen.getByPlaceholderText("XXXXXX");
+    const codeInput = await waitFor(() => screen.getByPlaceholderText("XXXXXX"));
     fireEvent.change(nameInput, { target: { value: "Beta" } });
     fireEvent.change(codeInput, { target: { value: "ABCD12" } });
-    fireEvent.click(screen.getAllByText("加入房间").pop()!);
+    fireEvent.click(screen.getByText("加入房间"));
     expect(onJoinRoom).toHaveBeenCalledWith("ABCD12", "Beta");
   });
 
@@ -88,7 +90,7 @@ describe("MultiplayerLobby", () => {
         onReadyToggle={onReadyToggle}
       />
     );
-    fireEvent.click(screen.getByText("准备"));
+    fireEvent.click(screen.getByText("准备就绪"));
     expect(onReadyToggle).toHaveBeenCalled();
   });
 

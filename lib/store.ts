@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export type GraphicsQuality = "high" | "medium" | "low";
+
 export interface AppSettings {
   audioEnabled: boolean;
   volume: number;
   bgmVolume: number;
   vibrationEnabled: boolean;
   reducedMotion: boolean;
+  graphicsQuality: GraphicsQuality;
 }
 
 interface AppState {
@@ -16,6 +19,7 @@ interface AppState {
   setBgmVolume: (volume: number) => void;
   setVibrationEnabled: (enabled: boolean) => void;
   setReducedMotion: (enabled: boolean) => void;
+  setGraphicsQuality: (quality: GraphicsQuality) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -27,6 +31,7 @@ export const useAppStore = create<AppState>()(
         bgmVolume: 0.35,
         vibrationEnabled: true,
         reducedMotion: false,
+        graphicsQuality: "high",
       },
       setAudioEnabled: (audioEnabled) =>
         set((state) => ({ settings: { ...state.settings, audioEnabled } })),
@@ -36,6 +41,8 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ settings: { ...state.settings, vibrationEnabled } })),
       setReducedMotion: (reducedMotion) =>
         set((state) => ({ settings: { ...state.settings, reducedMotion } })),
+      setGraphicsQuality: (graphicsQuality) =>
+        set((state) => ({ settings: { ...state.settings, graphicsQuality } })),
     }),
     {
       name: "project_m_app_v1",

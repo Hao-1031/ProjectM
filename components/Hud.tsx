@@ -1,6 +1,22 @@
 import type { GameState } from "@/lib/game/types";
 import { formatTime } from "@/lib/game/math";
 import { getCurrentMission } from "@/lib/game/missions";
+import { motion } from "framer-motion";
+import {
+  Heart,
+  Star,
+  Pause,
+  Play,
+  Warning,
+  Crosshair,
+  Target,
+  Clock,
+  Coin,
+  Skull,
+  Shield,
+  BatteryCharging,
+  Flag,
+} from "@phosphor-icons/react";
 
 interface HudProps {
   state: GameState;
@@ -9,48 +25,63 @@ interface HudProps {
   extractionTimer: number;
 }
 
-export default function Hud({ state, onPauseToggle, extractionTimer }: HudProps) {
+function clampPct(value: number, max: number) {
+  return `${Math.max(0, Math.min(100, (value / max) * 100))}%`;
+}
+
+export default function Hud({ state, paused, onPauseToggle, extractionTimer }: HudProps) {
   const player = state.player;
   const mission = getCurrentMission(state);
   const isFinal = state.currentMissionIndex >= state.missions.length;
   const event = state.activeEvent;
+  const defense = state.defenseState;
 
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 sm:p-3 md:p-5">
       <div className="flex items-start justify-between gap-2 sm:gap-4">
-        <div className="pointer-events-auto min-w-[150px] max-w-[240px] rounded-xl border border-border bg-panel/90 p-2.5 backdrop-blur-sm sm:min-w-[170px] sm:max-w-[280px] sm:p-3">
+        <div className="pointer-events-auto min-w-[170px] max-w-[260px] rounded-2xl border border-border bg-panel/90 p-3 shadow-lg backdrop-blur-md sm:min-w-[190px] sm:max-w-[300px] sm:p-4">
           <div className="flex items-center justify-between text-[10px] sm:text-xs">
-            <span className="text-muted">生命</span>
+            <span className="flex items-center gap-1 text-muted">
+              <Heart size={12} weight="bold" className="text-danger" />
+              生命
+            </span>
             <span className="font-mono text-foreground">
               {Math.ceil(player.health)} / {player.maxHealth}
             </span>
           </div>
-          <div className="mt-1 h-2 overflow-hidden rounded bg-border">
-            <div
-              className="h-full rounded bg-danger transition-all"
-              style={{ width: `${Math.max(0, (player.health / player.maxHealth) * 100)}%` }}
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-border">
+            <motion.div
+              className="h-full rounded-full bg-danger"
+              initial={false}
+              animate={{ width: clampPct(player.health, player.maxHealth) }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
             />
           </div>
 
-          <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
-            <span className="text-muted">经验 Lv.{player.level}</span>
+          <div className="mt-3 flex items-center justify-between text-[10px] sm:text-xs">
+            <span className="flex items-center gap-1 text-muted">
+              <Star size={12} weight="bold" className="text-primary" />
+              经验 Lv.{player.level}
+            </span>
             <span className="font-mono text-foreground">
               {player.xp} / {player.xpToNext}
             </span>
           </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded bg-border">
-            <div
-              className="h-full rounded bg-primary transition-all"
-              style={{ width: `${Math.max(0, (player.xp / player.xpToNext) * 100)}%` }}
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={false}
+              animate={{ width: clampPct(player.xp, player.xpToNext) }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
             />
           </div>
 
           {player.passives.length > 0 && (
-            <div className="mt-2 hidden flex-wrap gap-1 sm:flex">
+            <div className="mt-3 hidden flex-wrap gap-1 sm:flex">
               {player.passives.map((p) => (
                 <span
                   key={p.id}
-                  className="rounded bg-background px-1.5 py-0.5 text-[10px] font-bold"
+                  className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-bold"
                   style={{ color: p.color }}
                 >
                   {p.name} Lv.{p.level}
@@ -58,20 +89,62 @@ export default function Hud({ state, onPauseToggle, extractionTimer }: HudProps)
               ))}
             </div>
           )}
+
+          {defense && (
+            <div className="mt-3 space-y-2 border-t border-border pt-3">
+              <div>
+                <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                  <span className="flex items-center gap-1 text-muted">
+                    <Shield size={12} weight="bold" className="text-success" />
+                    核心
+                  </span>
+                  <span className="font-mono">
+                    {Math.ceil(defense.core.health)} / {defense.core.maxHealth}
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
+                  <div
+                    className="h-full rounded-full bg-success transition-all"
+                    style={{ width: clampPct(defense.core.health, defense.core.maxHealth) }}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                <span className="flex items-center gap-1 text-muted">
+                  <BatteryCharging size={12} weight="bold" className="text-primary" />
+                  能量
+                </span>
+                <span className="font-mono">{Math.floor(defense.energy)}</span>
+              </div>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                <span className="flex items-center gap-1 text-muted">
+                  <Flag size={12} weight="bold" className="text-accent" />
+                  波次
+                </span>
+                <span className="font-mono">
+                  {defense.currentWave + 1} / {defense.totalWaves}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="pointer-events-auto flex flex-col items-end gap-1.5 sm:gap-2">
+        <div className="pointer-events-auto flex flex-col items-end gap-2 sm:gap-3">
           <button
             onClick={onPauseToggle}
-            className="rounded-lg border border-border bg-panel/90 px-2.5 py-1.5 text-xs backdrop-blur-sm transition-colors hover:bg-panel focus-ring pointer-events-auto sm:px-3 sm:py-2 sm:text-sm"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-panel/90 px-3 py-2 text-xs backdrop-blur-md transition-colors hover:bg-panel focus-ring pointer-events-auto sm:text-sm"
           >
-            暂停
+            {paused ? <Play size={14} weight="bold" className="text-primary" /> : <Pause size={14} weight="bold" />}
+            {paused ? "继续" : "暂停"}
           </button>
 
           {event && (
-            <div className="max-w-[180px] rounded-xl border border-danger/50 bg-panel/90 p-2.5 text-right backdrop-blur-sm sm:max-w-[240px] sm:p-3">
-              <p className="font-mono text-[10px] text-danger sm:text-xs">事件</p>
-              <p className="text-xs font-bold sm:text-sm">{event.title}</p>
+            <div className="max-w-[200px] rounded-2xl border border-danger/40 bg-panel/90 p-3 text-right shadow-lg backdrop-blur-md sm:max-w-[260px] sm:p-4">
+              <p className="flex items-center justify-end gap-1 font-mono text-[10px] text-danger sm:text-xs">
+                <Warning size={12} weight="bold" />
+                事件
+              </p>
+              <p className="mt-1 text-xs font-bold sm:text-sm">{event.title}</p>
               <p className="hidden text-xs text-muted sm:block">{event.description}</p>
               <p className="mt-1 font-mono text-[10px] text-danger sm:text-xs">
                 {formatTime(Math.max(0, event.timer))}
@@ -80,56 +153,72 @@ export default function Hud({ state, onPauseToggle, extractionTimer }: HudProps)
           )}
 
           {mission && !isFinal && (
-            <div className="max-w-[180px] rounded-xl border border-border bg-panel/90 p-2.5 text-right backdrop-blur-sm sm:max-w-[240px] sm:p-3">
-              <p className="font-mono text-[10px] text-primary sm:text-xs">当前任务</p>
-              <p className="text-xs font-bold sm:text-sm">{mission.title}</p>
+            <div className="max-w-[200px] rounded-2xl border border-border bg-panel/90 p-3 text-right shadow-lg backdrop-blur-md sm:max-w-[260px] sm:p-4">
+              <p className="flex items-center justify-end gap-1 font-mono text-[10px] text-primary sm:text-xs">
+                <Target size={12} weight="bold" />
+                当前任务
+              </p>
+              <p className="mt-1 text-xs font-bold sm:text-sm">{mission.title}</p>
               <p className="hidden text-xs text-muted sm:block">{mission.description}</p>
               <p className="mt-1 font-mono text-[10px] sm:text-xs">
                 {Math.floor(mission.progress)} / {mission.target}
               </p>
-              <div className="mt-1 h-1.5 w-28 overflow-hidden rounded bg-border sm:w-32">
+              <div className="mt-1.5 h-1.5 w-28 overflow-hidden rounded-full bg-border sm:w-36">
                 <div
-                  className="h-full rounded bg-accent transition-all"
-                  style={{ width: `${Math.max(0, (mission.progress / mission.target) * 100)}%` }}
+                  className="h-full rounded-full bg-accent transition-all"
+                  style={{ width: clampPct(mission.progress, mission.target) }}
                 />
               </div>
             </div>
           )}
 
           {isFinal && state.extraction && (
-            <div className="rounded-xl border border-border bg-panel/90 p-2.5 text-right backdrop-blur-sm sm:p-3">
-              <p className="font-mono text-[10px] text-primary sm:text-xs">撤离倒计时</p>
-              <p className="text-xl font-bold text-danger sm:text-2xl">
-                {formatTime(extractionTimer)}
+            <div className="rounded-2xl border border-border bg-panel/90 p-3 text-right shadow-lg backdrop-blur-md sm:p-4">
+              <p className="flex items-center justify-end gap-1 font-mono text-[10px] text-primary sm:text-xs">
+                <Clock size={12} weight="bold" />
+                撤离倒计时
               </p>
+              <p className="text-xl font-bold text-danger sm:text-2xl">{formatTime(extractionTimer)}</p>
             </div>
           )}
         </div>
       </div>
 
       <div className="pointer-events-auto flex items-end justify-between gap-2 sm:gap-3">
-        <div className="flex gap-1.5 sm:gap-2">
-          <div className="rounded-lg border border-border bg-panel/90 px-2 py-1.5 text-center backdrop-blur-sm sm:px-3 sm:py-2">
-            <p className="font-mono text-[10px] text-muted sm:text-xs">击杀</p>
+        <div className="flex gap-2">
+          <div className="rounded-xl border border-border bg-panel/90 px-2.5 py-2 text-center shadow-lg backdrop-blur-md sm:px-3 sm:py-2.5">
+            <p className="flex items-center justify-center gap-1 font-mono text-[10px] text-muted sm:text-xs">
+              <Skull size={12} weight="bold" />
+              击杀
+            </p>
             <p className="font-mono text-base font-bold sm:text-lg">{state.stats.kills}</p>
           </div>
-          <div className="rounded-lg border border-border bg-panel/90 px-2 py-1.5 text-center backdrop-blur-sm sm:px-3 sm:py-2">
-            <p className="font-mono text-[10px] text-muted sm:text-xs">时间</p>
+          <div className="rounded-xl border border-border bg-panel/90 px-2.5 py-2 text-center shadow-lg backdrop-blur-md sm:px-3 sm:py-2.5">
+            <p className="flex items-center justify-center gap-1 font-mono text-[10px] text-muted sm:text-xs">
+              <Clock size={12} weight="bold" />
+              时间
+            </p>
             <p className="font-mono text-base font-bold sm:text-lg">
               {formatTime(state.stats.timeSurvived)}
             </p>
           </div>
-          <div className="rounded-lg border border-border bg-panel/90 px-2 py-1.5 text-center backdrop-blur-sm sm:px-3 sm:py-2">
-            <p className="font-mono text-[10px] text-muted sm:text-xs">资源</p>
+          <div className="rounded-xl border border-border bg-panel/90 px-2.5 py-2 text-center shadow-lg backdrop-blur-md sm:px-3 sm:py-2.5">
+            <p className="flex items-center justify-center gap-1 font-mono text-[10px] text-muted sm:text-xs">
+              <Coin size={12} weight="bold" />
+              资源
+            </p>
             <p className="font-mono text-base font-bold sm:text-lg">
               {state.stats.resourcesCollected}
             </p>
           </div>
         </div>
 
-        <div className="hidden max-w-[220px] rounded-lg border border-border bg-panel/90 px-3 py-2 text-right backdrop-blur-sm md:block">
-          <p className="font-mono text-xs text-muted">武器</p>
-          <div className="flex flex-wrap justify-end gap-2">
+        <div className="hidden max-w-[240px] rounded-xl border border-border bg-panel/90 px-3 py-2 shadow-lg backdrop-blur-md md:block">
+          <p className="flex items-center justify-end gap-1 font-mono text-xs text-muted">
+            <Crosshair size={12} weight="bold" />
+            武器
+          </p>
+          <div className="mt-1 flex flex-wrap justify-end gap-2">
             {player.weapons.map((w) => (
               <span key={w.id} className="text-xs font-bold" style={{ color: w.color }}>
                 {w.name} Lv.{w.level}

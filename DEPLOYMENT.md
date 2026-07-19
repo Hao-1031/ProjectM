@@ -10,15 +10,16 @@
 2. [本地开发](#本地开发)
 3. [环境变量](#环境变量)
 4. [生产构建](#生产构建)
-5. [Docker 部署](#docker-部署)
-6. [Vercel 部署](#vercel-部署)
-7. [GitHub Actions 自动化](#github-actions-自动化)
-8. [PWA 与离线游玩](#pwa-与离线游玩)
-9. [Sentry 错误监控](#sentry-错误监控)
-10. [域名与 HTTPS](#域名与-https)
-11. [性能优化清单](#性能优化清单)
-12. [上线前检查表](#上线前检查表)
-13. [常见问题](#常见问题)
+5. [阿里云 Ubuntu 22.04 LTS 部署（PM2）](#阿里云-ubuntu-2204-lts-部署pm2)
+6. [Docker 部署](#docker-部署)
+7. [Vercel 部署](#vercel-部署)
+8. [GitHub Actions 自动化](#github-actions-自动化)
+9. [PWA 与离线游玩](#pwa-与离线游玩)
+10. [Sentry 错误监控](#sentry-错误监控)
+11. [域名与 HTTPS](#域名与-https)
+12. [性能优化清单](#性能优化清单)
+13. [上线前检查表](#上线前检查表)
+14. [常见问题](#常见问题)
 
 ---
 
@@ -114,6 +115,288 @@ pnpm build
 - `.next/server/`：服务端渲染产物
 - `public/sw.js`：Service Worker（自动生成）
 - `public/workbox-*.js`：Workbox 运行时（自动生成）
+
+---
+
+## 阿里云 Ubuntu 22.04 LTS 部署（PM2）
+
+本节针对 L3V100 "创世版" 目标环境：全新阿里云 ECS Ubuntu 22.04 64 位，使用 PM2 持久化运行 Next.js 生产服务。
+
+> 一键部署脚本：[scripts/deploy-ubuntu.sh](file:///e:/M/project-m/scripts/deploy-ubuntu.sh)。本节命令与脚本逻辑一致。
+>
+> 构建说明：`next.config.mjs` 已配置 Sentry 插件。当 `SENTRY_AUTH_TOKEN` 未设置时，sourcemap 上传会自动禁用，构建与运行均不受影响。
+
+### 1. 服务器初始化
+
+在阿里云控制台重置 root 密码或使用密钥登录，通过 SSH 进入服务器：
+
+```bash
+ssh root@<公网IP>
+```
+
+更新系统包：
+
+```bash
+apt-get update && apt-get upgrade -y
+```
+
+### 2. 一键自动部署
+
+项目已提供自动化脚本，复制到服务器后直接执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Hao-1031/Project-M/main/scripts/deploy-ubuntu.sh -o deploy-ubuntu.sh
+chmod +x deploy-ubuntu.sh
+sudo DOMAIN=your-domain.com ./deploy-ubuntu.sh
+```
+
+不带 Nginx 的最小化部署：
+
+```bash
+sudo ./deploy-ubuntu.sh
+```
+
+脚本会依次完成：安装 Git/Node.js/pnpm/PM2、拉取代码、安装依赖、构建、PM2 启动、UFW 防火墙、Nginx + Certbot SSL（可选，传入 `DOMAIN` 时启用）。
+
+### 3. 手动部署步骤
+
+如不使用脚本，可按以下步骤手动操作。
+
+#### 3.1 安装基础软件
+
+```bash
+apt-get update
+apt-get install -y curl wget git software-properties-common ca-certificates gnupg lsb-release ufw
+```
+
+#### 3.2 安装 Node.js 20 LTS
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+node -v
+npm -v
+```
+
+#### 3.3 安装 pnpm 与 PM2
+
+```bash
+npm install -g pnpm pm2
+pnpm -v
+pm2 -v
+```
+
+#### 3.4 拉取代码
+
+```bash
+mkdir -p /var/www
+cd /var/www
+git clone https://github.com/Hao-1031/Project-M.git project-m
+cd project-m
+```
+
+#### 3.5 配置环境变量
+
+```bash
+cp .env.example .env.local
+nano .env.local
+```
+
+最小配置：
+
+```env
+NODE_ENV=production
+PORT=3000
+```
+
+启用 Sentry：
+
+```env
+SENTRY_ORG=your-org
+SENTRY_PROJECT=project-m
+SENTRY_AUTH_TOKEN=your-token
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@yyy.ingest.sentry.io/zzz
+```
+
+#### 3.6 构建
+
+```bash
+pnpm install --frozen-lockfile
+pnpm generate-icons
+pnpm build
+```
+
+### 4. 使用 PM2 启动
+
+项目已提供 `ecosystem.config.cjs`，基于 Next.js standalone 输出直接运行 `server.js`：
+
+```bash
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+pm2 startup systemd
+```
+
+执行 `pm2 startup systemd` 后，按提示运行生成的命令完成 systemd 服务注册。
+
+常用运维命令：
+
+```bash
+pm2 status              # 查看运行状态
+pm2 logs project-m      # 实时查看日志
+pm2 reload project-m    # 热重载（更新代码后）
+pm2 restart project-m   # 重启
+pm2 stop project-m      # 停止
+pm2 monit               # 资源监控
+```
+
+### 5. 防火墙配置
+
+#### 5.1 阿里云安全组
+
+在阿里云 ECS 控制台 > 安全组规则中放行：
+
+| 类型 | 端口 | 授权对象 |
+| ---- | ---- | -------- |
+| 自定义 TCP | 3000 | 0.0.0.0/0 或指定 IP |
+| 自定义 TCP | 80 | 0.0.0.0/0 |
+| 自定义 TCP | 443 | 0.0.0.0/0 |
+
+#### 5.2 UFW
+
+```bash
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 3000/tcp
+ufw --force enable
+ufw status
+```
+
+### 6. Nginx 反向代理（可选）
+
+安装 Nginx：
+
+```bash
+apt-get install -y nginx
+```
+
+创建站点配置 `/etc/nginx/sites-available/project-m`：
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+启用配置：
+
+```bash
+rm -f /etc/nginx/sites-enabled/default
+ln -s /etc/nginx/sites-available/project-m /etc/nginx/sites-enabled/project-m
+nginx -t
+systemctl restart nginx
+systemctl enable nginx
+```
+
+### 7. HTTPS（推荐）
+
+使用 Let's Encrypt + Certbot：
+
+```bash
+apt-get install -y certbot python3-certbot-nginx
+certbot --nginx -d your-domain.com --non-interactive --agree-tos --email admin@your-domain.com
+```
+
+测试自动续期：
+
+```bash
+certbot renew --dry-run
+```
+
+### 8. 更新与回滚
+
+#### 8.1 更新部署
+
+```bash
+cd /var/www/project-m
+git pull origin main
+pnpm install --frozen-lockfile
+pnpm generate-icons
+pnpm build
+pm2 reload project-m
+```
+
+#### 8.2 快速回滚
+
+```bash
+cd /var/www/project-m
+git log --oneline -5
+git reset --hard <上一个稳定 commit>
+pnpm install --frozen-lockfile
+pnpm build
+pm2 reload project-m
+```
+
+### 9. Ubuntu 专属故障排除
+
+#### 9.1 端口被占用
+
+```bash
+ss -tlnp | grep :3000
+kill -9 <PID>
+```
+
+#### 9.2 构建卡在 sourcemap 上传
+
+确认 `SENTRY_AUTH_TOKEN` 已配置。未配置时 `next.config.mjs` 会自动跳过上传。如仍卡住：
+
+```bash
+rm -rf .next
+SENTRY_AUTH_TOKEN="" pnpm build
+```
+
+#### 9.3 PM2 日志过大
+
+```bash
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 100M
+pm2 set pm2-logrotate:retain 10
+```
+
+#### 9.4 Nginx 502 Bad Gateway
+
+- 检查应用是否运行：`pm2 status`
+- 检查端口是否监听：`ss -tlnp | grep 3000`
+- 检查 Nginx 配置：`nginx -t`
+
+### 10. 部署检查清单
+
+- [ ] Ubuntu 22.04 64 位已安装 Node.js 20 LTS、Git、pnpm、PM2
+- [ ] 项目已克隆到 `/var/www/project-m`
+- [ ] `.env.local` 已配置 `NODE_ENV=production`
+- [ ] `pnpm build` 成功
+- [ ] PM2 已启动并设置 systemd 开机自启
+- [ ] 阿里云安全组已放行 3000/80/443
+- [ ] UFW 已放行对应端口
+- [ ] Nginx 反向代理已指向 `http://127.0.0.1:3000`（如使用）
+- [ ] HTTPS 证书已部署（如使用）
+- [ ] 浏览器可正常访问域名并进入游戏
+- [ ] 角色移动、障碍物碰撞、据点防守模式已验证
 
 ---
 

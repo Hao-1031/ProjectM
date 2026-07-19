@@ -122,7 +122,7 @@ export function useHeroSkill(player: Player, state: GameState): void {
   player.skillTimer = skill.cooldown;
   skill.timer = skill.duration;
 
-  const aim = normalize({ x: player.facingX ?? Math.cos(player.facing), y: player.facingY ?? Math.sin(player.facing) });
+  const aim = normalize({ x: Math.cos(player.facing), y: Math.sin(player.facing) });
   const deployX = player.x + aim.x * 40;
   const deployY = player.y + aim.y * 40;
 
