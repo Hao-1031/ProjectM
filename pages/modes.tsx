@@ -24,6 +24,12 @@ const MODE_META: Record<
   string,
   { icon: typeof GameController; accent: string; bullets: string[]; threat: string }
 > = {
+  survival: {
+    icon: Skull,
+    accent: "text-danger",
+    bullets: ["15 分钟限时生存", "自动攻击 + 移动 + Build 流派", "全球排行榜记录最高击杀"],
+    threat: "高",
+  },
   campaign: {
     icon: Target,
     accent: "text-accent",
@@ -71,7 +77,9 @@ const THREAT_COLOR: Record<string, string> = {
 
 export default function ModesPage() {
   const reducedMotion = useReducedMotion();
-  const modes = getModeList().filter((m) => m.type !== "daily" && m.type !== "roguelike");
+  const modes = getModeList().filter(
+    (m) => m.type === "survival" || m.type === "defense" || m.type === "campaign" || m.type === "endless"
+  );
   const dailyModifiers = getDailyModifiers();
 
   return (
@@ -105,7 +113,7 @@ export default function ModesPage() {
             {modes.map((mode, index) => {
               const meta = MODE_META[mode.type];
               const Icon = meta.icon;
-              const large = mode.type === "defense";
+              const large = mode.type === "survival";
               const href =
                 mode.type === "defense"
                   ? "/game?mode=defense&multiplayer=1"

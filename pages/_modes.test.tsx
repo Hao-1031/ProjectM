@@ -22,7 +22,8 @@ describe("ModesPage", () => {
     expect(screen.getByText("战役模式")).toBeInTheDocument();
     expect(screen.getByText("无尽生存")).toBeInTheDocument();
     expect(screen.getByText("据点防守")).toBeInTheDocument();
-    expect(screen.getByText("个人死斗")).toBeInTheDocument();
+    expect(screen.getByText("生存模式")).toBeInTheDocument();
+    expect(screen.queryByText("个人死斗")).not.toBeInTheDocument();
     expect(screen.queryByText("每日挑战")).not.toBeInTheDocument();
     expect(screen.queryByText("冒险模式")).not.toBeInTheDocument();
   });

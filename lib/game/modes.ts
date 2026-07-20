@@ -58,6 +58,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: false,
   },
+  survival: {
+    type: "survival",
+    name: "生存模式",
+    description: "在 15 分钟限时内抵御无尽敌潮，构建武器流派挑战最高击杀",
+    allowMissions: false,
+    endless: true,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -86,6 +93,7 @@ export function getDefaultMode(): GameModeType {
 
 export function getModeList(): { type: GameModeType; name: string; description: string }[] {
   return [
+    { type: "survival", name: "生存模式", description: MODE_DEFS.survival.description },
     { type: "campaign", name: "战役模式", description: MODE_DEFS.campaign.description },
     { type: "endless", name: "无尽生存", description: MODE_DEFS.endless.description },
     { type: "daily", name: "每日挑战", description: MODE_DEFS.daily.description },

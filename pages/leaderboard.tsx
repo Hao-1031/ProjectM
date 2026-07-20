@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Head from "next/head";
 import Layout from "@/components/Layout";
 import StatCard from "@/components/StatCard";
 import SectionHeader from "@/components/SectionHeader";
-import { motion, useReducedMotion } from "framer-motion";
+import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import Input from "@/components/ui/Input";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
   Skull,
@@ -14,9 +20,12 @@ import {
   Crosshair,
   Play,
   Globe,
+  ArrowClockwise,
+  Funnel,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { formatTime } from "@/lib/game/math";
+import { useLeaderboard, submitLeaderboardEntry } from "@/hooks/useLeaderboard";
 
 const modeNames: Record<string, string> = {
   campaign: "战役模式",
@@ -24,10 +33,114 @@ const modeNames: Record<string, string> = {
   daily: "每日挑战",
   roguelike: "冒险模式",
   defense: "据点防守",
+  deathmatch: "个人死斗",
+  survival: "生存模式",
 };
+
+const MODE_OPTIONS = [
+  { value: "", label: "全部模式" },
+  { value: "survival", label: "生存模式" },
+  { value: "defense", label: "据点防守" },
+  { value: "deathmatch", label: "个人死斗" },
+  { value: "campaign", label: "战役模式" },
+  { value: "endless", label: "无尽生存" },
+  { value: "daily", label: "每日挑战" },
+  { value: "roguelike", label: "冒险模式" },
+];
+
+function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
+  const { entries, loading, error, refetch } = useLeaderboard({ mode: modeFilter || undefined, limit: 50 });
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <SectionHeader title="全球榜单" />
+        <Button variant="secondary" size="sm" leftIcon={<ArrowClockwise size={14} weight="bold" />} onClick={refetch}>
+          刷新
+        </Button>
+      </div>
+
+      {loading && <Skeleton count={8} className="h-14" />}
+      {error && <ErrorState error={error} onRetry={refetch} />}
+      {!loading && !error && entries.length === 0 && (
+        <EmptyState
+          title="暂无全球记录"
+          description="成为第一个上榜的幸存者，去生存模式挑战高分吧"
+          action={
+            <Link href="/game?mode=survival">
+              <Button size="sm" leftIcon={<Play size={14} weight="fill" />}>
+                开始挑战
+              </Button>
+            </Link>
+          }
+        />
+      )}
+
+      {!loading && !error && entries.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-border">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-panel-raised text-xs uppercase tracking-wider text-muted">
+              <tr>
+                <th className="px-4 py-3">排名</th>
+                <th className="px-4 py-3">玩家</th>
+                <th className="px-4 py-3">模式</th>
+                <th className="px-4 py-3 text-right">击杀</th>
+                <th className="px-4 py-3 text-right">波次</th>
+                <th className="px-4 py-3 text-right">分数</th>
+                <th className="px-4 py-3 text-right">时长</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <AnimatePresence>
+                {entries.map((entry, index) => (
+                  <motion.tr
+                    key={entry.id}
+                    initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="bg-panel hover:bg-panel-raised/50"
+                  >
+                    <td className="px-4 py-3">
+                      <span
+                        className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                          index === 0
+                            ? "bg-warning/15 text-warning"
+                            : index === 1
+                              ? "bg-muted/15 text-muted"
+                              : index === 2
+                                ? "bg-accent/15 text-accent"
+                                : "bg-border text-muted"
+                        }`}
+                      >
+                        {index + 1}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium">{entry.player_name}</td>
+                    <td className="px-4 py-3 text-muted">{modeNames[entry.mode] ?? entry.mode}</td>
+                    <td className="px-4 py-3 text-right font-mono">{entry.kills}</td>
+                    <td className="px-4 py-3 text-right font-mono">{entry.waves}</td>
+                    <td className="px-4 py-3 text-right font-mono text-primary">{entry.score.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-mono text-xs text-muted">{entry.duration}s</td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function LeaderboardPage() {
   const [save, setSave] = useState<SaveData | null>(null);
+  const [modeFilter, setModeFilter] = useState("survival");
+  const [playerName, setPlayerName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -36,8 +149,35 @@ export default function LeaderboardPage() {
 
   const best = save?.bestRun;
 
+  const handleSubmit = async () => {
+    if (!best) return;
+    const name = playerName.trim() || "匿名幸存者";
+    setSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    try {
+      await submitLeaderboardEntry({
+        player_name: name,
+        mode: best.mode,
+        kills: best.stats.kills,
+        waves: best.stats.wavesCleared ?? 0,
+        score: best.stats.score ?? best.stats.kills * 10 + (best.stats.wavesCleared ?? 0) * 50,
+        duration: best.elapsed,
+      });
+      setSubmitSuccess(true);
+      setPlayerName("");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "提交失败");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Layout title="战绩">
+      <Head>
+        <title>战绩 - Project M</title>
+      </Head>
       <div className="relative mx-auto max-w-6xl px-4 pt-10 md:pt-16">
         <div className="grid gap-10 md:grid-cols-12">
           <motion.div
@@ -53,7 +193,7 @@ export default function LeaderboardPage() {
               你的最佳撤离记录。
             </h1>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted md:text-base">
-              目前版本仅保存个人最佳战绩。全球排行榜将在后续版本以可选方式开放。
+              本地保存你的历史最佳，也可以将成绩提交到全球排行榜。
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -146,9 +286,7 @@ export default function LeaderboardPage() {
                     <dt className="flex items-center gap-2 text-xs text-muted">
                       <Sword size={14} /> 造成伤害
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold">
-                      {Math.floor(best.stats.damageDealt)}
-                    </dd>
+                    <dd className="mt-1 text-2xl font-bold">{Math.floor(best.stats.damageDealt)}</dd>
                   </div>
                   <div className="rounded-xl border border-border bg-background p-4">
                     <dt className="flex items-center gap-2 text-xs text-muted">
@@ -164,31 +302,54 @@ export default function LeaderboardPage() {
                   </div>
                 </dl>
               )}
+
+              {best && (
+                <div className="relative mt-6 rounded-2xl border border-border bg-background/50 p-4">
+                  <p className="text-xs font-medium text-muted">提交到全球排行榜</p>
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                    <Input
+                      value={playerName}
+                      onChange={(e) => setPlayerName(e.target.value)}
+                      placeholder="输入玩家名称"
+                      maxLength={32}
+                      className="sm:max-w-[240px]"
+                    />
+                    <Button
+                      loading={submitting}
+                      leftIcon={<Globe size={16} />}
+                      onClick={handleSubmit}
+                      className="sm:w-auto"
+                    >
+                      提交成绩
+                    </Button>
+                  </div>
+                  {submitError && <p className="mt-2 text-xs text-danger">{submitError}</p>}
+                  {submitSuccess && <p className="mt-2 text-xs text-success">提交成功！</p>}
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
 
         <section className="relative z-10 mt-20">
-          <SectionHeader title="全球榜单" align="center" />
-          <motion.div
-            initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mx-auto mt-8 max-w-xl rounded-3xl border border-border bg-panel p-8 text-center md:p-12"
-          >
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-border bg-background">
-              <Globe size={24} className="text-muted" />
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div />
+            <div className="flex items-center gap-2">
+              <Funnel size={14} className="text-muted" />
+              <select
+                value={modeFilter}
+                onChange={(e) => setModeFilter(e.target.value)}
+                className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+              >
+                {MODE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             </div>
-            <h3 className="mt-5 text-lg font-semibold">全球排行榜尚未启用</h3>
-            <p className="mt-2 text-sm text-muted">
-              当前版本优先打磨本地战斗与联机合作体验。全球排行榜功能将在后续版本中作为可选功能开启。
-            </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm text-primary">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              开发中
-            </div>
-          </motion.div>
+          </div>
+          <GlobalLeaderboard modeFilter={modeFilter} />
         </section>
       </div>
     </Layout>

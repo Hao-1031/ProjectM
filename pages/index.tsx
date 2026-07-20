@@ -21,6 +21,7 @@ import {
   Radioactive,
   Warning,
   Plus,
+  Megaphone,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -28,6 +29,7 @@ import type { GameModeType } from "@/lib/game/types";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import NuclearBackground from "@/components/effects/NuclearBackground";
+import { useAnnouncements } from "@/hooks/useAnnouncements";
 
 const MODES: {
   type: GameModeType;
@@ -36,9 +38,9 @@ const MODES: {
   accent: string;
   desc: string;
 }[] = [
+  { type: "survival", label: "生存模式", icon: Skull, accent: "#b84a55", desc: "15 分钟割草" },
   { type: "defense", label: "据点防守", icon: Shield, accent: "#7a8f3e", desc: "2-4 人合作" },
   { type: "campaign", label: "战役模式", icon: Target, accent: "#b87a3d", desc: "连续任务" },
-  { type: "endless", label: "无尽生存", icon: Clock, accent: "#b84a55", desc: "极限存活" },
 ];
 
 const containerVariants = {
@@ -88,6 +90,23 @@ function RadiationBadge() {
       <Radioactive size={12} weight="fill" className="animate-spin-slow" />
       辐射区在线
     </span>
+  );
+}
+
+function AnnouncementBanner() {
+  const { announcements, loading, error } = useAnnouncements({ active: true, limit: 1 });
+  if (loading || error || announcements.length === 0) return null;
+  const announcement = announcements[0];
+  return (
+    <Link
+      href="/landing"
+      className="mx-auto flex max-w-7xl items-center gap-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5 text-xs text-accent transition-colors hover:bg-accent/10"
+    >
+      <Megaphone size={14} weight="bold" />
+      <span className="font-medium">{announcement.title}</span>
+      <span className="hidden text-muted sm:inline">{announcement.content.slice(0, 60)}...</span>
+      <ArrowRight size={12} className="ml-auto shrink-0" />
+    </Link>
   );
 }
 
@@ -166,8 +185,12 @@ export default function HomePage() {
         </nav>
       </motion.header>
 
+      <div className="relative z-20 px-4 pt-3">
+        <AnnouncementBanner />
+      </div>
+
       {/* Hero section */}
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-6 md:pt-10">
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 md:pt-6">
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
           {/* Left: title + play */}
           <div className="flex flex-col justify-center lg:col-span-7">
@@ -178,12 +201,13 @@ export default function HomePage() {
             >
               <RadiationBadge />
               <h1 className="mt-6 text-[clamp(2.75rem,8vw,6rem)] font-bold leading-[0.92] tracking-tight">
-                在辐射尘埃中
+                一人一枪
                 <br />
-                <span className="text-primary">建立防线</span>
+                <span className="text-primary">杀穿辐射区</span>
               </h1>
               <p className="mt-5 max-w-md text-sm leading-relaxed text-muted md:text-base">
-                核污染后的废土世界，机械敌潮从辐射雾中涌出。选择英雄、占领节点、守护核心。
+                Project M 2.0 主打生存割草：自动攻击、自由移动、构建流派。在 15 分钟限时内
+                抵御无尽敌潮，挑战最高击杀纪录。
               </p>
             </motion.div>
 
@@ -199,7 +223,7 @@ export default function HomePage() {
               >
                 <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={28} weight="fill" />
-                <span className="whitespace-nowrap">立即部署</span>
+                <span className="whitespace-nowrap">立即开始</span>
                 <CaretRight size={20} weight="bold" />
               </Link>
               <Link
@@ -348,7 +372,7 @@ export default function HomePage() {
           >
             {MODES.map((mode) => {
               const Icon = mode.icon;
-              const featured = mode.type === "defense";
+              const featured = mode.type === "survival";
               return (
                 <motion.div
                   key={mode.type}
@@ -471,7 +495,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3 px-4 py-3">
             <Radioactive size={20} weight="bold" className="shrink-0 text-warning" />
             <p className="text-xs leading-relaxed text-muted sm:text-sm">
-              辐射浓度持续上升。建议优先完成据点防守任务以解锁更高级装备。
+              2.0 生存模式已上线：15 分钟限时挑战，全球排行榜记录你的最高击杀。
             </p>
           </div>
         </motion.div>

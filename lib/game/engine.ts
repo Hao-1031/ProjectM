@@ -833,6 +833,18 @@ export class GameEngine {
       return;
     }
 
+    if (this.state.mode === "survival") {
+      this.spawnBatchTimer -= dt;
+      if (this.spawnBatchTimer <= 0) {
+        const cfg = DEFAULT_BALANCE.modes.survival;
+        const difficulty = this.state.difficulty;
+        const count = Math.floor(cfg.spawnBurstCount + difficulty * 0.4);
+        for (let i = 0; i < count; i++) this.spawnEnemy();
+        this.spawnBatchTimer = Math.max(0.55, cfg.spawnBurstInterval - difficulty * 0.06);
+      }
+      return;
+    }
+
     if (this.state.spawnTimer <= 0) {
       const difficulty = this.state.difficulty;
       this.state.spawnTimer = getSpawnInterval(difficulty);
@@ -1248,16 +1260,34 @@ export class GameEngine {
 
   private updateWave(dt: number) {
     if (!this.state.modeConfig.endless) return;
+
+    if (this.state.mode === "survival") {
+      this.state.time += dt;
+      const cfg = DEFAULT_BALANCE.modes.survival;
+      if (this.state.time >= cfg.timeLimit) {
+        this.endRun(true);
+        return;
+      }
+    }
+
     this.state.waveTimer += dt;
-    const waveDuration = DEFAULT_BALANCE.modes.endlessWaveDuration;
+    const isSurvival = this.state.mode === "survival";
+    const waveDuration = isSurvival
+      ? DEFAULT_BALANCE.modes.survival.waveDuration
+      : DEFAULT_BALANCE.modes.endlessWaveDuration;
     if (this.state.waveTimer >= waveDuration) {
       this.state.waveTimer -= waveDuration;
       this.state.wave += 1;
-      this.state.difficulty += DEFAULT_BALANCE.modes.endlessDifficultyBump;
+      this.state.difficulty += isSurvival
+        ? DEFAULT_BALANCE.modes.survival.difficultyBump
+        : DEFAULT_BALANCE.modes.endlessDifficultyBump;
       this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+      const bossInterval = isSurvival
+        ? DEFAULT_BALANCE.modes.survival.bossWaveInterval
+        : DEFAULT_BALANCE.modes.endlessBossWaveInterval;
       if (
-        this.state.mode === "endless" &&
-        this.state.wave % DEFAULT_BALANCE.modes.endlessBossWaveInterval === 0
+        (this.state.mode === "endless" || isSurvival) &&
+        this.state.wave % bossInterval === 0
       ) {
         this.spawnEnemy("boss", true);
       }
@@ -1468,8 +1498,12 @@ export class GameEngine {
           this.state.stats.damageDealt += damage;
           this.spawnDamageNumber(enemy.x, enemy.y, damage, p.color, isCrit);
           if (isCrit) {
-            this.fx.addTrauma(0.06);
-            this.particlePool.spawnPreset("spark", enemy.x, enemy.y, "#facc15", { intensity: 0.6 });
+            this.fx.addTrauma(0.08);
+            this.fx.addShake(0.4, 0);
+            this.particlePool.spawnPreset("crit", enemy.x, enemy.y, "#facc15", { intensity: 1 });
+            audio?.play("crit");
+          } else {
+            this.particlePool.spawnPreset("hit", enemy.x, enemy.y, p.color, { intensity: 0.7 });
           }
 
           const knockbackPower =
@@ -1705,19 +1739,26 @@ export class GameEngine {
       this.state.stats.bossesKilled++;
       this.state.eliteKillStreak = 0;
     }
-    this.particlePool.spawnPreset("explosion", enemy.x, enemy.y, enemy.color, {
-      intensity: enemy.isBoss ? 2.5 : enemy.isElite ? 1.4 : 1,
+
+    const killIntensity = enemy.isBoss ? 3 : enemy.isElite ? 1.8 : 1;
+    this.particlePool.spawnPreset("kill-burst", enemy.x, enemy.y, enemy.color, {
+      intensity: killIntensity,
     });
-    if (enemy.isBoss) {
+    this.particlePool.spawnPreset("explosion", enemy.x, enemy.y, enemy.color, {
+      intensity: killIntensity * 0.8,
+    });
+    if (enemy.isBoss || enemy.isElite) {
       this.particlePool.spawnPreset("energy", enemy.x, enemy.y, "#ffffff", {
-        intensity: 1.5,
+        intensity: enemy.isBoss ? 2 : 1,
       });
-      this.fx.triggerFlash({ duration: 0.35, color: enemy.color, opacity: 0.35 });
+    }
+    if (enemy.isBoss) {
+      this.fx.triggerFlash({ duration: 0.45, color: enemy.color, opacity: 0.4 });
     }
     this.dropPickup(enemy);
     audio?.play("explosion");
-    this.fx.addShake(enemy.isBoss ? 3 : enemy.isElite ? 1.2 : 0.6, 0);
-    this.fx.addTrauma(enemy.isBoss ? 0.4 : enemy.isElite ? 0.2 : 0.1);
+    this.fx.addShake(enemy.isBoss ? 4 : enemy.isElite ? 1.8 : 0.9, 0);
+    this.fx.addTrauma(enemy.isBoss ? 0.5 : enemy.isElite ? 0.25 : 0.15);
   }
 
   private dropPickup(enemy: Enemy) {

@@ -64,7 +64,8 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     if (typeof window === "undefined") return "campaign";
     const params = new URLSearchParams(window.location.search);
     const m = params.get("mode") as GameModeType | null;
-    return m && ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch"].includes(m)
+    return m &&
+      ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch", "survival"].includes(m)
       ? m
       : "campaign";
   });

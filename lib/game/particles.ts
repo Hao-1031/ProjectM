@@ -1,7 +1,16 @@
 import type { Particle } from "./types";
 import { uid, randomRange, clamp } from "./math";
 
-export type ParticlePreset = "explosion" | "trail" | "spark" | "smoke" | "energy" | "core-damage";
+export type ParticlePreset =
+  | "explosion"
+  | "trail"
+  | "spark"
+  | "smoke"
+  | "energy"
+  | "core-damage"
+  | "hit"
+  | "crit"
+  | "kill-burst";
 
 export interface ParticleSpawnOptions {
   x: number;
@@ -99,6 +108,45 @@ const PRESETS: Record<ParticlePreset, Partial<ParticleSpawnOptions>> = {
     lifeMax: 0.5,
     radiusMin: 1,
     radiusMax: 3,
+    spread: Math.PI * 2,
+    fade: true,
+    shrink: true,
+    glow: true,
+  },
+  hit: {
+    count: 6,
+    speedMin: 60,
+    speedMax: 160,
+    lifeMin: 0.1,
+    lifeMax: 0.25,
+    radiusMin: 1,
+    radiusMax: 2.5,
+    spread: Math.PI * 2,
+    fade: true,
+    shrink: true,
+    glow: true,
+  },
+  crit: {
+    count: 14,
+    speedMin: 90,
+    speedMax: 280,
+    lifeMin: 0.15,
+    lifeMax: 0.35,
+    radiusMin: 1.2,
+    radiusMax: 3.5,
+    spread: Math.PI * 2,
+    fade: true,
+    shrink: true,
+    glow: true,
+  },
+  "kill-burst": {
+    count: 22,
+    speedMin: 80,
+    speedMax: 320,
+    lifeMin: 0.25,
+    lifeMax: 0.7,
+    radiusMin: 1.5,
+    radiusMax: 5,
     spread: Math.PI * 2,
     fade: true,
     shrink: true,

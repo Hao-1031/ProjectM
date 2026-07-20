@@ -11,6 +11,8 @@ import {
   Crosshair,
   GameController,
   Sword,
+  Globe,
+  Shield,
 } from "@phosphor-icons/react";
 
 interface LayoutProps {
@@ -21,6 +23,7 @@ interface LayoutProps {
 
 const NAV = [
   { href: "/", label: "指挥终端", icon: House },
+  { href: "/landing", label: "官网", icon: Globe },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/armory", label: "军械库", icon: Sword },
@@ -29,6 +32,7 @@ const NAV = [
   { href: "/help", label: "指南", icon: Question },
   { href: "/about", label: "关于", icon: Info },
   { href: "/settings", label: "设置", icon: Gear },
+  { href: "/admin", label: "后台", icon: Shield },
 ];
 
 export default function Layout({ children, title, showNav = true }: LayoutProps) {

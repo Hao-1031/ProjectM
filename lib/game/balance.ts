@@ -169,6 +169,17 @@ export interface PickupBalance {
   magnetBoostDuration: number;
 }
 
+export interface SurvivalBalance {
+  timeLimit: number;
+  waveDuration: number;
+  difficultyBump: number;
+  bossWaveInterval: number;
+  spawnBurstInterval: number;
+  spawnBurstCount: number;
+  xpMultiplier: number;
+  scoreKillBase: number;
+}
+
 export interface ModeBalance {
   campaignMissions: MissionTemplateBalance[];
   defenseMissions: MissionTemplateBalance[];
@@ -176,6 +187,7 @@ export interface ModeBalance {
   endlessWaveDuration: number;
   endlessDifficultyBump: number;
   endlessBossWaveInterval: number;
+  survival: SurvivalBalance;
   dailyModifiers: DailyModifierBalance[];
   roguelikeStages: RoguelikeStageTemplate[];
   roguelikeRewards: RoguelikeRewardBalance[];
@@ -1392,6 +1404,16 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     endlessWaveDuration: 60,
     endlessDifficultyBump: 0.5,
     endlessBossWaveInterval: 5,
+    survival: {
+      timeLimit: 900,
+      waveDuration: 45,
+      difficultyBump: 0.65,
+      bossWaveInterval: 4,
+      spawnBurstInterval: 2.2,
+      spawnBurstCount: 3,
+      xpMultiplier: 1.25,
+      scoreKillBase: 10,
+    },
     dailyModifiers: [
       {
         id: "ammo_shortage",

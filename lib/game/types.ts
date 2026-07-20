@@ -22,7 +22,13 @@ export type GameStatus =
   "idle" | "running" | "paused" | "levelup" | "reward" | "victory" | "defeat";
 
 export type GameModeType =
-  "campaign" | "endless" | "daily" | "roguelike" | "defense" | "deathmatch";
+  | "campaign"
+  | "endless"
+  | "daily"
+  | "roguelike"
+  | "defense"
+  | "deathmatch"
+  | "survival";
 
 export type MissionType =
   | "eliminate"

@@ -18,6 +18,7 @@ export type SfxKey =
   | "shoot"
   | "enemyShoot"
   | "hit"
+  | "crit"
   | "explosion"
   | "pickup"
   | "levelup"
@@ -161,6 +162,14 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     slide: -150,
   },
   hit: { category: "legacy", frequency: 220, duration: 0.06, type: "noise", volume: 0.1 },
+  crit: {
+    category: "legacy",
+    frequency: 1320,
+    duration: 0.1,
+    type: "square",
+    volume: 0.14,
+    slide: 600,
+  },
   explosion: {
     category: "legacy",
     frequency: 120,

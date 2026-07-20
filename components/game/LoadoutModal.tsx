@@ -425,6 +425,7 @@ function modeName(mode: GameModeType): string {
     daily: "每日挑战",
     roguelike: "冒险模式",
     deathmatch: "个人死斗",
+    survival: "生存模式",
   };
   return names[mode] ?? mode;
 }

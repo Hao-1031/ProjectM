@@ -170,6 +170,18 @@ export default function Hud({
             )}
           </div>
 
+          {state.mode === "survival" && (
+            <div className="rounded-2xl border border-danger/40 bg-panel/90 p-3 text-right shadow-lg shadow-danger/10 backdrop-blur-md sm:p-4">
+              <p className="flex items-center justify-end gap-1 font-mono text-[10px] text-danger sm:text-xs">
+                <Clock size={12} weight="bold" />
+                限时生存
+              </p>
+              <p className="text-xl font-bold text-danger sm:text-2xl">
+                {formatTime(Math.max(0, 900 - state.time))}
+              </p>
+            </div>
+          )}
+
           {event && (
             <div className="max-w-[200px] rounded-2xl border border-danger/40 bg-panel/90 p-3 text-right shadow-lg backdrop-blur-md sm:max-w-[260px] sm:p-4">
               <p className="flex items-center justify-end gap-1 font-mono text-[10px] text-danger sm:text-xs">
