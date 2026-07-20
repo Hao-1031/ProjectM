@@ -96,14 +96,15 @@ describe("modes", () => {
   });
 
   describe("getModeList", () => {
-    it("lists all five modes", () => {
+    it("lists all six modes", () => {
       const list = getModeList();
-      expect(list).toHaveLength(5);
+      expect(list).toHaveLength(6);
       expect(list.map((m) => m.type)).toContain("campaign");
       expect(list.map((m) => m.type)).toContain("endless");
       expect(list.map((m) => m.type)).toContain("daily");
       expect(list.map((m) => m.type)).toContain("roguelike");
       expect(list.map((m) => m.type)).toContain("defense");
+      expect(list.map((m) => m.type)).toContain("deathmatch");
     });
   });
 

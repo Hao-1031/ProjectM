@@ -159,7 +159,22 @@ describe("applyHeroToPlayer", () => {
   it("applies recon passive crit and weapon range", () => {
     const player = basePlayer();
     player.weapons = [
-      { id: "pulse", name: "脉冲", level: 1, maxLevel: 5, cooldown: 0.4, timer: 0, damage: 20, range: 300, projectileSpeed: 600, count: 1, spread: 0, pierce: 0, color: "#22d3ee", description: "" },
+      {
+        id: "pulse",
+        name: "脉冲",
+        level: 1,
+        maxLevel: 5,
+        cooldown: 0.4,
+        timer: 0,
+        damage: 20,
+        range: 300,
+        projectileSpeed: 600,
+        count: 1,
+        spread: 0,
+        pierce: 0,
+        color: "#22d3ee",
+        description: "",
+      },
     ];
     applyHeroToPlayer(player, "recon");
     expect(player.critChance).toBe(0.1);
@@ -351,7 +366,22 @@ describe("applyHeroTalent", () => {
   it("applies damage talent for nitrogen", () => {
     const player = basePlayer();
     player.weapons = [
-      { id: "pulse", name: "脉冲", level: 1, maxLevel: 5, cooldown: 0.4, timer: 0, damage: 20, range: 300, projectileSpeed: 600, count: 1, spread: 0, pierce: 0, color: "#22d3ee", description: "" },
+      {
+        id: "pulse",
+        name: "脉冲",
+        level: 1,
+        maxLevel: 5,
+        cooldown: 0.4,
+        timer: 0,
+        damage: 20,
+        range: 300,
+        projectileSpeed: 600,
+        count: 1,
+        spread: 0,
+        pierce: 0,
+        color: "#22d3ee",
+        description: "",
+      },
     ];
     applyHeroToPlayer(player, "nitrogen");
     applyHeroTalent(player, "nitrogen_conduction");

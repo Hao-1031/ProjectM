@@ -1,7 +1,17 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, useReducedMotion } from "framer-motion";
-import { House, Trophy, Users, Question, Info, Gear, Crosshair, GameController, Sword } from "@phosphor-icons/react";
+import {
+  House,
+  Trophy,
+  Users,
+  Question,
+  Info,
+  Gear,
+  Crosshair,
+  GameController,
+  Sword,
+} from "@phosphor-icons/react";
 
 interface LayoutProps {
   children: React.ReactNode;

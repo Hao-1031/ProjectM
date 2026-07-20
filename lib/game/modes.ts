@@ -51,6 +51,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: false,
   },
+  deathmatch: {
+    type: "deathmatch",
+    name: "个人死斗",
+    description: "PVP 自由混战，率先达到击杀目标或限时最高击杀获胜",
+    allowMissions: false,
+    endless: false,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -84,6 +91,7 @@ export function getModeList(): { type: GameModeType; name: string; description: 
     { type: "daily", name: "每日挑战", description: MODE_DEFS.daily.description },
     { type: "roguelike", name: "冒险模式", description: MODE_DEFS.roguelike.description },
     { type: "defense", name: "据点防守", description: MODE_DEFS.defense.description },
+    { type: "deathmatch", name: "个人死斗", description: MODE_DEFS.deathmatch.description },
   ];
 }
 

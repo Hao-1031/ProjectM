@@ -168,10 +168,7 @@ export class InputManager {
       this.touches.set(touch.identifier, tracked);
 
       // Assign joystick role only to touches in the left zone that are not already used.
-      if (
-        this.joystickTouchId === null &&
-        this.isInJoystickZone(x, y, rect)
-      ) {
+      if (this.joystickTouchId === null && this.isInJoystickZone(x, y, rect)) {
         tracked.role = "joystick";
         this.joystickTouchId = touch.identifier;
         this.joystick.active = true;

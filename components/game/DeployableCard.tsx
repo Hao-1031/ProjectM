@@ -13,7 +13,11 @@ const deployableMeta: Record<
   beacon: { label: "信标", icon: <Broadcast size={16} weight="bold" />, color: "text-warning" },
   drone: { label: "无人机", icon: <Robot size={16} weight="bold" />, color: "text-success" },
   healAura: { label: "治疗光环", icon: <Heart size={16} weight="bold" />, color: "text-success" },
-  freezeField: { label: "冰冻领域", icon: <Snowflake size={16} weight="bold" />, color: "text-primary" },
+  freezeField: {
+    label: "冰冻领域",
+    icon: <Snowflake size={16} weight="bold" />,
+    color: "text-primary",
+  },
 };
 
 export interface DeployableCardProps {

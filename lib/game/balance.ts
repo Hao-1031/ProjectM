@@ -179,6 +179,21 @@ export interface ModeBalance {
   dailyModifiers: DailyModifierBalance[];
   roguelikeStages: RoguelikeStageTemplate[];
   roguelikeRewards: RoguelikeRewardBalance[];
+  deathmatch: DeathmatchBalance;
+}
+
+export interface DeathmatchBalance {
+  scoreLimit: number;
+  timeLimit: number;
+  botCount: number;
+  playerHealthMul: number;
+  playerDamageMul: number;
+  respawnInvincibility: number;
+  respawnDelay: number;
+  arenaWidth: number;
+  arenaHeight: number;
+  pickupSpawnInterval: number;
+  pickupHealValue: number;
 }
 
 export interface DefenseCompletionRewardBalance {
@@ -1462,6 +1477,19 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       { type: "reward", name: "补给站", targetMul: 0 },
       { type: "boss", name: "最终决战", targetMul: 1 },
     ],
+    deathmatch: {
+      scoreLimit: 10,
+      timeLimit: 180,
+      botCount: 3,
+      playerHealthMul: 1,
+      playerDamageMul: 0.55,
+      respawnInvincibility: 2,
+      respawnDelay: 3,
+      arenaWidth: 1600,
+      arenaHeight: 1200,
+      pickupSpawnInterval: 12,
+      pickupHealValue: 60,
+    },
     roguelikeRewards: [
       {
         id: "health_boost",

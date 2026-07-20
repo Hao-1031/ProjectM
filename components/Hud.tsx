@@ -34,6 +34,7 @@ interface HudProps {
   onPauseToggle: () => void;
   extractionTimer: number;
   onUseSkill?: () => void;
+  onUseUltimate?: () => void;
   onSurrender?: () => void;
 }
 
@@ -47,6 +48,7 @@ export default function Hud({
   onPauseToggle,
   extractionTimer,
   onUseSkill,
+  onUseUltimate,
   onSurrender,
 }: HudProps) {
   const player = state.player;
@@ -59,6 +61,8 @@ export default function Hud({
   const activeNode = defense?.nodes.find((n) => n.active && !n.captured) ?? null;
   const skill = player.activeSkill;
   const skillReady = skill ? player.skillTimer <= 0 : false;
+  const ultimate = player.ultimateSkill;
+  const ultimateReady = ultimate ? player.ultimateTimer <= 0 : false;
 
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 sm:p-3 md:p-5">
@@ -276,7 +280,9 @@ export default function Hud({
             <div className="relative overflow-hidden rounded-xl border border-warning/40 bg-panel/90 px-2.5 py-2 text-center shadow-lg shadow-warning/10 backdrop-blur-md sm:px-3 sm:py-2.5">
               <div
                 className="absolute bottom-0 left-0 h-1 bg-warning/60 transition-all"
-                style={{ width: `${Math.max(0, Math.min(100, (state.killCombo.timer / 2.5) * 100))}%` }}
+                style={{
+                  width: `${Math.max(0, Math.min(100, (state.killCombo.timer / 2.5) * 100))}%`,
+                }}
               />
               <p className="flex items-center justify-center gap-1 font-mono text-[10px] text-warning sm:text-xs">
                 <Fire size={12} weight="bold" />
@@ -289,7 +295,7 @@ export default function Hud({
           )}
         </div>
 
-        <div className="flex items-end gap-2 sm:gap-3">
+        <div className="flex items-end gap-3 sm:gap-4">
           {skill && (
             <HeroSkillButton
               name={skill.name}
@@ -298,6 +304,17 @@ export default function Hud({
               remaining={player.skillTimer}
               onClick={onUseSkill}
               disabled={!skillReady}
+            />
+          )}
+          {ultimate && (
+            <HeroSkillButton
+              name={ultimate.name}
+              icon={<Fire size={24} weight="bold" />}
+              cooldown={ultimate.cooldown}
+              remaining={player.ultimateTimer}
+              onClick={onUseUltimate}
+              disabled={!ultimateReady}
+              className="border-danger/50 text-danger hover:bg-danger/10"
             />
           )}
 

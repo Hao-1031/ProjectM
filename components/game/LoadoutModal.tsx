@@ -56,7 +56,7 @@ export default function LoadoutModal({
   const unlockedSet = useMemo(() => new Set(save.unlockedWeapons), [save]);
   const allWeapons = Object.entries(DEFAULT_BALANCE.weapons) as [
     WeaponId,
-    (typeof DEFAULT_BALANCE.weapons)[WeaponId]
+    (typeof DEFAULT_BALANCE.weapons)[WeaponId],
   ][];
   const weapons = allWeapons.filter(([id]) => unlockedSet.has(id));
 
@@ -201,7 +201,10 @@ export default function LoadoutModal({
                     <div className="mt-2 flex items-center justify-center gap-2">
                       <span
                         className="rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                        style={{ backgroundColor: `${activeHero.color}18`, color: activeHero.color }}
+                        style={{
+                          backgroundColor: `${activeHero.color}18`,
+                          color: activeHero.color,
+                        }}
                       >
                         {activeHero.role}
                       </span>
@@ -216,7 +219,10 @@ export default function LoadoutModal({
                     <div className="mb-2 flex items-center gap-2">
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: `${activeHero.color}18`, color: activeHero.color }}
+                        style={{
+                          backgroundColor: `${activeHero.color}18`,
+                          color: activeHero.color,
+                        }}
                       >
                         <Lightning size={16} weight="bold" />
                       </span>
@@ -225,23 +231,32 @@ export default function LoadoutModal({
                         <p className="text-[10px] text-muted">冷却 {activeHero.skill.cooldown}s</p>
                       </div>
                     </div>
-                    <p className="text-xs leading-relaxed text-muted">{activeHero.skill.description}</p>
+                    <p className="text-xs leading-relaxed text-muted">
+                      {activeHero.skill.description}
+                    </p>
                   </div>
                   {/* Ultimate */}
                   <div className="rounded-2xl border border-border bg-panel p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: `${activeHero.color}18`, color: activeHero.color }}
+                        style={{
+                          backgroundColor: `${activeHero.color}18`,
+                          color: activeHero.color,
+                        }}
                       >
                         <Fire size={16} weight="bold" />
                       </span>
                       <div>
                         <p className="text-sm font-bold">{activeHero.ultimate.name}</p>
-                        <p className="text-[10px] text-muted">冷却 {activeHero.ultimate.cooldown}s</p>
+                        <p className="text-[10px] text-muted">
+                          冷却 {activeHero.ultimate.cooldown}s
+                        </p>
                       </div>
                     </div>
-                    <p className="text-xs leading-relaxed text-muted">{activeHero.ultimate.description}</p>
+                    <p className="text-xs leading-relaxed text-muted">
+                      {activeHero.ultimate.description}
+                    </p>
                   </div>
                   {/* Passive */}
                   <div className="rounded-2xl border border-border bg-panel p-4">
@@ -251,7 +266,9 @@ export default function LoadoutModal({
                       </span>
                       <p className="text-sm font-bold">被动特性</p>
                     </div>
-                    <p className="text-xs leading-relaxed text-muted">{formatPassive(activeHero.passive)}</p>
+                    <p className="text-xs leading-relaxed text-muted">
+                      {formatPassive(activeHero.passive)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -292,7 +309,9 @@ export default function LoadoutModal({
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold">{talent.name}</p>
-                        <p className="text-[10px] leading-relaxed text-muted">{talent.description}</p>
+                        <p className="text-[10px] leading-relaxed text-muted">
+                          {talent.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -308,7 +327,8 @@ export default function LoadoutModal({
                   出战武器
                 </div>
                 <span className="text-xs text-muted">
-                  已选 <span className="font-bold text-foreground">{selectedWeapons.length}</span> / {maxWeapons}
+                  已选 <span className="font-bold text-foreground">{selectedWeapons.length}</span> /{" "}
+                  {maxWeapons}
                 </span>
               </div>
 
@@ -404,6 +424,7 @@ function modeName(mode: GameModeType): string {
     endless: "无尽生存",
     daily: "每日挑战",
     roguelike: "冒险模式",
+    deathmatch: "个人死斗",
   };
   return names[mode] ?? mode;
 }
@@ -418,12 +439,16 @@ function formatPassive(passive: {
   areaMul?: number;
 }): string {
   const parts: string[] = [];
-  if (passive.maxHealthMul) parts.push(`生命上限 ${passive.maxHealthMul > 1 ? "+" : ""}${Math.round((passive.maxHealthMul - 1) * 100)}%`);
+  if (passive.maxHealthMul)
+    parts.push(
+      `生命上限 ${passive.maxHealthMul > 1 ? "+" : ""}${Math.round((passive.maxHealthMul - 1) * 100)}%`
+    );
   if (passive.speedMul) parts.push(`移动速度 +${Math.round((passive.speedMul - 1) * 100)}%`);
   if (passive.armorAdd) parts.push(`护甲 +${Math.round(passive.armorAdd * 100)}%`);
   if (passive.critAdd) parts.push(`暴击率 +${Math.round(passive.critAdd * 100)}%`);
   if (passive.regenAdd) parts.push(`生命恢复 +${passive.regenAdd}/秒`);
-  if (passive.cooldownReductionAdd) parts.push(`冷却缩减 +${Math.round(passive.cooldownReductionAdd * 100)}%`);
+  if (passive.cooldownReductionAdd)
+    parts.push(`冷却缩减 +${Math.round(passive.cooldownReductionAdd * 100)}%`);
   if (passive.areaMul) parts.push(`范围效果 +${Math.round((passive.areaMul - 1) * 100)}%`);
   return parts.join(" · ") || "无";
 }

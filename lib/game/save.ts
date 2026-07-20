@@ -3,6 +3,7 @@ import { DEFAULT_BALANCE } from "./balance";
 import { HERO_DEFS } from "./heroes";
 
 export interface SaveData {
+  version: number;
   bestRun: RunResult | null;
   totalKills: number;
   totalRuns: number;
@@ -18,7 +19,8 @@ export interface SaveData {
   };
 }
 
-const SAVE_KEY = "project_m_save_v2";
+const SAVE_KEY = "project_m_save_v3";
+const CURRENT_SAVE_VERSION = 3;
 
 function getWeaponCost(id: WeaponId): number {
   return DEFAULT_BALANCE.weapons[id]?.cost ?? 0;
@@ -34,6 +36,7 @@ const LEGACY_HERO_MAP: Record<string, HeroId> = {
 
 function createFallback(): SaveData {
   return {
+    version: CURRENT_SAVE_VERSION,
     bestRun: null,
     totalKills: 0,
     totalRuns: 0,
@@ -52,6 +55,9 @@ function createFallback(): SaveData {
 
 function migrateLegacy(parsed: Partial<SaveData>): SaveData {
   const fallback = createFallback();
+  const needsHeroMigration =
+    typeof parsed.version !== "number" || parsed.version < CURRENT_SAVE_VERSION;
+
   const unlocked: WeaponId[] = Array.isArray(parsed.unlockedWeapons)
     ? (parsed.unlockedWeapons.filter((id) => id in DEFAULT_BALANCE.weapons) as WeaponId[])
     : fallback.unlockedWeapons;
@@ -66,19 +72,23 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
   const validEquipped = equipped.length > 0 ? equipped : fallback.equippedWeapons;
   const clampedEquipped = validEquipped.slice(0, DEFAULT_BALANCE.progression.maxWeapons);
 
-  const migratedHero = parsed.selectedHero
-    ? LEGACY_HERO_MAP[parsed.selectedHero] ?? parsed.selectedHero
-    : fallback.selectedHero;
-  const validHero: HeroId =
-    migratedHero && migratedHero in HERO_DEFS ? migratedHero : fallback.selectedHero;
+  let selectedHero: HeroId = fallback.selectedHero;
+  if (parsed.selectedHero) {
+    const migratedHero = needsHeroMigration
+      ? (LEGACY_HERO_MAP[parsed.selectedHero] ?? parsed.selectedHero)
+      : parsed.selectedHero;
+    selectedHero = migratedHero && migratedHero in HERO_DEFS ? migratedHero : fallback.selectedHero;
+  }
 
   return {
     ...fallback,
     ...parsed,
-    coins: typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : fallback.coins,
+    version: CURRENT_SAVE_VERSION,
+    coins:
+      typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : fallback.coins,
     unlockedWeapons: unlocked.length > 0 ? unlocked : fallback.unlockedWeapons,
     equippedWeapons: clampedEquipped,
-    selectedHero: validHero,
+    selectedHero,
     settings: { ...fallback.settings, ...parsed.settings },
   };
 }
@@ -87,10 +97,21 @@ export function loadSave(): SaveData {
   if (typeof window === "undefined") return createFallback();
 
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    let raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      // Migrate from older save keys if present
+      for (const oldKey of ["project_m_save_v2", "project_m_save_v1", "project_m_save"]) {
+        raw = localStorage.getItem(oldKey);
+        if (raw) break;
+      }
+    }
     if (!raw) return createFallback();
     const parsed = JSON.parse(raw) as Partial<SaveData>;
-    return migrateLegacy(parsed);
+    const migrated = migrateLegacy(parsed);
+    if (migrated.version !== parsed.version) {
+      saveSave(migrated);
+    }
+    return migrated;
   } catch {
     return createFallback();
   }
@@ -208,7 +229,9 @@ export function saveLoadout(heroId: HeroId, weaponIds: WeaponId[]) {
   if (!(heroId in HERO_DEFS)) return;
   const save = loadSave();
   save.selectedHero = heroId;
-  const validWeapons = weaponIds.filter((id) => id in DEFAULT_BALANCE.weapons && save.unlockedWeapons.includes(id));
+  const validWeapons = weaponIds.filter(
+    (id) => id in DEFAULT_BALANCE.weapons && save.unlockedWeapons.includes(id)
+  );
   if (validWeapons.length === 0) validWeapons.push("pulse");
   save.equippedWeapons = validWeapons.slice(0, DEFAULT_BALANCE.progression.maxWeapons);
   saveSave(save);

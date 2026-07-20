@@ -419,7 +419,10 @@ export function useHeroSkill(player: Player, state: GameState): void {
       const endY = player.y + aim.y * pounceRange;
 
       for (const enemy of state.enemies) {
-        if (pointSegmentDistance(enemy.x, enemy.y, startX, startY, endX, endY) <= player.radius + enemy.radius + 20) {
+        if (
+          pointSegmentDistance(enemy.x, enemy.y, startX, startY, endX, endY) <=
+          player.radius + enemy.radius + 20
+        ) {
           enemy.health -= 90;
           const dx = enemy.x - player.x;
           const dy = enemy.y - player.y;
@@ -570,7 +573,8 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number): vo
     if (d.type === "freezeField") {
       for (const enemy of state.enemies) {
         if (distance(enemy, d) <= d.radius + enemy.radius) {
-          const slowStrength = owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 0.55 : 0.4;
+          const slowStrength =
+            owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 0.55 : 0.4;
           enemy.slow = Math.max(enemy.slow, slowStrength);
           enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
         }
@@ -798,7 +802,14 @@ export function createNullHeroState(player: Player): void {
   player.leopardBloodlustTimer = 0;
 }
 
-function pointSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+function pointSegmentDistance(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): number {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len2 = dx * dx + dy * dy;

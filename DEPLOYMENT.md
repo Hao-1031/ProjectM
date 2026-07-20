@@ -11,15 +11,16 @@
 3. [环境变量](#环境变量)
 4. [生产构建](#生产构建)
 5. [阿里云 Ubuntu 22.04 LTS 部署（PM2）](#阿里云-ubuntu-2204-lts-部署pm2)
-6. [Docker 部署](#docker-部署)
-7. [Vercel 部署](#vercel-部署)
-8. [GitHub Actions 自动化](#github-actions-自动化)
-9. [PWA 与离线游玩](#pwa-与离线游玩)
-10. [Sentry 错误监控](#sentry-错误监控)
-11. [域名与 HTTPS](#域名与-https)
-12. [性能优化清单](#性能优化清单)
-13. [上线前检查表](#上线前检查表)
-14. [常见问题](#常见问题)
+6. [阿里云 Windows Server 部署（PM2）](#阿里云-windows-server-部署pm2)
+7. [Docker 部署](#docker-部署)
+8. [Vercel 部署](#vercel-部署)
+9. [GitHub Actions 自动化](#github-actions-自动化)
+10. [PWA 与离线游玩](#pwa-与离线游玩)
+11. [Sentry 错误监控](#sentry-错误监控)
+12. [域名与 HTTPS](#域名与-https)
+13. [性能优化清单](#性能优化清单)
+14. [上线前检查表](#上线前检查表)
+15. [常见问题](#常见问题)
 
 ---
 
@@ -727,6 +728,221 @@ pm2 save
 - [ ] 已配置 Swap 与文件描述符限制
 - [ ] 已启用 PM2 日志轮转
 - [ ] 已配置每日自动备份
+
+---
+
+## 阿里云 Windows Server 部署（PM2）
+
+L3V100 "创世版" 亦可部署到全新阿里云 Windows Server。本节使用 PowerShell 与 PM2 持久化运行 Next.js 生产服务。
+
+> 注意：Windows 本地预览请使用 `pnpm start`，不要直接运行 `node .next/standalone/server.js`，以免因 pnpm 符号链接权限导致 EPERM 错误。
+
+### 1. 服务器初始化
+
+通过远程桌面或阿里云Workbench连接到服务器，以管理员身份打开 PowerShell。
+
+安装 Chocolatey（包管理器）：
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+### 2. 安装 Node.js、Git、pnpm 与 PM2
+
+```powershell
+choco install nodejs-lts git -y
+refreshenv
+npm install -g pnpm pm2
+node -v
+pnpm -v
+pm2 -v
+```
+
+### 3. 拉取代码
+
+```powershell
+New-Item -ItemType Directory -Force -Path C:\www | Out-Null
+cd C:\www
+git clone https://github.com/Hao-1031/Project-M.git project-m
+cd project-m
+```
+
+### 4. 配置环境变量
+
+创建 `.env.local`：
+
+```powershell
+Copy-Item .env.example .env.local
+notepad .env.local
+```
+
+最小配置：
+
+```env
+NODE_ENV=production
+PORT=3000
+```
+
+### 5. 构建
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm generate-icons
+pnpm build
+```
+
+### 6. 使用 PM2 启动
+
+```powershell
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+pm2 startup windows
+```
+
+执行 `pm2 startup windows` 后，按提示运行生成的命令完成开机自启注册。
+
+常用运维命令：
+
+```powershell
+pm2 status
+pm2 logs project-m
+pm2 reload project-m
+pm2 restart project-m
+pm2 stop project-m
+```
+
+### 7. 防火墙配置
+
+在阿里云 ECS 控制台 > 安全组规则中放行：
+
+| 类型       | 端口 | 授权对象            |
+| ---------- | ---- | ------------------- |
+| 自定义 TCP | 3000 | 0.0.0.0/0 或指定 IP |
+| 自定义 TCP | 80   | 0.0.0.0/0           |
+| 自定义 TCP | 443  | 0.0.0.0/0           |
+
+在服务器防火墙中放行端口：
+
+```powershell
+New-NetFirewallRule -DisplayName "Project-M-3000" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
+New-NetFirewallRule -DisplayName "Project-M-HTTP" -Direction Inbound -Protocol TCP -LocalPort 80 -Action Allow
+New-NetFirewallRule -DisplayName "Project-M-HTTPS" -Direction Inbound -Protocol TCP -LocalPort 443 -Action Allow
+```
+
+### 8. IIS 反向代理（可选）
+
+安装 IIS 与 URL Rewrite、Application Request Routing (ARR)：
+
+```powershell
+Install-WindowsFeature -name Web-Server -IncludeManagementTools
+choco install urlrewrite arr -y
+```
+
+创建站点 `project-m`，配置反向代理规则：
+
+```xml
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="ReverseProxyProjectM" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://127.0.0.1:3000/{R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>
+```
+
+启用 ARR 反向代理：
+
+```powershell
+Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.webServer/proxy" -name "enabled" -value "True"
+```
+
+### 9. Nginx for Windows 反向代理（可选）
+
+下载 Nginx for Windows 并解压到 `C:\nginx`。
+
+编辑 `C:\nginx\conf\nginx.conf`：
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+启动 Nginx：
+
+```powershell
+cd C:\nginx
+start nginx
+```
+
+### 10. Windows 专属故障排除
+
+**PM2 状态为 `errored`**
+
+```powershell
+pm2 logs project-m --lines 100
+pm2 describe project-m
+```
+
+常见原因：
+
+- `.next/standalone/server.js` 不存在：未成功执行 `pnpm build`，或 `next.config.mjs` 未设置 `output: "standalone"`。
+- 端口被占用：
+
+```powershell
+Get-NetTCPConnection -LocalPort 3000
+Stop-Process -Id <PID>
+```
+
+**构建卡在 sourcemap 上传**
+
+确认 `SENTRY_AUTH_TOKEN` 已配置。未配置时 `next.config.mjs` 会自动跳过上传。如仍卡住：
+
+```powershell
+Remove-Item -Recurse -Force .next
+$env:SENTRY_AUTH_TOKEN=""
+pnpm build
+```
+
+**pnpm 符号链接导致启动失败**
+
+Windows 本地或服务器直接使用 `node .next/standalone/server.js` 可能报 EPERM。请使用：
+
+```powershell
+pm2 start ecosystem.config.cjs --env production
+```
+
+或：
+
+```powershell
+pnpm start
+```
+
+**IIS 502 错误**
+
+- 检查应用是否运行：`pm2 status`
+- 检查端口是否监听：`Get-NetTCPConnection -LocalPort 3000`
+- 检查 IIS ARR 反向代理是否启用
 
 ---
 

@@ -22,6 +22,7 @@ import type {
   HeroId,
   WeaponId,
   DefenseState,
+  DeathmatchState,
 } from "./types";
 import {
   uid,
@@ -39,7 +40,12 @@ import {
   rectOverlap,
   formatTime,
 } from "./math";
-import { getStarterWeapons, applyUpgrade, generateUpgradeOptions, WEAPON_CREATORS } from "./weapons";
+import {
+  getStarterWeapons,
+  applyUpgrade,
+  generateUpgradeOptions,
+  WEAPON_CREATORS,
+} from "./weapons";
 import {
   generateMissions,
   updateMissions,
@@ -117,6 +123,17 @@ import {
   isDefenseDefeat,
   getCapturedNodeCount,
 } from "./defense";
+import {
+  createDeathmatchState,
+  createDeathmatchMap,
+  createBotPlayer,
+  createBotAI,
+  updateDeathmatch,
+  respawnPlayer,
+  recordKill,
+  recordDamage,
+  getDeathmatchLeaderId,
+} from "./deathmatch";
 import {
   applyHeroToPlayer,
   useHeroSkill as triggerHeroSkill,
@@ -201,14 +218,43 @@ export class GameEngine {
         ? generateEndlessMissions(1)
         : [];
 
-    const map = mode === "defense" ? createDefenseMap(this.seed) : this.createMap(theme);
-    const startX = mode === "defense" ? map.width / 2 : MAP_WIDTH / 2;
-    const startY = mode === "defense" ? map.height / 2 : MAP_HEIGHT / 2;
+    let map: MapConfig;
+    let deathmatchState: DeathmatchState | undefined;
+    if (mode === "defense") {
+      map = createDefenseMap(this.seed);
+    } else if (mode === "deathmatch") {
+      map = createDeathmatchMap(this.seed);
+      deathmatchState = createDeathmatchState(this.seed);
+    } else {
+      map = this.createMap(theme);
+    }
+    const startX = mode === "defense" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
+    const startY = mode === "defense" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
 
     const player = this.createPlayer("player", startX, startY);
     const heroId = this.loadout.heroId ?? this.state?.selectedHero;
     if (heroId) {
       applyHeroToPlayer(player, heroId);
+    }
+
+    const players: Player[] = [];
+    if (mode === "deathmatch" && deathmatchState) {
+      const dm = DEFAULT_BALANCE.modes.deathmatch;
+      player.maxHealth = Math.floor(player.maxHealth * dm.playerHealthMul);
+      player.health = player.maxHealth;
+      const spawnPoints = [
+        { x: map.width * 0.2, y: map.height * 0.2 },
+        { x: map.width * 0.8, y: map.height * 0.2 },
+        { x: map.width * 0.2, y: map.height * 0.8 },
+        { x: map.width * 0.8, y: map.height * 0.8 },
+      ];
+      for (let i = 0; i < deathmatchState.botCount; i++) {
+        const botId = `bot_${i}`;
+        const pos = spawnPoints[i % spawnPoints.length];
+        const bot = createBotPlayer(botId, pos.x, pos.y);
+        players.push(bot);
+        deathmatchState.bots.push(createBotAI(botId));
+      }
     }
 
     return {
@@ -221,7 +267,7 @@ export class GameEngine {
       map,
       camera: { x: startX, y: startY, scale: 1 },
       player,
-      players: [],
+      players,
       enemies: [],
       projectiles: [],
       enemyProjectiles: [],
@@ -256,6 +302,7 @@ export class GameEngine {
       killCombo: { count: 0, timer: 0, best: 0 },
       roguelikeRunState,
       defenseState,
+      deathmatchState,
       selectedHero: heroId ?? this.state?.selectedHero,
     };
   }
@@ -465,24 +512,36 @@ export class GameEngine {
     this.state.time += dt;
     this.state.stats.timeSurvived += dt;
 
+    const isDeathmatch = this.state.mode === "deathmatch";
+
     this.updatePlayer(input, dt);
     this.updateRemotePlayers(dt);
     this.updateWeapons(dt);
     this.updateProjectiles(dt);
     this.updateEnemyProjectiles(dt);
-    this.spawnEnemies(dt);
-    this.updateEnemies(dt);
-    this.updateHazards(dt);
+
+    if (isDeathmatch) {
+      updateDeathmatch(this.state, dt, this.rng);
+    } else {
+      this.spawnEnemies(dt);
+      this.updateEnemies(dt);
+      this.updateHazards(dt);
+    }
+
     this.updatePickups(dt);
     this.updateParticles(dt);
     this.updateDamageNumbers(dt);
-    this.updateMissionsAndExtraction(dt);
-    this.updateEvents(dt);
-    this.updateWave(dt);
-    this.updateDefenseState(dt);
-    this.updateHeroSkillsAndDeployables(dt);
-    this.handleDeployableShieldCollisions();
-    this.handleMineProximity();
+
+    if (!isDeathmatch) {
+      this.updateMissionsAndExtraction(dt);
+      this.updateEvents(dt);
+      this.updateWave(dt);
+      this.updateDefenseState(dt);
+      this.updateHeroSkillsAndDeployables(dt);
+      this.handleDeployableShieldCollisions();
+      this.handleMineProximity();
+    }
+
     this.updateKillCombo(dt);
     this.handleCollisions();
     this.updateCamera();
@@ -641,6 +700,7 @@ export class GameEngine {
         pierce: weapon.pierce,
         weaponId: weapon.id,
         life: weapon.range / speed,
+        ownerId: player.id,
       };
       if (weapon.id === "rocket") {
         projectile.isExplosive = true;
@@ -671,6 +731,7 @@ export class GameEngine {
         pierce: 1,
         weaponId: weapon.id,
         life: weapon.range / speed,
+        ownerId: player.id,
       });
     }
     if (this.state.projectiles.some((p) => p.weaponId === "drone")) {
@@ -699,6 +760,7 @@ export class GameEngine {
         pierce: weapon.pierce,
         weaponId: weapon.id,
         life: weapon.range / speed,
+        ownerId: player.id,
         burnDuration: weapon.burnDuration ?? 2,
         burnDamage: weapon.damage * 0.4,
       });
@@ -1378,6 +1440,9 @@ export class GameEngine {
     this.handleProjectileEnemyCollisions();
     this.handleEnemyProjectilePlayerCollisions();
     this.handleEnemyPlayerCollisions();
+    if (this.state.mode === "deathmatch") {
+      this.handleProjectilePlayerCollisions();
+    }
     this.handlePickupCollisions();
     this.handleProjectileObstacleCollisions();
     this.cleanDeadEnemies();
@@ -1441,6 +1506,53 @@ export class GameEngine {
         this.damagePlayer(p.damage, true);
         this.state.enemyProjectiles.splice(i, 1);
       }
+    }
+  }
+
+  private handleProjectilePlayerCollisions() {
+    const allPlayers = [this.state.player, ...this.state.players];
+    const projectiles = this.state.projectiles;
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      if (!p.ownerId) continue;
+      for (const target of allPlayers) {
+        if (target.id === p.ownerId || target.health <= 0) continue;
+        if (circleCollision(p, target)) {
+          this.damagePlayerInDeathmatch(target, p.damage, p.ownerId);
+          p.pierce -= 1;
+          if (p.pierce < 0) {
+            projectiles.splice(i, 1);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  private damagePlayerInDeathmatch(victim: Player, rawDamage: number, attackerId: string) {
+    if (victim.invincible > 0) return;
+    const reduced = rawDamage * (1 - Math.min(0.75, victim.armor));
+    victim.health -= reduced;
+    this.state.stats.damageTaken += reduced;
+    this.spawnDamageNumber(victim.x, victim.y, reduced, "#f43f5e");
+    this.fx.addShake(0.6, 0);
+    audio?.play("hurt");
+
+    const dm = this.state.deathmatchState;
+    if (dm) {
+      recordDamage(dm, attackerId, reduced);
+    }
+
+    if (victim.health <= 0) {
+      if (dm) {
+        recordKill(dm, attackerId, victim.id);
+        if (attackerId === this.state.player.id) {
+          this.state.stats.kills += 1;
+          this.state.killCombo.count += 1;
+          this.state.killCombo.timer = 2.5;
+        }
+      }
+      respawnPlayer(victim, this.state);
     }
   }
 
@@ -1624,7 +1736,7 @@ export class GameEngine {
       });
       if (enemy.isBoss) return;
     }
-    if (roll < 0.025) {
+    if (roll < 0.015) {
       this.state.pickups.push({
         id: uid("pickup"),
         x: enemy.x,
@@ -1845,6 +1957,7 @@ export class GameEngine {
       eliteKillStreak: this.state.eliteKillStreak,
       killCombo: this.state.killCombo,
       roguelikeRunState: this.state.roguelikeRunState,
+      deathmatchState: this.state.deathmatchState,
     };
   }
 
@@ -1880,6 +1993,9 @@ export class GameEngine {
     this.state.killCombo = serialized.killCombo ?? { count: 0, timer: 0, best: 0 };
     if (serialized.roguelikeRunState) {
       this.state.roguelikeRunState = serialized.roguelikeRunState;
+    }
+    if (serialized.deathmatchState) {
+      this.state.deathmatchState = serialized.deathmatchState;
     }
   }
 
@@ -2027,7 +2143,13 @@ export class GameEngine {
       // Capture progress ring for active uncaptured nodes
       if (isActive && node.captureProgress > 0) {
         ctx.beginPath();
-        ctx.arc(0, 0, node.radius * 0.85, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * node.captureProgress);
+        ctx.arc(
+          0,
+          0,
+          node.radius * 0.85,
+          -Math.PI / 2,
+          -Math.PI / 2 + Math.PI * 2 * node.captureProgress
+        );
         ctx.strokeStyle = "#22d3ee";
         ctx.lineWidth = 4;
         ctx.stroke();

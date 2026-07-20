@@ -21,13 +21,7 @@ import Layout from "@/components/Layout";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import type { WeaponBalance, WeaponStatBlock } from "@/lib/game/balance";
 import type { WeaponId } from "@/lib/game/types";
-import {
-  loadSave,
-  buyWeapon,
-  equipWeapon,
-  unequipWeapon,
-  type SaveData,
-} from "@/lib/game/save";
+import { loadSave, buyWeapon, equipWeapon, unequipWeapon, type SaveData } from "@/lib/game/save";
 
 const TAG_ICONS: Record<string, typeof Crosshair> = {
   kinetic: Target,
@@ -37,7 +31,15 @@ const TAG_ICONS: Record<string, typeof Crosshair> = {
   gravity: Magnet,
 };
 
-function WeaponTag({ label, icon: Icon, color }: { label: string; icon: typeof Crosshair; color: string }) {
+function WeaponTag({
+  label,
+  icon: Icon,
+  color,
+}: {
+  label: string;
+  icon: typeof Crosshair;
+  color: string;
+}) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider"
@@ -49,7 +51,17 @@ function WeaponTag({ label, icon: Icon, color }: { label: string; icon: typeof C
   );
 }
 
-function StatBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+function StatBar({
+  label,
+  value,
+  max,
+  color,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+}) {
   const pct = Math.min(100, Math.max(4, (value / max) * 100));
   return (
     <div className="space-y-1">
@@ -98,11 +110,17 @@ function getWeaponTags(id: string, stats: WeaponStatBlock) {
 function formatUpgradeDescription(upgrade: import("@/lib/game/balance").WeaponUpgradeStep): string {
   const parts: string[] = [];
   if (upgrade.damageMul !== undefined)
-    parts.push(`伤害 ${upgrade.damageMul > 1 ? "+" : ""}${Math.round((upgrade.damageMul - 1) * 100)}%`);
+    parts.push(
+      `伤害 ${upgrade.damageMul > 1 ? "+" : ""}${Math.round((upgrade.damageMul - 1) * 100)}%`
+    );
   if (upgrade.cooldownMul !== undefined)
-    parts.push(`冷却 ${upgrade.cooldownMul < 1 ? "-" : "+"}${Math.round(Math.abs(1 - upgrade.cooldownMul) * 100)}%`);
+    parts.push(
+      `冷却 ${upgrade.cooldownMul < 1 ? "-" : "+"}${Math.round(Math.abs(1 - upgrade.cooldownMul) * 100)}%`
+    );
   if (upgrade.rangeMul !== undefined)
-    parts.push(`射程 ${upgrade.rangeMul > 1 ? "+" : ""}${Math.round((upgrade.rangeMul - 1) * 100)}%`);
+    parts.push(
+      `射程 ${upgrade.rangeMul > 1 ? "+" : ""}${Math.round((upgrade.rangeMul - 1) * 100)}%`
+    );
   if (upgrade.countAdd) parts.push(`弹丸 +${upgrade.countAdd}`);
   if (upgrade.pierceAdd) parts.push(`穿透 +${upgrade.pierceAdd}`);
   if (upgrade.areaMul !== undefined)
@@ -130,7 +148,16 @@ interface WeaponCardProps {
   onUnequip: (id: WeaponId) => void;
 }
 
-function WeaponCard({ id, weapon, index, save, canAfford, onBuy, onEquip, onUnequip }: WeaponCardProps) {
+function WeaponCard({
+  id,
+  weapon,
+  index,
+  save,
+  canAfford,
+  onBuy,
+  onEquip,
+  onUnequip,
+}: WeaponCardProps) {
   const reducedMotion = useReducedMotion();
   const stats = weapon.base;
   const tags = getWeaponTags(id, stats);
@@ -234,7 +261,11 @@ function WeaponCard({ id, weapon, index, save, canAfford, onBuy, onEquip, onUneq
               border: `1px solid ${canAfford ? `${weapon.color}40` : "var(--border)"}`,
             }}
           >
-            {canAfford ? <ShoppingCart size={16} weight="bold" /> : <Lock size={16} weight="bold" />}
+            {canAfford ? (
+              <ShoppingCart size={16} weight="bold" />
+            ) : (
+              <Lock size={16} weight="bold" />
+            )}
             {weapon.cost}
             <Coin size={14} weight="fill" />
           </button>

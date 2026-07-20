@@ -21,7 +21,8 @@ export interface Circle {
 export type GameStatus =
   "idle" | "running" | "paused" | "levelup" | "reward" | "victory" | "defeat";
 
-export type GameModeType = "campaign" | "endless" | "daily" | "roguelike" | "defense";
+export type GameModeType =
+  "campaign" | "endless" | "daily" | "roguelike" | "defense" | "deathmatch";
 
 export type MissionType =
   | "eliminate"
@@ -110,6 +111,37 @@ export interface DefenseState {
   waves: DefenseWave[];
   deployables: Deployable[];
   selectedHeroes: Record<string, HeroId>;
+}
+
+export interface DeathmatchScore {
+  kills: number;
+  deaths: number;
+  damageDealt: number;
+}
+
+export type DeathmatchBotState = "idle" | "chase" | "strafe" | "flee" | "respawn";
+
+export interface DeathmatchBot {
+  id: string;
+  targetId: string | null;
+  state: DeathmatchBotState;
+  timer: number;
+  respawnTimer: number;
+  aimX: number;
+  aimY: number;
+  fireTimer: number;
+}
+
+export interface DeathmatchState {
+  scores: Record<string, DeathmatchScore>;
+  scoreLimit: number;
+  timeLimit: number;
+  matchTimer: number;
+  bots: DeathmatchBot[];
+  botCount: number;
+  matchEnded: boolean;
+  winnerId: string | null;
+  pickupTimer?: number;
 }
 
 export interface Mission {
@@ -355,6 +387,7 @@ export interface Projectile {
   pierce: number;
   weaponId: string;
   life: number;
+  ownerId?: string;
   // Area / status effects
   areaRadius?: number;
   burnDuration?: number;
@@ -575,6 +608,7 @@ export interface GameState {
   killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
+  deathmatchState?: DeathmatchState;
   selectedHero?: HeroId;
 }
 
@@ -671,5 +705,6 @@ export interface SerializedGameState {
   killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
+  deathmatchState?: DeathmatchState;
   selectedHero?: HeroId;
 }

@@ -48,9 +48,7 @@ export default function NotFoundPage() {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-xs text-muted">
-            Project M · 公平竞技 · 无付费加成
-          </p>
+          <p className="mt-6 text-center text-xs text-muted">Project M · 公平竞技 · 无付费加成</p>
         </motion.div>
       </div>
     </Layout>

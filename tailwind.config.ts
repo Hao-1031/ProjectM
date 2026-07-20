@@ -31,11 +31,23 @@ const config: Config = {
       animation: {
         pulseSlow: "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         scan: "scan 4s linear infinite",
+        drift: "drift 12s ease-in-out infinite",
+        geiger: "geiger 2.4s ease-in-out infinite",
       },
       keyframes: {
         scan: {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" },
+        },
+        drift: {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "50%": { transform: "translate(12px, -18px)" },
+        },
+        geiger: {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.9" },
+          "52%": { opacity: "0.3" },
+          "54%": { opacity: "0.85" },
         },
       },
     },

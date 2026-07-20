@@ -77,9 +77,7 @@ export default function HeroesPage() {
             <Sparkle weight="duotone" size={14} />
             英雄档案
           </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">
-            据点防守作战单位
-          </h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">据点防守作战单位</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
             四位定位分明的英雄构成防守小队核心。液氮封锁通道，暮蝶维系生命，
             豹撕裂敌阵，侦查提供视野与精准打击。
@@ -101,11 +99,7 @@ export default function HeroesPage() {
                   isEven ? "" : "md:grid-flow-dense"
                 }`}
               >
-                <div
-                  className={`md:col-span-5 ${
-                    isEven ? "md:col-start-1" : "md:col-start-8"
-                  }`}
-                >
+                <div className={`md:col-span-5 ${isEven ? "md:col-start-1" : "md:col-start-8"}`}>
                   <div
                     className={`relative overflow-hidden rounded-2xl border border-border bg-panel p-6 ring-1 ${COLOR_RING[hero.id]} ${BG_GLOW[hero.id]}`}
                   >
@@ -123,9 +117,7 @@ export default function HeroesPage() {
                         </p>
                       </div>
                     </div>
-                    <p className="mt-5 text-sm leading-relaxed text-muted">
-                      {hero.description}
-                    </p>
+                    <p className="mt-5 text-sm leading-relaxed text-muted">{hero.description}</p>
 
                     <div className="mt-6 space-y-3">
                       <div className="flex items-center gap-2 text-sm">

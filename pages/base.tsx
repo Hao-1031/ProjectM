@@ -230,15 +230,15 @@ export default function BasePage() {
                   meta={hero.skill.name}
                   variant="muted"
                 >
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
-                  <span className="rounded-md border border-border bg-background px-2 py-1">
-                    冷却 {hero.skill.cooldown}s
-                  </span>
-                  <span className="rounded-md border border-border bg-background px-2 py-1">
-                    持续 {hero.skill.duration}s
-                  </span>
-                </div>
-              </FeatureCard>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+                    <span className="rounded-md border border-border bg-background px-2 py-1">
+                      冷却 {hero.skill.cooldown}s
+                    </span>
+                    <span className="rounded-md border border-border bg-background px-2 py-1">
+                      持续 {hero.skill.duration}s
+                    </span>
+                  </div>
+                </FeatureCard>
               );
             })}
           </div>

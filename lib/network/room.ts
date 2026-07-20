@@ -175,6 +175,7 @@ export class GameRoomManager {
 
     const normalizedOffer = { ...offer, sdp: offer.sdp ?? "" };
     const answer = await peer.acceptOffer(normalizedOffer);
+    await peer.addIceCandidates(offer.candidates);
     this.signaling.sendAnswer(peerId, answer);
   }
 
@@ -194,7 +195,7 @@ export class GameRoomManager {
     if (this.role !== "client") return;
     const peer = new PeerConnection({
       peerId: hostPeerId,
-      role: "client",
+      role: "host",
       onMessage: (msg) => this.handleMessage(hostPeerId, msg),
       onOpen: () => this.handlePeerOpen(hostPeerId),
       onClose: () => this.handlePeerClose(hostPeerId),

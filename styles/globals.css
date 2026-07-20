@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: #070810;
-  --foreground: #e7e9ef;
-  --panel: #0e111d;
-  --panel-raised: #131725;
-  --border: #1a1f31;
-  --primary: #4ecdc4;
-  --primary-muted: #1e5f66;
-  --accent: #f4a261;
-  --accent-muted: #8c5e36;
-  --danger: #e05a6a;
-  --success: #52b788;
-  --warning: #e9c46a;
-  --muted: #6c7280;
+  --background: #070a07;
+  --foreground: #e7ebe3;
+  --panel: #0e120d;
+  --panel-raised: #131811;
+  --border: #1a2117;
+  --primary: #7a8f3e;
+  --primary-muted: #3d4a1f;
+  --accent: #b87a3d;
+  --accent-muted: #5c3d1f;
+  --danger: #b84a55;
+  --success: #5e8c6a;
+  --warning: #c9a34e;
+  --muted: #6e7870;
   --font-geist-sans: "Geist Sans";
   --font-geist-mono: "Geist Mono";
 }
@@ -58,7 +58,7 @@ body {
 }
 
 ::selection {
-  background: rgba(78, 205, 196, 0.25);
+  background: rgba(122, 143, 62, 0.25);
 }
 
 @layer utilities {
@@ -82,4 +82,25 @@ body {
   box-shadow:
     0 0 0 2px var(--background),
     0 0 0 4px var(--primary);
+}
+
+/* Nuclear wasteland noise texture overlay */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hazard stripes utility */
+.hazard-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(184, 122, 61, 0.08),
+    rgba(184, 122, 61, 0.08) 8px,
+    rgba(184, 122, 61, 0.02) 8px,
+    rgba(184, 122, 61, 0.02) 16px
+  );
 }

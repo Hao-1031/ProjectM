@@ -25,7 +25,6 @@ import WaveAnnouncement, { type WavePhase } from "./game/WaveAnnouncement";
 import LoadoutModal from "./game/LoadoutModal";
 import type { HeroId, WeaponId } from "@/lib/game/types";
 
-
 interface GameCanvasProps {
   onExit?: () => void;
   multiplayer?: boolean;
@@ -65,7 +64,9 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     if (typeof window === "undefined") return "campaign";
     const params = new URLSearchParams(window.location.search);
     const m = params.get("mode") as GameModeType | null;
-    return m && ["campaign", "endless", "daily", "roguelike", "defense"].includes(m) ? m : "campaign";
+    return m && ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch"].includes(m)
+      ? m
+      : "campaign";
   });
   const [notifications, setNotifications] = useState<GameNotification[]>([]);
   const [showLoadout, setShowLoadout] = useState(true);
@@ -105,55 +106,55 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     const engine = new GameEngine(
       {
         onLevelUp: (options) => setUpgradeOptions(options),
-      onVictory: (result) => {
-        setRunResult(result);
-        recordRun(result);
-        audio?.stopBgm();
-      },
-      onDefeat: (result) => {
-        setRunResult(result);
-        if (!result.surrendered) {
+        onVictory: (result) => {
+          setRunResult(result);
           recordRun(result);
-        }
-        audio?.stopBgm();
+          audio?.stopBgm();
+        },
+        onDefeat: (result) => {
+          setRunResult(result);
+          if (!result.surrendered) {
+            recordRun(result);
+          }
+          audio?.stopBgm();
+        },
+        onKillStreak: (count) => {
+          const labels: Record<number, string> = {
+            10: "连杀",
+            25: "大杀特杀",
+            50: "收割机器",
+            100: "末日传奇",
+          };
+          addNotification({
+            title: labels[count] ?? "连杀",
+            message: `连续击杀 ${count} 个敌人`,
+            variant: "warning",
+            icon: "danger",
+            durationMs: 2500,
+          });
+        },
+        onMissionComplete: () => {
+          if (settings.vibrationEnabled && navigator.vibrate) {
+            navigator.vibrate(150);
+          }
+        },
+        onExtractionReady: () => {
+          if (settings.vibrationEnabled && navigator.vibrate) {
+            navigator.vibrate(300);
+          }
+        },
+        onEventStart: () => {
+          if (settings.vibrationEnabled && navigator.vibrate) {
+            navigator.vibrate(150);
+          }
+        },
+        onRoguelikeRewardOffer: (options) => {
+          setRoguelikeRewardOptions(options);
+        },
       },
-      onKillStreak: (count) => {
-        const labels: Record<number, string> = {
-          10: "连杀",
-          25: "大杀特杀",
-          50: "收割机器",
-          100: "末日传奇",
-        };
-        addNotification({
-          title: labels[count] ?? "连杀",
-          message: `连续击杀 ${count} 个敌人`,
-          variant: "warning",
-          icon: "danger",
-          durationMs: 2500,
-        });
-      },
-      onMissionComplete: () => {
-        if (settings.vibrationEnabled && navigator.vibrate) {
-          navigator.vibrate(150);
-        }
-      },
-      onExtractionReady: () => {
-        if (settings.vibrationEnabled && navigator.vibrate) {
-          navigator.vibrate(300);
-        }
-      },
-      onEventStart: () => {
-        if (settings.vibrationEnabled && navigator.vibrate) {
-          navigator.vibrate(150);
-        }
-      },
-      onRoguelikeRewardOffer: (options) => {
-        setRoguelikeRewardOptions(options);
-      },
-    },
-    selectedMode,
-    undefined,
-    loadoutSnapshot
+      selectedMode,
+      undefined,
+      loadoutSnapshot
     );
     engineRef.current = engine;
 
@@ -475,6 +476,13 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setFrame((f) => f + 1);
   }, []);
 
+  const handleUseUltimate = useCallback(() => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.useHeroUltimate();
+    setFrame((f) => f + 1);
+  }, []);
+
   const handleUpgrade = useCallback((option: UpgradeOption) => {
     engineRef.current?.selectUpgrade(option);
     setUpgradeOptions(null);
@@ -526,6 +534,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           onSurrender={handleSurrender}
           extractionTimer={engine.state.extractionTimer}
           onUseSkill={handleUseSkill}
+          onUseUltimate={handleUseUltimate}
         />
       )}
 
