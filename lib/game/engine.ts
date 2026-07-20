@@ -146,6 +146,7 @@ export interface GameCallbacks {
   onEventStart?: (event: GameEvent) => void;
   onBossPhaseChange?: (boss: Enemy, phase: number) => void;
   onRoguelikeRewardOffer?: (options: RoguelikeRewardBalance[]) => void;
+  onKillStreak?: (count: number) => void;
 }
 
 export interface Loadout {
@@ -164,6 +165,8 @@ export class GameEngine {
   private fx = new FXSystem();
   private particlePool = new ParticlePool(768);
   private loadout: Required<Loadout>;
+  private pendingSpawns = 0;
+  private spawnBatchTimer = 0;
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -249,6 +252,7 @@ export class GameEngine {
       },
       activeEvent: null,
       eliteKillStreak: 0,
+      killCombo: { count: 0, timer: 0, best: 0 },
       roguelikeRunState,
       defenseState,
       selectedHero: heroId ?? this.state?.selectedHero,
@@ -286,6 +290,7 @@ export class GameEngine {
       activeSkill: null,
       skillTimer: 0,
       deployableUpgrades: {},
+      talentLevels: {},
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -434,6 +439,8 @@ export class GameEngine {
     }
     this.fx.reset();
     this.particlePool.clear();
+    this.pendingSpawns = 0;
+    this.spawnBatchTimer = 0;
     this.state = this.createInitialState(mode);
     this.state.particles = this.particlePool.getParticles();
     this.start();
@@ -462,6 +469,7 @@ export class GameEngine {
     this.updateEvents(dt);
     this.updateWave(dt);
     this.updateDefenseState(dt);
+    this.updateKillCombo(dt);
     this.handleCollisions();
     this.updateCamera();
 
@@ -740,17 +748,24 @@ export class GameEngine {
       return;
     }
 
-    if (this.state.spawnTimer > 0) return;
-
-    const difficulty = this.state.difficulty;
-    this.state.spawnTimer = getSpawnInterval(difficulty);
-
-    const count = getSpawnCount(difficulty);
-    for (let i = 0; i < count; i++) {
-      this.spawnEnemy();
+    if (this.state.spawnTimer <= 0) {
+      const difficulty = this.state.difficulty;
+      this.state.spawnTimer = getSpawnInterval(difficulty);
+      this.pendingSpawns += getSpawnCount(difficulty);
+      this.state.difficulty += DEFAULT_BALANCE.difficulty.difficultyGrowth;
     }
 
-    this.state.difficulty += DEFAULT_BALANCE.difficulty.difficultyGrowth;
+    if (this.pendingSpawns > 0) {
+      this.spawnBatchTimer -= dt;
+      if (this.spawnBatchTimer <= 0) {
+        const batchSize = Math.min(3, this.pendingSpawns);
+        for (let i = 0; i < batchSize; i++) {
+          this.spawnEnemy();
+          this.pendingSpawns--;
+        }
+        this.spawnBatchTimer = 0.38;
+      }
+    }
   }
 
   private spawnEnemy(variantOverride?: EnemyVariant, elite = false) {
@@ -1165,6 +1180,45 @@ export class GameEngine {
     }
   }
 
+  private updateKillCombo(dt: number) {
+    const combo = this.state.killCombo;
+    if (combo.count > 0) {
+      combo.timer -= dt;
+      if (combo.timer <= 0) {
+        combo.count = 0;
+      }
+    }
+  }
+
+  private addKillCombo(isBoss: boolean) {
+    const combo = this.state.killCombo;
+    combo.count += 1;
+    combo.timer = 2.5;
+    if (combo.count > combo.best) {
+      combo.best = combo.count;
+    }
+
+    const milestones = [10, 25, 50, 100];
+    if (milestones.includes(combo.count)) {
+      this.callbacks.onKillStreak?.(combo.count);
+    }
+
+    if (combo.count >= 10) {
+      this.spawnDamageNumber(
+        this.state.player.x,
+        this.state.player.y - this.state.player.radius - 24,
+        combo.count,
+        combo.count >= 50 ? "#f43f5e" : combo.count >= 25 ? "#f59e0b" : "#22d3ee",
+        false
+      );
+    }
+
+    if (isBoss) {
+      combo.count = 0;
+      combo.timer = 0;
+    }
+  }
+
   private updateDefenseState(dt: number) {
     const ds = this.state.defenseState;
     if (!ds || this.state.mode !== "defense") return;
@@ -1303,11 +1357,17 @@ export class GameEngine {
         if (circleCollision(p, enemy)) {
           hit = true;
           const isCrit = Math.random() < this.state.player.critChance;
-          let damage = p.damage * (isCrit ? 2 : 1);
+          const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
+          const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
+          let damage = p.damage * comboMul * critMul;
           damage = this.applyDamage(enemy, damage, p.burnDuration, p.burnDamage);
           p.pierce -= 1;
           this.state.stats.damageDealt += damage;
           this.spawnDamageNumber(enemy.x, enemy.y, damage, p.color, isCrit);
+          if (isCrit) {
+            this.fx.addTrauma(0.06);
+            this.particlePool.spawnPreset("spark", enemy.x, enemy.y, "#facc15", { intensity: 0.6 });
+          }
 
           const knockbackPower =
             p.weaponId === "shotgun" ? 120 : p.weaponId === "rocket" ? 200 : 40;
@@ -1486,6 +1546,7 @@ export class GameEngine {
 
     this.state.enemies.splice(index, 1);
     addKill(this.state);
+    this.addKillCombo(enemy.isBoss);
     if (enemy.isElite) {
       this.state.stats.elitesKilled++;
       this.state.eliteKillStreak++;
@@ -1525,7 +1586,7 @@ export class GameEngine {
       });
       if (enemy.isBoss) return;
     }
-    if (roll < 0.06) {
+    if (roll < 0.025) {
       this.state.pickups.push({
         id: uid("pickup"),
         x: enemy.x,
@@ -1536,7 +1597,7 @@ export class GameEngine {
         color: "#34d399",
         magnetized: false,
       });
-    } else if (roll < 0.14) {
+    } else if (roll < 0.13) {
       this.state.pickups.push({
         id: uid("pickup"),
         x: enemy.x,
@@ -1643,6 +1704,21 @@ export class GameEngine {
     this.advanceRoguelikeStage();
   }
 
+  surrender() {
+    if (this.state.status !== "running" && this.state.status !== "paused") return;
+    const result: RunResult = {
+      victory: false,
+      surrendered: true,
+      stats: { ...this.state.stats },
+      completedMissions: this.state.missions.filter((m) => m.completed).length,
+      elapsed: this.state.stats.timeSurvived,
+      mode: this.state.mode,
+    };
+    this.state.status = "defeat";
+    audio?.play("alert");
+    this.callbacks.onDefeat?.(result);
+  }
+
   private endRun(victory: boolean) {
     this.state.status = victory ? "victory" : "defeat";
     const result: RunResult = {
@@ -1728,6 +1804,8 @@ export class GameEngine {
       stats: this.state.stats,
       activeEvent: this.state.activeEvent,
       waveEnemiesRemaining: this.state.enemies.length,
+      eliteKillStreak: this.state.eliteKillStreak,
+      killCombo: this.state.killCombo,
       roguelikeRunState: this.state.roguelikeRunState,
     };
   }
@@ -1760,6 +1838,8 @@ export class GameEngine {
     this.state.waveTimer = serialized.waveTimer;
     this.state.stats = serialized.stats;
     this.state.activeEvent = serialized.activeEvent;
+    this.state.eliteKillStreak = serialized.eliteKillStreak ?? 0;
+    this.state.killCombo = serialized.killCombo ?? { count: 0, timer: 0, best: 0 };
     if (serialized.roguelikeRunState) {
       this.state.roguelikeRunState = serialized.roguelikeRunState;
     }
@@ -1803,6 +1883,7 @@ export class GameEngine {
     this.drawBackground(ctx);
     this.drawHazards(ctx);
     this.drawObstacles(ctx);
+    this.drawNodes(ctx);
     this.drawExtraction(ctx);
     this.drawPickups(ctx);
     this.drawParticles(ctx);
@@ -1862,6 +1943,65 @@ export class GameEngine {
         ctx.fillStyle = pct > 0.5 ? "#34d399" : "#f43f5e";
         ctx.fillRect(-obs.width / 2, -obs.height / 2 - 8, obs.width * pct, 4);
       }
+      ctx.restore();
+    }
+  }
+
+  private drawNodes(ctx: CanvasRenderingContext2D) {
+    const ds = this.state.defenseState;
+    if (!ds) return;
+
+    const time = this.state.time;
+    for (const node of ds.nodes) {
+      ctx.save();
+      ctx.translate(node.x, node.y);
+
+      const hintRadius = node.radius + 5;
+      const isCaptured = node.captured;
+      const isActive = node.active && !isCaptured;
+      const baseColor = isCaptured ? "#34d399" : node.color;
+      const pulse = isActive ? Math.sin(time * 4) * 0.06 + 0.94 : 1;
+
+      // Outer hint ring (radius + 5 units)
+      ctx.beginPath();
+      ctx.arc(0, 0, hintRadius * pulse, 0, Math.PI * 2);
+      ctx.strokeStyle = isActive ? `${baseColor}88` : `${baseColor}33`;
+      ctx.lineWidth = isActive ? 3 : 2;
+      if (isActive) {
+        ctx.setLineDash([8, 8]);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Inner fill
+      ctx.beginPath();
+      ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+      ctx.fillStyle = isCaptured ? `${baseColor}22` : `${baseColor}18`;
+      ctx.fill();
+
+      // Core ring
+      ctx.beginPath();
+      ctx.arc(0, 0, node.radius * 0.6, 0, Math.PI * 2);
+      ctx.strokeStyle = `${baseColor}${isActive ? "aa" : "55"}`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Capture progress ring for active uncaptured nodes
+      if (isActive && node.captureProgress > 0) {
+        ctx.beginPath();
+        ctx.arc(0, 0, node.radius * 0.85, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * node.captureProgress);
+        ctx.strokeStyle = "#22d3ee";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
+
+      // Label
+      ctx.fillStyle = `${baseColor}${isActive ? "ff" : "99"}`;
+      ctx.font = "bold 13px var(--font-geist-sans), sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(isCaptured ? "已占领" : isActive ? "能量据点" : "未激活", 0, 0);
+
       ctx.restore();
     }
   }

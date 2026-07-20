@@ -43,6 +43,7 @@ function basePlayer(): Player {
     activeSkill: null,
     skillTimer: 0,
     deployableUpgrades: {},
+    talentLevels: {},
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
@@ -105,7 +106,7 @@ describe("applyHeroToPlayer", () => {
   it("medic increases regen", () => {
     const player = basePlayer();
     applyHeroToPlayer(player, "medic");
-    expect(player.regen).toBe(1.5);
+    expect(player.regen).toBe(2);
   });
 
   it("engineer increases cooldown reduction and area", () => {
@@ -140,7 +141,7 @@ describe("useHeroSkill", () => {
     state.player.skillTimer = 0;
     useHeroSkill(state.player, state);
     expect(state.defenseState!.deployables[0].type).toBe("shield");
-    expect(state.defenseState!.deployables[0].health).toBe(600);
+    expect(state.defenseState!.deployables[0].health).toBe(400);
   });
 
   it("medic deploys a healing aura", () => {
@@ -416,7 +417,7 @@ describe("deployable upgrades", () => {
     state.player.skillTimer = 0;
     useHeroSkill(state.player, state);
     const shield = state.defenseState!.deployables[0];
-    expect(shield.maxHealth).toBeGreaterThan(600);
+    expect(shield.maxHealth).toBeGreaterThan(400);
   });
 
   it("vanguard deploys multiple mines with mineCount upgrade", () => {

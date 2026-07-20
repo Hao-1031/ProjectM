@@ -4,7 +4,8 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig = {
   reactStrictMode: true,
   images: { unoptimized: true },
-  output: "standalone",
+  // Windows 本地构建 standalone 因 pnpm symlink 极易阻塞；Linux 生产部署仍输出 standalone
+  output: process.platform === "win32" ? undefined : "standalone",
   webpack: (config) => {
     config.module.rules.push({
       test: /\.(test|spec)\.(tsx|ts|jsx|js)$/,
@@ -26,4 +27,7 @@ const sentryWebpackPluginOptions = {
   },
 };
 
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+// 本地/未配置 Sentry 时跳过 Sentry 构建包装，避免上传插件阻塞构建
+export default hasSentryAuthToken
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig;

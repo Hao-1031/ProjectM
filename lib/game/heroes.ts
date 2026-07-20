@@ -4,6 +4,8 @@ import { uid, distance, angleBetween, normalize, clamp } from "./math";
 export interface HeroDef {
   id: HeroId;
   name: string;
+  role: string;
+  tagline: string;
   description: string;
   color: string;
   skill: HeroSkill;
@@ -25,6 +27,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
   scout: {
     id: "scout",
     name: "侦察",
+    role: "侦察",
+    tagline: "情报侦察",
     description: "高机动游击单位，可部署侦察信标提升团队暴击与视野",
     color: "#22d3ee",
     skill: {
@@ -44,6 +48,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "探路者",
         description: "移动速度 +4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { speedMul: 1.04 },
       },
       {
@@ -51,6 +56,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "弱点扫描",
         description: "暴击率 +3%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { critAdd: 0.03 },
       },
       {
@@ -58,6 +64,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "信号中继",
         description: "技能持续时间 +10%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { skillDurationMul: 0.1 },
       },
       {
@@ -65,6 +72,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "广域信标",
         description: "侦察信标作用范围 +12%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { areaMul: 1.12 },
       },
       {
@@ -72,6 +80,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "闪避机动",
         description: "受到伤害后 2 秒内移动速度 +8%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { speedMul: 1.04 },
       },
       {
@@ -79,6 +88,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "精密射击",
         description: "武器射程 +5%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { rangeMul: 1.05 },
       },
       {
@@ -86,6 +96,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "联合标定",
         description: "信标范围内敌人受到的伤害 +4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { damageMul: 1.04 },
       },
       {
@@ -93,6 +104,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "预警雷达",
         description: "拾取范围 +10%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { areaMul: 1.1 },
       },
     ],
@@ -100,6 +112,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
   assault: {
     id: "assault",
     name: "突击",
+    role: "突击",
+    tagline: "正面压制",
     description: "前线重火力，可展开护盾吸收伤害",
     color: "#f59e0b",
     skill: {
@@ -119,6 +133,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "加固装甲",
         description: "护甲 +3%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { armorAdd: 0.03 },
       },
       {
@@ -126,6 +141,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "战斗体质",
         description: "最大生命值 +8%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { healthMul: 1.08 },
       },
       {
@@ -133,6 +149,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "壁垒扩展",
         description: "技能持续时间 +10%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { skillDurationMul: 0.1 },
       },
       {
@@ -140,6 +157,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "超密护盾",
         description: "护盾生命值 +15%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { healthMul: 1.05 },
       },
       {
@@ -147,6 +165,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "动能反馈",
         description: "武器伤害 +5%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { damageMul: 1.05 },
       },
       {
@@ -154,6 +173,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "肾上腺素",
         description: "技能冷却 -5%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { cooldownMul: 0.95 },
       },
       {
@@ -161,6 +181,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "不动要塞",
         description: "静止时受到伤害 -5%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { armorAdd: 0.02 },
       },
       {
@@ -168,6 +189,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "压制火力",
         description: "武器射速 +4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { cooldownMul: 0.96 },
       },
     ],
@@ -175,6 +197,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
   medic: {
     id: "medic",
     name: "医疗",
+    role: "医疗",
+    tagline: "战地治疗",
     description: "团队续航核心，无人机持续治疗附近友军",
     color: "#34d399",
     skill: {
@@ -187,13 +211,14 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       duration: 10,
       color: "#34d399",
     },
-    passive: { regenAdd: 1.5, maxHealthMul: 0.95 },
+    passive: { regenAdd: 2, maxHealthMul: 0.95 },
     talents: [
       {
         id: "medic_regen",
         name: "纳米修复",
         description: "生命恢复 +0.5/秒",
         maxLevel: 5,
+        category: "utility",
         modifiers: { regenAdd: 0.5 },
       },
       {
@@ -201,6 +226,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "冷却优化",
         description: "武器冷却 -4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { cooldownMul: 0.96 },
       },
       {
@@ -208,6 +234,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "治疗场",
         description: "技能持续时间 +10%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { skillDurationMul: 0.1 },
       },
       {
@@ -215,6 +242,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "广域治疗无人机",
         description: "治疗无人机作用范围 +12%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableRangeMul: 1.12 },
       },
       {
@@ -222,6 +250,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "超导修复束",
         description: "治疗无人机恢复量 +8%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableDamageMul: 1.08 },
       },
       {
@@ -229,6 +258,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "净化协议",
         description: "治疗无人机同时清除燃烧与腐蚀减益",
         maxLevel: 1,
+        category: "skill",
         modifiers: { deployableDurationMul: 1.05 },
       },
       {
@@ -236,6 +266,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "急救强化",
         description: "最大生命值 +6%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { healthMul: 1.06 },
       },
       {
@@ -243,6 +274,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "共感链接",
         description: "附近友军获得你 15% 生命恢复效果",
         maxLevel: 5,
+        category: "utility",
         modifiers: { regenAdd: 0.2 },
       },
       {
@@ -250,6 +282,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "战地机动",
         description: "移动速度 +4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { speedMul: 1.04 },
       },
       {
@@ -257,6 +290,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "生物装甲",
         description: "护甲 +3%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { armorAdd: 0.03 },
       },
     ],
@@ -264,6 +298,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
   engineer: {
     id: "engineer",
     name: "工程",
+    role: "工程",
+    tagline: "阵地构筑",
     description: "防御专家，可部署自动炮塔并缓慢修复核心",
     color: "#a855f7",
     skill: {
@@ -283,6 +319,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "超频核心",
         description: "武器冷却 -4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { cooldownMul: 0.96 },
       },
       {
@@ -290,6 +327,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "炮塔光学",
         description: "伤害 +5%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { damageMul: 1.05 },
       },
       {
@@ -297,6 +335,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "射程增幅",
         description: "武器射程 +6%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { rangeMul: 1.06 },
       },
       {
@@ -304,6 +343,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "穿甲弹药",
         description: "自动炮塔伤害 +10%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableDamageMul: 1.1 },
       },
       {
@@ -311,6 +351,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "双联供弹",
         description: "自动炮塔射速 +8%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableCooldownMul: 0.92 },
       },
       {
@@ -318,6 +359,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "遥控制导",
         description: "自动炮塔射程 +12%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableRangeMul: 1.12 },
       },
       {
@@ -325,6 +367,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "合金装甲",
         description: "自动炮塔生命值 +15%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableHealthMul: 1.15 },
       },
       {
@@ -332,6 +375,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "战场维修",
         description: "炮塔持续缓慢自我修复，每秒 8 点",
         maxLevel: 3,
+        category: "skill",
         modifiers: { deployableDurationMul: 1.05 },
       },
       {
@@ -339,6 +383,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "核心稳压",
         description: "每波结束为核心恢复 2% 最大生命值",
         maxLevel: 5,
+        category: "utility",
         modifiers: { regenAdd: 0.15 },
       },
       {
@@ -346,6 +391,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "连锁覆盖",
         description: "范围效果 +6%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { areaMul: 1.06 },
       },
     ],
@@ -353,6 +399,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
   vanguard: {
     id: "vanguard",
     name: "先锋",
+    role: "先锋",
+    tagline: "区域封锁",
     description: "突破专家，可布雷封锁通道并对重甲造成额外杀伤",
     color: "#f43f5e",
     skill: {
@@ -372,6 +420,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "爆破专家",
         description: "范围效果 +8%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { areaMul: 1.08 },
       },
       {
@@ -379,6 +428,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "移动堡垒",
         description: "护甲 +3%",
         maxLevel: 5,
+        category: "utility",
         modifiers: { armorAdd: 0.03 },
       },
       {
@@ -386,6 +436,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "重型装药",
         description: "伤害 +5%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { damageMul: 1.05 },
       },
       {
@@ -393,6 +444,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "聚能装药",
         description: "感应地雷爆炸伤害 +12%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableDamageMul: 1.12 },
       },
       {
@@ -400,6 +452,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "破片扩散",
         description: "感应地雷爆炸半径 +10%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableRangeMul: 1.1 },
       },
       {
@@ -407,6 +460,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "速发引信",
         description: "感应地雷触发半径 +8%",
         maxLevel: 5,
+        category: "skill",
         modifiers: { deployableRangeMul: 1.04 },
       },
       {
@@ -414,6 +468,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "布雷阵列",
         description: "技能额外同时部署 1 枚地雷",
         maxLevel: 3,
+        category: "skill",
         modifiers: { deployableDamageMul: 1.06 },
       },
       {
@@ -421,6 +476,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "破甲弹头",
         description: "对精英与 Boss 伤害 +6%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { damageMul: 1.03 },
       },
       {
@@ -428,6 +484,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "震荡冲击",
         description: "地雷爆炸短暂眩晕命中敌人 0.4 秒",
         maxLevel: 3,
+        category: "skill",
         modifiers: { deployableDurationMul: 1.05 },
       },
       {
@@ -435,6 +492,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         name: "冲锋激素",
         description: "移动速度 +4%",
         maxLevel: 5,
+        category: "damage",
         modifiers: { speedMul: 1.04 },
       },
     ],
@@ -639,7 +697,7 @@ export function useHeroSkill(player: Player, state: GameState): void {
       break;
     }
     case "assault": {
-      const shieldHealth = Math.round(600 * healthMul);
+      const shieldHealth = Math.round(400 * healthMul);
       ds.deployables.push({
         id: uid("deploy"),
         x: deployX,
@@ -742,7 +800,7 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number): vo
       const healMul = getDeployableMultiplier(owner, "damage");
       for (const player of players) {
         if (distance(player, d) <= d.radius + player.radius) {
-          player.health = Math.min(player.maxHealth, player.health + 12 * dt * healMul);
+          player.health = Math.min(player.maxHealth, player.health + 22 * dt * healMul);
         }
       }
     }

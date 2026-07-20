@@ -89,7 +89,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
       {showNav && !isIndex && (
         <footer className="border-t border-border py-6 text-center text-xs text-muted">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 md:flex-row">
-            <p>Project M · 本地优先 · 数据永不离开浏览器</p>
+            <p>Project M · 公平竞技 · 无付费加成</p>
             <div className="flex gap-4">
               <Link href="/" className="hover:text-foreground focus-ring rounded">
                 首页

@@ -46,6 +46,7 @@ function createMockState(): GameState {
       activeSkill: null,
       skillTimer: 0,
       deployableUpgrades: {},
+      talentLevels: {},
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -79,6 +80,7 @@ function createMockState(): GameState {
     wave: 1,
     waveTimer: 0,
     eliteKillStreak: 0,
+    killCombo: { count: 0, timer: 0, best: 0 },
     difficulty: 1,
     intensity: 0,
     stats: {

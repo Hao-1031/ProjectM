@@ -2,7 +2,7 @@ import Layout from "@/components/Layout";
 import SettingsPanel from "@/components/SettingsPanel";
 import FeatureCard from "@/components/FeatureCard";
 import { motion, useReducedMotion } from "framer-motion";
-import { HardDrives, PersonSimpleRun, Ear } from "@phosphor-icons/react";
+import { PersonSimpleRun, Ear, Trophy } from "@phosphor-icons/react";
 
 export default function SettingsPage() {
   const reducedMotion = useReducedMotion();
@@ -24,7 +24,7 @@ export default function SettingsPage() {
               音频、画质与偏好。
             </h1>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
-              所有设置仅保存在本地浏览器。切换设备不会同步，清理浏览器数据将重置这些选项。
+              调整音频、画质与可访问性偏好。设置会随当前设备保存。
             </p>
           </div>
 
@@ -33,9 +33,9 @@ export default function SettingsPage() {
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <FeatureCard
-                icon={<HardDrives size={22} weight="bold" className="text-primary" />}
-                title="本地存储"
-                description="设置与存档使用浏览器本地存储，不上传服务器。"
+                icon={<Trophy size={22} weight="bold" className="text-primary" />}
+                title="公平竞技"
+                description="无付费加成。所有武器、英雄与属性均通过游戏内战斗解锁。"
                 variant="muted"
               />
               <FeatureCard

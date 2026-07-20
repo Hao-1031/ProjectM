@@ -40,6 +40,7 @@ const basePlayer = (): Player => ({
   activeSkill: null,
   skillTimer: 0,
   deployableUpgrades: {},
+  talentLevels: {},
   knockbackX: 0,
   knockbackY: 0,
   burnDuration: 0,
@@ -177,10 +178,9 @@ describe("weapons", () => {
   });
 
   describe("generateUpgradeOptions", () => {
-    it("generates up to three options", () => {
+    it("generates four options", () => {
       const options = generateUpgradeOptions(basePlayer());
-      expect(options.length).toBeLessThanOrEqual(3);
-      expect(options.length).toBeGreaterThan(0);
+      expect(options.length).toBe(4);
     });
 
     it("offers new weapon when slot available", () => {

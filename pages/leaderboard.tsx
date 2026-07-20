@@ -53,7 +53,7 @@ export default function LeaderboardPage() {
               你的最佳撤离记录。
             </h1>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted md:text-base">
-              目前版本仅保存个人最佳战绩。所有数据本地存储，全球排行榜将在后续版本以可选方式开放。
+              目前版本仅保存个人最佳战绩。全球排行榜将在后续版本以可选方式开放。
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -182,7 +182,7 @@ export default function LeaderboardPage() {
             </div>
             <h3 className="mt-5 text-lg font-semibold">全球排行榜尚未启用</h3>
             <p className="mt-2 text-sm text-muted">
-              第一版专注于纯本地体验。后续版本将提供可选的全球每日挑战榜单，并继续默认保留本地存档。
+              当前版本优先打磨本地战斗与联机合作体验。全球排行榜功能将在后续版本中作为可选功能开启。
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm text-primary">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />

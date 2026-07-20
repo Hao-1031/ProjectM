@@ -6,6 +6,7 @@ import {
   upgradeWeaponFromBalance,
   PASSIVE_BALANCE_DEFS,
 } from "./balance";
+import { HERO_DEFS, applyHeroTalent } from "./heroes";
 
 export function createPulseRifle(): Weapon {
   return getWeaponBase("pulse");
@@ -147,72 +148,121 @@ export function applyPassive(player: Player, id: PassiveId): Player {
 
 export function generateUpgradeOptions(player: Player): UpgradeOption[] {
   const options: UpgradeOption[] = [];
-  const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
 
-  // Offer a new weapon if slot available
-  const availableWeapons = (Object.keys(WEAPON_CREATORS) as WeaponId[]).filter(
-    (id) => !player.weapons.some((w) => w.id === id)
-  );
-  if (availableWeapons.length > 0 && player.weapons.length < maxWeapons) {
-    const id = availableWeapons[0];
-    const weapon = WEAPON_CREATORS[id]();
-    options.push({
-      id: uid("opt"),
-      type: "weapon",
-      targetId: id,
-      name: `解锁 ${weapon.name}`,
-      description: weapon.description,
-      level: 1,
-      maxLevel: weapon.maxLevel,
-    });
-  }
+  // Hero-talent based upgrades: 2 damage + 1 skill + 1 utility
+  if (player.heroId) {
+    const def = HERO_DEFS[player.heroId];
+    const levels = player.talentLevels ?? {};
+    const available = def.talents.filter((t) => (levels[t.id] ?? 0) < t.maxLevel);
 
-  // Offer weapon upgrades
-  for (const weapon of player.weapons) {
-    if (weapon.level < weapon.maxLevel) {
+    const damage = shuffleArray(available.filter((t) => t.category === "damage"));
+    const skill = shuffleArray(available.filter((t) => t.category === "skill"));
+    const utility = shuffleArray(available.filter((t) => t.category === "utility"));
+
+    const picks: typeof def.talents = [];
+    picks.push(...damage.slice(0, 2));
+    picks.push(...skill.slice(0, 1));
+    picks.push(...utility.slice(0, 1));
+
+    if (picks.length < 4) {
+      const used = new Set(picks.map((t) => t.id));
+      const remaining = shuffleArray(available.filter((t) => !used.has(t.id)));
+      picks.push(...remaining.slice(0, 4 - picks.length));
+    }
+
+    for (const talent of picks.slice(0, 4)) {
+      const level = levels[talent.id] ?? 0;
       options.push({
         id: uid("opt"),
+        type: "heroTalent",
+        targetId: talent.id,
+        name: level === 0 ? `解锁 ${talent.name}` : `${talent.name} Lv.${level + 1}`,
+        description: talent.description,
+        level,
+        maxLevel: talent.maxLevel,
+      });
+    }
+  }
+
+  // Fallback: weapon/passive pool for runs without a hero
+  if (options.length < 4) {
+    const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
+    const pool: UpgradeOption[] = [];
+
+    const availableWeapons = (Object.keys(WEAPON_CREATORS) as WeaponId[]).filter(
+      (id) => !player.weapons.some((w) => w.id === id)
+    );
+    if (availableWeapons.length > 0 && player.weapons.length < maxWeapons) {
+      const id = availableWeapons[0];
+      const weapon = WEAPON_CREATORS[id]();
+      pool.push({
+        id: uid("opt"),
         type: "weapon",
-        targetId: weapon.id,
-        name: `${weapon.name} Lv.${weapon.level + 1}`,
-        description: getWeaponUpgradeDescription(weapon),
-        level: weapon.level,
+        targetId: id,
+        name: `解锁 ${weapon.name}`,
+        description: weapon.description,
+        level: 1,
         maxLevel: weapon.maxLevel,
       });
     }
-  }
 
-  // Offer passive upgrades
-  for (const def of PASSIVE_BALANCE_DEFS) {
-    const existing = player.passives.find((p) => p.id === def.id);
-    const level = existing?.level ?? 0;
-    if (level < def.maxLevel) {
-      options.push({
-        id: uid("opt"),
-        type: "passive",
-        targetId: def.id,
-        name: level === 0 ? `解锁 ${def.name}` : `${def.name} Lv.${level + 1}`,
-        description: def.description,
-        level,
-        maxLevel: def.maxLevel,
-      });
+    for (const weapon of player.weapons) {
+      if (weapon.level < weapon.maxLevel) {
+        pool.push({
+          id: uid("opt"),
+          type: "weapon",
+          targetId: weapon.id,
+          name: `${weapon.name} Lv.${weapon.level + 1}`,
+          description: getWeaponUpgradeDescription(weapon),
+          level: weapon.level,
+          maxLevel: weapon.maxLevel,
+        });
+      }
     }
+
+    for (const def of PASSIVE_BALANCE_DEFS) {
+      const existing = player.passives.find((p) => p.id === def.id);
+      const level = existing?.level ?? 0;
+      if (level < def.maxLevel) {
+        pool.push({
+          id: uid("opt"),
+          type: "passive",
+          targetId: def.id,
+          name: level === 0 ? `解锁 ${def.name}` : `${def.name} Lv.${level + 1}`,
+          description: def.description,
+          level,
+          maxLevel: def.maxLevel,
+        });
+      }
+    }
+
+    const shuffled = shuffleArray(pool);
+    options.push(...shuffled.slice(0, 4 - options.length));
   }
 
-  // Shuffle and pick up to 3
-  for (let i = options.length - 1; i > 0; i--) {
+  return options.slice(0, 4);
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
-  return options.slice(0, 3);
+  return copy;
 }
 
 export function applyUpgrade(player: Player, option: UpgradeOption): Player {
   let next = { ...player };
   next.weapons = player.weapons.map((w) => ({ ...w }));
   next.passives = player.passives.map((p) => ({ ...p }));
+  next.talentLevels = { ...player.talentLevels };
+  next.deployableUpgrades = { ...player.deployableUpgrades };
 
-  if (option.type === "weapon") {
+  if (option.type === "heroTalent") {
+    next = applyHeroTalent(next, option.targetId);
+    next.talentLevels[option.targetId] = (next.talentLevels[option.targetId] ?? 0) + 1;
+  } else if (option.type === "weapon") {
     const existing = next.weapons.find((w) => w.id === option.targetId);
     if (existing) {
       const idx = next.weapons.indexOf(existing);

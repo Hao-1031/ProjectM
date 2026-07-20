@@ -208,7 +208,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
 
       <div className="mt-6 flex items-start gap-2 rounded-xl border border-border bg-[var(--panel-raised)] p-3 text-xs text-muted">
         <ArrowCounterClockwise size={16} weight="bold" className="mt-0.5 shrink-0 text-primary" />
-        <p>所有设置均保存在本地浏览器，切换设备不会同步。</p>
+        <p>设置会随当前设备保存。需要跨设备同步请手动导出备份。</p>
       </div>
     </motion.div>
   );

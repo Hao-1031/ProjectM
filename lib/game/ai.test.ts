@@ -50,6 +50,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     activeSkill: null,
     skillTimer: 0,
     deployableUpgrades: {},
+    talentLevels: {},
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,

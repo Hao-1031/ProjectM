@@ -210,6 +210,8 @@ export interface Player {
   skillTimer: number;
   // Deployable upgrade progression (talent-purchased permanent ranks)
   deployableUpgrades: Record<string, number>;
+  // Hero talent levels purchased this run
+  talentLevels: Record<string, number>;
   // Transient state
   knockbackX: number;
   knockbackY: number;
@@ -467,6 +469,7 @@ export interface HeroTalent {
   name: string;
   description: string;
   maxLevel: number;
+  category: "damage" | "skill" | "utility";
   modifiers: {
     damageMul?: number;
     cooldownMul?: number;
@@ -557,6 +560,7 @@ export interface GameState {
   stats: GameStats;
   activeEvent: GameEvent | null;
   eliteKillStreak: number;
+  killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
   selectedHero?: HeroId;
@@ -576,6 +580,7 @@ export interface UpgradeOption {
 
 export interface RunResult {
   victory: boolean;
+  surrendered?: boolean;
   stats: GameStats;
   completedMissions: number;
   elapsed: number;
@@ -650,6 +655,8 @@ export interface SerializedGameState {
   stats: GameStats;
   activeEvent: GameEvent | null;
   waveEnemiesRemaining: number;
+  eliteKillStreak: number;
+  killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
   selectedHero?: HeroId;

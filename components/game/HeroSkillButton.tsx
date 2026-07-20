@@ -34,7 +34,7 @@ export default function HeroSkillButton({
       whileHover={reducedMotion || !ready ? undefined : { scale: 1.04 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={cn(
-        "pointer-events-auto relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border-2 bg-panel/90 shadow-lg backdrop-blur-md",
+        "pointer-events-auto relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border-2 bg-panel/90 shadow-lg backdrop-blur-md touch-manipulation sm:h-16 sm:w-16",
         ready && !disabled
           ? "border-primary text-primary hover:bg-primary/10"
           : "border-border text-muted",

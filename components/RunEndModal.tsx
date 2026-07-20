@@ -23,6 +23,7 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
   const router = useRouter();
 
   const victory = result.victory;
+  const surrendered = result.surrendered;
   const accentColor = victory ? "text-success" : "text-danger";
   const accentBorder = victory ? "border-success/30" : "border-danger/30";
   const accentBg = victory ? "bg-success/10" : "bg-danger/10";
@@ -64,12 +65,14 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
             <TitleIcon size={32} weight="bold" className={accentColor} />
           </div>
           <h2 className={`mt-5 text-3xl font-bold tracking-tight ${accentColor}`}>
-            {victory ? "撤离成功" : "任务失败"}
+            {victory ? "撤离成功" : surrendered ? "已放弃战斗" : "任务失败"}
           </h2>
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
             {victory
-              ? "你已完成全部任务并安全撤离。数据已保存到本地战绩。"
-              : "信号中断，等待下一次部署。总结经验后再次尝试。"}
+              ? "你已完成全部任务并安全撤离。战绩已更新。"
+              : surrendered
+                ? "你已主动放弃本局战斗。不会记录任何奖励与进度。"
+                : "信号中断，等待下一次部署。总结经验后再次尝试。"}
           </p>
         </div>
 

@@ -130,7 +130,7 @@ export default function ModesPage() {
         >
           <div className="mb-6 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
             <Sparkle size={12} />
-            每日挑战词缀
+            环境词缀
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {dailyModifiers.map((mod, index) => (

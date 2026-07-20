@@ -680,7 +680,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     walker: {
       healthMul: 1,
       speed: 105,
-      damage: 16,
+      damage: 22,
       radius: 14,
       xpValue: 6,
       color: "#fb923c",
@@ -691,8 +691,8 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     },
     runner: {
       healthMul: 0.55,
-      speed: 150,
-      damage: 12,
+      speed: 130,
+      damage: 14,
       radius: 10,
       xpValue: 4,
       color: "#34d399",
@@ -704,7 +704,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     tank: {
       healthMul: 3.2,
       speed: 78,
-      damage: 28,
+      damage: 36,
       radius: 22,
       xpValue: 14,
       color: "#f43f5e",
@@ -716,7 +716,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     spitter: {
       healthMul: 0.8,
       speed: 92,
-      damage: 12,
+      damage: 16,
       radius: 12,
       xpValue: 9,
       color: "#a3e635",
@@ -729,7 +729,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     elite: {
       healthMul: 5.5,
       speed: 128,
-      damage: 36,
+      damage: 44,
       radius: 18,
       xpValue: 28,
       color: "#f59e0b",
@@ -742,7 +742,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     boss: {
       healthMul: 30,
       speed: 72,
-      damage: 58,
+      damage: 70,
       radius: 40,
       xpValue: 250,
       color: "#e879f9",
@@ -755,7 +755,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     drone: {
       healthMul: 0.35,
       speed: 180,
-      damage: 9,
+      damage: 12,
       radius: 8,
       xpValue: 4,
       color: "#94a3b8",
@@ -767,7 +767,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     sentinel: {
       healthMul: 1.4,
       speed: 95,
-      damage: 18,
+      damage: 24,
       radius: 15,
       xpValue: 7,
       color: "#64748b",
@@ -779,7 +779,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     crusher: {
       healthMul: 4.5,
       speed: 62,
-      damage: 36,
+      damage: 44,
       radius: 26,
       xpValue: 18,
       color: "#f97316",
@@ -791,7 +791,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     sniper: {
       healthMul: 0.7,
       speed: 78,
-      damage: 14,
+      damage: 18,
       radius: 11,
       xpValue: 8,
       color: "#22d3ee",
@@ -804,7 +804,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     stalker: {
       healthMul: 0.65,
       speed: 185,
-      damage: 13,
+      damage: 16,
       radius: 10,
       xpValue: 5,
       color: "#94a3b8",
@@ -817,7 +817,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     shielder: {
       healthMul: 2.8,
       speed: 85,
-      damage: 21,
+      damage: 26,
       radius: 20,
       xpValue: 13,
       color: "#64748b",
@@ -830,7 +830,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     harvester: {
       healthMul: 1.1,
       speed: 100,
-      damage: 12,
+      damage: 16,
       radius: 13,
       xpValue: 10,
       color: "#f59e0b",
@@ -843,7 +843,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     artillery: {
       healthMul: 1.2,
       speed: 55,
-      damage: 31,
+      damage: 38,
       radius: 14,
       xpValue: 12,
       color: "#78716c",
@@ -856,7 +856,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     disruptor: {
       healthMul: 0.9,
       speed: 115,
-      damage: 10,
+      damage: 13,
       radius: 12,
       xpValue: 9,
       color: "#22d3ee",
@@ -869,7 +869,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     scorcher: {
       healthMul: 1.2,
       speed: 100,
-      damage: 21,
+      damage: 26,
       radius: 15,
       xpValue: 11,
       color: "#f97316",
@@ -882,7 +882,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     bomber: {
       healthMul: 0.7,
       speed: 135,
-      damage: 28,
+      damage: 34,
       radius: 11,
       xpValue: 10,
       color: "#fbbf24",
@@ -895,7 +895,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     leech: {
       healthMul: 0.85,
       speed: 110,
-      damage: 9,
+      damage: 12,
       radius: 12,
       xpValue: 8,
       color: "#a78bfa",
@@ -908,7 +908,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     constructor: {
       healthMul: 1.8,
       speed: 65,
-      damage: 13,
+      damage: 16,
       radius: 18,
       xpValue: 13,
       color: "#64748b",
@@ -921,7 +921,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
     raptor: {
       healthMul: 0.5,
       speed: 195,
-      damage: 10,
+      damage: 13,
       radius: 9,
       xpValue: 5,
       color: "#38bdf8",
@@ -951,7 +951,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       radius: 38,
       speed: 90,
       health: 3000,
-      damage: 35,
+      damage: 45,
       color: "#e879f9",
       secondaryColor: "#f0abfc",
       phases: [
@@ -985,7 +985,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       radius: 42,
       speed: 55,
       health: 4500,
-      damage: 28,
+      damage: 36,
       color: "#84cc16",
       secondaryColor: "#bef264",
       phases: [
@@ -1019,7 +1019,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       radius: 48,
       speed: 45,
       health: 6000,
-      damage: 50,
+      damage: 60,
       color: "#f43f5e",
       secondaryColor: "#fda4af",
       phases: [
@@ -1053,7 +1053,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       radius: 32,
       speed: 120,
       health: 3600,
-      damage: 40,
+      damage: 50,
       color: "#f59e0b",
       secondaryColor: "#fcd34d",
       phases: [
@@ -1087,7 +1087,7 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       radius: 34,
       speed: 65,
       health: 4200,
-      damage: 32,
+      damage: 40,
       color: "#8b5cf6",
       secondaryColor: "#c4b5fd",
       phases: [

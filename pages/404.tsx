@@ -49,7 +49,7 @@ export default function NotFoundPage() {
           </div>
 
           <p className="mt-6 text-center text-xs text-muted">
-            Project M · 本地优先 · 永不收集个人数据
+            Project M · 公平竞技 · 无付费加成
           </p>
         </motion.div>
       </div>

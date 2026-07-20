@@ -51,6 +51,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     RoguelikeRewardBalance[] | null
   >(null);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const [surrendered, setSurrendered] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [lobbyOpen, setLobbyOpen] = useState(multiplayer);
   const [roomCode, setRoomCode] = useState("");
@@ -111,8 +112,25 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       },
       onDefeat: (result) => {
         setRunResult(result);
-        recordRun(result);
+        if (!result.surrendered) {
+          recordRun(result);
+        }
         audio?.stopBgm();
+      },
+      onKillStreak: (count) => {
+        const labels: Record<number, string> = {
+          10: "连杀",
+          25: "大杀特杀",
+          50: "收割机器",
+          100: "末日传奇",
+        };
+        addNotification({
+          title: labels[count] ?? "连杀",
+          message: `连续击杀 ${count} 个敌人`,
+          variant: "warning",
+          icon: "danger",
+          durationMs: 2500,
+        });
       },
       onMissionComplete: () => {
         if (settings.vibrationEnabled && navigator.vibrate) {
@@ -471,10 +489,18 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setRunResult(null);
     setUpgradeOptions(null);
     setRoguelikeRewardOptions(null);
+    setSurrendered(false);
     setIsStarted(false);
     setShowLoadout(true);
     setLoadoutSnapshot(getLoadout());
     engineRef.current?.restart();
+  }, []);
+
+  const handleSurrender = useCallback(() => {
+    if (window.confirm("确定放弃战斗？本局将直接失败，不会保存任何奖励与进度。")) {
+      engineRef.current?.surrender();
+      setSurrendered(true);
+    }
   }, []);
 
   const engine = engineRef.current;
@@ -497,6 +523,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           state={engine.state}
           paused={paused}
           onPauseToggle={handlePauseToggle}
+          onSurrender={handleSurrender}
           extractionTimer={engine.state.extractionTimer}
           onUseSkill={handleUseSkill}
         />
@@ -551,10 +578,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         <div
           className="pointer-events-none absolute rounded-full border-2 border-primary/40 bg-primary/10"
           style={{
-            left: inputRef.current.joystick.origin.x - 40,
-            top: inputRef.current.joystick.origin.y - 40,
-            width: 80,
-            height: 80,
+            left: inputRef.current.joystick.origin.x - 72,
+            top: inputRef.current.joystick.origin.y - 72,
+            width: 144,
+            height: 144,
           }}
         />
       )}
@@ -562,10 +589,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         <div
           className="pointer-events-none absolute rounded-full bg-primary/40"
           style={{
-            left: inputRef.current.joystick.current.x - 16,
-            top: inputRef.current.joystick.current.y - 16,
-            width: 32,
-            height: 32,
+            left: inputRef.current.joystick.current.x - 20,
+            top: inputRef.current.joystick.current.y - 20,
+            width: 40,
+            height: 40,
           }}
         />
       )}
@@ -581,16 +608,24 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       )}
 
       {paused && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-          <div className="rounded-2xl border border-border bg-panel p-8 text-center">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-panel p-6 text-center sm:p-8">
             <h2 className="text-2xl font-bold">已暂停</h2>
             <p className="mt-2 text-sm text-muted">按 Esc 或点击下方按钮继续</p>
-            <button
-              onClick={handlePauseToggle}
-              className="mt-6 rounded-lg bg-primary px-8 py-3 text-sm font-bold text-background transition-transform hover:scale-105 focus-ring active:scale-95"
-            >
-              继续
-            </button>
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                onClick={handlePauseToggle}
+                className="rounded-lg bg-primary px-8 py-3 text-sm font-bold text-background transition-transform hover:scale-105 focus-ring active:scale-95"
+              >
+                继续
+              </button>
+              <button
+                onClick={handleSurrender}
+                className="rounded-lg border border-danger/40 bg-danger/10 px-8 py-3 text-sm font-bold text-danger transition-transform hover:scale-105 focus-ring active:scale-95"
+              >
+                放弃战斗
+              </button>
+            </div>
           </div>
         </div>
       )}

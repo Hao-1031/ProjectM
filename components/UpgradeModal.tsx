@@ -83,11 +83,10 @@ export default function UpgradeModal({ options, onSelect }: UpgradeModalProps) {
         </div>
 
         <div className="px-6 pb-8 md:px-8">
-          <div className="grid grid-flow-dense grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {options.map((option, index) => {
               const meta = typeMeta(option.type);
               const Icon = meta.Icon;
-              const isFeatured = index === 0 && options.length > 1;
 
               return (
                 <motion.button
@@ -103,9 +102,7 @@ export default function UpgradeModal({ options, onSelect }: UpgradeModalProps) {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onSelect(option)}
-                  className={`group relative flex flex-col items-start overflow-hidden rounded-2xl border bg-[var(--panel-raised)] p-5 text-left transition-colors hover:bg-panel focus-ring ${
-                    meta.border
-                  } ${isFeatured ? "sm:col-span-2 md:col-span-2 md:row-span-2 md:p-6" : "col-span-1"}`}
+                  className={`group relative flex flex-col items-start overflow-hidden rounded-2xl border bg-[var(--panel-raised)] p-5 text-left transition-colors hover:bg-panel focus-ring ${meta.border} col-span-1`}
                 >
                   <div className="flex w-full items-start justify-between gap-3">
                     <span
@@ -121,11 +118,7 @@ export default function UpgradeModal({ options, onSelect }: UpgradeModalProps) {
                     )}
                   </div>
 
-                  <h3
-                    className={`mt-4 font-bold ${isFeatured ? "text-xl md:text-2xl" : "text-lg"}`}
-                  >
-                    {option.name}
-                  </h3>
+                  <h3 className="mt-4 text-lg font-bold">{option.name}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
                     {option.description}
                   </p>

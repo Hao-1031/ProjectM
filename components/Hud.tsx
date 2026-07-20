@@ -17,6 +17,8 @@ import {
   BatteryCharging,
   Flag,
   Lightning,
+  Fire,
+  FlagCheckered,
 } from "@phosphor-icons/react";
 import { getBossTemplate } from "@/lib/game/bosses";
 import type { BossId } from "@/lib/game/types";
@@ -32,6 +34,7 @@ interface HudProps {
   onPauseToggle: () => void;
   extractionTimer: number;
   onUseSkill?: () => void;
+  onSurrender?: () => void;
 }
 
 function clampPct(value: number, max: number) {
@@ -44,6 +47,7 @@ export default function Hud({
   onPauseToggle,
   extractionTimer,
   onUseSkill,
+  onSurrender,
 }: HudProps) {
   const player = state.player;
   const mission = getCurrentMission(state);
@@ -138,17 +142,29 @@ export default function Hud({
         </div>
 
         <div className="pointer-events-auto flex flex-col items-end gap-2 sm:gap-3">
-          <button
-            onClick={onPauseToggle}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-panel/90 px-3 py-2 text-xs backdrop-blur-md transition-colors hover:bg-panel focus-ring pointer-events-auto sm:text-sm"
-          >
-            {paused ? (
-              <Play size={14} weight="bold" className="text-primary" />
-            ) : (
-              <Pause size={14} weight="bold" />
+          <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={onPauseToggle}
+              className="inline-flex min-h-[40px] min-w-[64px] items-center gap-1.5 rounded-xl border border-border bg-panel/90 px-3 py-2 text-xs backdrop-blur-md transition-colors hover:bg-panel focus-ring pointer-events-auto touch-manipulation sm:text-sm"
+            >
+              {paused ? (
+                <Play size={14} weight="bold" className="text-primary" />
+              ) : (
+                <Pause size={14} weight="bold" />
+              )}
+              {paused ? "继续" : "暂停"}
+            </button>
+            {onSurrender && (
+              <button
+                onClick={onSurrender}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs font-medium text-danger backdrop-blur-md transition-colors hover:bg-danger/15 focus-ring pointer-events-auto touch-manipulation"
+                aria-label="放弃战斗"
+              >
+                <FlagCheckered size={14} weight="bold" />
+                放弃
+              </button>
             )}
-            {paused ? "继续" : "暂停"}
-          </button>
+          </div>
 
           {event && (
             <div className="max-w-[200px] rounded-2xl border border-danger/40 bg-panel/90 p-3 text-right shadow-lg backdrop-blur-md sm:max-w-[260px] sm:p-4">
@@ -256,6 +272,21 @@ export default function Hud({
               {state.stats.resourcesCollected}
             </p>
           </div>
+          {state.killCombo.count >= 2 && (
+            <div className="relative overflow-hidden rounded-xl border border-warning/40 bg-panel/90 px-2.5 py-2 text-center shadow-lg shadow-warning/10 backdrop-blur-md sm:px-3 sm:py-2.5">
+              <div
+                className="absolute bottom-0 left-0 h-1 bg-warning/60 transition-all"
+                style={{ width: `${Math.max(0, Math.min(100, (state.killCombo.timer / 2.5) * 100))}%` }}
+              />
+              <p className="flex items-center justify-center gap-1 font-mono text-[10px] text-warning sm:text-xs">
+                <Fire size={12} weight="bold" />
+                连杀
+              </p>
+              <p className="font-mono text-base font-bold text-warning sm:text-lg">
+                {state.killCombo.count}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-end gap-2 sm:gap-3">

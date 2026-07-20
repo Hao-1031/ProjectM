@@ -37,7 +37,7 @@ export default function Footer({ totalRuns = 0, totalKills = 0, bestKills = 0 }:
             <span className="font-mono text-xs uppercase tracking-widest">Project M</span>
           </Link>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
-            冷色调科技末日风格的幸存者游戏。数据仅存于本地浏览器，无需联网即可部署。
+            冷色调科技末日风格的幸存者游戏。公平竞技，无付费加成。
           </p>
           <div className="mt-4 flex gap-4 text-xs text-muted">
             <span>出战 {totalRuns}</span>
@@ -63,16 +63,16 @@ export default function Footer({ totalRuns = 0, totalKills = 0, bestKills = 0 }:
         </nav>
 
         <div className="md:col-span-3">
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-muted">数据承诺</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-widest text-muted">公平竞技</h4>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            所有存档、设置与战绩仅保存在你的浏览器中。Project M 不会上传、出售或分析你的个人数据。
+            所有数值成长均通过局内升级与战斗获取。商店、通行证与外观系统不出售任何影响战局的属性或英雄。
           </p>
         </div>
       </div>
 
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-muted md:flex-row">
-          <p>本地优先 · 永不收集个人数据</p>
+          <p>公平竞技 · 无付费加成 · Project M</p>
           <p>Built with Next.js · Tailwind CSS · Framer Motion</p>
         </div>
       </div>

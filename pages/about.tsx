@@ -35,8 +35,8 @@ const values = [
   },
   {
     icon: <Shield size={26} weight="bold" className="text-success" />,
-    title: "本地优先",
-    description: "你的数据属于你自己。存档、设置、战绩全部保留在浏览器本地，不上传服务器。",
+    title: "公平竞技",
+    description: "无氪金、无付费加成。所有英雄、武器与属性成长均通过局内战斗获取。",
   },
   {
     icon: <Eye size={26} weight="bold" className="text-accent" />,
@@ -45,8 +45,8 @@ const values = [
   },
   {
     icon: <Lock size={26} weight="bold" className="text-danger" />,
-    title: "隐私默认",
-    description: "没有追踪脚本、没有广告 ID、没有社交登录。打开即玩，无需账户。",
+    title: "即开即玩",
+    description: "无需账户、无需登录。打开浏览器即可进入战场，随时暂停与继续。",
   },
 ];
 
@@ -128,7 +128,7 @@ export default function AboutPage() {
                 </p>
                 <p>
                   Project M
-                  不会用体力、抽卡或每日签到把你绑住。它更像一张放在桌角的街机卡带：想玩的时候打开，退出时数据还在原地。
+                  不设体力、抽卡或每日签到，也不出售影响战局的属性。它更像一张放在桌角的街机卡带：想玩的时候打开，用技术和策略取胜。
                 </p>
               </div>
             </div>
@@ -165,22 +165,21 @@ export default function AboutPage() {
             <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-                  隐私是功能，不是免责声明
+                  公平竞技，无付费加成
                 </h2>
                 <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted">
-                  你的所有游戏数据（存档、设置、战绩）仅保存在本地浏览器中。Project M
-                  不会收集、出售或上传任何个人数据。Sentry
-                  仅用于捕获运行时错误，不包含可识别个人信息。
+                  Project M
+                  的核心设计信条是公平。商店、通行证与外观系统仅提供装饰与便利，不出售任何影响战局的英雄、武器或属性。所有成长均来自局内升级与战斗表现。
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
                 <div className="inline-flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-2 text-sm text-success">
-                  <Lock size={16} weight="bold" />
-                  本地加密存储
+                  <Shield size={16} weight="bold" />
+                  无属性售卖
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-4 py-2 text-sm text-muted">
                   <Eye size={16} />
-                  无追踪脚本
+                  透明规则
                 </div>
               </div>
             </div>

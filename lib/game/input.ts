@@ -22,12 +22,22 @@ export interface JoystickState {
   vector: Vec2;
 }
 
+interface TrackedTouch {
+  id: number;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+  role: "joystick" | "none";
+}
+
 export class InputManager {
   state: InputState = {
     move: { x: 0, y: 0 },
     aim: { x: 0, y: 0 },
     fire: false,
     pause: false,
+    useSkill: false,
   };
 
   joystick: JoystickState = {
@@ -40,6 +50,15 @@ export class InputManager {
   private keys = new Set<string>();
   private pausePressed = false;
   private onPauseCallback?: () => void;
+
+  // Multi-touch tracking
+  private touches = new Map<number, TrackedTouch>();
+  private joystickTouchId: number | null = null;
+
+  // Joystick is restricted to the left 55% of the screen below the top 18%
+  // to avoid conflicting with HUD buttons on the right and top bar.
+  private readonly JOYSTICK_DEADZONE = 0.08;
+  private readonly JOYSTICK_MAX_RADIUS = 72;
 
   constructor(private element: HTMLElement) {
     this.bind();
@@ -64,6 +83,12 @@ export class InputManager {
       return true;
     }
     return false;
+  }
+
+  private isInJoystickZone(x: number, y: number, rect: DOMRect): boolean {
+    const nx = x / rect.width;
+    const ny = y / rect.height;
+    return nx < 0.55 && ny > 0.18;
   }
 
   bind() {
@@ -106,31 +131,97 @@ export class InputManager {
   };
 
   private handleTouchStart = (e: TouchEvent) => {
-    const touch = e.touches[0];
-    const target = touch.target as HTMLElement | null;
-    if (target && this.isInteractive(target)) {
-      return;
-    }
-    e.preventDefault();
     const rect = this.element.getBoundingClientRect();
-    this.joystick.active = true;
-    this.joystick.origin = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-    this.joystick.current = { ...this.joystick.origin };
+    let consumed = false;
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      const target = touch.target as HTMLElement | null;
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      // Do not hijack touches that start on interactive UI elements (buttons, links, inputs).
+      if (target && this.isInteractive(target)) {
+        continue;
+      }
+
+      // Claim this touch for tracking.
+      const tracked: TrackedTouch = {
+        id: touch.identifier,
+        startX: x,
+        startY: y,
+        x,
+        y,
+        role: "none",
+      };
+      this.touches.set(touch.identifier, tracked);
+
+      // Assign joystick role only to touches in the left zone that are not already used.
+      if (
+        this.joystickTouchId === null &&
+        this.isInJoystickZone(x, y, rect)
+      ) {
+        tracked.role = "joystick";
+        this.joystickTouchId = touch.identifier;
+        this.joystick.active = true;
+        this.joystick.origin = { x, y };
+        this.joystick.current = { x, y };
+        this.joystick.vector = { x: 0, y: 0 };
+        consumed = true;
+      }
+    }
+
+    if (consumed) {
+      e.preventDefault();
+    }
   };
 
   private handleTouchMove = (e: TouchEvent) => {
-    if (!this.joystick.active) return;
-    e.preventDefault();
-    const touch = e.touches[0];
     const rect = this.element.getBoundingClientRect();
-    this.joystick.current = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    let consumed = false;
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      const tracked = this.touches.get(touch.identifier);
+      if (!tracked) continue;
+
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      tracked.x = x;
+      tracked.y = y;
+
+      if (tracked.role === "joystick") {
+        this.joystick.current = { x, y };
+        consumed = true;
+      }
+    }
+
+    if (consumed) {
+      e.preventDefault();
+    }
   };
 
   private handleTouchEnd = (e: TouchEvent) => {
-    e.preventDefault();
-    this.joystick.active = false;
-    this.joystick.vector = { x: 0, y: 0 };
-    this.joystick.current = { ...this.joystick.origin };
+    let consumed = false;
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      const tracked = this.touches.get(touch.identifier);
+      if (!tracked) continue;
+
+      if (tracked.role === "joystick" && this.joystickTouchId === touch.identifier) {
+        this.joystickTouchId = null;
+        this.joystick.active = false;
+        this.joystick.vector = { x: 0, y: 0 };
+        consumed = true;
+      }
+
+      this.touches.delete(touch.identifier);
+    }
+
+    if (consumed) {
+      e.preventDefault();
+    }
   };
 
   update() {
@@ -146,13 +237,25 @@ export class InputManager {
     if (this.joystick.active) {
       const dx = this.joystick.current.x - this.joystick.origin.x;
       const dy = this.joystick.current.y - this.joystick.origin.y;
-      const maxRadius = 60;
       const len = Math.hypot(dx, dy);
+      const maxRadius = this.JOYSTICK_MAX_RADIUS;
       const scale = len > maxRadius ? maxRadius / len : 1;
-      this.joystick.vector = {
-        x: (dx * scale) / maxRadius,
-        y: (dy * scale) / maxRadius,
-      };
+      const nx = (dx * scale) / maxRadius;
+      const ny = (dy * scale) / maxRadius;
+
+      // Apply a small deadzone to prevent drift when the finger is near the origin.
+      const deadzone = this.JOYSTICK_DEADZONE;
+      const finalLen = Math.hypot(nx, ny);
+      if (finalLen < deadzone) {
+        this.joystick.vector = { x: 0, y: 0 };
+      } else {
+        const adjusted = (finalLen - deadzone) / (1 - deadzone);
+        this.joystick.vector = {
+          x: (nx / finalLen) * adjusted,
+          y: (ny / finalLen) * adjusted,
+        };
+      }
+
       move.x += this.joystick.vector.x;
       move.y += this.joystick.vector.y;
     }
