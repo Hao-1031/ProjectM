@@ -9,6 +9,7 @@ export interface HeroDef {
   description: string;
   color: string;
   skill: HeroSkill;
+  ultimate: HeroSkill;
   passive: {
     maxHealthMul?: number;
     speedMul?: number;
@@ -17,6 +18,7 @@ export interface HeroDef {
     regenAdd?: number;
     cooldownReductionAdd?: number;
     areaMul?: number;
+    rangeMul?: number;
   };
   talents: HeroTalent[];
 }
@@ -24,476 +26,263 @@ export interface HeroDef {
 const BASE_SKILL_RANGE = 220;
 
 export const HERO_DEFS: Record<HeroId, HeroDef> = {
-  scout: {
-    id: "scout",
-    name: "侦察",
-    role: "侦察",
-    tagline: "情报侦察",
-    description: "高机动游击单位，可部署侦察信标提升团队暴击与视野",
-    color: "#22d3ee",
+  nitrogen: {
+    id: "nitrogen",
+    name: "液氮",
+    role: "工程 / 控制",
+    tagline: "低温封锁",
+    description: "使用低温装置控场的工程专家，投掷冰冻手雷封锁通道，绝对零度可将敌群彻底冻结。",
+    color: "#38bdf8",
     skill: {
-      id: "scout_beacon",
-      name: "侦察信标",
-      description: "部署信标，范围内友方暴击率 +15%",
-      cooldown: 14,
+      id: "nitrogen_grenade",
+      name: "冰冻手雷",
+      description: "投掷后形成半径 80 的低温区域，持续 4 秒，减速 40%",
+      cooldown: 12,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 10,
-      color: "#22d3ee",
+      duration: 4,
+      color: "#38bdf8",
     },
-    passive: { speedMul: 1.1, critAdd: 0.08 },
-    talents: [
-      {
-        id: "scout_pathfinder",
-        name: "探路者",
-        description: "移动速度 +4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { speedMul: 1.04 },
-      },
-      {
-        id: "scout_weakspot",
-        name: "弱点扫描",
-        description: "暴击率 +3%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { critAdd: 0.03 },
-      },
-      {
-        id: "scout_relay",
-        name: "信号中继",
-        description: "技能持续时间 +10%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { skillDurationMul: 0.1 },
-      },
-      {
-        id: "scout_beacon_range",
-        name: "广域信标",
-        description: "侦察信标作用范围 +12%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { areaMul: 1.12 },
-      },
-      {
-        id: "scout_evasion",
-        name: "闪避机动",
-        description: "受到伤害后 2 秒内移动速度 +8%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { speedMul: 1.04 },
-      },
-      {
-        id: "scout_precision",
-        name: "精密射击",
-        description: "武器射程 +5%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { rangeMul: 1.05 },
-      },
-      {
-        id: "scout_targeting",
-        name: "联合标定",
-        description: "信标范围内敌人受到的伤害 +4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { damageMul: 1.04 },
-      },
-      {
-        id: "scout_sensor",
-        name: "预警雷达",
-        description: "拾取范围 +10%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { areaMul: 1.1 },
-      },
-    ],
-  },
-  assault: {
-    id: "assault",
-    name: "突击",
-    role: "突击",
-    tagline: "正面压制",
-    description: "前线重火力，可展开护盾吸收伤害",
-    color: "#f59e0b",
-    skill: {
-      id: "assault_shield",
-      name: "冲锋护盾",
-      description: "部署能量护盾，阻挡敌方子弹并减少通过伤害",
-      cooldown: 16,
+    ultimate: {
+      id: "nitrogen_zero",
+      name: "绝对零度",
+      description: "以自身为中心释放半径 200 的冰冻爆发，冻结范围内敌人 3 秒并造成 180 点伤害",
+      cooldown: 45,
       timer: 0,
-      range: BASE_SKILL_RANGE,
-      duration: 8,
-      color: "#f59e0b",
+      range: 200,
+      duration: 3,
+      color: "#0ea5e9",
     },
-    passive: { maxHealthMul: 1.2, armorAdd: 0.06 },
+    passive: { armorAdd: 0.06, areaMul: 1.1 },
     talents: [
       {
-        id: "assault_fortify",
-        name: "加固装甲",
-        description: "护甲 +3%",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { armorAdd: 0.03 },
-      },
-      {
-        id: "assault_vitality",
-        name: "战斗体质",
-        description: "最大生命值 +8%",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { healthMul: 1.08 },
-      },
-      {
-        id: "assault_bulwark",
-        name: "壁垒扩展",
-        description: "技能持续时间 +10%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { skillDurationMul: 0.1 },
-      },
-      {
-        id: "assault_shield_health",
-        name: "超密护盾",
-        description: "护盾生命值 +15%",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { healthMul: 1.05 },
-      },
-      {
-        id: "assault_kinetic",
-        name: "动能反馈",
+        id: "nitrogen_conduction",
+        name: "低温传导",
         description: "武器伤害 +5%",
         maxLevel: 5,
         category: "damage",
         modifiers: { damageMul: 1.05 },
       },
       {
-        id: "assault_adrenaline",
-        name: "肾上腺素",
-        description: "技能冷却 -5%",
+        id: "nitrogen_cryo_shells",
+        name: "急冻弹壳",
+        description: "暴击率 +3%",
         maxLevel: 5,
         category: "damage",
-        modifiers: { cooldownMul: 0.95 },
+        modifiers: { critAdd: 0.03 },
       },
       {
-        id: "assault_bastion",
-        name: "不动要塞",
-        description: "静止时受到伤害 -5%",
+        id: "nitrogen_supercooled",
+        name: "超冷溶液",
+        description: "冰冻手雷减速效果提升至 55%，作用半径 +10%",
+        maxLevel: 1,
+        category: "skill",
+        variantFor: "skill",
+        isSkillVariant: true,
+        modifiers: { areaMul: 1.1 },
+      },
+      {
+        id: "nitrogen_thermal_sink",
+        name: "散热核心",
+        description: "护甲 +3%",
         maxLevel: 5,
         category: "utility",
-        modifiers: { armorAdd: 0.02 },
-      },
-      {
-        id: "assault_onslaught",
-        name: "压制火力",
-        description: "武器射速 +4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { cooldownMul: 0.96 },
+        modifiers: { armorAdd: 0.03 },
       },
     ],
   },
-  medic: {
-    id: "medic",
-    name: "医疗",
-    role: "医疗",
-    tagline: "战地治疗",
-    description: "团队续航核心，无人机持续治疗附近友军",
-    color: "#34d399",
+  twilight: {
+    id: "twilight",
+    name: "暮蝶",
+    role: "医疗 / 支援",
+    tagline: "战地复苏",
+    description: "以共生能量维系小队生命的支援单位，治疗脉冲稳定战线，蛹化复苏能扭转绝境。",
+    color: "#a78bfa",
     skill: {
-      id: "medic_drone",
-      name: "治疗无人机",
-      description: "部署无人机，持续恢复范围内友方生命",
-      cooldown: 18,
+      id: "twilight_pulse",
+      name: "治疗脉冲",
+      description: "在目标位置生成半径 100 的治疗场，每秒恢复 22 点生命，持续 5 秒",
+      cooldown: 15,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 10,
-      color: "#34d399",
+      duration: 5,
+      color: "#a78bfa",
     },
-    passive: { regenAdd: 2, maxHealthMul: 0.95 },
+    ultimate: {
+      id: "twilight_cocoon",
+      name: "蛹化复苏",
+      description: "瞬间为自身及附近友方恢复 80 点生命并清除燃烧/腐蚀减益，半径 250",
+      cooldown: 50,
+      timer: 0,
+      range: 250,
+      duration: 0,
+      color: "#8b5cf6",
+    },
+    passive: { regenAdd: 1.5, cooldownReductionAdd: 0.05 },
     talents: [
       {
-        id: "medic_regen",
-        name: "纳米修复",
-        description: "生命恢复 +0.5/秒",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { regenAdd: 0.5 },
-      },
-      {
-        id: "medic_efficiency",
-        name: "冷却优化",
-        description: "武器冷却 -4%",
+        id: "twilight_harmony",
+        name: "谐振增幅",
+        description: "武器伤害 +4%",
         maxLevel: 5,
         category: "damage",
-        modifiers: { cooldownMul: 0.96 },
+        modifiers: { damageMul: 1.04 },
       },
       {
-        id: "medic_field",
-        name: "治疗场",
-        description: "技能持续时间 +10%",
+        id: "twilight_life_thread",
+        name: "生命丝线",
+        description: "生命恢复 +0.4/秒",
         maxLevel: 5,
-        category: "skill",
-        modifiers: { skillDurationMul: 0.1 },
+        category: "damage",
+        modifiers: { regenAdd: 0.4 },
       },
       {
-        id: "medic_drone_range",
-        name: "广域治疗无人机",
-        description: "治疗无人机作用范围 +12%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableRangeMul: 1.12 },
-      },
-      {
-        id: "medic_drone_output",
-        name: "超导修复束",
-        description: "治疗无人机恢复量 +8%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableDamageMul: 1.08 },
-      },
-      {
-        id: "medic_hygiene",
-        name: "净化协议",
-        description: "治疗无人机同时清除燃烧与腐蚀减益",
+        id: "twilight_surge",
+        name: "脉冲涌动",
+        description: "治疗脉冲每秒治疗量提升至 30，作用半径 +15%",
         maxLevel: 1,
         category: "skill",
-        modifiers: { deployableDurationMul: 1.05 },
+        variantFor: "skill",
+        isSkillVariant: true,
+        modifiers: { deployableDamageMul: 1.36 },
       },
       {
-        id: "medic_vitality",
-        name: "急救强化",
+        id: "twilight_biomass",
+        name: "生物质护甲",
         description: "最大生命值 +6%",
         maxLevel: 5,
         category: "utility",
         modifiers: { healthMul: 1.06 },
       },
-      {
-        id: "medic_sympathy",
-        name: "共感链接",
-        description: "附近友军获得你 15% 生命恢复效果",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { regenAdd: 0.2 },
-      },
-      {
-        id: "medic_speed",
-        name: "战地机动",
-        description: "移动速度 +4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { speedMul: 1.04 },
-      },
-      {
-        id: "medic_resilience",
-        name: "生物装甲",
-        description: "护甲 +3%",
-        maxLevel: 5,
-        category: "utility",
-        modifiers: { armorAdd: 0.03 },
-      },
     ],
   },
-  engineer: {
-    id: "engineer",
-    name: "工程",
-    role: "工程",
-    tagline: "阵地构筑",
-    description: "防御专家，可部署自动炮塔并缓慢修复核心",
-    color: "#a855f7",
+  leopard: {
+    id: "leopard",
+    name: "豹",
+    role: "突击 / 刺客",
+    tagline: "掠袭猎杀",
+    description: "高机动近战猎手，猛扑撕裂敌阵，猎杀本能让他化为无法阻挡的死亡旋风。",
+    color: "#fb923c",
     skill: {
-      id: "engineer_turret",
-      name: "自动炮塔",
-      description: "部署炮塔自动攻击附近敌人",
-      cooldown: 20,
+      id: "leopard_pounce",
+      name: "猛扑",
+      description: "向面朝方向冲刺 250 距离，路径上敌人受到 90 点伤害并被击退",
+      cooldown: 10,
       timer: 0,
-      range: BASE_SKILL_RANGE,
-      duration: 12,
-      color: "#a855f7",
+      range: 250,
+      duration: 0,
+      color: "#fb923c",
     },
-    passive: { cooldownReductionAdd: 0.08, areaMul: 1.1 },
+    ultimate: {
+      id: "leopard_instinct",
+      name: "猎杀本能",
+      description: "8 秒内移动速度 +30%、暴击率 +20%",
+      cooldown: 40,
+      timer: 0,
+      range: 0,
+      duration: 8,
+      color: "#f97316",
+    },
+    passive: { speedMul: 1.1, critAdd: 0.05 },
     talents: [
       {
-        id: "engineer_overclock",
-        name: "超频核心",
-        description: "武器冷却 -4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { cooldownMul: 0.96 },
-      },
-      {
-        id: "engineer_optics",
-        name: "炮塔光学",
-        description: "伤害 +5%",
+        id: "leopard_shredder",
+        name: "撕裂利爪",
+        description: "武器伤害 +5%",
         maxLevel: 5,
         category: "damage",
         modifiers: { damageMul: 1.05 },
       },
       {
-        id: "engineer_range",
-        name: "射程增幅",
-        description: "武器射程 +6%",
+        id: "leopard_predator",
+        name: "掠食本能",
+        description: "暴击率 +3%",
         maxLevel: 5,
         category: "damage",
-        modifiers: { rangeMul: 1.06 },
+        modifiers: { critAdd: 0.03 },
       },
       {
-        id: "engineer_turret_damage",
-        name: "穿甲弹药",
-        description: "自动炮塔伤害 +10%",
-        maxLevel: 5,
+        id: "leopard_feral_pounce",
+        name: "凶性猛扑",
+        description: "猛扑距离 +20%，伤害 +15%，命中后自身移速 +10% 持续 2 秒",
+        maxLevel: 1,
         category: "skill",
-        modifiers: { deployableDamageMul: 1.1 },
+        variantFor: "skill",
+        isSkillVariant: true,
+        modifiers: { rangeMul: 1.2, damageMul: 1.15 },
       },
       {
-        id: "engineer_turret_rate",
-        name: "双联供弹",
-        description: "自动炮塔射速 +8%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableCooldownMul: 0.92 },
-      },
-      {
-        id: "engineer_turret_range",
-        name: "遥控制导",
-        description: "自动炮塔射程 +12%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableRangeMul: 1.12 },
-      },
-      {
-        id: "engineer_turret_armor",
-        name: "合金装甲",
-        description: "自动炮塔生命值 +15%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableHealthMul: 1.15 },
-      },
-      {
-        id: "engineer_repair",
-        name: "战场维修",
-        description: "炮塔持续缓慢自我修复，每秒 8 点",
-        maxLevel: 3,
-        category: "skill",
-        modifiers: { deployableDurationMul: 1.05 },
-      },
-      {
-        id: "engineer_core_repair",
-        name: "核心稳压",
-        description: "每波结束为核心恢复 2% 最大生命值",
+        id: "leopard_reflexes",
+        name: "反射神经",
+        description: "移动速度 +3%",
         maxLevel: 5,
         category: "utility",
-        modifiers: { regenAdd: 0.15 },
-      },
-      {
-        id: "engineer_area",
-        name: "连锁覆盖",
-        description: "范围效果 +6%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { areaMul: 1.06 },
+        modifiers: { speedMul: 1.03 },
       },
     ],
   },
-  vanguard: {
-    id: "vanguard",
-    name: "先锋",
-    role: "先锋",
-    tagline: "区域封锁",
-    description: "突破专家，可布雷封锁通道并对重甲造成额外杀伤",
-    color: "#f43f5e",
+  recon: {
+    id: "recon",
+    name: "侦查",
+    role: "侦察 / 精准",
+    tagline: "远程标定",
+    description: "视野与精准打击专家，侦察无人机放大全队输出，集束打击可瞬间清除高密度目标。",
+    color: "#34d399",
     skill: {
-      id: "vanguard_mine",
-      name: "爆破雷区",
-      description: "部署感应地雷，敌人靠近时爆炸",
-      cooldown: 17,
+      id: "recon_drone",
+      name: "侦察无人机",
+      description: "部署无人机，半径 120 范围内敌人受到伤害 +12%，持续 6 秒",
+      cooldown: 14,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 14,
-      color: "#f43f5e",
+      duration: 6,
+      color: "#34d399",
     },
-    passive: { maxHealthMul: 1.15, armorAdd: 0.05 },
+    ultimate: {
+      id: "recon_strike",
+      name: "集束打击",
+      description: "召唤轨道打击，对面朝方向 120 距离处半径 150 区域造成 320 点伤害",
+      cooldown: 55,
+      timer: 0,
+      range: 150,
+      duration: 0,
+      color: "#10b981",
+    },
+    passive: { critAdd: 0.1, rangeMul: 1.08 },
     talents: [
       {
-        id: "vanguard_demolition",
-        name: "爆破专家",
-        description: "范围效果 +8%",
+        id: "recon_ballistics",
+        name: "弹道学",
+        description: "武器伤害 +4%",
         maxLevel: 5,
         category: "damage",
-        modifiers: { areaMul: 1.08 },
+        modifiers: { damageMul: 1.04 },
       },
       {
-        id: "vanguard_fortress",
-        name: "移动堡垒",
-        description: "护甲 +3%",
+        id: "recon_precision",
+        name: "精确校准",
+        description: "武器射程 +5%",
+        maxLevel: 5,
+        category: "damage",
+        modifiers: { rangeMul: 1.05 },
+      },
+      {
+        id: "recon_overclock_drone",
+        name: "超频无人机",
+        description: "侦察无人机增伤效果提升至 20%，持续时间 +2 秒",
+        maxLevel: 1,
+        category: "skill",
+        variantFor: "skill",
+        isSkillVariant: true,
+        modifiers: { deployableDurationMul: 1.33 },
+      },
+      {
+        id: "recon_evasion",
+        name: "规避协议",
+        description: "护甲 +2%",
         maxLevel: 5,
         category: "utility",
-        modifiers: { armorAdd: 0.03 },
-      },
-      {
-        id: "vanguard_payload",
-        name: "重型装药",
-        description: "伤害 +5%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { damageMul: 1.05 },
-      },
-      {
-        id: "vanguard_mine_yield",
-        name: "聚能装药",
-        description: "感应地雷爆炸伤害 +12%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableDamageMul: 1.12 },
-      },
-      {
-        id: "vanguard_mine_radius",
-        name: "破片扩散",
-        description: "感应地雷爆炸半径 +10%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableRangeMul: 1.1 },
-      },
-      {
-        id: "vanguard_mine_arming",
-        name: "速发引信",
-        description: "感应地雷触发半径 +8%",
-        maxLevel: 5,
-        category: "skill",
-        modifiers: { deployableRangeMul: 1.04 },
-      },
-      {
-        id: "vanguard_mine_count",
-        name: "布雷阵列",
-        description: "技能额外同时部署 1 枚地雷",
-        maxLevel: 3,
-        category: "skill",
-        modifiers: { deployableDamageMul: 1.06 },
-      },
-      {
-        id: "vanguard_breach",
-        name: "破甲弹头",
-        description: "对精英与 Boss 伤害 +6%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { damageMul: 1.03 },
-      },
-      {
-        id: "vanguard_impact",
-        name: "震荡冲击",
-        description: "地雷爆炸短暂眩晕命中敌人 0.4 秒",
-        maxLevel: 3,
-        category: "skill",
-        modifiers: { deployableDurationMul: 1.05 },
-      },
-      {
-        id: "vanguard_adrenaline",
-        name: "冲锋激素",
-        description: "移动速度 +4%",
-        maxLevel: 5,
-        category: "damage",
-        modifiers: { speedMul: 1.04 },
+        modifiers: { armorAdd: 0.02 },
       },
     ],
   },
@@ -520,106 +309,13 @@ export interface HeroSynergyBonus {
   };
 }
 
-export const HERO_SYNERGIES: HeroSynergyBonus[] = [
-  {
-    id: "synergy_frontline",
-    name: "钢铁前线",
-    description: "突击 + 先锋同队时，双方护甲 +5% 且最大生命值 +6%",
-    required: ["assault", "vanguard"],
-    bonus: { armorAdd: 0.05, healthMul: 1.06 },
-  },
-  {
-    id: "synergy_recon_net",
-    name: "侦察网络",
-    description: "侦察 + 工程同队时，武器射程 +8% 且冷却 -5%",
-    required: ["scout", "engineer"],
-    bonus: { rangeMul: 1.08, cooldownMul: 0.95 },
-  },
-  {
-    id: "synergy_field_hospital",
-    name: "战地医院",
-    description: "医疗 + 工程同队时，生命恢复 +1/秒 且可部署物生命值 +10%",
-    required: ["medic", "engineer"],
-    bonus: { regenAdd: 1, deployableHealthMul: 1.1 },
-  },
-  {
-    id: "synergy_hunter_pack",
-    name: "猎杀小队",
-    description: "侦察 + 先锋同队时，暴击率 +4% 且对精英伤害 +8%",
-    required: ["scout", "vanguard"],
-    bonus: { critAdd: 0.04, damageMul: 1.04 },
-  },
-  {
-    id: "synergy_overwatch",
-    name: "火力掩护",
-    description: "突击 + 医疗同队时，受到伤害 -4% 且治疗无人机效率 +10%",
-    required: ["assault", "medic"],
-    bonus: { armorAdd: 0.04, deployableDamageMul: 1.1 },
-  },
-  {
-    id: "synergy_full_squad",
-    name: "完整火力组",
-    description: "四位英雄全部登场时，所有属性 +3% 且技能冷却 -5%",
-    required: ["scout", "assault", "medic", "engineer", "vanguard"],
-    bonus: { damageMul: 1.03, healthMul: 1.03, speedMul: 1.03, cooldownMul: 0.95 },
-  },
-];
+export const HERO_SYNERGIES: HeroSynergyBonus[] = [];
 
-export function getActiveSynergies(selectedHeroes: HeroId[]): HeroSynergyBonus[] {
-  const unique = Array.from(new Set(selectedHeroes));
-  return HERO_SYNERGIES.filter((synergy) => {
-    if (synergy.required.length === 4) {
-      return synergy.required.every((id) => unique.includes(id));
-    }
-    return synergy.required.every((id) => unique.includes(id));
-  });
+export function getActiveSynergies(_selectedHeroes: HeroId[]): HeroSynergyBonus[] {
+  return [];
 }
 
-export function applyHeroSynergyBonus(player: Player, selectedHeroes: HeroId[]): Player {
-  const synergies = getActiveSynergies(selectedHeroes);
-  for (const synergy of synergies) {
-    const b = synergy.bonus;
-    if (b.damageMul) {
-      for (const weapon of player.weapons) {
-        weapon.damage = Math.round(weapon.damage * b.damageMul);
-      }
-    }
-    if (b.cooldownMul) {
-      for (const weapon of player.weapons) {
-        weapon.cooldown *= b.cooldownMul;
-      }
-      if (player.activeSkill) {
-        player.activeSkill.cooldown = Math.max(1, player.activeSkill.cooldown * b.cooldownMul);
-      }
-    }
-    if (b.rangeMul) {
-      for (const weapon of player.weapons) {
-        weapon.range *= b.rangeMul;
-      }
-    }
-    if (b.areaMul) player.areaMultiplier *= b.areaMul;
-    if (b.critAdd) player.critChance += b.critAdd;
-    if (b.armorAdd) player.armor += b.armorAdd;
-    if (b.regenAdd) player.regen += b.regenAdd;
-    if (b.speedMul) player.speed *= b.speedMul;
-    if (b.healthMul) {
-      player.maxHealth = Math.floor(player.maxHealth * b.healthMul);
-      player.health = player.maxHealth;
-    }
-    if (b.deployableDamageMul) {
-      player.deployableUpgrades["damage"] =
-        (player.deployableUpgrades["damage"] ?? 0) + Math.round((b.deployableDamageMul - 1) * 100);
-    }
-    if (b.deployableHealthMul) {
-      player.deployableUpgrades["health"] =
-        (player.deployableUpgrades["health"] ?? 0) + Math.round((b.deployableHealthMul - 1) * 100);
-    }
-    if (b.deployableDurationMul) {
-      player.deployableUpgrades["duration"] =
-        (player.deployableUpgrades["duration"] ?? 0) +
-        Math.round((b.deployableDurationMul - 1) * 100);
-    }
-  }
+export function applyHeroSynergyBonus(player: Player, _selectedHeroes: HeroId[]): Player {
   return player;
 }
 
@@ -640,7 +336,9 @@ export function applyHeroToPlayer(player: Player, heroId: HeroId): Player {
 
   player.heroId = heroId;
   player.activeSkill = { ...def.skill, timer: 0 };
+  player.ultimateSkill = { ...def.ultimate, timer: 0 };
   player.skillTimer = 0;
+  player.ultimateTimer = 0;
   if (!player.deployableUpgrades) player.deployableUpgrades = {};
 
   if (def.passive.maxHealthMul) {
@@ -654,6 +352,11 @@ export function applyHeroToPlayer(player: Player, heroId: HeroId): Player {
   if (def.passive.cooldownReductionAdd)
     player.cooldownReduction += def.passive.cooldownReductionAdd;
   if (def.passive.areaMul) player.areaMultiplier *= def.passive.areaMul;
+  if (def.passive.rangeMul) {
+    for (const weapon of player.weapons) {
+      weapon.range *= def.passive.rangeMul;
+    }
+  }
 
   return player;
 }
@@ -668,25 +371,21 @@ export function useHeroSkill(player: Player, state: GameState): void {
   skill.timer = skill.duration;
 
   const aim = normalize({ x: Math.cos(player.facing), y: Math.sin(player.facing) });
-  const deployX = player.x + aim.x * 40;
-  const deployY = player.y + aim.y * 40;
-
   const ds = state.defenseState;
   if (!ds) return;
 
   const durationMul = getDeployableMultiplier(player, "duration");
   const rangeMul = getDeployableMultiplier(player, "range");
-  const healthMul = getDeployableMultiplier(player, "health");
   const deployDuration = skill.duration * durationMul;
 
   switch (player.heroId) {
-    case "scout": {
+    case "nitrogen": {
       ds.deployables.push({
         id: uid("deploy"),
-        x: deployX,
-        y: deployY,
-        radius: 90 * rangeMul,
-        type: "beacon",
+        x: player.x + aim.x * 40,
+        y: player.y + aim.y * 40,
+        radius: 80 * rangeMul,
+        type: "freezeField",
         ownerId: player.id,
         health: 1,
         maxHealth: 1,
@@ -696,28 +395,11 @@ export function useHeroSkill(player: Player, state: GameState): void {
       });
       break;
     }
-    case "assault": {
-      const shieldHealth = Math.round(400 * healthMul);
+    case "twilight": {
       ds.deployables.push({
         id: uid("deploy"),
-        x: deployX,
-        y: deployY,
-        radius: 70 * rangeMul,
-        type: "shield",
-        ownerId: player.id,
-        health: shieldHealth,
-        maxHealth: shieldHealth,
-        timer: deployDuration,
-        maxTimer: deployDuration,
-        color: def.color,
-      });
-      break;
-    }
-    case "medic": {
-      ds.deployables.push({
-        id: uid("deploy"),
-        x: deployX,
-        y: deployY,
+        x: player.x + aim.x * 40,
+        y: player.y + aim.y * 40,
         radius: 100 * rangeMul,
         type: "healAura",
         ownerId: player.id,
@@ -729,44 +411,112 @@ export function useHeroSkill(player: Player, state: GameState): void {
       });
       break;
     }
-    case "engineer": {
-      const turretHealth = Math.round(350 * healthMul);
+    case "leopard": {
+      const pounceRange = 250;
+      const startX = player.x;
+      const startY = player.y;
+      const endX = player.x + aim.x * pounceRange;
+      const endY = player.y + aim.y * pounceRange;
+
+      for (const enemy of state.enemies) {
+        if (pointSegmentDistance(enemy.x, enemy.y, startX, startY, endX, endY) <= player.radius + enemy.radius + 20) {
+          enemy.health -= 90;
+          const dx = enemy.x - player.x;
+          const dy = enemy.y - player.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          enemy.knockbackX += (dx / dist) * 180;
+          enemy.knockbackY += (dy / dist) * 180;
+          state.stats.damageDealt += 90;
+        }
+      }
+
+      player.x = clamp(endX, player.radius, state.map.width - player.radius);
+      player.y = clamp(endY, player.radius, state.map.height - player.radius);
+      break;
+    }
+    case "recon": {
       ds.deployables.push({
         id: uid("deploy"),
-        x: deployX,
-        y: deployY,
-        radius: 28,
-        type: "turret",
+        x: player.x + aim.x * 40,
+        y: player.y + aim.y * 40,
+        radius: 120 * rangeMul,
+        type: "drone",
         ownerId: player.id,
-        health: turretHealth,
-        maxHealth: turretHealth,
+        health: 1,
+        maxHealth: 1,
         timer: deployDuration,
         maxTimer: deployDuration,
-        fireTimer: 0,
-        fireCooldown: 0.45,
         color: def.color,
       });
       break;
     }
-    case "vanguard": {
-      const mineCount = 1 + Math.min(3, Math.max(0, player.deployableUpgrades?.["mineCount"] ?? 0));
-      for (let i = 0; i < mineCount; i++) {
-        const offsetAngle = player.facing + (i - (mineCount - 1) / 2) * 0.35;
-        const offsetX = Math.cos(offsetAngle) * (i === 0 ? 0 : 28);
-        const offsetY = Math.sin(offsetAngle) * (i === 0 ? 0 : 28);
-        ds.deployables.push({
-          id: uid("deploy"),
-          x: deployX + offsetX,
-          y: deployY + offsetY,
-          radius: 35 * rangeMul,
-          type: "mine",
-          ownerId: player.id,
-          health: 1,
-          maxHealth: 1,
-          timer: deployDuration,
-          maxTimer: deployDuration,
-          color: def.color,
-        });
+  }
+}
+
+export function useHeroUltimate(player: Player, state: GameState): void {
+  if (!player.heroId || !player.ultimateSkill) return;
+  if (player.ultimateTimer > 0) return;
+
+  const def = HERO_DEFS[player.heroId];
+  const ultimate = player.ultimateSkill;
+  player.ultimateTimer = ultimate.cooldown;
+  ultimate.timer = ultimate.duration;
+
+  const aim = normalize({ x: Math.cos(player.facing), y: Math.sin(player.facing) });
+  const ds = state.defenseState;
+
+  switch (player.heroId) {
+    case "nitrogen": {
+      if (!ds) return;
+      const rangeMul = getDeployableMultiplier(player, "range");
+      const deployDuration = ultimate.duration * getDeployableMultiplier(player, "duration");
+      ds.deployables.push({
+        id: uid("deploy"),
+        x: player.x,
+        y: player.y,
+        radius: 200 * rangeMul,
+        type: "freezeField",
+        ownerId: player.id,
+        health: 1,
+        maxHealth: 1,
+        timer: deployDuration,
+        maxTimer: deployDuration,
+        color: def.color,
+      });
+      for (const enemy of state.enemies) {
+        if (distance(enemy, player) <= 200 * rangeMul + enemy.radius) {
+          enemy.health -= 180;
+          enemy.freezeTimer = Math.max(enemy.freezeTimer, 3);
+          enemy.slow = 1;
+          state.stats.damageDealt += 180;
+        }
+      }
+      break;
+    }
+    case "twilight": {
+      const players = [state.player, ...state.players];
+      for (const target of players) {
+        const dx = target.x - player.x;
+        const dy = target.y - player.y;
+        if (dx * dx + dy * dy <= ultimate.range * ultimate.range) {
+          target.health = Math.min(target.maxHealth, target.health + 80);
+          target.burnDuration = 0;
+        }
+      }
+      break;
+    }
+    case "leopard": {
+      player.leopardFrenzyTimer = 8;
+      break;
+    }
+    case "recon": {
+      const centerX = player.x + aim.x * 120;
+      const centerY = player.y + aim.y * 120;
+      for (const enemy of state.enemies) {
+        if (distance(enemy, { x: centerX, y: centerY }) <= ultimate.range + enemy.radius) {
+          enemy.health -= 320;
+          state.stats.damageDealt += 320;
+        }
       }
       break;
     }
@@ -775,15 +525,27 @@ export function useHeroSkill(player: Player, state: GameState): void {
 
 export function updateHeroSkillsAndDeployables(state: GameState, dt: number): void {
   const ds = state.defenseState;
-  if (!ds) return;
 
   const players = [state.player, ...state.players];
   for (const player of players) {
     if (player.skillTimer > 0) player.skillTimer -= dt;
+    if (player.ultimateTimer > 0) player.ultimateTimer -= dt;
     if (player.activeSkill && player.activeSkill.timer > 0) {
       player.activeSkill.timer -= dt;
     }
+    if (player.ultimateSkill && player.ultimateSkill.timer > 0) {
+      player.ultimateSkill.timer -= dt;
+    }
+    if (player.leopardFrenzyTimer > 0) player.leopardFrenzyTimer -= dt;
+    if (player.leopardBloodlustTimer > 0) {
+      player.leopardBloodlustTimer -= dt;
+      if (player.leopardBloodlustTimer <= 0) {
+        player.leopardBloodlustStacks = 0;
+      }
+    }
   }
+
+  if (!ds) return;
 
   for (let i = ds.deployables.length - 1; i >= 0; i--) {
     const d = ds.deployables[i];
@@ -805,6 +567,24 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number): vo
       }
     }
 
+    if (d.type === "freezeField") {
+      for (const enemy of state.enemies) {
+        if (distance(enemy, d) <= d.radius + enemy.radius) {
+          const slowStrength = owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 0.55 : 0.4;
+          enemy.slow = Math.max(enemy.slow, slowStrength);
+          enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
+        }
+      }
+    }
+
+    if (d.type === "drone") {
+      for (const enemy of state.enemies) {
+        if (distance(enemy, d) <= d.radius + enemy.radius) {
+          enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, d.timer);
+        }
+      }
+    }
+
     if (d.type === "turret") {
       const fireRateMul = getDeployableMultiplier(owner, "cooldown");
       const rangeMul = getDeployableMultiplier(owner, "range");
@@ -818,12 +598,11 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number): vo
         }
       }
     }
-
-    if (d.type === "shield") {
-      // Shield absorbs enemy projectiles in handleEnemyProjectilePlayerCollisions equivalent
-      // handled in engine via dedicated collision check
-    }
   }
+}
+
+function hasTalent(player: Player, talentId: string): boolean {
+  return (player.talentLevels?.[talentId] ?? 0) > 0;
 }
 
 function findNearestEnemy(state: GameState, x: number, y: number, range: number): Enemy | null {
@@ -892,7 +671,6 @@ export function handleMineProximity(state: GameState): void {
     const rangeMul = getDeployableMultiplier(owner, "range");
     for (const enemy of state.enemies) {
       if (distance(enemy, d) <= d.radius + enemy.radius) {
-        // Explosion
         for (const other of state.enemies) {
           if (distance(other, d) <= 100 * rangeMul + other.radius) {
             other.health -= 120 * damageMul;
@@ -912,6 +690,7 @@ export function applyHeroTalent(player: Player, talentId: string): Player {
   const talent = def.talents.find((t) => t.id === talentId);
 
   if (talent) {
+    player.talentLevels[talentId] = (player.talentLevels[talentId] ?? 0) + 1;
     const m = talent.modifiers;
     if (m.damageMul) {
       for (const weapon of player.weapons) {
@@ -923,6 +702,9 @@ export function applyHeroTalent(player: Player, talentId: string): Player {
         weapon.cooldown *= m.cooldownMul;
       }
       player.activeSkill.cooldown = Math.max(1, player.activeSkill.cooldown * m.cooldownMul);
+      if (player.ultimateSkill) {
+        player.ultimateSkill.cooldown = Math.max(1, player.ultimateSkill.cooldown * m.cooldownMul);
+      }
     }
     if (m.rangeMul) {
       for (const weapon of player.weapons) {
@@ -938,7 +720,9 @@ export function applyHeroTalent(player: Player, talentId: string): Player {
       player.maxHealth = Math.floor(player.maxHealth * m.healthMul);
       player.health = player.maxHealth;
     }
-    if (m.skillDurationMul) player.activeSkill.duration *= 1 + m.skillDurationMul;
+    if (m.skillDurationMul && player.activeSkill) {
+      player.activeSkill.duration *= 1 + m.skillDurationMul;
+    }
 
     if (m.deployableDamageMul) {
       player.deployableUpgrades["damage"] =
@@ -1006,5 +790,20 @@ export function getHeroColor(heroId: HeroId | null): string {
 export function createNullHeroState(player: Player): void {
   player.heroId = null;
   player.activeSkill = null;
+  player.ultimateSkill = null;
   player.skillTimer = 0;
+  player.ultimateTimer = 0;
+  player.leopardFrenzyTimer = 0;
+  player.leopardBloodlustStacks = 0;
+  player.leopardBloodlustTimer = 0;
+}
+
+function pointSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(px - x1, py - y1);
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = clamp(t, 0, 1);
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
 }

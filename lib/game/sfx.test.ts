@@ -26,9 +26,10 @@ describe("SFX bank", () => {
 
   it("exposes real hero skill sound keys", () => {
     const keys = getSfxKeysByCategory("heroes");
-    expect(keys).toContain("scoutScan");
-    expect(keys).toContain("assaultOverdrive");
-    expect(keys).toContain("vanguardShield");
+    expect(keys).toContain("nitrogenGrenade");
+    expect(keys).toContain("twilightPulse");
+    expect(keys).toContain("leopardPounce");
+    expect(keys).toContain("reconStrike");
   });
 
   it("exposes UI and environment sound keys", () => {

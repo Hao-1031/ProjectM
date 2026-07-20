@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart } from "@phosphor-icons/react";
+import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { Deployable } from "@/lib/game/types";
 
@@ -13,6 +13,7 @@ const deployableMeta: Record<
   beacon: { label: "信标", icon: <Broadcast size={16} weight="bold" />, color: "text-warning" },
   drone: { label: "无人机", icon: <Robot size={16} weight="bold" />, color: "text-success" },
   healAura: { label: "治疗光环", icon: <Heart size={16} weight="bold" />, color: "text-success" },
+  freezeField: { label: "冰冻领域", icon: <Snowflake size={16} weight="bold" />, color: "text-primary" },
 };
 
 export interface DeployableCardProps {

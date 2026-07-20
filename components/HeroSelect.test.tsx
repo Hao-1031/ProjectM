@@ -17,20 +17,20 @@ describe("HeroSelect", () => {
   it("calls onSelect with the clicked hero id", () => {
     const onSelect = vi.fn();
     render(<HeroSelect heroes={heroes} onSelect={onSelect} />);
-    fireEvent.click(screen.getByText("工程"));
+    fireEvent.click(screen.getByText("液氮"));
     expect(onSelect).toHaveBeenCalledTimes(1);
-    expect(onSelect).toHaveBeenCalledWith("engineer");
+    expect(onSelect).toHaveBeenCalledWith("nitrogen");
   });
 
   it("highlights selected hero", () => {
-    render(<HeroSelect heroes={heroes} selected="medic" onSelect={vi.fn()} />);
-    const medicCard = screen.getByTestId("hero-card-medic");
-    expect(medicCard).toHaveClass("border-primary");
+    render(<HeroSelect heroes={heroes} selected="twilight" onSelect={vi.fn()} />);
+    const twilightCard = screen.getByTestId("hero-card-twilight");
+    expect(twilightCard).toHaveClass("border-primary");
   });
 
   it("does not highlight unselected heroes", () => {
-    render(<HeroSelect heroes={heroes} selected="medic" onSelect={vi.fn()} />);
-    const scoutCard = screen.getByTestId("hero-card-scout");
-    expect(scoutCard).not.toHaveClass("border-primary");
+    render(<HeroSelect heroes={heroes} selected="twilight" onSelect={vi.fn()} />);
+    const reconCard = screen.getByTestId("hero-card-recon");
+    expect(reconCard).not.toHaveClass("border-primary");
   });
 });

@@ -120,6 +120,7 @@ import {
 import {
   applyHeroToPlayer,
   useHeroSkill as triggerHeroSkill,
+  useHeroUltimate as triggerHeroUltimate,
   updateHeroSkillsAndDeployables,
   handleDeployableShieldCollisions,
   handleMineProximity,
@@ -289,8 +290,13 @@ export class GameEngine {
       heroId: null,
       activeSkill: null,
       skillTimer: 0,
+      ultimateSkill: null,
+      ultimateTimer: 0,
       deployableUpgrades: {},
       talentLevels: {},
+      leopardFrenzyTimer: 0,
+      leopardBloodlustStacks: 0,
+      leopardBloodlustTimer: 0,
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -429,6 +435,11 @@ export class GameEngine {
     triggerHeroSkill(this.state.player, this.state);
   }
 
+  useHeroUltimate() {
+    if (this.state.status !== "running") return;
+    triggerHeroUltimate(this.state.player, this.state);
+  }
+
   restart(mode: GameModeType = this.state.mode, seed?: number) {
     if (seed !== undefined) {
       this.seed = seed;
@@ -469,6 +480,9 @@ export class GameEngine {
     this.updateEvents(dt);
     this.updateWave(dt);
     this.updateDefenseState(dt);
+    this.updateHeroSkillsAndDeployables(dt);
+    this.handleDeployableShieldCollisions();
+    this.handleMineProximity();
     this.updateKillCombo(dt);
     this.handleCollisions();
     this.updateCamera();
@@ -516,6 +530,15 @@ export class GameEngine {
 
     if (player.regen > 0) {
       player.health = Math.min(player.maxHealth, player.health + player.regen * dt);
+    }
+
+    if (input.useSkill) {
+      this.useHeroSkill();
+      input.useSkill = false;
+    }
+    if (input.useUltimate) {
+      this.useHeroUltimate();
+      input.useUltimate = false;
     }
 
     if (player.burnDuration > 0) {
@@ -835,6 +858,9 @@ export class GameEngine {
       color,
       variant,
       slow: 0,
+      slowTimer: 0,
+      freezeTimer: 0,
+      droneMarkTimer: 0,
       isElite: elite,
       isBoss: variant === "boss",
       affixes,
@@ -1178,6 +1204,18 @@ export class GameEngine {
         this.state.currentMissionIndex = 0;
       }
     }
+  }
+
+  private updateHeroSkillsAndDeployables(dt: number) {
+    updateHeroSkillsAndDeployables(this.state, dt);
+  }
+
+  private handleDeployableShieldCollisions() {
+    handleDeployableShieldCollisions(this.state);
+  }
+
+  private handleMineProximity() {
+    handleMineProximity(this.state);
   }
 
   private updateKillCombo(dt: number) {

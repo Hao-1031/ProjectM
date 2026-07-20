@@ -50,11 +50,10 @@ export type SfxKey =
   | "artilleryWhistle"
   | "disruptorPulse"
   // Heroes
-  | "scoutScan"
-  | "assaultOverdrive"
-  | "medicField"
-  | "engineerTurret"
-  | "vanguardShield"
+  | "nitrogenGrenade"
+  | "twilightPulse"
+  | "leopardPounce"
+  | "reconStrike"
   // UI
   | "buttonClick"
   | "upgradeSelect"
@@ -417,7 +416,7 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
   },
 
   // Heroes
-  scoutScan: {
+  nitrogenGrenade: {
     category: "heroes",
     frequency: 1200,
     duration: 0.28,
@@ -426,16 +425,7 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     slide: 400,
     pitchVariation: 0.04,
   },
-  assaultOverdrive: {
-    category: "heroes",
-    frequency: 200,
-    duration: 0.45,
-    type: "sawtooth",
-    volume: 0.2,
-    slide: 250,
-    pitchVariation: 0.05,
-  },
-  medicField: {
+  twilightPulse: {
     category: "heroes",
     frequency: 520,
     duration: 0.5,
@@ -444,16 +434,16 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     slide: -80,
     pitchVariation: 0.03,
   },
-  engineerTurret: {
+  leopardPounce: {
     category: "heroes",
-    frequency: 380,
-    duration: 0.35,
-    type: "square",
-    volume: 0.15,
-    slide: 150,
-    pitchVariation: 0.04,
+    frequency: 200,
+    duration: 0.45,
+    type: "sawtooth",
+    volume: 0.2,
+    slide: 250,
+    pitchVariation: 0.05,
   },
-  vanguardShield: {
+  reconStrike: {
     category: "heroes",
     frequency: 160,
     duration: 0.55,

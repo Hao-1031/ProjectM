@@ -24,6 +24,14 @@ function getWeaponCost(id: WeaponId): number {
   return DEFAULT_BALANCE.weapons[id]?.cost ?? 0;
 }
 
+const LEGACY_HERO_MAP: Record<string, HeroId> = {
+  scout: "recon",
+  assault: "leopard",
+  medic: "twilight",
+  engineer: "nitrogen",
+  vanguard: "leopard",
+};
+
 function createFallback(): SaveData {
   return {
     bestRun: null,
@@ -32,7 +40,7 @@ function createFallback(): SaveData {
     coins: 0,
     unlockedWeapons: ["pulse"],
     equippedWeapons: ["pulse"],
-    selectedHero: "assault",
+    selectedHero: "recon",
     settings: {
       audioEnabled: true,
       volume: 0.8,
@@ -58,10 +66,11 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
   const validEquipped = equipped.length > 0 ? equipped : fallback.equippedWeapons;
   const clampedEquipped = validEquipped.slice(0, DEFAULT_BALANCE.progression.maxWeapons);
 
+  const migratedHero = parsed.selectedHero
+    ? LEGACY_HERO_MAP[parsed.selectedHero] ?? parsed.selectedHero
+    : fallback.selectedHero;
   const validHero: HeroId =
-    parsed.selectedHero && parsed.selectedHero in HERO_DEFS
-      ? parsed.selectedHero
-      : fallback.selectedHero;
+    migratedHero && migratedHero in HERO_DEFS ? migratedHero : fallback.selectedHero;
 
   return {
     ...fallback,

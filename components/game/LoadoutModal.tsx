@@ -2,11 +2,10 @@ import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Crosshair,
-  Shield,
-  Heart,
-  Wrench,
+  Snowflake,
+  Butterfly,
+  PawPrint,
   Eye,
-  Bomb,
   Check,
   Lightning,
   CaretRight,
@@ -14,18 +13,18 @@ import {
   Users,
   Star,
   Person,
+  Fire,
 } from "@phosphor-icons/react";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import type { WeaponId, HeroId, GameModeType } from "@/lib/game/types";
 import { saveLoadout, loadSave } from "@/lib/game/save";
 
-const HERO_ICONS: Record<HeroId, typeof Shield> = {
-  assault: Shield,
-  medic: Heart,
-  engineer: Wrench,
-  scout: Eye,
-  vanguard: Bomb,
+const HERO_ICONS: Record<HeroId, typeof Snowflake> = {
+  nitrogen: Snowflake,
+  twilight: Butterfly,
+  leopard: PawPrint,
+  recon: Eye,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -211,7 +210,7 @@ export default function LoadoutModal({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {/* Skill */}
                   <div className="rounded-2xl border border-border bg-panel p-4">
                     <div className="mb-2 flex items-center gap-2">
@@ -227,6 +226,22 @@ export default function LoadoutModal({
                       </div>
                     </div>
                     <p className="text-xs leading-relaxed text-muted">{activeHero.skill.description}</p>
+                  </div>
+                  {/* Ultimate */}
+                  <div className="rounded-2xl border border-border bg-panel p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span
+                        className="flex h-8 w-8 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: `${activeHero.color}18`, color: activeHero.color }}
+                      >
+                        <Fire size={16} weight="bold" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-bold">{activeHero.ultimate.name}</p>
+                        <p className="text-[10px] text-muted">冷却 {activeHero.ultimate.cooldown}s</p>
+                      </div>
+                    </div>
+                    <p className="text-xs leading-relaxed text-muted">{activeHero.ultimate.description}</p>
                   </div>
                   {/* Passive */}
                   <div className="rounded-2xl border border-border bg-panel p-4">

@@ -33,7 +33,7 @@ export type MissionType =
   | "captureNodes"
   | "surviveTimer";
 
-export type HeroId = "scout" | "assault" | "medic" | "engineer" | "vanguard";
+export type HeroId = "nitrogen" | "twilight" | "leopard" | "recon";
 
 export interface HeroSkill {
   id: string;
@@ -51,7 +51,7 @@ export interface Deployable {
   x: number;
   y: number;
   radius: number;
-  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura";
+  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField";
   ownerId: string;
   health: number;
   maxHealth: number;
@@ -208,10 +208,16 @@ export interface Player {
   heroId: HeroId | null;
   activeSkill: HeroSkill | null;
   skillTimer: number;
+  ultimateSkill: HeroSkill | null;
+  ultimateTimer: number;
   // Deployable upgrade progression (talent-purchased permanent ranks)
   deployableUpgrades: Record<string, number>;
   // Hero talent levels purchased this run
   talentLevels: Record<string, number>;
+  // Hero-specific transient buffs
+  leopardFrenzyTimer: number;
+  leopardBloodlustStacks: number;
+  leopardBloodlustTimer: number;
   // Transient state
   knockbackX: number;
   knockbackY: number;
@@ -288,6 +294,9 @@ export interface Enemy {
   color: string;
   variant: EnemyVariant | BossId;
   slow: number;
+  slowTimer: number;
+  freezeTimer: number;
+  droneMarkTimer: number;
   // Elite / boss properties
   isElite: boolean;
   isBoss: boolean;
@@ -470,6 +479,8 @@ export interface HeroTalent {
   description: string;
   maxLevel: number;
   category: "damage" | "skill" | "utility";
+  variantFor?: "skill" | "ultimate";
+  isSkillVariant?: boolean;
   modifiers: {
     damageMul?: number;
     cooldownMul?: number;
@@ -495,6 +506,7 @@ export interface InputState {
   fire: boolean;
   pause: boolean;
   useSkill?: boolean;
+  useUltimate?: boolean;
 }
 
 export interface GameStats {

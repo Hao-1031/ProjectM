@@ -18,6 +18,9 @@ import {
   Fire,
   Drone,
   Play,
+  Snowflake,
+  Butterfly,
+  PawPrint,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { formatTime } from "@/lib/game/math";
@@ -32,6 +35,13 @@ const weaponIcons: Record<string, React.ComponentType<any>> = {
   rocket: Rocket,
   flame: Fire,
   drone: Drone,
+};
+
+const heroIcons: Record<string, React.ComponentType<any>> = {
+  nitrogen: Snowflake,
+  twilight: Butterfly,
+  leopard: PawPrint,
+  recon: Crosshair,
 };
 
 const modeNames: Record<string, string> = {
@@ -199,25 +209,27 @@ export default function BasePage() {
         <section className="mt-20">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">英雄档案</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {heroes.map((hero) => (
-              <FeatureCard
-                key={hero.id}
-                icon={
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-lg"
-                    style={{
-                      backgroundColor: `${hero.color}20`,
-                      border: `1px solid ${hero.color}40`,
-                    }}
-                  >
-                    <Crosshair size={20} weight="bold" style={{ color: hero.color }} />
-                  </div>
-                }
-                title={hero.name}
-                description={hero.description}
-                meta={hero.skill.name}
-                variant="muted"
-              >
+            {heroes.map((hero) => {
+              const HeroIcon = heroIcons[hero.id] ?? Crosshair;
+              return (
+                <FeatureCard
+                  key={hero.id}
+                  icon={
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-lg"
+                      style={{
+                        backgroundColor: `${hero.color}20`,
+                        border: `1px solid ${hero.color}40`,
+                      }}
+                    >
+                      <HeroIcon size={20} weight="bold" style={{ color: hero.color }} />
+                    </div>
+                  }
+                  title={hero.name}
+                  description={hero.description}
+                  meta={hero.skill.name}
+                  variant="muted"
+                >
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
                   <span className="rounded-md border border-border bg-background px-2 py-1">
                     冷却 {hero.skill.cooldown}s
@@ -227,7 +239,8 @@ export default function BasePage() {
                   </span>
                 </div>
               </FeatureCard>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>

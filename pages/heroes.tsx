@@ -1,38 +1,39 @@
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Target,
-  Shield,
-  Heart,
-  Wrench,
+  Snowflake,
+  Butterfly,
+  PawPrint,
   Lightning,
   Crosshair,
   CaretRight,
   Sparkle,
   Sword,
+  Fire,
+  Target,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import type { HeroTalent } from "@/lib/game/types";
 
-const ICONS: Record<string, typeof Target> = {
-  scout: Crosshair,
-  assault: Shield,
-  medic: Heart,
-  engineer: Wrench,
+const ICONS: Record<string, typeof Snowflake> = {
+  nitrogen: Snowflake,
+  twilight: Butterfly,
+  leopard: PawPrint,
+  recon: Crosshair,
 };
 
 const COLOR_RING: Record<string, string> = {
-  scout: "ring-primary/40",
-  assault: "ring-accent/40",
-  medic: "ring-success/40",
-  engineer: "ring-warning/40",
+  nitrogen: "ring-primary/40",
+  twilight: "ring-success/40",
+  leopard: "ring-accent/40",
+  recon: "ring-warning/40",
 };
 
 const BG_GLOW: Record<string, string> = {
-  scout: "bg-primary/10",
-  assault: "bg-accent/10",
-  medic: "bg-success/10",
-  engineer: "bg-warning/10",
+  nitrogen: "bg-primary/10",
+  twilight: "bg-success/10",
+  leopard: "bg-accent/10",
+  recon: "bg-warning/10",
 };
 
 function TalentCard({ talent, index }: { talent: HeroTalent; index: number }) {
@@ -80,8 +81,8 @@ export default function HeroesPage() {
             据点防守作战单位
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-            四位定位分明的英雄构成防守小队核心。侦察提供视野与暴击，突击吸收伤害，
-            医疗维持战线，工程部署炮台与维修核心。
+            四位定位分明的英雄构成防守小队核心。液氮封锁通道，暮蝶维系生命，
+            豹撕裂敌阵，侦查提供视野与精准打击。
           </p>
         </motion.div>
 
@@ -118,10 +119,7 @@ export default function HeroesPage() {
                       <div>
                         <h2 className="text-2xl font-bold tracking-tight">{hero.name}</h2>
                         <p className="text-xs font-mono uppercase tracking-widest text-muted">
-                          {hero.id === "scout" && "侦察 / 暴击支援"}
-                          {hero.id === "assault" && "突击 / 正面抗压"}
-                          {hero.id === "medic" && "医疗 / 持续续航"}
-                          {hero.id === "engineer" && "工程 / 部署维修"}
+                          {hero.role}
                         </p>
                       </div>
                     </div>
@@ -139,6 +137,16 @@ export default function HeroesPage() {
                       <p className="pl-6 text-xs leading-relaxed text-muted">
                         {hero.skill.description}，冷却 {hero.skill.cooldown}s，持续{" "}
                         {hero.skill.duration}s。
+                      </p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Fire size={16} weight="duotone" className="text-danger" />
+                        <span className="font-medium">终极技能</span>
+                        <span className="text-muted">-</span>
+                        <span>{hero.ultimate.name}</span>
+                      </div>
+                      <p className="pl-6 text-xs leading-relaxed text-muted">
+                        {hero.ultimate.description}，冷却 {hero.ultimate.cooldown}s
+                        {hero.ultimate.duration > 0 ? `，持续 ${hero.ultimate.duration}s。` : "。"}
                       </p>
                       <div className="flex items-center gap-2 text-sm">
                         <Sword size={16} weight="duotone" className="text-accent" />

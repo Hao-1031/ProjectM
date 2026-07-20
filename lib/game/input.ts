@@ -38,6 +38,7 @@ export class InputManager {
     fire: false,
     pause: false,
     useSkill: false,
+    useUltimate: false,
   };
 
   joystick: JoystickState = {
@@ -49,6 +50,8 @@ export class InputManager {
 
   private keys = new Set<string>();
   private pausePressed = false;
+  private skillPressed = false;
+  private ultimatePressed = false;
   private onPauseCallback?: () => void;
 
   // Multi-touch tracking
@@ -119,6 +122,14 @@ export class InputManager {
         this.pausePressed = true;
         this.onPauseCallback?.();
       }
+      e.preventDefault();
+    }
+    if (e.key === "e" || e.key === "E") {
+      this.skillPressed = true;
+      e.preventDefault();
+    }
+    if (e.key === "q" || e.key === "Q") {
+      this.ultimatePressed = true;
       e.preventDefault();
     }
   };
@@ -259,6 +270,11 @@ export class InputManager {
       move.x += this.joystick.vector.x;
       move.y += this.joystick.vector.y;
     }
+
+    this.state.useSkill = this.skillPressed;
+    this.state.useUltimate = this.ultimatePressed;
+    this.skillPressed = false;
+    this.ultimatePressed = false;
 
     const len = Math.hypot(move.x, move.y);
     if (len > 1) {
