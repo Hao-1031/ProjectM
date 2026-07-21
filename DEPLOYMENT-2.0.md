@@ -123,7 +123,7 @@ CREATE POLICY "announcements_write_service"
 
 ```powershell
 # 1. 克隆仓库
-git clone https://github.com/Hao-1031/Project-M.git project-m
+git clone https://github.com/Hao-1031/ProjectM.git project-m
 cd project-m
 
 # 2. 安装依赖
@@ -193,7 +193,7 @@ pnpm start
 
 ```powershell
 # 下载并执行部署脚本（推荐）
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Hao-1031/Project-M/main/scripts/deploy-windows.ps1" -OutFile "C:\deploy-windows.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Hao-1031/ProjectM/main/scripts/deploy-windows.ps1" -OutFile "C:\deploy-windows.ps1"
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
 C:\deploy-windows.ps1 -Domain "your-domain.com" -AdminKey "your-secure-admin-key"
 ```
@@ -239,7 +239,7 @@ npm install -g pnpm pm2
 # 拉取代码
 New-Item -ItemType Directory -Force -Path C:\www
 cd C:\www
-git clone https://github.com/Hao-1031/Project-M.git project-m
+git clone https://github.com/Hao-1031/ProjectM.git project-m
 cd project-m
 
 # 配置环境变量
@@ -466,7 +466,7 @@ pm2 reload project-m
 
 ## 12. 联系与文档
 
-- 仓库地址：https://github.com/Hao-1031/Project-M
+- 仓库地址：https://github.com/Hao-1031/ProjectM
 - Supabase 文档：https://supabase.com/docs
 - PM2 文档：https://pm2.keymetrics.io/docs/
 - Next.js 部署文档：https://nextjs.org/docs/deployment

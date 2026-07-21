@@ -3,7 +3,7 @@
 # 可选传入 Domain 参数以启用 Nginx 反向代理与 HTTPS
 param(
     [string]$Domain = "",
-    [string]$Repo = "https://github.com/Hao-1031/Project-M.git",
+    [string]$Repo = "https://github.com/Hao-1031/ProjectM.git",
     [string]$Branch = "main",
     [string]$InstallDir = "C:\www\project-m",
     [string]$AdminKey = ""

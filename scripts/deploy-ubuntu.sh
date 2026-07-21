@@ -8,7 +8,7 @@ set -euo pipefail
 
 APP_NAME="project-m"
 APP_DIR="/var/www/${APP_NAME}"
-REPO_URL="https://github.com/Hao-1031/Project-M.git"
+REPO_URL="https://github.com/Hao-1031/ProjectM.git"
 BRANCH="main"
 NODE_VERSION="20"
 

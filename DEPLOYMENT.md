@@ -146,7 +146,7 @@ apt-get update && apt-get upgrade -y
 项目已提供自动化脚本，复制到服务器后直接执行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Hao-1031/Project-M/main/scripts/deploy-ubuntu.sh -o deploy-ubuntu.sh
+curl -fsSL https://raw.githubusercontent.com/Hao-1031/ProjectM/main/scripts/deploy-ubuntu.sh -o deploy-ubuntu.sh
 chmod +x deploy-ubuntu.sh
 sudo DOMAIN=your-domain.com ./deploy-ubuntu.sh
 ```
@@ -192,7 +192,7 @@ pm2 -v
 ```bash
 mkdir -p /var/www
 cd /var/www
-git clone https://github.com/Hao-1031/Project-M.git project-m
+git clone https://github.com/Hao-1031/ProjectM.git project-m
 cd project-m
 ```
 
@@ -765,7 +765,7 @@ pm2 -v
 ```powershell
 New-Item -ItemType Directory -Force -Path C:\www | Out-Null
 cd C:\www
-git clone https://github.com/Hao-1031/Project-M.git project-m
+git clone https://github.com/Hao-1031/ProjectM.git project-m
 cd project-m
 ```
 
