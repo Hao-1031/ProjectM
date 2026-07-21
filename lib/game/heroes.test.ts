@@ -84,6 +84,7 @@ function createWalker(x: number, y: number): Enemy {
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
+    burnDamage: 0,
     phase: 0,
     phaseThresholds: [],
     targetCore: false,
@@ -103,7 +104,7 @@ function createDefenseGameState(): GameState {
 describe("hero definitions", () => {
   it("each hero has skill, ultimate and passive", () => {
     const ids = Object.keys(HERO_DEFS) as HeroId[];
-    expect(ids).toEqual(["nitrogen", "twilight", "leopard", "recon"]);
+    expect(ids).toEqual(["nitrogen", "twilight", "leopard", "recon", "viper", "falcon", "bastion"]);
     for (const id of ids) {
       const def = HERO_DEFS[id];
       expect(def.id).toBe(id);
@@ -228,6 +229,41 @@ describe("useHeroSkill", () => {
     expect(state.defenseState!.deployables[0].type).toBe("drone");
   });
 
+  it("viper spit damages and corrodes enemies in cone", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "viper");
+    state.player.facing = 0;
+    state.enemies.push(createWalker(state.player.x + 120, state.player.y));
+    const beforeHealth = state.enemies[0].health;
+    state.player.skillTimer = 0;
+    useHeroSkill(state.player, state);
+    expect(state.enemies[0].health).toBeLessThan(beforeHealth);
+    expect(state.enemies[0].burnDuration).toBeGreaterThan(0);
+  });
+
+  it("falcon dash repositions and stuns nearby enemies", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "falcon");
+    state.player.facing = 0;
+    state.enemies.push(createWalker(state.player.x + 120, state.player.y));
+    const beforeHealth = state.enemies[0].health;
+    state.player.skillTimer = 0;
+    useHeroSkill(state.player, state);
+    expect(state.player.x).toBeGreaterThan(400);
+    expect(state.enemies[0].health).toBeLessThan(beforeHealth);
+  });
+
+  it("bastion deploys a wall", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "bastion");
+    state.player.facing = 0;
+    state.player.skillTimer = 0;
+    useHeroSkill(state.player, state);
+    expect(state.defenseState!.deployables).toHaveLength(1);
+    expect(state.defenseState!.deployables[0].type).toBe("wall");
+    expect(state.defenseState!.deployables[0].health).toBeGreaterThan(0);
+  });
+
   it("does nothing when skill is on cooldown", () => {
     const state = createDefenseGameState();
     applyHeroToPlayer(state.player, "nitrogen");
@@ -287,6 +323,38 @@ describe("useHeroUltimate", () => {
     state.player.ultimateTimer = 0;
     useHeroUltimate(state.player, state);
     expect(state.enemies[0].health).toBeLessThan(beforeHealth);
+  });
+
+  it("viper nest deploys a poison field", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "viper");
+    state.player.facing = 0;
+    state.player.ultimateTimer = 0;
+    useHeroUltimate(state.player, state);
+    expect(state.defenseState!.deployables).toHaveLength(1);
+    expect(state.defenseState!.deployables[0].type).toBe("freezeField");
+  });
+
+  it("falcon orbital laser damages enemies in front", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "falcon");
+    state.player.facing = 0;
+    state.enemies.push(createWalker(state.player.x + 120, state.player.y));
+    const beforeHealth = state.enemies[0].health;
+    state.player.ultimateTimer = 0;
+    useHeroUltimate(state.player, state);
+    expect(state.enemies[0].health).toBeLessThan(beforeHealth);
+  });
+
+  it("bastion launches homing swarm missiles", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "bastion");
+    state.player.facing = 0;
+    state.enemies.push(createWalker(state.player.x + 120, state.player.y));
+    state.player.ultimateTimer = 0;
+    useHeroUltimate(state.player, state);
+    expect(state.projectiles.length).toBeGreaterThanOrEqual(6);
+    expect(state.projectiles.some((p) => p.homing)).toBe(true);
   });
 
   it("does nothing when ultimate is on cooldown", () => {

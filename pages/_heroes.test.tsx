@@ -17,12 +17,14 @@ describe("HeroesPage", () => {
     expect(screen.getByText("据点防守作战单位")).toBeInTheDocument();
   });
 
-  it("displays all four heroes", () => {
+  it("displays all six heroes", () => {
     render(<HeroesPage />);
     expect(screen.getByText("液氮")).toBeInTheDocument();
     expect(screen.getByText("暮蝶")).toBeInTheDocument();
     expect(screen.getByText("豹")).toBeInTheDocument();
     expect(screen.getByText("侦查")).toBeInTheDocument();
+    expect(screen.getByText("蝰蛇")).toBeInTheDocument();
+    expect(screen.getByText("猎鹰")).toBeInTheDocument();
   });
 
   it("shows hero skills and talents", () => {

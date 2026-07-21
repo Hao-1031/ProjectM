@@ -185,6 +185,7 @@ export class GameEngine {
   private loadout: Required<Loadout>;
   private pendingSpawns = 0;
   private spawnBatchTimer = 0;
+  private graphicsQuality: "high" | "medium" | "low" = "medium";
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -433,6 +434,20 @@ export class GameEngine {
     this.updateCamera();
   }
 
+  setQuality(quality: "high" | "medium" | "low") {
+    this.graphicsQuality = quality;
+    const multipliers = { high: 1, medium: 0.65, low: 0.3 };
+    const poolSizes = { high: 768, medium: 512, low: 256 };
+    this.particlePool.setQualityMultiplier(multipliers[quality]);
+    this.fx.setQualityMultiplier(multipliers[quality]);
+    this.particlePool = new ParticlePool(poolSizes[quality]);
+    this.state.particles = this.particlePool.getParticles();
+  }
+
+  getQuality(): "high" | "medium" | "low" {
+    return this.graphicsQuality;
+  }
+
   start() {
     this.state.status = "running";
     this.state.lastTime = performance.now();
@@ -633,7 +648,10 @@ export class GameEngine {
     }
   }
 
-  private resolveObstacleCollisions(entity: { x: number; y: number; radius: number }) {
+  private resolveObstacleCollisions(
+    entity: { x: number; y: number; radius: number; id?: string },
+    isEnemy = false
+  ) {
     const maxIterations = 5;
     for (let i = 0; i < maxIterations; i++) {
       let resolved = true;
@@ -646,6 +664,24 @@ export class GameEngine {
           resolved = false;
         }
       }
+
+      const ds = this.state.defenseState;
+      if (ds) {
+        for (const d of ds.deployables) {
+          if (d.type !== "wall" || d.health <= 0) continue;
+          const wallBox = { x: d.x - d.radius, y: d.y - d.radius, width: d.radius * 2, height: d.radius * 2 };
+          const displacement = resolveCircleRectCollision(entity, wallBox);
+          if (displacement) {
+            entity.x += displacement.x;
+            entity.y += displacement.y;
+            if (isEnemy) {
+              d.health -= 18;
+            }
+            resolved = false;
+          }
+        }
+      }
+
       if (resolved) break;
     }
   }
@@ -785,6 +821,30 @@ export class GameEngine {
     const projectiles = this.state.projectiles;
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i];
+
+      if (p.homing) {
+        let target: Enemy | null = null;
+        let bestDist = 280;
+        for (const enemy of this.state.enemies) {
+          const dist = distance({ x: p.x, y: p.y }, enemy);
+          if (dist < bestDist) {
+            bestDist = dist;
+            target = enemy;
+          }
+        }
+        if (target) {
+          const desiredAngle = angleBetween({ x: p.x, y: p.y }, target);
+          const currentAngle = Math.atan2(p.vy, p.vx);
+          let delta = desiredAngle - currentAngle;
+          while (delta > Math.PI) delta -= Math.PI * 2;
+          while (delta < -Math.PI) delta += Math.PI * 2;
+          const turn = clamp(delta, -3.5 * dt, 3.5 * dt);
+          const newAngle = currentAngle + turn;
+          p.vx = Math.cos(newAngle) * p.speed;
+          p.vy = Math.sin(newAngle) * p.speed;
+        }
+      }
+
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
@@ -943,6 +1003,7 @@ export class GameEngine {
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
+      burnDamage: 0,
       phase: 0,
       phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
       targetCore: this.state.mode === "defense",
@@ -1034,7 +1095,7 @@ export class GameEngine {
       enemy.x += enemy.knockbackX * dt;
       enemy.y += enemy.knockbackY * dt;
 
-      this.resolveObstacleCollisions(enemy);
+      this.resolveObstacleCollisions(enemy, true);
 
       enemy.x = clamp(enemy.x, enemy.radius, this.state.map.width - enemy.radius);
       enemy.y = clamp(enemy.y, enemy.radius, this.state.map.height - enemy.radius);

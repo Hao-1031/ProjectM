@@ -40,7 +40,7 @@ export type MissionType =
   | "captureNodes"
   | "surviveTimer";
 
-export type HeroId = "nitrogen" | "twilight" | "leopard" | "recon";
+export type HeroId = "nitrogen" | "twilight" | "leopard" | "recon" | "viper" | "falcon" | "bastion";
 
 export interface HeroSkill {
   id: string;
@@ -58,7 +58,7 @@ export interface Deployable {
   x: number;
   y: number;
   radius: number;
-  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField";
+  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField" | "wall";
   ownerId: string;
   health: number;
   maxHealth: number;
@@ -344,6 +344,7 @@ export interface Enemy {
   knockbackX: number;
   knockbackY: number;
   burnDuration: number;
+  burnDamage: number;
   // Boss phase
   phase: number;
   phaseThresholds: number[];
@@ -536,6 +537,7 @@ export interface HeroTalent {
     deployableRangeMul?: number;
     deployableCooldownMul?: number;
     deployableDurationMul?: number;
+    countAdd?: number;
   };
 }
 
@@ -713,4 +715,67 @@ export interface SerializedGameState {
   defenseState?: DefenseState;
   deathmatchState?: DeathmatchState;
   selectedHero?: HeroId;
+}
+
+// Season / Battle Pass types for 2.0
+export type SeasonRewardType = "skin" | "currency" | "emote" | "badge" | "convenience" | "heroUnlock";
+
+export interface SeasonReward {
+  id: string;
+  level: number;
+  type: SeasonRewardType;
+  name: string;
+  description: string;
+  icon?: string;
+  free: boolean;
+  premium: boolean;
+  unlocked: boolean;
+  claimed: boolean;
+}
+
+export type SeasonMissionCategory = "daily" | "weekly" | "season";
+
+export interface SeasonMission {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  xpReward: number;
+  completed: boolean;
+  resetWeekly: boolean;
+  category: SeasonMissionCategory;
+}
+
+export interface SeasonState {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime: number;
+  currentLevel: number;
+  currentXp: number;
+  xpToNext: number;
+  premiumUnlocked: boolean;
+  rewards: SeasonReward[];
+  missions: SeasonMission[];
+  seasonCurrency: number;
+}
+
+export interface SeasonShopItem {
+  id: string;
+  name: string;
+  type: SeasonRewardType;
+  description: string;
+  cost: number;
+  available: boolean;
+  unlockLevel?: number;
+}
+
+export interface PlayerProgression {
+  unlockedHeroes: HeroId[];
+  ownedSkins: string[];
+  ownedEmotes: string[];
+  seasonCurrency: number;
+  premiumCurrency: number;
+  seasonStates: SeasonState[];
 }

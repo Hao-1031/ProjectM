@@ -22,13 +22,25 @@ export interface JoystickState {
   vector: Vec2;
 }
 
+export interface AimAssistConfig {
+  enabled: boolean;
+  strength: number;
+  range: number;
+  angle: number;
+}
+
+export interface AutoFireConfig {
+  enabled: boolean;
+  range: number;
+}
+
 interface TrackedTouch {
   id: number;
   startX: number;
   startY: number;
   x: number;
   y: number;
-  role: "joystick" | "none";
+  role: "joystick";
 }
 
 export class InputManager {
@@ -48,13 +60,25 @@ export class InputManager {
     vector: { x: 0, y: 0 },
   };
 
+  aimAssist: AimAssistConfig = {
+    enabled: true,
+    strength: 0.35,
+    range: 260,
+    angle: Math.PI / 3,
+  };
+
+  autoFire: AutoFireConfig = {
+    enabled: true,
+    range: 220,
+  };
+
   private keys = new Set<string>();
   private pausePressed = false;
   private skillPressed = false;
   private ultimatePressed = false;
   private onPauseCallback?: () => void;
 
-  // Multi-touch tracking
+  // Multi-touch tracking. Only joystick touches are tracked internally.
   private touches = new Map<number, TrackedTouch>();
   private joystickTouchId: number | null = null;
 
@@ -71,6 +95,23 @@ export class InputManager {
     this.onPauseCallback = cb;
   }
 
+  setAimAssist(config: Partial<AimAssistConfig>) {
+    this.aimAssist = { ...this.aimAssist, ...config };
+  }
+
+  setAutoFire(config: Partial<AutoFireConfig>) {
+    this.autoFire = { ...this.autoFire, ...config };
+  }
+
+  setJoystickSize(size: "small" | "medium" | "large") {
+    const radii = { small: 54, medium: 72, large: 92 };
+    (this as unknown as Record<string, number>).__joystickMaxRadius = radii[size];
+  }
+
+  private getJoystickMaxRadius(): number {
+    return (this as unknown as Record<string, number>).__joystickMaxRadius ?? this.JOYSTICK_MAX_RADIUS;
+  }
+
   private isInteractive(target: HTMLElement): boolean {
     const tag = target.tagName.toLowerCase();
     if (
@@ -83,6 +124,9 @@ export class InputManager {
       return true;
     }
     if (target.closest("button, a, input, select, textarea, [role='button']")) {
+      return true;
+    }
+    if (target.getAttribute("data-touch-target") === "true") {
       return true;
     }
     return false;
@@ -151,32 +195,33 @@ export class InputManager {
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
 
-      // Do not hijack touches that start on interactive UI elements (buttons, links, inputs).
+      // Never hijack touches that start on interactive UI elements (buttons, links, inputs,
+      // or elements explicitly marked as touch targets). Let them receive their own events.
       if (target && this.isInteractive(target)) {
         continue;
       }
 
-      // Claim this touch for tracking.
+      // Only claim touches inside the joystick zone. Right-side touches are left untouched
+      // so skill buttons and other HUD controls can respond without interference.
+      if (this.joystickTouchId !== null || !this.isInJoystickZone(x, y, rect)) {
+        continue;
+      }
+
       const tracked: TrackedTouch = {
         id: touch.identifier,
         startX: x,
         startY: y,
         x,
         y,
-        role: "none",
+        role: "joystick",
       };
       this.touches.set(touch.identifier, tracked);
-
-      // Assign joystick role only to touches in the left zone that are not already used.
-      if (this.joystickTouchId === null && this.isInJoystickZone(x, y, rect)) {
-        tracked.role = "joystick";
-        this.joystickTouchId = touch.identifier;
-        this.joystick.active = true;
-        this.joystick.origin = { x, y };
-        this.joystick.current = { x, y };
-        this.joystick.vector = { x: 0, y: 0 };
-        consumed = true;
-      }
+      this.joystickTouchId = touch.identifier;
+      this.joystick.active = true;
+      this.joystick.origin = { x, y };
+      this.joystick.current = { x, y };
+      this.joystick.vector = { x: 0, y: 0 };
+      consumed = true;
     }
 
     if (consumed) {
@@ -246,7 +291,7 @@ export class InputManager {
       const dx = this.joystick.current.x - this.joystick.origin.x;
       const dy = this.joystick.current.y - this.joystick.origin.y;
       const len = Math.hypot(dx, dy);
-      const maxRadius = this.JOYSTICK_MAX_RADIUS;
+      const maxRadius = this.getJoystickMaxRadius();
       const scale = len > maxRadius ? maxRadius / len : 1;
       const nx = (dx * scale) / maxRadius;
       const ny = (dy * scale) / maxRadius;
@@ -282,5 +327,73 @@ export class InputManager {
     this.state.move = move;
     this.state.aim = { ...move };
     this.state.fire = len > 0.1;
+  }
+
+  /**
+   * Apply aim assist and auto-fire using current game world state.
+   * Should be called after update() each frame.
+   */
+  applyAimAssist(
+    playerX: number,
+    playerY: number,
+    enemies: ReadonlyArray<{ x: number; y: number; radius: number; health: number }>,
+    dt: number
+  ) {
+    // Auto-fire: if moving and an enemy is within range, set fire true.
+    if (this.autoFire.enabled) {
+      let nearestDist = Infinity;
+      for (const enemy of enemies) {
+        const dist = Math.hypot(enemy.x - playerX, enemy.y - playerY) - enemy.radius;
+        if (dist < nearestDist) nearestDist = dist;
+      }
+      if (nearestDist <= this.autoFire.range) {
+        this.state.fire = true;
+      }
+    }
+
+    // Aim assist: gently nudge aim vector toward the nearest enemy in front.
+    if (!this.aimAssist.enabled || enemies.length === 0) return;
+
+    const aimAngle = Math.atan2(this.state.aim.y, this.state.aim.x);
+    let bestEnemy: { x: number; y: number; score: number } | null = null;
+
+    for (const enemy of enemies) {
+      const dx = enemy.x - playerX;
+      const dy = enemy.y - playerY;
+      const dist = Math.hypot(dx, dy) - enemy.radius;
+      if (dist > this.aimAssist.range || dist <= 0) continue;
+
+      const angleToEnemy = Math.atan2(dy, dx);
+      let angleDiff = angleToEnemy - aimAngle;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+      if (Math.abs(angleDiff) > this.aimAssist.angle) continue;
+
+      // Prefer closer, more centered enemies.
+      const centerScore = 1 - Math.abs(angleDiff) / this.aimAssist.angle;
+      const rangeScore = 1 - dist / this.aimAssist.range;
+      const score = centerScore * 0.6 + rangeScore * 0.4;
+
+      if (!bestEnemy || score > bestEnemy.score) {
+        bestEnemy = { x: enemy.x, y: enemy.y, score };
+      }
+    }
+
+    if (!bestEnemy) return;
+
+    const dx = bestEnemy.x - playerX;
+    const dy = bestEnemy.y - playerY;
+    const targetAngle = Math.atan2(dy, dx);
+    let angleDiff = targetAngle - aimAngle;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+    const assistRate = this.aimAssist.strength * Math.min(1, dt * 12);
+    const newAngle = aimAngle + angleDiff * assistRate;
+    this.state.aim = {
+      x: Math.cos(newAngle),
+      y: Math.sin(newAngle),
+    };
   }
 }

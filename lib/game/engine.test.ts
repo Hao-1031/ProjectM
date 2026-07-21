@@ -139,6 +139,7 @@ describe("GameEngine", () => {
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
+      burnDamage: 0,
     });
     engine.update(idleInput, 16);
     expect(engine.state.status).toBe("defeat");
@@ -212,7 +213,8 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-        targetCore: false,
+      burnDamage: 0,
+      targetCore: false,
       });
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThan(0);
@@ -252,6 +254,7 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
+        burnDamage: 0,
       });
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThanOrEqual(3);
@@ -533,7 +536,8 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-        targetCore: false,
+      burnDamage: 0,
+      targetCore: false,
       });
       engine.update(idleInput, 16);
       expect(engine.state.stats.damageTaken).toBe(20);
@@ -574,7 +578,8 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-        targetCore: false,
+      burnDamage: 0,
+      targetCore: false,
       });
       engine.update(rightInput, performance.now() + 100);
       const critNumber = engine.state.damageNumbers.find((n) => n.isCritical);

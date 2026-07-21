@@ -8,21 +8,26 @@ import type {
   Obstacle,
 } from "./types";
 import { uid, randomRange, randomPointInBounds, distance, rectOverlap } from "./math";
+import { getMapById, DEFAULT_DEFENSE_MAP_ID, type MapId } from "./maps";
 
-const DEFENSE_MAP_WIDTH = 2200;
-const DEFENSE_MAP_HEIGHT = 1600;
+const DEFAULT_MAP_WIDTH = 2200;
+const DEFAULT_MAP_HEIGHT = 1600;
 const CORE_RADIUS = 60;
 const NODE_RADIUS = 45;
 const NODE_CAPTURE_TIME = 4;
 
 const MECH_VARIANTS: EnemyVariant[] = ["drone", "sentinel", "crusher", "sniper"];
 
-export function createDefenseMap(seed: number): MapConfig {
+export function createDefenseMap(seed: number, mapId: MapId = DEFAULT_DEFENSE_MAP_ID): MapConfig {
+  if (mapId !== DEFAULT_DEFENSE_MAP_ID) {
+    return getMapById(mapId);
+  }
+
   const obstacles: Obstacle[] = [];
   const rng = seededRandom(seed);
 
-  const coreX = DEFENSE_MAP_WIDTH / 2;
-  const coreY = DEFENSE_MAP_HEIGHT / 2;
+  const coreX = DEFAULT_MAP_WIDTH / 2;
+  const coreY = DEFAULT_MAP_HEIGHT / 2;
   const minPlayerPassage = 60;
 
   // Core perimeter walls
@@ -53,7 +58,7 @@ export function createDefenseMap(seed: number): MapConfig {
 
   // Scattered cover
   for (let i = 0; i < 16; i++) {
-    let pos = randomPointInBounds(DEFENSE_MAP_WIDTH, DEFENSE_MAP_HEIGHT, 200);
+    let pos = randomPointInBounds(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, 200);
     let attempts = 0;
     while (
       attempts < 20 &&
@@ -66,7 +71,7 @@ export function createDefenseMap(seed: number): MapConfig {
           )
         ))
     ) {
-      pos = randomPointInBounds(DEFENSE_MAP_WIDTH, DEFENSE_MAP_HEIGHT, 200);
+      pos = randomPointInBounds(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, 200);
       attempts++;
     }
 
@@ -90,8 +95,8 @@ export function createDefenseMap(seed: number): MapConfig {
   }
 
   return {
-    width: DEFENSE_MAP_WIDTH,
-    height: DEFENSE_MAP_HEIGHT,
+    width: DEFAULT_MAP_WIDTH,
+    height: DEFAULT_MAP_HEIGHT,
     theme: "industrial",
     obstacles,
     hazards: [],
@@ -100,8 +105,8 @@ export function createDefenseMap(seed: number): MapConfig {
 
 export function createDefenseCore(): DefenseCore {
   return {
-    x: DEFENSE_MAP_WIDTH / 2,
-    y: DEFENSE_MAP_HEIGHT / 2,
+    x: DEFAULT_MAP_WIDTH / 2,
+    y: DEFAULT_MAP_HEIGHT / 2,
     radius: CORE_RADIUS,
     health: 5000,
     maxHealth: 5000,
@@ -112,8 +117,8 @@ export function createDefenseCore(): DefenseCore {
 export function generateDefenseNodes(seed: number): EnergyNode[] {
   const rng = seededRandom(seed);
   const nodes: EnergyNode[] = [];
-  const coreX = DEFENSE_MAP_WIDTH / 2;
-  const coreY = DEFENSE_MAP_HEIGHT / 2;
+  const coreX = DEFAULT_MAP_WIDTH / 2;
+  const coreY = DEFAULT_MAP_HEIGHT / 2;
   const waveCount = 8;
 
   for (let wave = 0; wave < waveCount; wave++) {
@@ -123,8 +128,8 @@ export function generateDefenseNodes(seed: number): EnergyNode[] {
     const dist = minDist + rng() * (maxDist - minDist);
     let x = coreX + Math.cos(angle) * dist;
     let y = coreY + Math.sin(angle) * dist;
-    x = Math.max(120, Math.min(DEFENSE_MAP_WIDTH - 120, x));
-    y = Math.max(120, Math.min(DEFENSE_MAP_HEIGHT - 120, y));
+    x = Math.max(120, Math.min(DEFAULT_MAP_WIDTH - 120, x));
+    y = Math.max(120, Math.min(DEFAULT_MAP_HEIGHT - 120, y));
 
     nodes.push({
       id: uid("node"),

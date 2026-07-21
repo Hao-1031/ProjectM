@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake } from "@phosphor-icons/react";
+import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake, Wall } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { Deployable } from "@/lib/game/types";
 
@@ -18,6 +18,7 @@ const deployableMeta: Record<
     icon: <Snowflake size={16} weight="bold" />,
     color: "text-primary",
   },
+  wall: { label: "水泥墙", icon: <Wall size={16} weight="bold" />, color: "text-warning" },
 };
 
 export interface DeployableCardProps {

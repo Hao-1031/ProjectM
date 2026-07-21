@@ -10,6 +10,9 @@ import {
   Sword,
   Fire,
   Target,
+  Skull,
+  AirplaneTilt,
+  CastleTurret,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { HERO_DEFS } from "@/lib/game/heroes";
@@ -20,6 +23,9 @@ const ICONS: Record<string, typeof Snowflake> = {
   twilight: Butterfly,
   leopard: PawPrint,
   recon: Crosshair,
+  viper: Skull,
+  falcon: AirplaneTilt,
+  bastion: CastleTurret,
 };
 
 const COLOR_RING: Record<string, string> = {
@@ -27,6 +33,9 @@ const COLOR_RING: Record<string, string> = {
   twilight: "ring-success/40",
   leopard: "ring-accent/40",
   recon: "ring-warning/40",
+  viper: "ring-success/40",
+  falcon: "ring-primary/40",
+  bastion: "ring-accent/40",
 };
 
 const BG_GLOW: Record<string, string> = {
@@ -34,6 +43,9 @@ const BG_GLOW: Record<string, string> = {
   twilight: "bg-success/10",
   leopard: "bg-accent/10",
   recon: "bg-warning/10",
+  viper: "bg-success/10",
+  falcon: "bg-primary/10",
+  bastion: "bg-accent/10",
 };
 
 function TalentCard({ talent, index }: { talent: HeroTalent; index: number }) {
@@ -79,8 +91,8 @@ export default function HeroesPage() {
           </span>
           <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">据点防守作战单位</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-            四位定位分明的英雄构成防守小队核心。液氮封锁通道，暮蝶维系生命，
-            豹撕裂敌阵，侦查提供视野与精准打击。
+            七位定位分明的英雄构成防守小队核心。从控场、突击、侦查到工程建造，
+            每位英雄都有改变战局的主动技能与终极技能。
           </p>
         </motion.div>
 

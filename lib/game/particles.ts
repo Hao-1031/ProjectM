@@ -158,9 +158,14 @@ export class ParticlePool {
   private pool: Particle[] = [];
   private active: Particle[] = [];
   private maxSize: number;
+  private qualityMultiplier = 1;
 
   constructor(maxSize = 512) {
     this.maxSize = maxSize;
+  }
+
+  setQualityMultiplier(multiplier: number) {
+    this.qualityMultiplier = clamp(multiplier, 0, 1);
   }
 
   private acquire(): Particle {
@@ -182,7 +187,8 @@ export class ParticlePool {
 
   spawn(options: ParticleSpawnOptions): number {
     const intensity = clamp(options.intensity ?? 1, 0, 3);
-    const count = Math.floor((options.count ?? 1) * intensity);
+    const count = Math.floor((options.count ?? 1) * intensity * this.qualityMultiplier);
+    if (count <= 0) return 0;
     const added: Particle[] = [];
 
     for (let i = 0; i < count; i++) {

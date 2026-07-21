@@ -35,6 +35,7 @@ function createBaseEnemy(overrides: Partial<Enemy> = {}): Enemy {
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
+    burnDamage: 0,
     phase: 0,
     phaseThresholds: [],
     targetCore: false,

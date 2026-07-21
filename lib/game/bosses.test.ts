@@ -35,6 +35,7 @@ function createBossFromTemplate(id: BossId, overrides: Partial<Enemy> = {}): Ene
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
+    burnDamage: 0,
     phase: 0,
     phaseThresholds: [...template.phaseThresholds],
     targetCore: false,

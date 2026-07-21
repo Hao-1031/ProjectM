@@ -43,6 +43,7 @@ export class FXSystem {
   private traumaDecay: number;
   private time: number;
   private shakeFrequency: number;
+  private qualityMultiplier = 1;
 
   constructor() {
     this.shake = 0;
@@ -92,18 +93,23 @@ export class FXSystem {
     }
   }
 
+  setQualityMultiplier(multiplier: number): void {
+    this.qualityMultiplier = clamp(multiplier, 0, 1);
+  }
+
   addShake(intensity: number, duration: number, decay = 4): void {
-    this.shake = Math.max(this.shake, intensity);
+    const scaled = intensity * this.qualityMultiplier;
+    this.shake = Math.max(this.shake, scaled);
     this.shakeDecay = Math.max(this.shakeDecay, decay);
-    this.shakeMax = Math.max(this.shakeMax, intensity);
+    this.shakeMax = Math.max(this.shakeMax, scaled);
   }
 
   addTrauma(amount: number): void {
-    this.trauma = clamp(this.trauma + amount, 0, 1);
+    this.trauma = clamp(this.trauma + amount * this.qualityMultiplier, 0, 1);
   }
 
   triggerShake(options: ScreenShakeOptions): void {
-    const intensity = options.intensity;
+    const intensity = options.intensity * this.qualityMultiplier;
     this.shake = Math.max(this.shake, intensity);
     this.shakeDecay = options.decay ?? 4;
     this.shakeFrequency = options.frequency ?? 15;

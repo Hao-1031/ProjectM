@@ -6,6 +6,8 @@ const nextConfig = {
   images: { unoptimized: true },
   // Windows 本地构建 standalone 因 pnpm symlink 极易阻塞；Linux 生产部署仍输出 standalone
   output: process.platform === "win32" ? undefined : "standalone",
+  // 低配/Windows 本地构建时页面数据收集易超时，放宽至 5 分钟
+  staticPageGenerationTimeout: 300,
   webpack: (config) => {
     config.module.rules.push({
       test: /\.(test|spec)\.(tsx|ts|jsx|js)$/,

@@ -14,6 +14,9 @@ import {
   Star,
   Person,
   Fire,
+  Radioactive,
+  Bird,
+  Wall,
 } from "@phosphor-icons/react";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
@@ -25,6 +28,9 @@ const HERO_ICONS: Record<HeroId, typeof Snowflake> = {
   twilight: Butterfly,
   leopard: PawPrint,
   recon: Eye,
+  viper: Radioactive,
+  falcon: Bird,
+  bastion: Wall,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {

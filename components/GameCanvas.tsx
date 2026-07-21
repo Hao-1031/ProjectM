@@ -98,6 +98,28 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     audio?.setBgmVolume(settings.bgmVolume ?? 0.35);
   }, [settings.audioEnabled, settings.volume, settings.bgmVolume]);
 
+  // Sync mobile control settings to InputManager
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.setAimAssist({
+      enabled: settings.aimAssistEnabled,
+      strength: 0.35,
+      range: 260,
+      angle: Math.PI / 3,
+    });
+    input.setAutoFire({
+      enabled: settings.autoFireEnabled,
+      range: 220,
+    });
+    input.setJoystickSize(settings.joystickSize);
+  }, [settings.aimAssistEnabled, settings.autoFireEnabled, settings.joystickSize]);
+
+  // Sync graphics quality to engine
+  useEffect(() => {
+    engineRef.current?.setQuality(settings.graphicsQuality);
+  }, [settings.graphicsQuality]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -163,16 +185,26 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     input.onPause(() => engine.pause());
     inputRef.current = input;
 
+    const isTouch = typeof window !== "undefined" && "ontouchstart" in window;
+    const qualityDpr = {
+      high: Math.min(window.devicePixelRatio || 1, 2),
+      medium: Math.min(window.devicePixelRatio || 1, 1.5),
+      low: 1,
+    };
+
     const resize = () => {
       const rect = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = isTouch ? qualityDpr[settings.graphicsQuality] : Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.floor(rect.width * dpr);
       canvas.height = Math.floor(rect.height * dpr);
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
       engine.resize(canvas.width / dpr, canvas.height / dpr);
       const ctx = canvas.getContext("2d");
-      if (ctx) ctx.scale(dpr, dpr);
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+      }
     };
 
     resize();
@@ -180,6 +212,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
 
     const loop = (now: number) => {
       input.update();
+      if (isTouch) {
+        const player = engine.state.player;
+        input.applyAimAssist(player.x, player.y, engine.state.enemies, 1 / 60);
+      }
       engine.update(input.state, now);
 
       const ctx = canvas.getContext("2d");
@@ -584,28 +620,38 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         />
       )}
 
-      {isTouch && inputRef.current?.joystick.active && (
-        <div
-          className="pointer-events-none absolute rounded-full border-2 border-primary/40 bg-primary/10"
-          style={{
-            left: inputRef.current.joystick.origin.x - 72,
-            top: inputRef.current.joystick.origin.y - 72,
-            width: 144,
-            height: 144,
-          }}
-        />
-      )}
-      {isTouch && inputRef.current?.joystick.active && (
-        <div
-          className="pointer-events-none absolute rounded-full bg-primary/40"
-          style={{
-            left: inputRef.current.joystick.current.x - 20,
-            top: inputRef.current.joystick.current.y - 20,
-            width: 40,
-            height: 40,
-          }}
-        />
-      )}
+      {isTouch && inputRef.current?.joystick.active && (() => {
+        const radii = { small: 54, medium: 72, large: 92 };
+        const radius = radii[settings.joystickSize];
+        const thumbRadius = Math.max(16, radius * 0.28);
+        const opacity = settings.joystickOpacity;
+        return (
+          <>
+            <div
+              className="pointer-events-none absolute rounded-full border-2 border-primary"
+              style={{
+                left: inputRef.current.joystick.origin.x - radius,
+                top: inputRef.current.joystick.origin.y - radius,
+                width: radius * 2,
+                height: radius * 2,
+                opacity,
+                backgroundColor: `rgba(122, 143, 62, 0.12)`,
+                borderColor: `rgba(122, 143, 62, ${opacity})`,
+              }}
+            />
+            <div
+              className="pointer-events-none absolute rounded-full bg-primary"
+              style={{
+                left: inputRef.current.joystick.current.x - thumbRadius,
+                top: inputRef.current.joystick.current.y - thumbRadius,
+                width: thumbRadius * 2,
+                height: thumbRadius * 2,
+                opacity: Math.min(1, opacity + 0.15),
+              }}
+            />
+          </>
+        );
+      })()}
 
       {showLoadout && status === "idle" && !lobbyOpen && (
         <LoadoutModal

@@ -642,6 +642,7 @@ export function createBossEnemy(id: BossId, x: number, y: number): Enemy {
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
+    burnDamage: 0,
     phase: 0,
     phaseThresholds: [...template.phaseThresholds],
     targetCore: false,

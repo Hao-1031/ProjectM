@@ -1,4 +1,4 @@
-import { useAppStore, type GraphicsQuality } from "@/lib/store";
+import { useAppStore, type GraphicsQuality, type JoystickSize } from "@/lib/store";
 import { motion } from "framer-motion";
 import {
   SpeakerHigh,
@@ -9,6 +9,11 @@ import {
   Monitor,
   ArrowCounterClockwise,
   Check,
+  Crosshair,
+  Target,
+  Lightning,
+  GameController,
+  Sliders,
 } from "@phosphor-icons/react";
 
 const QUALITIES: { value: GraphicsQuality; label: string; description: string }[] = [
@@ -30,6 +35,12 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
     setVibrationEnabled,
     setReducedMotion,
     setGraphicsQuality,
+    setAimAssistEnabled,
+    setAutoFireEnabled,
+    setSmartSkillHintsEnabled,
+    setJoystickSize,
+    setJoystickOpacity,
+    setHudScale,
   } = useAppStore();
 
   return (
@@ -204,6 +215,101 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             ))}
           </div>
         </section>
+
+        <section className="md:col-span-2">
+          <div className="flex items-center gap-2">
+            <GameController size={18} weight="bold" className="text-accent" />
+            <h3 className="text-sm font-semibold">移动操控辅助</h3>
+          </div>
+          <p className="mt-1 text-xs text-muted">仅影响触屏设备，不影响键鼠操作</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <ToggleButton
+              label="辅助瞄准"
+              description="轻微磁性吸附"
+              icon={<Crosshair size={18} weight="bold" className="text-primary" />}
+              pressed={settings.aimAssistEnabled}
+              onClick={() => setAimAssistEnabled(!settings.aimAssistEnabled)}
+            />
+            <ToggleButton
+              label="自动开火"
+              description="进入射程自动射击"
+              icon={<Target size={18} weight="bold" className="text-danger" />}
+              pressed={settings.autoFireEnabled}
+              onClick={() => setAutoFireEnabled(!settings.autoFireEnabled)}
+            />
+            <ToggleButton
+              label="技能建议"
+              description="高价值目标提示"
+              icon={<Lightning size={18} weight="bold" className="text-warning" />}
+              pressed={settings.smartSkillHintsEnabled}
+              onClick={() => setSmartSkillHintsEnabled(!settings.smartSkillHintsEnabled)}
+            />
+          </div>
+        </section>
+
+        <section className="md:col-span-2">
+          <div className="flex items-center gap-2">
+            <Sliders size={18} weight="bold" className="text-success" />
+            <h3 className="text-sm font-semibold">摇杆与 HUD</h3>
+          </div>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <div>
+              <div className="flex justify-between text-xs text-muted">
+                <span>摇杆大小</span>
+                <span className="font-mono">{settings.joystickSize}</span>
+              </div>
+              <div className="mt-2 flex gap-2">
+                {(["small", "medium", "large"] as JoystickSize[]).map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setJoystickSize(size)}
+                    aria-pressed={settings.joystickSize === size}
+                    className={`flex-1 rounded-lg border py-2 text-xs font-medium transition-all focus-ring active:scale-95 ${
+                      settings.joystickSize === size
+                        ? "border-success/50 bg-success/10 text-success"
+                        : "border-border bg-[var(--panel-raised)] text-muted hover:border-success/30"
+                    }`}
+                  >
+                    {size === "small" ? "小" : size === "medium" ? "中" : "大"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-muted">
+                <span>摇杆透明度</span>
+                <span className="font-mono">{Math.round(settings.joystickOpacity * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0.2}
+                max={1}
+                step={0.05}
+                value={settings.joystickOpacity}
+                onChange={(e) => setJoystickOpacity(Number.parseFloat(e.target.value))}
+                className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded bg-border accent-success focus-ring"
+                style={{ accentColor: "var(--success)" }}
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-muted">
+                <span>HUD 缩放</span>
+                <span className="font-mono">{Math.round(settings.hudScale * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0.75}
+                max={1.25}
+                step={0.05}
+                value={settings.hudScale}
+                onChange={(e) => setHudScale(Number.parseFloat(e.target.value))}
+                className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded bg-border accent-success focus-ring"
+                style={{ accentColor: "var(--success)" }}
+              />
+            </div>
+          </div>
+        </section>
       </div>
 
       <div className="mt-6 flex items-start gap-2 rounded-xl border border-border bg-[var(--panel-raised)] p-3 text-xs text-muted">
@@ -211,5 +317,41 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
         <p>设置会随当前设备保存。需要跨设备同步请手动导出备份。</p>
       </div>
     </motion.div>
+  );
+}
+
+interface ToggleButtonProps {
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  pressed: boolean;
+  onClick: () => void;
+}
+
+function ToggleButton({ label, description, icon, pressed, onClick }: ToggleButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={pressed}
+      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all focus-ring active:scale-95 ${
+        pressed
+          ? "border-primary/40 bg-primary/10"
+          : "border-border bg-[var(--panel-raised)] hover:border-primary/30"
+      }`}
+    >
+      <div className="shrink-0">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <div className={`text-sm font-bold ${pressed ? "text-primary" : "text-foreground"}`}>{label}</div>
+        <p className="text-[10px] text-muted">{description}</p>
+      </div>
+      <div
+        className={`shrink-0 rounded-full border p-1 transition-colors ${
+          pressed ? "border-primary bg-primary text-background" : "border-border text-muted"
+        }`}
+      >
+        <Check size={12} weight="bold" className={`transition-transform ${pressed ? "scale-100" : "scale-0"}`} />
+      </div>
+    </button>
   );
 }

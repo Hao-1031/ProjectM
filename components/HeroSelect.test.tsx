@@ -10,7 +10,7 @@ describe("HeroSelect", () => {
     render(<HeroSelect heroes={heroes} onSelect={vi.fn()} />);
     for (const hero of heroes) {
       expect(screen.getByText(hero.name)).toBeInTheDocument();
-      expect(screen.getByText(hero.description)).toBeInTheDocument();
+      expect(screen.getByText(hero.role)).toBeInTheDocument();
     }
   });
 
