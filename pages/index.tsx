@@ -22,6 +22,7 @@ import {
   Warning,
   Plus,
   Megaphone,
+  PaintBrush,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -30,6 +31,8 @@ import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import NuclearBackground from "@/components/effects/NuclearBackground";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
+import { useAuth } from "@/hooks/useAuth";
+import AuthButton from "@/components/AuthButton";
 
 const MODES: {
   type: GameModeType;
@@ -114,6 +117,7 @@ export default function HomePage() {
   const [save, setSave] = useState<SaveData | null>(null);
   const [selectedMode, setSelectedMode] = useState<GameModeType>("defense");
   const reducedMotion = useReducedMotion();
+  const { user, isAuthenticated } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
@@ -165,25 +169,27 @@ export default function HomePage() {
         </Link>
         <nav className="flex items-center gap-1">
           {[
-            { href: "/leaderboard", label: "战绩", icon: Trophy },
-            { href: "/help", label: "指南", icon: Question },
-            { href: "/about", label: "关于", icon: Info },
-            { href: "/settings", label: "设置", icon: Gear },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-all hover:bg-panel hover:text-foreground focus-ring"
-              >
-                <Icon size={14} className="transition-colors group-hover:text-primary" />
-                <span className="hidden sm:inline">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </motion.header>
+              { href: "/leaderboard", label: "战绩", icon: Trophy },
+              { href: "/heroes", label: "商店", icon: PaintBrush },
+              { href: "/help", label: "指南", icon: Question },
+              { href: "/about", label: "关于", icon: Info },
+              { href: "/settings", label: "设置", icon: Gear },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-muted transition-all hover:bg-panel hover:text-foreground focus-ring"
+                >
+                  <Icon size={14} className="transition-colors group-hover:text-primary" />
+                  <span className="hidden sm:inline">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          <AuthButton />
+        </motion.header>
 
       <div className="relative z-20 px-4 pt-3">
         <AnnouncementBanner />
@@ -289,7 +295,12 @@ export default function HomePage() {
                     <p className="font-mono text-xs uppercase tracking-widest text-muted">
                       指挥官档案
                     </p>
-                    <h2 className="mt-1 text-2xl font-bold tracking-tight">匿名幸存者</h2>
+                    <h2 className="mt-1 text-2xl font-bold tracking-tight">
+                      {isAuthenticated ? "认证指挥官" : "匿名幸存者"}
+                    </h2>
+                    <p className="mt-1 text-xs text-muted">
+                      {isAuthenticated && user ? `${user.provider === "lark" ? "飞书" : user.provider === "github" ? "GitHub" : "邮箱"} 账号` : "本地存档"}
+                    </p>
                     <div className="mt-2">
                       <RankBadge runs={save?.totalRuns ?? 0} />
                     </div>
@@ -435,11 +446,11 @@ export default function HomePage() {
               className="group flex items-center gap-2 rounded-xl border border-border bg-panel p-2.5 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
             >
               <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Users size={16} weight="bold" />
+                <PaintBrush size={16} weight="bold" />
               </div>
               <div>
-                <p className="font-semibold">{heroes.length} 位英雄</p>
-                <p className="text-xs text-muted">查看技能与天赋</p>
+                <p className="font-semibold">英雄与外观</p>
+                <p className="text-xs text-muted">解锁干员、皮肤与徽章</p>
               </div>
               <CaretRight
                 size={16}

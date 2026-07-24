@@ -12,11 +12,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cookieStore = createCookieStore(req.cookies);
     const supabase = createClient(cookieStore);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.host}`;
+    const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
+    const callbackUrl = new URL("/api/auth/callback", baseUrl);
+    callbackUrl.searchParams.set("next", nextPath);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${baseUrl}/api/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
 

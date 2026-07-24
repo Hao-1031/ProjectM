@@ -14,6 +14,14 @@ function buildErrorRedirect(message: string): string {
   return `/?auth_error=${encodeURIComponent(message)}`;
 }
 
+function getRedirectTarget(req: NextApiRequest): string {
+  const nextCookie = req.cookies[AUTH_COOKIE_NAMES.redirectNext];
+  if (typeof nextCookie === "string" && nextCookie.startsWith("/")) {
+    return nextCookie;
+  }
+  return "/";
+}
+
 function validateState(req: NextApiRequest): boolean {
   const rawState = req.cookies[AUTH_COOKIE_NAMES.larkState];
   const returnedState = typeof req.query.state === "string" ? req.query.state : "";
@@ -112,8 +120,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       process.env.NODE_ENV === "production" ? "; Secure" : ""
     }`;
 
-    res.setHeader("Set-Cookie", [...setCookies, clearStateCookie]);
-    return res.redirect(302, "/");
+    const redirectTarget = getRedirectTarget(req);
+    const clearRedirectCookie = `${AUTH_COOKIE_NAMES.redirectNext}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+      process.env.NODE_ENV === "production" ? "; Secure" : ""
+    }`;
+
+    res.setHeader("Set-Cookie", [...setCookies, clearStateCookie, clearRedirectCookie]);
+    return res.redirect(302, redirectTarget);
   } catch (err) {
     console.error("飞书回调异常:", err);
     const message = err instanceof Error ? err.message : "登录失败，请重试";

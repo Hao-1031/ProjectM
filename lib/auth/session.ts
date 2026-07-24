@@ -3,7 +3,10 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import type { AuthUser, OAuthProvider, SessionPayload } from "./constants";
 
 function userToAuthUser(user: User): AuthUser {
-  const provider = (user.app_metadata?.provider as OAuthProvider) || "github";
+  const provider =
+    (user.user_metadata?.provider as OAuthProvider) ||
+    (user.app_metadata?.provider as OAuthProvider) ||
+    "email";
   return {
     id: user.id,
     provider,

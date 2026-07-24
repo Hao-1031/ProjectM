@@ -20,16 +20,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stateHash = hashState(state);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.host}`;
     const redirectUri = `${baseUrl}/api/auth/lark/callback`;
+    const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
 
     const url = buildLarkAuthorizeUrl({ appId, redirectUri, state: stateHash });
 
+    const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = [
       `${AUTH_COOKIE_NAMES.larkState}=${encodeURIComponent(state)}`,
+      `${AUTH_COOKIE_NAMES.redirectNext}=${encodeURIComponent(nextPath)}`,
       "Path=/",
       "HttpOnly",
       "SameSite=Lax",
       `Max-Age=${60 * 10}`,
-      process.env.NODE_ENV === "production" ? "Secure" : "",
+      isProduction ? "Secure" : "",
     ]
       .filter(Boolean)
       .join("; ");

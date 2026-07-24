@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
-import { GithubLogo, DiscordLogo, User, SignOut, Spinner, Check } from "@phosphor-icons/react";
+import { useRouter } from "next/router";
+import { GithubLogo, User, SignOut, Spinner, Check } from "@phosphor-icons/react";
 import { useAuth } from "@/hooks/useAuth";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
@@ -17,42 +18,11 @@ function LarkIcon({ className }: { className?: string }) {
   );
 }
 
-const PROVIDERS = [
-  {
-    id: "github" as const,
-    label: "GitHub",
-    icon: <GithubLogo className="h-5 w-5" />,
-    href: "/api/auth/github",
-    color: "hover:bg-neutral-700 hover:text-white",
-  },
-  {
-    id: "discord" as const,
-    label: "Discord",
-    icon: <DiscordLogo className="h-5 w-5" />,
-    href: "/api/auth/discord",
-    color: "hover:bg-[#5865F2] hover:text-white",
-  },
-  {
-    id: "lark" as const,
-    label: "飞书",
-    icon: <LarkIcon className="h-5 w-5" />,
-    href: "/api/auth/lark",
-    color: "hover:bg-[#3370FF] hover:text-white",
-  },
-];
-
 function Avatar({ url }: { url: string | null }) {
   if (url) {
     return (
       <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border">
-        <Image
-          src={url}
-          alt="用户头像"
-          fill
-          unoptimized
-          className="object-cover"
-          sizes="32px"
-        />
+        <Image src={url} alt="用户头像" fill unoptimized className="object-cover" sizes="32px" />
       </div>
     );
   }
@@ -64,37 +34,15 @@ function Avatar({ url }: { url: string | null }) {
   );
 }
 
-function ProviderButton({
-  label,
-  icon,
-  href,
-  color,
-  onClick,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  href: string;
-  color: string;
-  onClick: () => void;
-}) {
-  return (
-    <a
-      href={href}
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 rounded-xl border border-border bg-panel px-4 py-3 text-sm font-medium text-foreground transition-all",
-        "hover:border-transparent hover:shadow-lg",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        color
-      )}
-    >
-      {icon}
-      <span>使用 {label} 登录</span>
-    </a>
-  );
+function providerLabel(provider: string): string {
+  if (provider === "lark") return "飞书";
+  if (provider === "github") return "GitHub";
+  if (provider === "email") return "邮箱";
+  return provider;
 }
 
 export default function AuthButton() {
+  const router = useRouter();
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -104,6 +52,7 @@ export default function AuthButton() {
     await signOut();
     setSigningOut(false);
     setMenuOpen(false);
+    void router.push("/login");
   }
 
   if (isLoading) {
@@ -125,7 +74,7 @@ export default function AuthButton() {
         >
           <Avatar url={user.avatarUrl} />
           <span className="hidden max-w-[8rem] truncate text-xs font-medium text-foreground md:inline">
-            {user.provider === "lark" ? "飞书用户" : user.provider}
+            {providerLabel(user.provider)}
           </span>
         </button>
 
@@ -134,9 +83,7 @@ export default function AuthButton() {
             <div className="flex items-center gap-3 rounded-xl border border-border bg-panel p-4">
               <Avatar url={user.avatarUrl} />
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-foreground">
-                  {user.provider === "lark" ? "飞书用户" : user.provider}
-                </p>
+                <p className="truncate text-sm font-bold text-foreground">{providerLabel(user.provider)} 用户</p>
                 <p className="truncate text-xs text-muted">ID: {user.id.slice(0, 8)}</p>
               </div>
               <Check size={16} weight="bold" className="ml-auto text-success" />
@@ -159,41 +106,13 @@ export default function AuthButton() {
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setMenuOpen(true)}
-        leftIcon={<User size={16} weight="bold" />}
-      >
-        登录
-      </Button>
-
-      <Sheet
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        side="right"
-        title="选择登录方式"
-        description="使用第三方账号快速登录，不强制绑定手机号。"
-        className="max-w-xs"
-      >
-        <div className="flex flex-col gap-3">
-          {PROVIDERS.map((provider) => (
-            <ProviderButton
-              key={provider.id}
-              label={provider.label}
-              icon={provider.icon}
-              href={provider.href}
-              color={provider.color}
-              onClick={() => setMenuOpen(false)}
-            />
-          ))}
-        </div>
-
-        <p className="mt-6 text-center text-xs text-muted">
-          登录即表示同意仅用于识别玩家身份与同步战绩。
-        </p>
-      </Sheet>
-    </>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => void router.push(`/login?redirectedFrom=${encodeURIComponent(router.asPath)}`)}
+      leftIcon={<User size={16} weight="bold" />}
+    >
+      登录
+    </Button>
   );
 }
