@@ -84,7 +84,7 @@ export default function RhythmSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative mx-auto max-w-7xl px-4 py-20 md:py-32"
+      className="relative mx-auto max-w-7xl px-4 py-4 md:py-6"
     >
       <div
         ref={pinnedRef}
@@ -95,33 +95,33 @@ export default function RhythmSection() {
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
 
         <div className="relative grid lg:grid-cols-2">
-          <div className="p-6 md:p-10 lg:p-12">
+          <div className="p-3 md:p-4 lg:p-5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
               闭环节律
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="mt-1.5 text-xl font-bold tracking-tight md:text-2xl">
               从数据到敌潮
               <br />
               <span className="text-gradient">只需 4 步</span>
             </h2>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+            <p className="mt-1.5 max-w-md text-xs leading-relaxed text-muted">
               α 动态节律不是静态数值表，而是一套实时感知、决策、输出、反馈的完整闭环。
             </p>
 
-            <div className="mt-10 space-y-4">
+            <div className="mt-3 space-y-2">
               {RHYTHM_STEPS.map((step) => {
                 const Icon = step.icon;
                 return (
                   <div
                     key={step.title}
-                    className="rhythm-step group flex gap-4 rounded-2xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/20 hover:bg-background/60"
+                    className="rhythm-step group flex gap-3 rounded-2xl border border-border bg-background/40 p-2.5 transition-colors hover:border-primary/20 hover:bg-background/60"
                   >
-                    <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                      <Icon size={20} weight="bold" />
+                    <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                      <Icon size={16} weight="bold" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold">{step.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-muted">
+                      <h3 className="text-xs font-bold">{step.title}</h3>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
                         {step.desc}
                       </p>
                     </div>
@@ -131,7 +131,7 @@ export default function RhythmSection() {
             </div>
           </div>
 
-          <div className="relative hidden min-h-[480px] lg:block">
+          <div className="relative hidden min-h-[260px] lg:block">
             <img
               src={SECTION_IMAGE}
               alt="节律算法数据可视化"

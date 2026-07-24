@@ -51,31 +51,31 @@ function LeaderboardPreview() {
   const { entries, loading, error, refetch } = useLeaderboard({ limit: 5 });
 
   return (
-    <div className="rounded-3xl border border-border bg-panel p-6 shadow-2xl shadow-black/20 md:p-8">
-      <div className="mb-5 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-bold">
-          <Trophy size={22} weight="bold" className="text-warning" />
+    <div className="rounded-3xl border border-border bg-panel p-3 shadow-2xl shadow-black/20 md:p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="flex items-center gap-1.5 text-sm font-bold">
+          <Trophy size={16} weight="bold" className="text-warning" />
           全球榜前十
         </h3>
-        <Link href="/leaderboard" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-          查看全部 <ArrowRight size={12} />
+        <Link href="/leaderboard" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
+          查看全部 <ArrowRight size={11} />
         </Link>
       </div>
-      {loading && <Skeleton count={5} className="h-12" />}
-      {error && <ErrorState error={error} onRetry={refetch} className="py-6" />}
+      {loading && <Skeleton count={5} className="h-8" />}
+      {error && <ErrorState error={error} onRetry={refetch} className="py-3" />}
       {!loading && !error && entries.length === 0 && (
-        <EmptyState title="榜单待启" description="2.0 上线后首批幸存者将在这里留名" className="py-6" />
+        <EmptyState title="榜单待启" description="2.0 上线后首批幸存者将在这里留名" className="py-3" />
       )}
       {!loading && !error && entries.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {entries.map((entry, i) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between rounded-xl border border-border bg-background/50 px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-border bg-background/50 px-2.5 py-1.5"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                  className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                     i === 0
                       ? "bg-warning/15 text-warning"
                       : i === 1
@@ -87,9 +87,9 @@ function LeaderboardPreview() {
                 >
                   {i + 1}
                 </span>
-                <span className="text-sm font-medium">{entry.player_name}</span>
+                <span className="text-xs font-medium">{entry.player_name}</span>
               </div>
-              <span className="font-mono text-sm font-bold text-primary">{entry.score.toLocaleString()}</span>
+              <span className="font-mono text-xs font-bold text-primary">{entry.score.toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -102,15 +102,15 @@ function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-      <div className="grid gap-6 lg:grid-cols-12 lg:gap-10">
+    <section className="mx-auto max-w-6xl px-4 py-6 md:py-8">
+      <div className="grid gap-4 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-4">
-          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">常见问题</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
+          <h2 className="text-xl font-bold tracking-tight md:text-2xl">常见问题</h2>
+          <p className="mt-2 text-xs leading-relaxed text-muted">
             如果还有其他疑问，欢迎通过关于页面或游戏内反馈联系我们。
           </p>
         </div>
-        <div className="space-y-2 lg:col-span-8">
+        <div className="space-y-1.5 lg:col-span-8">
           {FAQS.map((faq, i) => {
             const open = openIndex === i;
             return (
@@ -121,14 +121,14 @@ function FAQSection() {
                 <button
                   type="button"
                   onClick={() => setOpenIndex(open ? null : i)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  className="flex w-full items-center justify-between px-3 py-2.5 text-left"
                 >
-                  <span className="text-sm font-semibold">{faq.q}</span>
-                  <CaretRight size={14} className={`shrink-0 text-muted transition-transform ${open ? "rotate-90" : ""}`} />
+                  <span className="text-xs font-semibold">{faq.q}</span>
+                  <CaretRight size={12} className={`shrink-0 text-muted transition-transform ${open ? "rotate-90" : ""}`} />
                 </button>
                 {open && (
-                  <div className="px-4 pb-3">
-                    <p className="text-sm leading-relaxed text-muted">{faq.a}</p>
+                  <div className="px-3 pb-2.5">
+                    <p className="text-xs leading-relaxed text-muted">{faq.a}</p>
                   </div>
                 )}
               </div>
@@ -189,7 +189,7 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-10">
-        <section className="mx-auto max-w-7xl px-4 pb-8 pt-6 md:pt-8">
+        <section className="mx-auto max-w-7xl px-4 pb-6 pt-4 md:pt-6">
           <div className="grid items-center gap-6 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <motion.div
@@ -215,7 +215,7 @@ export default function LandingPage() {
                 initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-5 flex flex-col gap-3 sm:flex-row"
+                className="mt-4 flex flex-col gap-2 sm:flex-row"
               >
                 <Link
                   href="/game?mode=survival"
@@ -238,18 +238,18 @@ export default function LandingPage() {
                 initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-6 flex flex-wrap items-center gap-5 text-xs text-muted"
+                className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-muted"
               >
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-success" />
+                <span className="flex items-center gap-1">
+                  <ShieldCheck size={12} className="text-success" />
                   无付费加成
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Star size={14} className="text-warning" />
+                <span className="flex items-center gap-1">
+                  <Star size={12} className="text-warning" />
                   全球排行榜
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Skull size={14} className="text-danger" />
+                <span className="flex items-center gap-1">
+                  <Skull size={12} className="text-danger" />
                   15 分钟极限生存
                 </span>
               </motion.div>
@@ -289,21 +289,21 @@ export default function LandingPage() {
         <ModesShowcase />
 
         <section className="border-y border-border bg-panel/30">
-          <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
-            <div className="grid items-center gap-6 lg:grid-cols-12">
+          <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
+            <div className="grid items-center gap-4 lg:grid-cols-12">
               <div className="lg:col-span-5">
                 <LeaderboardPreview />
               </div>
               <div className="lg:col-span-6 lg:col-start-7">
-                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                <h2 className="text-xl font-bold tracking-tight md:text-2xl">
                   全球排行榜
                   <br />
                   <span className="text-primary">记录每一次撤离</span>
                 </h2>
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
+                <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
                   生存模式、据点防守、个人死斗的成绩都会进入全球榜单。每一局结束后自动提交最高分，与所有幸存者一较高下。
                 </p>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <Link
                     href="/leaderboard"
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-background transition-colors hover:bg-primary/90 focus-ring"

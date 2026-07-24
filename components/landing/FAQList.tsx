@@ -36,25 +36,25 @@ export default function FAQList() {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section ref={ref} className="mx-auto max-w-7xl px-4 py-20 md:py-32">
-      <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+    <section ref={ref} className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+      <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         <motion.div
           initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
           animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="lg:col-span-4"
         >
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <h2 className="text-xl font-bold tracking-tight md:text-2xl">
             常见
             <br />
             <span className="text-gradient">问题</span>
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+          <p className="mt-2 text-xs leading-relaxed text-neutral-400">
             如果还有其他疑问，欢迎通过游戏内反馈或关于页面联系我们。
           </p>
         </motion.div>
 
-        <div className="space-y-4 lg:col-span-8">
+        <div className="space-y-2 lg:col-span-8">
           {FAQS.map((faq, i) => {
             const Icon = faq.icon;
             return (
@@ -63,14 +63,14 @@ export default function FAQList() {
                 initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
                 animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="group flex gap-4 rounded-2xl border border-border bg-panel/50 p-5 transition-all hover:border-primary/20 hover:bg-panel"
+                className="group flex gap-3 rounded-2xl border border-border bg-panel/50 p-3 transition-all hover:border-primary/20 hover:bg-panel"
               >
-                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                  <Icon size={20} weight="bold" />
+                <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                  <Icon size={16} weight="bold" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{faq.q}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-400">{faq.a}</p>
+                  <h3 className="text-sm font-semibold">{faq.q}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-neutral-400">{faq.a}</p>
                 </div>
               </motion.div>
             );

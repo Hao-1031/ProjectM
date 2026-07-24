@@ -30,9 +30,9 @@ export default function SectionHeader({
           {eyebrow}
         </span>
       )}
-      <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">{title}</h2>
+      <h2 className="mt-2 text-xl font-bold tracking-tight md:text-2xl">{title}</h2>
       {subtitle && (
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted md:text-base">
+        <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed text-muted md:text-sm">
           {subtitle}
         </p>
       )}

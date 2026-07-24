@@ -92,24 +92,24 @@ export default function ModesPage() {
           <div className="absolute -left-[10%] bottom-[10%] h-[45vh] w-[45vh] rounded-full bg-accent/4 blur-[100px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-4 md:py-6">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-4 md:mb-5"
+            className="mb-3 md:mb-4"
           >
             <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
               <Radioactive weight="duotone" size={14} />
               作战模式
             </span>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">选择辐射区任务</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+            <h1 className="mt-2 text-xl font-bold tracking-tight md:text-3xl">选择辐射区任务</h1>
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted">
               三种模式覆盖单人任务、无尽生存与 PvE 合作。据点防守为 L3V100 创世版主打玩法。
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:grid-flow-dense">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-12 md:grid-flow-dense">
             {modes.map((mode, index) => {
               const meta = MODE_META[mode.type];
               const Icon = meta.icon;

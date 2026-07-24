@@ -28,16 +28,14 @@ describe("defense map", () => {
     }
   });
 
-  it("keeps scattered cover obstacles outside core area", () => {
+  it("only keeps core ring obstacles and removes scattered cover", () => {
     const map = createDefenseMap(12345);
     const coreX = map.width / 2;
     const coreY = map.height / 2;
-    const coreRadius = 220;
+    expect(map.obstacles.length).toBeLessThanOrEqual(8);
     for (const obs of map.obstacles) {
       const centerDist = Math.hypot(obs.x - coreX, obs.y - coreY);
-      if (centerDist < 260) continue;
-      const half = Math.max(obs.width, obs.height) / 2;
-      expect(centerDist - half).toBeGreaterThanOrEqual(coreRadius - 1);
+      expect(centerDist).toBeLessThan(260);
     }
   });
 });

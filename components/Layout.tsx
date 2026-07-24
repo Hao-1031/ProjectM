@@ -62,7 +62,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md"
         >
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
             <Link
               href="/"
               className="group flex items-center gap-2 text-primary transition-colors hover:text-foreground focus-ring rounded"
@@ -126,7 +126,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
 
       {showNav && !isIndex && (
-        <footer className="border-t border-border py-3 text-center text-xs text-muted md:py-4">
+        <footer className="border-t border-border py-2 text-center text-xs text-muted md:py-3">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 md:flex-row">
             <p>Project M · 公平竞技 · 无付费加成</p>
             <div className="flex gap-4">

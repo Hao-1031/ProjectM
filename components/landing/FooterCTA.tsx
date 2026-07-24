@@ -18,7 +18,7 @@ export default function FooterCTA() {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <footer className="relative mx-auto max-w-7xl px-4 pb-8 pt-8 md:pb-12 md:pt-12">
+    <footer className="relative mx-auto max-w-7xl px-4 pb-4 pt-4 md:pb-5 md:pt-5">
       <motion.div
         ref={ref}
         initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
@@ -35,48 +35,48 @@ export default function FooterCTA() {
         <div className="absolute inset-0 bg-gradient-to-r from-panel/80 via-transparent to-panel/40" />
         <div className="absolute inset-0 hazard-stripes opacity-20" />
 
-        <div className="relative flex min-h-[420px] flex-col items-start justify-between p-8 md:p-14 lg:flex-row lg:items-end">
+        <div className="relative flex min-h-[200px] flex-col items-start justify-between p-4 md:p-5 lg:flex-row lg:items-end">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-bold tracking-tight md:text-5xl">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
               下一局
               <br />
               <span className="text-gradient">由你定义</span>
             </h2>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+            <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
               无需下载，浏览器即玩。公平竞技，只拼操作与策略。α 节律与 β AI 正在等待你的表现。
             </p>
           </div>
 
-          <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row lg:mt-0 lg:w-auto">
+          <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row lg:mt-0 lg:w-auto">
             <Link
               href="/game?mode=survival"
-              className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-8 text-base font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+              className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
             >
               <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
-              <Play size={22} weight="fill" />
+              <Play size={16} weight="fill" />
               <span className="whitespace-nowrap">立即开战</span>
             </Link>
             <Link
               href="/game?mode=defense"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border border-border bg-background/80 px-6 text-sm font-semibold backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-background focus-ring active:scale-95"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-background/80 px-4 text-xs font-semibold backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-background focus-ring active:scale-95"
             >
-              <GameController size={20} />
+              <GameController size={14} />
               <span className="whitespace-nowrap">据点防守</span>
             </Link>
           </div>
         </div>
       </motion.div>
 
-      <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted sm:flex-row">
+      <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted sm:flex-row">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Crosshair size={14} weight="bold" />
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Crosshair size={12} weight="bold" />
           </span>
           <span className="font-mono font-bold uppercase tracking-widest text-foreground">
             Project M
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           {FOOTER_LINKS.map((link) => (
             <Link
               key={link.href}

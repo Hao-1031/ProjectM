@@ -141,6 +141,12 @@ export interface FlowFieldOptions {
   height: number;
   cellSize?: number;
   obstacles: Obstacle[];
+  /** 目标点 X，用于构建以目标为中心的势场 */
+  targetX?: number;
+  /** 目标点 Y，用于构建以目标为中心的势场 */
+  targetY?: number;
+  /** 移动实体半径，用于障碍避让 */
+  radius?: number;
 }
 
 export interface FlowDirection {

@@ -8,7 +8,7 @@ import { distance, normalize } from "../math";
  * 提供轻量、可预测的导航系统：
  * 1. 障碍物感知：采样周围 8 个方向，选择碰撞代价最低的方向
  * 2. 动态避障：预测与障碍物的最近接近点，施加侧向力
- * 3. 流场查询：缓存式方向查询，支持大量敌人同时调用
+ * 3. 流场查询：以目标为中心的 Dijkstra 势场，缓存复用
  */
 
 interface DirectionCandidate extends Vec2 {
@@ -16,6 +16,7 @@ interface DirectionCandidate extends Vec2 {
 }
 
 const DEFAULT_CELL_SIZE = 80;
+const MAX_CACHE_ENTRIES = 8;
 
 interface CachedFlowField {
   width: number;
@@ -23,12 +24,34 @@ interface CachedFlowField {
   cellSize: number;
   cols: number;
   rows: number;
+  targetCol: number;
+  targetRow: number;
   directions: Float64Array;
   costs: Float64Array;
   obstacleMap: Uint8Array;
 }
 
-const flowFieldCache = new WeakMap<object, CachedFlowField>();
+const flowFieldCache = new Map<string, CachedFlowField>();
+
+function buildCacheKey(options: FlowFieldOptions): string {
+  const cellSize = options.cellSize || DEFAULT_CELL_SIZE;
+  const targetX = options.targetX ?? options.width / 2;
+  const targetY = options.targetY ?? options.height / 2;
+  const obstacleSig = options.obstacles
+    .filter((o) => o.health > 0)
+    .map((o) => `${Math.round(o.x)},${Math.round(o.y)},${Math.round(o.width)},${Math.round(o.height)}`)
+    .join("|");
+  return `${Math.round(targetX / cellSize)},${Math.round(targetY / cellSize)}@${options.width}x${options.height}@${cellSize}#${obstacleSig}`;
+}
+
+function pruneCache() {
+  while (flowFieldCache.size > MAX_CACHE_ENTRIES) {
+    const firstKey = flowFieldCache.keys().next().value;
+    if (firstKey !== undefined) {
+      flowFieldCache.delete(firstKey);
+    }
+  }
+}
 
 /**
  * 获取目标方向的流场导航方向
@@ -46,6 +69,9 @@ export function getFlowDirection(
     height: options?.height ?? 1800,
     cellSize: options?.cellSize ?? DEFAULT_CELL_SIZE,
     obstacles,
+    targetX,
+    targetY,
+    radius: options?.radius ?? 16,
   };
 
   const field = ensureFlowField(opts);
@@ -60,9 +86,9 @@ export function getFlowDirection(
   const idx = iy * field.cols + ix;
   const obstacleCost = field.costs[idx];
 
-  // 如果当前单元无障碍或目标方向不碰撞，直接走
-  if (obstacleCost < 0.5) {
-    const obstaclePush = avoidObstacles(x, y, baseDir, obstacles);
+  // 如果当前单元无障碍，优先直行，再叠加轻微避障推力
+  if (obstacleCost < 0.6) {
+    const obstaclePush = avoidObstacles(x, y, baseDir, obstacles, opts.radius, 120);
     if (obstaclePush.x !== 0 || obstaclePush.y !== 0) {
       return normalize({
         x: baseDir.x + obstaclePush.x * 1.2,
@@ -77,11 +103,11 @@ export function getFlowDirection(
   const fy = field.directions[idx * 2 + 1];
 
   const blend = normalize({
-    x: baseDir.x * 0.35 + fx * 0.65,
-    y: baseDir.y * 0.35 + fy * 0.65,
+    x: baseDir.x * 0.25 + fx * 0.75,
+    y: baseDir.y * 0.25 + fy * 0.75,
   });
 
-  const push = avoidObstacles(x, y, blend, obstacles);
+  const push = avoidObstacles(x, y, blend, obstacles, opts.radius, 120);
   if (push.x === 0 && push.y === 0) return blend;
 
   return normalize({
@@ -99,21 +125,23 @@ export function avoidObstacles(
   velocity: Vec2,
   obstacles: Obstacle[],
   radius = 16,
-  lookAhead = 90
+  lookAhead = 120
 ): Vec2 {
   if (obstacles.length === 0) return { x: 0, y: 0 };
 
   const vx = velocity.x || 0;
   const vy = velocity.y || 0;
   const speed = Math.hypot(vx, vy);
-  const dirX = speed > 0.001 ? vx / speed : 0;
-  const dirY = speed > 0.001 ? vy / speed : -1;
+  if (speed < 0.001) return { x: 0, y: 0 };
+  const dirX = vx / speed;
+  const dirY = vy / speed;
 
   let pushX = 0;
   let pushY = 0;
-  let minPenetration = Infinity;
+  let maxStrength = 0;
 
   for (const obs of obstacles) {
+    if (obs.health <= 0) continue;
     const halfW = obs.width / 2;
     const halfH = obs.height / 2;
 
@@ -122,31 +150,34 @@ export function avoidObstacles(
     const closestY = Math.max(obs.y - halfH, Math.min(y, obs.y + halfH));
     const d = distance({ x, y }, { x: closestX, y: closestY });
 
-    if (d > lookAhead + radius + halfW + halfH) continue;
+    const clearance = lookAhead + radius + Math.max(halfW, halfH);
+    if (d > clearance) continue;
 
     // 前方投影
     const toObsX = closestX - x;
     const toObsY = closestY - y;
     const proj = toObsX * dirX + toObsY * dirY;
 
-    if (proj < 0 || proj > lookAhead) continue;
+    if (proj < -radius || proj > lookAhead + radius) continue;
 
-    // 计算侧向躲避方向
+    // 计算侧向躲避方向：沿速度方向， obstacle 在左则向右推，反之向左
     const perpX = -dirY;
     const perpY = dirX;
     const side = toObsX * perpX + toObsY * perpY;
     const sign = side >= 0 ? 1 : -1;
 
-    const penetration = Math.max(0, radius + halfW + halfH - d);
-    const strength = (1 - proj / lookAhead) * penetration;
+    const penetration = Math.max(0, radius + Math.min(halfW, halfH) * 0.5 - d);
+    const frontal = Math.max(0, 1 - proj / lookAhead);
+    const strength = frontal * (penetration + 20);
 
-    if (penetration < minPenetration) {
-      minPenetration = penetration;
+    if (strength > maxStrength) {
+      maxStrength = strength;
       pushX = perpX * sign * strength;
       pushY = perpY * sign * strength;
     }
   }
 
+  if (maxStrength === 0) return { x: 0, y: 0 };
   return normalize({ x: pushX, y: pushY });
 }
 
@@ -174,6 +205,7 @@ export function hasLineOfSight(
     const px = x + stepX * i;
     const py = y + stepY * i;
     for (const obs of obstacles) {
+      if (obs.health <= 0) continue;
       const halfW = obs.width / 2 + radius;
       const halfH = obs.height / 2 + radius;
       if (px >= obs.x - halfW && px <= obs.x + halfW && py >= obs.y - halfH && py <= obs.y + halfH) {
@@ -203,6 +235,7 @@ export function findOpenDirection(
 
     let blocked = false;
     for (const obs of obstacles) {
+      if (obs.health <= 0) continue;
       const halfW = obs.width / 2 + radius;
       const halfH = obs.height / 2 + radius;
       if (testX >= obs.x - halfW && testX <= obs.x + halfW && testY >= obs.y - halfH && testY <= obs.y + halfH) {
@@ -228,9 +261,9 @@ export function findOpenDirection(
 }
 
 function ensureFlowField(options: FlowFieldOptions): CachedFlowField {
-  const cacheKey = options as object;
+  const cacheKey = buildCacheKey(options);
   const cached = flowFieldCache.get(cacheKey);
-  if (cached && cached.width === options.width && cached.height === options.height) {
+  if (cached) {
     return cached;
   }
 
@@ -239,28 +272,92 @@ function ensureFlowField(options: FlowFieldOptions): CachedFlowField {
   const rows = Math.ceil(options.height / cellSize);
   const count = cols * rows;
 
+  const targetX = options.targetX ?? options.width / 2;
+  const targetY = options.targetY ?? options.height / 2;
+  const targetCol = clamp(Math.floor(targetX / cellSize), 0, cols - 1);
+  const targetRow = clamp(Math.floor(targetY / cellSize), 0, rows - 1);
+
   const field: CachedFlowField = {
     width: options.width,
     height: options.height,
     cellSize,
     cols,
     rows,
+    targetCol,
+    targetRow,
     directions: new Float64Array(count * 2),
     costs: new Float64Array(count),
     obstacleMap: new Uint8Array(count),
   };
 
-  // 标记障碍单元
+  // 标记障碍单元并初始化代价
+  const obstacleCost = 1e6;
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const cx = x * cellSize + cellSize / 2;
       const cy = y * cellSize + cellSize / 2;
-      field.costs[y * cols + x] = cellObstacleCost(cx, cy, options.obstacles, cellSize);
-      field.obstacleMap[y * cols + x] = field.costs[y * cols + x] > 0.5 ? 1 : 0;
+      const cost = cellObstacleCost(cx, cy, options.obstacles, cellSize, options.radius ?? 16);
+      const idx = y * cols + x;
+      field.costs[idx] = cost;
+      field.obstacleMap[idx] = cost >= obstacleCost ? 1 : 0;
     }
   }
 
-  // 计算远离障碍的方向（梯度下降）
+  // 从目标点向外传播最短路径代价（Dijkstra / 0-1 BFS）
+  const frontier: Array<{ x: number; y: number }> = [];
+  const startIdx = targetRow * cols + targetCol;
+  if (field.obstacleMap[startIdx]) {
+    // 目标在障碍内：找最近非障碍单元作为替代目标
+    let best = { col: targetCol, row: targetRow, dist: Infinity };
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const idx = y * cols + x;
+        if (field.obstacleMap[idx]) continue;
+        const dx = x - targetCol;
+        const dy = y - targetRow;
+        const d = Math.hypot(dx, dy);
+        if (d < best.dist) best = { col: x, row: y, dist: d };
+      }
+    }
+    field.costs[best.row * cols + best.col] = 0;
+    frontier.push({ x: best.col, y: best.row });
+  } else {
+    field.costs[startIdx] = 0;
+    frontier.push({ x: targetCol, y: targetRow });
+  }
+
+  const INF = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < count; i++) {
+    if (field.obstacleMap[i]) field.costs[i] = INF;
+  }
+
+  // 使用队列进行代价传播（无权图上的 BFS，对角线代价为 sqrt(2) 近似 1.41）
+  let head = 0;
+  while (head < frontier.length) {
+    const { x: cx, y: cy } = frontier[head++];
+    const cidx = cy * cols + cx;
+    const currentCost = field.costs[cidx];
+
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
+        const nidx = ny * cols + nx;
+        if (field.obstacleMap[nidx]) continue;
+
+        const stepCost = dx !== 0 && dy !== 0 ? 1.414 : 1;
+        const newCost = currentCost + stepCost;
+        if (newCost < field.costs[nidx]) {
+          field.costs[nidx] = newCost;
+          frontier.push({ x: nx, y: ny });
+        }
+      }
+    }
+  }
+
+  // 根据代价梯度计算每个格子的方向（指向代价更低的方向）
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const idx = y * cols + x;
@@ -270,7 +367,6 @@ function ensureFlowField(options: FlowFieldOptions): CachedFlowField {
         continue;
       }
 
-      // 采样周围 8 格代价，指向代价最低方向
       let bestX = 0;
       let bestY = 0;
       let bestCost = field.costs[idx];
@@ -282,6 +378,7 @@ function ensureFlowField(options: FlowFieldOptions): CachedFlowField {
           const ny = y + dy;
           if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
           const nidx = ny * cols + nx;
+          if (field.obstacleMap[nidx]) continue;
           if (field.costs[nidx] < bestCost) {
             bestCost = field.costs[nidx];
             bestX = dx;
@@ -301,23 +398,33 @@ function ensureFlowField(options: FlowFieldOptions): CachedFlowField {
     }
   }
 
+  pruneCache();
   flowFieldCache.set(cacheKey, field);
   return field;
 }
 
-function cellObstacleCost(cx: number, cy: number, obstacles: Obstacle[], cellSize: number): number {
-  let cost = 0;
+function cellObstacleCost(
+  cx: number,
+  cy: number,
+  obstacles: Obstacle[],
+  cellSize: number,
+  radius: number
+): number {
+  const obstacleCost = 1e6;
+  const margin = radius + cellSize * 0.25;
   for (const obs of obstacles) {
-    const halfW = obs.width / 2 + cellSize * 0.4;
-    const halfH = obs.height / 2 + cellSize * 0.4;
+    if (obs.health <= 0) continue;
+    const halfW = obs.width / 2 + margin;
+    const halfH = obs.height / 2 + margin;
     const dx = Math.abs(cx - obs.x) - halfW;
     const dy = Math.abs(cy - obs.y) - halfH;
-    const dist = Math.max(dx, dy);
-    if (dist < 0) {
-      cost = Math.max(cost, 1 + Math.min(-dist / cellSize, 2));
-    } else if (dist < cellSize) {
-      cost = Math.max(cost, 1 - dist / cellSize);
+    if (dx < 0 && dy < 0) {
+      return obstacleCost;
     }
   }
-  return Math.min(cost, 3);
+  return 0;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }

@@ -28,7 +28,7 @@ export default function Footer({ totalRuns = 0, totalKills = 0, bestKills = 0 }:
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="border-t border-border bg-panel/30"
     >
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-12">
+      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 md:grid-cols-12">
         <div className="md:col-span-5">
           <Link
             href="/"
@@ -36,26 +36,26 @@ export default function Footer({ totalRuns = 0, totalKills = 0, bestKills = 0 }:
           >
             <span className="font-mono text-xs uppercase tracking-widest">Project M</span>
           </Link>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
+          <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted">
             冷色调科技末日风格的幸存者游戏。公平竞技，无付费加成。
           </p>
-          <div className="mt-4 flex gap-4 text-xs text-muted">
+          <div className="mt-3 flex gap-4 text-xs text-muted">
             <span>出战 {totalRuns}</span>
             <span>击杀 {totalKills}</span>
             <span>最佳 {bestKills}</span>
           </div>
         </div>
 
-        <nav className="grid grid-cols-2 gap-3 md:col-span-4 md:grid-cols-3">
+        <nav className="grid grid-cols-2 gap-2 md:col-span-4 md:grid-cols-3">
           {LINKS.map((link) => {
             const Icon = link.icon;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className="group flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted transition-all hover:bg-panel hover:text-foreground focus-ring"
+                className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted transition-all hover:bg-panel hover:text-foreground focus-ring"
               >
-                <Icon size={16} className="transition-colors group-hover:text-primary" />
+                <Icon size={14} className="transition-colors group-hover:text-primary" />
                 <span>{link.label}</span>
               </Link>
             );
@@ -64,14 +64,14 @@ export default function Footer({ totalRuns = 0, totalKills = 0, bestKills = 0 }:
 
         <div className="md:col-span-3">
           <h4 className="text-xs font-semibold uppercase tracking-widest text-muted">公平竞技</h4>
-          <p className="mt-3 text-xs leading-relaxed text-muted">
+          <p className="mt-2 text-xs leading-relaxed text-muted">
             所有数值成长均通过局内升级与战斗获取。商店、通行证与外观系统不出售任何影响战局的属性或英雄。
           </p>
         </div>
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-muted md:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-3 text-xs text-muted md:flex-row">
           <p>公平竞技 · 无付费加成 · Project M</p>
           <p>Built with Next.js · Tailwind CSS · Framer Motion</p>
         </div>

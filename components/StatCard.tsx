@@ -44,18 +44,18 @@ export default function StatCard({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       whileHover={reducedMotion ? undefined : { y: -2 }}
-      className={`group relative overflow-hidden rounded-2xl border bg-panel p-3 transition-colors hover:bg-panel-raised md:p-4 ${variantBorder[variant]} ${className}`}
+      className={`group relative overflow-hidden rounded-2xl border bg-panel p-2.5 transition-colors hover:bg-panel-raised md:p-3 ${variantBorder[variant]} ${className}`}
     >
       <div
         className={`pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl transition-opacity duration-500 ${variantGlow[variant]} opacity-30 group-hover:opacity-60`}
       />
       <div className="relative flex items-start justify-between">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted">{label}</p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{label}</p>
         {icon && (
           <div className="text-muted transition-colors group-hover:text-foreground">{icon}</div>
         )}
       </div>
-      <p className="relative mt-2 text-2xl font-bold tracking-tight md:text-3xl">{value}</p>
+      <p className="relative mt-1 text-xl font-bold tracking-tight md:text-2xl">{value}</p>
       {sub && <p className="relative mt-1 text-xs text-muted">{sub}</p>}
     </motion.div>
   );

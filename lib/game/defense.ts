@@ -7,7 +7,7 @@ import type {
   MapConfig,
   Obstacle,
 } from "./types";
-import { uid, randomRange, randomPointInBounds, distance, rectOverlap } from "./math";
+import { uid, rectOverlap } from "./math";
 import { getMapById, DEFAULT_DEFENSE_MAP_ID, type MapId } from "./maps";
 
 const DEFAULT_MAP_WIDTH = 2200;
@@ -53,44 +53,6 @@ export function createDefenseMap(seed: number, mapId: MapId = DEFAULT_DEFENSE_MA
     // Skip wall if it overlaps an existing one; keeps core ring passable.
     if (!obstacles.some((o) => rectOverlap(wall, o, minPlayerPassage))) {
       obstacles.push(wall);
-    }
-  }
-
-  // Scattered cover
-  for (let i = 0; i < 16; i++) {
-    let pos = randomPointInBounds(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, 200);
-    let attempts = 0;
-    while (
-      attempts < 20 &&
-      (distance(pos, { x: coreX, y: coreY }) < 260 ||
-        obstacles.some((o) =>
-          rectOverlap(
-            { x: pos.x, y: pos.y, width: randomRange(40, 120), height: randomRange(40, 120) },
-            o,
-            minPlayerPassage
-          )
-        ))
-    ) {
-      pos = randomPointInBounds(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, 200);
-      attempts++;
-    }
-
-    if (distance(pos, { x: coreX, y: coreY }) < 220) continue;
-
-    const cover: Obstacle = {
-      id: uid("obs"),
-      x: pos.x,
-      y: pos.y,
-      width: randomRange(40, 120),
-      height: randomRange(40, 120),
-      color: "#1c2033",
-      health: 300,
-      maxHealth: 300,
-      destructible: true,
-    };
-
-    if (!obstacles.some((o) => rectOverlap(cover, o, minPlayerPassage))) {
-      obstacles.push(cover);
     }
   }
 

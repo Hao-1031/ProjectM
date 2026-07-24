@@ -102,7 +102,7 @@ function ModeCard({
             : "text-warning bg-warning/10 border-warning/20";
 
   const sizeClass = isLarge
-    ? "md:col-span-2 md:row-span-2 min-h-[360px] md:min-h-[460px]"
+    ? "md:col-span-2 md:row-span-2 min-h-[200px] md:min-h-[260px]"
     : "md:col-span-1 md:row-span-1";
 
   return (
@@ -111,7 +111,7 @@ function ModeCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
       animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-primary/20 hover:bg-panel-raised ${sizeClass}`}
+      className={`group relative overflow-hidden rounded-2xl border border-border bg-panel transition-all hover:border-primary/20 hover:bg-panel-raised ${sizeClass}`}
     >
       {mode.image && (
         <>
@@ -125,43 +125,43 @@ function ModeCard({
         </>
       )}
 
-      <div className="relative flex h-full flex-col p-5 md:p-6">
+      <div className="relative flex h-full flex-col p-3 md:p-4">
         <div
-          className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${accentClass}`}
+          className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border ${accentClass}`}
         >
-          <Icon size={22} weight="bold" />
+          <Icon size={16} weight="bold" />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-1">
           {mode.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-border bg-background/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted backdrop-blur-sm"
+              className="rounded-full border border-border bg-background/60 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted backdrop-blur-sm"
             >
               {tag}
             </span>
           ))}
         </div>
 
-        <h3 className="mt-4 text-lg font-bold tracking-tight md:text-xl">
+        <h3 className="mt-2 text-sm font-bold tracking-tight md:text-base">
           {mode.title}
         </h3>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
+        <p className="mt-1 flex-1 text-xs leading-relaxed text-muted">
           {mode.desc}
         </p>
 
         {mode.meta && (
-          <div className="mt-5 flex items-center gap-4 text-xs text-muted">
+          <div className="mt-2 flex items-center gap-3 text-[11px] text-muted">
             {mode.meta.map((m) => (
-              <span key={m.label} className="flex items-center gap-1.5">
-                <m.Icon size={14} />
+              <span key={m.label} className="flex items-center gap-1">
+                <m.Icon size={12} />
                 {m.label}
               </span>
             ))}
           </div>
         )}
 
-        <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
           进入模式 <CaretRight size={12} />
         </div>
       </div>
@@ -180,31 +180,31 @@ function BuildCard({ index }: { index: number }) {
       initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
       animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-3xl border border-border bg-panel p-5 transition-all hover:border-primary/20 hover:bg-panel-raised md:col-span-2"
+      className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-primary/20 hover:bg-panel-raised md:col-span-2"
     >
       <div className="dot-grid absolute inset-0 opacity-20" />
-      <div className="relative flex h-full flex-col md:flex-row md:items-center md:gap-8">
+      <div className="relative flex h-full flex-col md:flex-row md:items-center md:gap-5">
         <div className="flex-1">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-warning/20 bg-warning/10 text-warning">
-            <Lightning size={22} weight="bold" />
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-warning/20 bg-warning/10 text-warning">
+            <Lightning size={16} weight="bold" />
           </div>
-          <h3 className="mt-4 text-lg font-bold tracking-tight">流派构建</h3>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">
+          <h3 className="mt-2 text-sm font-bold tracking-tight">流派构建</h3>
+          <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted">
             每局通过升级与奖励搭建独特 build。没有固定最优解，只有更适合当前节奏的打法。
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {BUILD_HIGHLIGHTS.map((h) => (
               <span
                 key={h}
-                className="rounded-lg border border-border bg-background/50 px-3 py-1.5 text-xs text-muted"
+                className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[11px] text-muted"
               >
                 {h}
               </span>
             ))}
           </div>
         </div>
-        <div className="mt-6 flex-1 md:mt-0">
-          <div className="space-y-2 rounded-2xl border border-border bg-background/50 p-4">
+        <div className="mt-3 flex-1 md:mt-0">
+          <div className="space-y-1.5 rounded-2xl border border-border bg-background/50 p-2.5">
             <div className="flex items-center justify-between text-xs text-muted">
               <span>武器分支</span>
               <span className="font-mono text-foreground">Lv.7</span>
@@ -239,25 +239,25 @@ export default function ModesShowcase() {
   const headerInView = useInView(headerRef, { once: true, margin: "-80px" });
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 md:py-32">
+    <section className="mx-auto max-w-7xl px-4 py-4 md:py-6">
       <motion.div
         ref={headerRef}
         initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
         animate={headerInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-10 max-w-2xl md:mb-14"
+        className="mb-3 max-w-2xl md:mb-4"
       >
-        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+        <h2 className="text-xl font-bold tracking-tight md:text-2xl">
           据点、生存、死斗
           <br />
           <span className="text-gradient">每种节奏都不相同</span>
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-muted">
+        <p className="mt-1.5 text-xs leading-relaxed text-muted">
           从合作防守到个人竞技，每个模式都有独立的节律曲线与 AI 策略。
         </p>
       </motion.div>
 
-      <div className="grid grid-flow-dense grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-flow-dense grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {MODES.map((mode, i) => (
           <ModeCard key={mode.id} mode={mode} index={i} />
         ))}

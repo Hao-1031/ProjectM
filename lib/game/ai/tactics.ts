@@ -51,6 +51,17 @@ export function selectBehavior(ctx: AIContext, params: AIParams): AIBehavior {
   const healthRatio = enemy.maxHealth > 0 ? enemy.health / enemy.maxHealth : 1;
   const aggression = params.aggression;
 
+  // 据点模式下敌人以直冲核心为主，避免过多横向乱跑
+  if (enemy.targetCore) {
+    if (enemy.isBoss) return "orbit";
+    if (enemy.variant === "spitter" || enemy.variant === "sniper" || enemy.variant === "artillery") {
+      return healthRatio < 0.3 ? "retreat" : "keep_distance";
+    }
+    if (enemy.variant === "tank" || enemy.variant === "crusher") return "charge";
+    if (healthRatio < 0.2 && aggression < 0.5) return "retreat";
+    return "chase";
+  }
+
   if (enemy.isBoss) return "orbit";
   if (enemy.variant === "spitter") return healthRatio < 0.3 ? "retreat" : "keep_distance";
   if (enemy.variant === "sniper" || enemy.variant === "artillery") return "keep_distance";
@@ -60,8 +71,8 @@ export function selectBehavior(ctx: AIContext, params: AIParams): AIBehavior {
   if (enemy.variant === "disruptor" || enemy.variant === "shielder") return "surround";
 
   if (healthRatio < 0.25 && aggression < 0.6) return "retreat";
-  if (ctx.allies.length >= 4) return "surround";
-  if (aggression > 0.7 && ctx.allies.length >= 2) return "flank";
+  if (ctx.allies.length >= 5) return "surround";
+  if (aggression > 0.75 && ctx.allies.length >= 3) return "flank";
 
   return "chase";
 }
@@ -103,7 +114,7 @@ export function aiChase(ctx: AIContext, target: { x: number; y: number }): Steer
     target.x,
     target.y,
     ctx.obstacles,
-    { width: ctx.mapWidth, height: ctx.mapHeight }
+    { width: ctx.mapWidth, height: ctx.mapHeight, radius: ctx.enemy.radius }
   );
   return {
     vx: dir.x,
@@ -122,24 +133,28 @@ export function aiKeepDistance(
   const dist = Math.hypot(dx, dy);
 
   let dir = { x: 0, y: 0 };
-  if (dist > preferredDistance + 40) {
+  if (dist > preferredDistance + 50) {
     dir = getFlowDirection(ctx.enemy.x, ctx.enemy.y, target.x, target.y, ctx.obstacles, {
       width: ctx.mapWidth,
       height: ctx.mapHeight,
+      radius: ctx.enemy.radius,
     });
-  } else if (dist < preferredDistance - 40) {
+  } else if (dist < preferredDistance - 50) {
     dir = normalize({ x: -dx / dist, y: -dy / dist });
   } else {
-    // 横向游斗
-    const strafe = Math.sin(ctx.time * 2 + ctx.enemy.x * 0.01) > 0 ? 1 : -1;
-    dir = normalize({ x: (-dy / dist) * strafe, y: (dx / dist) * strafe });
+    // 小幅度横向游斗，降低“躲子弹”既视感
+    const strafe = Math.sin(ctx.time * 1.2 + ctx.enemy.x * 0.01) > 0 ? 1 : -1;
+    dir = normalize({
+      x: (-dy / dist) * strafe * 0.35 + (dx / dist) * 0.1,
+      y: (dx / dist) * strafe * 0.35 + (dy / dist) * 0.1,
+    });
   }
 
   return {
     vx: dir.x,
     vy: dir.y,
     desiredDistance: preferredDistance,
-    shouldAttack: dist < preferredDistance * 1.4,
+    shouldAttack: dist < preferredDistance * 1.5,
   };
 }
 
@@ -148,18 +163,19 @@ export function aiFlank(ctx: AIContext, target: { x: number; y: number }): Steer
   const dy = target.y - ctx.enemy.y;
   const dist = Math.hypot(dx, dy);
 
-  // 根据敌人索引选择侧翼方向，保持稳定
-  const side = (ctx.enemy.id.charCodeAt(ctx.enemy.id.length - 1) % 2 === 0 ? 1 : -1) * (ctx.time * 0.3);
-  const angle = Math.atan2(dy, dx) + Math.PI / 3 * side;
+  // 小幅度侧翼偏移，避免看起来像在刻意躲子弹
+  const side = ctx.enemy.id.charCodeAt(ctx.enemy.id.length - 1) % 2 === 0 ? 1 : -1;
+  const angle = Math.atan2(dy, dx) + Math.PI / 6 * side;
 
   const flankTarget = {
-    x: target.x - Math.cos(angle) * 160,
-    y: target.y - Math.sin(angle) * 160,
+    x: target.x - Math.cos(angle) * 120,
+    y: target.y - Math.sin(angle) * 120,
   };
 
   const dir = getFlowDirection(ctx.enemy.x, ctx.enemy.y, flankTarget.x, flankTarget.y, ctx.obstacles, {
     width: ctx.mapWidth,
     height: ctx.mapHeight,
+    radius: ctx.enemy.radius,
   });
 
   return {
@@ -173,6 +189,7 @@ export function aiCharge(ctx: AIContext, target: { x: number; y: number }): Stee
   const dir = getFlowDirection(ctx.enemy.x, ctx.enemy.y, target.x, target.y, ctx.obstacles, {
     width: ctx.mapWidth,
     height: ctx.mapHeight,
+    radius: ctx.enemy.radius,
   });
   return {
     vx: dir.x,
@@ -237,11 +254,11 @@ export function aiAmbush(ctx: AIContext, target: { x: number; y: number }): Stee
     return aiFlank(ctx, target);
   }
 
-  // 有 line of sight 时侧向移动，准备切入
-  const strafe = Math.sin(ctx.time * 1.5) > 0 ? 1 : -1;
+  // 有 line of sight 时小幅度侧向移动，准备切入
+  const strafe = Math.sin(ctx.time * 1.0) > 0 ? 1 : -1;
   const dir = normalize({
-    x: (-dy / dist) * strafe + (dx / dist) * 0.2,
-    y: (dx / dist) * strafe + (dy / dist) * 0.2,
+    x: (-dy / dist) * strafe * 0.3 + (dx / dist) * 0.15,
+    y: (dx / dist) * strafe * 0.3 + (dy / dist) * 0.15,
   });
 
   return {
@@ -260,13 +277,13 @@ export function aiSurround(ctx: AIContext, target: { x: number; y: number }): St
   const dy = target.y - ctx.enemy.y;
   const dist = Math.hypot(dx, dy);
 
-  // 根据盟友数量决定包围角度
+  // 根据盟友数量决定包围角度，降低角度分散度，避免乱跑
   const index = ctx.allies.findIndex((a) => a.id === ctx.enemy.id);
   const count = Math.max(1, ctx.allies.length);
-  const angleOffset = (index / count) * Math.PI * 2;
+  const angleOffset = (index / count) * Math.PI * 1.2;
 
   const surroundAngle = Math.atan2(dy, dx) + angleOffset;
-  const radius = 160;
+  const radius = 130;
   const surroundTarget = {
     x: target.x - Math.cos(surroundAngle) * radius,
     y: target.y - Math.sin(surroundAngle) * radius,
@@ -275,6 +292,7 @@ export function aiSurround(ctx: AIContext, target: { x: number; y: number }): St
   const dir = getFlowDirection(ctx.enemy.x, ctx.enemy.y, surroundTarget.x, surroundTarget.y, ctx.obstacles, {
     width: ctx.mapWidth,
     height: ctx.mapHeight,
+    radius: ctx.enemy.radius,
   });
 
   return {
@@ -323,17 +341,14 @@ function applyFlockingAndObstacles(ctx: AIContext, base: SteeringOutput, params:
   const aliNorm = normalize(alignment);
   const cohNorm = normalize(cohesion);
 
+  // 群体行为权重降低，避免敌人因 flocking 过度横向散开，看起来像躲子弹
+  const sepWeight = params.separationWeight * 0.5;
+  const aliWeight = params.alignmentWeight * 0.4;
+  const cohWeight = params.cohesionWeight * 0.3;
+
   const final = normalize({
-    x:
-      base.vx +
-      sepNorm.x * params.separationWeight +
-      aliNorm.x * params.alignmentWeight +
-      cohNorm.x * params.cohesionWeight,
-    y:
-      base.vy +
-      sepNorm.y * params.separationWeight +
-      aliNorm.y * params.alignmentWeight +
-      cohNorm.y * params.cohesionWeight,
+    x: base.vx + sepNorm.x * sepWeight + aliNorm.x * aliWeight + cohNorm.x * cohWeight,
+    y: base.vy + sepNorm.y * sepWeight + aliNorm.y * aliWeight + cohNorm.y * cohWeight,
   });
 
   return {
