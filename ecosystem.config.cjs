@@ -1,7 +1,10 @@
 const path = require("path");
 
+// 自动根据当前平台选择项目目录与日志目录
+// Windows 本地预览使用 C:\www\project-m
+// Linux / Ubuntu 生产环境使用 /var/www/project-m
 const cwd = process.platform === "win32" ? "C:\\www\\project-m" : "/var/www/project-m";
-const logDir = process.platform === "win32" ? "C:\\logs\\pm2\\project-m" : "/var/log/pm2/project-m";
+const logDir = path.join(cwd, "logs");
 
 module.exports = {
   apps: [

@@ -36,7 +36,7 @@ fi
 # 3. pnpm
 if ! command -v pnpm &> /dev/null; then
   log "安装 pnpm ..."
-  npm install -g pnpm@9
+  npm install -g pnpm@11
 fi
 
 # 4. PM2
@@ -67,8 +67,8 @@ else
   cd "${APP_DIR}"
 fi
 
-# 7. 日志目录
-mkdir -p /var/log/pm2/project-m
+# 7. 日志目录（PM2 以普通用户运行时，项目目录下更易写入）
+mkdir -p "${APP_DIR}/logs"
 
 # 8. 环境变量
 log "检查环境变量..."
