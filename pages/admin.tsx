@@ -219,14 +219,14 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
   };
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-bold">
-          <Megaphone size={22} weight="bold" className="text-accent" />
+        <h2 className="flex items-center gap-2 text-base font-bold">
+          <Megaphone size={18} weight="bold" className="text-accent" />
           公告管理
         </h2>
-        <Button size="sm" leftIcon={<Plus size={16} weight="bold" />} onClick={() => setEditing({} as AnnouncementRow)}>
-          新建公告
+        <Button size="sm" leftIcon={<Plus size={14} weight="bold" />} onClick={() => setEditing({} as AnnouncementRow)}>
+          新建
         </Button>
       </div>
 
@@ -242,7 +242,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
         />
       )}
 
-      {loading && <Skeleton count={3} className="h-24" />}
+      {loading && <Skeleton count={3} className="h-20" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && announcements.length === 0 && (
         <EmptyState title="暂无公告" description="点击右上角新建公告" />
@@ -250,35 +250,35 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
 
       <AnimatePresence mode="popLayout">
         {!loading &&
-          announcements.map((a) => (
+          announcements.slice(0, 5).map((a) => (
             <motion.div
               key={a.id}
               layout={!reducedMotion}
               initial={reducedMotion ? undefined : itemVariants.hidden}
               animate={itemVariants.visible}
               exit={reducedMotion ? undefined : { opacity: 0 }}
-              className="rounded-2xl border border-border bg-panel p-5"
+              className="rounded-2xl border border-border bg-panel p-3"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate font-semibold">{a.title}</h3>
+                    <h3 className="truncate text-sm font-semibold">{a.title}</h3>
                     {a.active ? (
                       <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">显示中</span>
                     ) : (
                       <span className="rounded-full bg-muted/10 px-2 py-0.5 text-[10px] font-bold text-muted">已隐藏</span>
                     )}
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{a.content}</p>
-                  <p className="mt-3 text-xs text-muted">
+                  <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-muted line-clamp-2">{a.content}</p>
+                  <p className="mt-1.5 text-[10px] text-muted">
                     优先级 {a.priority} · {formatDate(a.created_at)}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 gap-1.5">
                   <Button
                     variant="secondary"
                     size="sm"
-                    leftIcon={<PencilSimple size={14} weight="bold" />}
+                    leftIcon={<PencilSimple size={12} weight="bold" />}
                     onClick={() => setEditing(a)}
                   >
                     编辑
@@ -287,7 +287,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
                     variant="danger"
                     size="sm"
                     loading={deletingId === a.id}
-                    leftIcon={<Trash size={14} weight="bold" />}
+                    leftIcon={<Trash size={12} weight="bold" />}
                     onClick={() => handleDelete(a.id)}
                   >
                     删除
@@ -306,17 +306,17 @@ function LeaderboardBrowser() {
   const { entries, loading, error, refetch } = useLeaderboard({ mode: mode || undefined, limit: 50 });
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-bold">
-          <Trophy size={22} weight="bold" className="text-warning" />
+    <section className="space-y-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-base font-bold">
+          <Trophy size={18} weight="bold" className="text-warning" />
           排行榜浏览
         </h2>
         <div className="flex items-center gap-2">
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value)}
-            className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+            className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
           >
             {MODE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -330,34 +330,34 @@ function LeaderboardBrowser() {
         </div>
       </div>
 
-      {loading && <Skeleton count={5} className="h-14" />}
+      {loading && <Skeleton count={5} className="h-11" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && entries.length === 0 && <EmptyState title="暂无记录" description="该模式下还没有玩家提交成绩" />}
 
       {!loading && !error && entries.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-border">
           <table className="w-full text-left text-sm">
-            <thead className="bg-panel-raised text-xs uppercase tracking-wider text-muted">
+            <thead className="bg-panel-raised text-[10px] uppercase tracking-wider text-muted">
               <tr>
-                <th className="px-4 py-3">排名</th>
-                <th className="px-4 py-3">玩家</th>
-                <th className="px-4 py-3">模式</th>
-                <th className="px-4 py-3 text-right">击杀</th>
-                <th className="px-4 py-3 text-right">波次</th>
-                <th className="px-4 py-3 text-right">分数</th>
-                <th className="px-4 py-3 text-right">时间</th>
+                <th className="px-3 py-2">排名</th>
+                <th className="px-3 py-2">玩家</th>
+                <th className="px-3 py-2">模式</th>
+                <th className="px-3 py-2 text-right">击杀</th>
+                <th className="px-3 py-2 text-right">波次</th>
+                <th className="px-3 py-2 text-right">分数</th>
+                <th className="px-3 py-2 text-right">时间</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {entries.map((entry, index) => (
+              {entries.slice(0, 8).map((entry, index) => (
                 <tr key={entry.id} className="bg-panel hover:bg-panel-raised/50">
-                  <td className="px-4 py-3 font-mono font-bold">{index + 1}</td>
-                  <td className="px-4 py-3 font-medium">{entry.player_name}</td>
-                  <td className="px-4 py-3 text-muted">{MODE_OPTIONS.find((o) => o.value === entry.mode)?.label ?? entry.mode}</td>
-                  <td className="px-4 py-3 text-right font-mono">{entry.kills}</td>
-                  <td className="px-4 py-3 text-right font-mono">{entry.waves}</td>
-                  <td className="px-4 py-3 text-right font-mono text-primary">{entry.score.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-muted">{entry.duration}s</td>
+                  <td className="px-3 py-2 font-mono text-xs font-bold">{index + 1}</td>
+                  <td className="px-3 py-2 text-xs font-medium">{entry.player_name}</td>
+                  <td className="px-3 py-2 text-xs text-muted">{MODE_OPTIONS.find((o) => o.value === entry.mode)?.label ?? entry.mode}</td>
+                  <td className="px-3 py-2 text-right font-mono text-xs">{entry.kills}</td>
+                  <td className="px-3 py-2 text-right font-mono text-xs">{entry.waves}</td>
+                  <td className="px-3 py-2 text-right font-mono text-xs text-primary">{entry.score.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right font-mono text-[10px] text-muted">{entry.duration}s</td>
                 </tr>
               ))}
             </tbody>
@@ -379,15 +379,25 @@ export default function AdminPage() {
 
   const handleLogin = async (key: string) => {
     setAuthError("");
-    const res = await fetch("/api/announcements?active=false&limit=1", {
+    const res = await fetch("/api/auth/admin/verify", {
+      method: "POST",
       headers: { Authorization: `Bearer ${key}` },
     });
-    if (res.status === 401 || res.status === 403) {
-      setAuthError("密钥无效或管理员功能未配置");
+    if (res.status === 401) {
+      setAuthError("密钥无效");
+      return;
+    }
+    if (res.status === 503) {
+      setAuthError("管理员功能未配置");
       return;
     }
     if (!res.ok) {
-      setAuthError("无法验证密钥，请检查 Supabase 配置");
+      setAuthError("无法验证密钥，请稍后重试");
+      return;
+    }
+    const { valid } = await res.json().catch(() => ({ valid: false }));
+    if (!valid) {
+      setAuthError("密钥无效");
       return;
     }
     if (typeof window !== "undefined") {
@@ -424,18 +434,18 @@ export default function AdminPage() {
       <Head>
         <title>管理员后台 - Project M</title>
       </Head>
-      <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-4 md:py-6">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">管理员后台</h1>
-            <p className="mt-1 text-sm text-muted">管理公告与查看排行榜数据</p>
+            <h1 className="text-2xl font-bold tracking-tight">管理员后台</h1>
+            <p className="mt-0.5 text-sm text-muted">管理公告与查看排行榜数据</p>
           </div>
           <Button variant="secondary" size="sm" onClick={handleLogout}>
             退出登录
           </Button>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-7">
             <AnnouncementManager adminKey={adminKey} />
           </div>

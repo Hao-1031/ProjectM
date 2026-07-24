@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { Enemy, Player } from "./types";
+import type { Enemy, Player, Obstacle } from "./types";
 import {
-  getPreferredBehavior,
-  computeSeparation,
-  computeAlignment,
-  computeCohesion,
   aiChase,
   aiKeepDistance,
   aiFlank,
@@ -14,16 +10,18 @@ import {
   aiAmbush,
   aiSwarm,
   aiSurround,
-  selectBestPlayer,
-  createBossBehaviorTree,
+  runEnemyAI,
   runBossAI,
-  predictPlayerPosition,
-  findWeakestPlayer,
-  computeGroupCentroid,
+  selectBehavior,
+  selectTarget,
   avoidObstacles,
-  updateEnemyFacing,
-  setAnimationFromMovement,
+  getFlowDirection,
+  hasLineOfSight,
+  assignBotRole,
+  runBotAI,
+  mapDifficultyToAIParams,
 } from "./ai";
+import type { AIContext } from "./ai";
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -82,7 +80,12 @@ function makeEnemy(overrides: Partial<Enemy> = {}): Enemy {
     variant: "walker",
     slow: 0,
     slowTimer: 0,
-    freezeTimer: 0,
+      freezeTimer: 0,
+      frostStacks: 0,
+      frostTimer: 0,
+      venomStacks: 0,
+      venomTimer: 0,
+      vulnerabilityStacks: 0,
     droneMarkTimer: 0,
     isElite: false,
     isBoss: false,
@@ -103,229 +106,281 @@ function makeEnemy(overrides: Partial<Enemy> = {}): Enemy {
   };
 }
 
-describe("ai behaviors", () => {
-  it("selects chase for walkers", () => {
-    expect(getPreferredBehavior(makeEnemy({ variant: "walker" }))).toBe("chase");
+function makeContext(overrides: Partial<AIContext> = {}): AIContext {
+  const enemy = makeEnemy(overrides.enemy ? undefined : {});
+  return {
+    enemy: overrides.enemy ?? enemy,
+    player: makePlayer(),
+    allies: [],
+    players: [makePlayer()],
+    dt: 0.016,
+    mapWidth: 2000,
+    mapHeight: 2000,
+    difficulty: 1,
+    time: 0,
+    obstacles: [],
+    ...overrides,
+  };
+}
+
+describe("α-bridge", () => {
+  it("maps low difficulty to low aggression", () => {
+    const params = mapDifficultyToAIParams({
+      waveIndex: 0,
+      totalWaves: 12,
+      baseDifficulty: 0.1,
+      efficiencyFactor: 1,
+      counterFactor: 1,
+      finalDifficulty: 0.1,
+    });
+    expect(params.aggression).toBeLessThan(0.4);
+    expect(params.botAccuracy).toBeLessThan(0.7);
   });
 
-  it("selects charge for runners", () => {
-    expect(getPreferredBehavior(makeEnemy({ variant: "runner" }))).toBe("charge");
-  });
-
-  it("selects keep_distance for spitters", () => {
-    expect(getPreferredBehavior(makeEnemy({ variant: "spitter" }))).toBe("keep_distance");
-  });
-
-  it("selects swarm for tanks", () => {
-    expect(getPreferredBehavior(makeEnemy({ variant: "tank" }))).toBe("swarm");
-  });
-
-  it("selects orbit for boss phase 2", () => {
-    expect(getPreferredBehavior(makeEnemy({ variant: "overlord", isBoss: true, phase: 2 }))).toBe(
-      "orbit"
-    );
-  });
-});
-
-describe("flocking", () => {
-  it("computes separation away from neighbors", () => {
-    const enemy = makeEnemy({ x: 100, y: 100 });
-    const neighbor = makeEnemy({ id: "e2", x: 110, y: 100 });
-    const result = computeSeparation(enemy, [neighbor]);
-    expect(result.x).toBeLessThan(0);
-  });
-
-  it("returns zero separation when no neighbors", () => {
-    const result = computeSeparation(makeEnemy(), []);
-    expect(result.x).toBe(0);
-    expect(result.y).toBe(0);
-  });
-
-  it("computes alignment based on neighbor facings", () => {
-    const a = makeEnemy({ id: "a", x: 0, y: 0, facing: 0 });
-    const b = makeEnemy({ id: "b", x: 10, y: 0, facing: Math.PI / 2 });
-    const result = computeAlignment(a, [b]);
-    expect(result.y).toBeCloseTo(1);
-  });
-
-  it("computes cohesion toward neighbor centroid", () => {
-    const a = makeEnemy({ id: "a", x: 0, y: 0 });
-    const b = makeEnemy({ id: "b", x: 100, y: 0 });
-    const result = computeCohesion(a, [b]);
-    expect(result.x).toBeGreaterThan(0);
+  it("maps high difficulty to high aggression", () => {
+    const params = mapDifficultyToAIParams({
+      waveIndex: 11,
+      totalWaves: 12,
+      baseDifficulty: 0.95,
+      efficiencyFactor: 1,
+      counterFactor: 1,
+      finalDifficulty: 0.95,
+    });
+    expect(params.aggression).toBeGreaterThan(0.8);
+    expect(params.botAccuracy).toBeGreaterThan(0.85);
   });
 });
 
-describe("steering outputs", () => {
-  function ctx(overrides: Partial<Parameters<typeof aiChase>[0]> = {}) {
-    const enemy = makeEnemy();
-    return {
-      enemy,
-      player: makePlayer(),
-      allies: [enemy],
-      enemies: [enemy],
-      dt: 0.016,
-      mapWidth: 2000,
-      mapHeight: 2000,
-      difficulty: 1,
-      time: 0,
-      ...overrides,
-    };
-  }
-
-  it("chase moves enemy toward player", () => {
-    const c = ctx();
-    const beforeX = c.enemy.x;
-    aiChase(c);
-    expect(c.enemy.x).toBeGreaterThan(beforeX);
+describe("pathfinding", () => {
+  it("returns direction toward target when no obstacles", () => {
+    const dir = getFlowDirection(0, 0, 100, 0, [], { width: 2000, height: 2000 });
+    expect(dir.x).toBeGreaterThan(0.9);
+    expect(Math.abs(dir.y)).toBeLessThan(0.1);
   });
 
-  it("keep_distance maintains preferred range", () => {
-    const enemy = makeEnemy({ x: 490, y: 500 });
-    const c = ctx({ enemy, allies: [enemy] });
-    const result = aiKeepDistance(c, 200);
-    expect(result.shouldAttack).toBe(false);
-    expect(c.enemy.x).toBeLessThan(490);
+  it("avoids obstacle blocking the direct path", () => {
+    const obstacles: Obstacle[] = [{ id: "o1", x: 50, y: 0, width: 40, height: 40, color: "#333", health: 100, maxHealth: 100, destructible: false }];
+    const dir = getFlowDirection(0, 0, 100, 0, obstacles, { width: 2000, height: 2000 });
+    expect(Math.abs(dir.y)).toBeGreaterThan(0.1);
   });
 
-  it("flank produces lateral offset target", () => {
-    const enemy = makeEnemy({ x: 300, y: 500 });
-    const c = ctx({ enemy, allies: [enemy] });
-    aiFlank(c);
-    expect(c.enemy.x).not.toBe(300);
+  it("reports blocked line of sight", () => {
+    const obstacles: Obstacle[] = [{ id: "o1", x: 50, y: 0, width: 20, height: 20, color: "#333", health: 100, maxHealth: 100, destructible: false }];
+    expect(hasLineOfSight(0, 0, 100, 0, obstacles)).toBe(false);
   });
 
-  it("charge accelerates when within range", () => {
-    const enemy = makeEnemy({ x: 480, y: 500 });
-    const c = ctx({ enemy, allies: [enemy] });
-    const result = aiCharge(c);
-    expect(result.shouldAttack || result.vx !== 0).toBe(true);
+  it("reports clear line of sight", () => {
+    expect(hasLineOfSight(0, 0, 100, 0, [])).toBe(true);
   });
 
-  it("retreat moves away when damaged", () => {
-    const enemy = makeEnemy({ x: 490, y: 500, health: 10 });
-    const c = ctx({ enemy, allies: [enemy] });
-    const beforeX = c.enemy.x;
-    aiRetreat(c);
-    expect(c.enemy.x).toBeLessThan(beforeX);
+  it("avoids obstacles with lateral push", () => {
+    const obstacles: Obstacle[] = [{ id: "o1", x: 30, y: 0, width: 40, height: 40, color: "#333", health: 100, maxHealth: 100, destructible: false }];
+    const push = avoidObstacles(0, 0, { x: 1, y: 0 }, obstacles, 14, 80);
+    expect(Math.abs(push.y)).toBeGreaterThan(0);
+  });
+});
+
+describe("behavior selection", () => {
+  it("selects chase for walker", () => {
+    const ctx = makeContext();
+    const params = mapDifficultyToAIParams();
+    expect(selectBehavior(ctx, params)).toBe("chase");
   });
 
-  it("orbit circles around player", () => {
-    const enemy = makeEnemy({ x: 500, y: 300 });
-    const c = ctx({ enemy, allies: [enemy] });
-    aiOrbit(c, 200);
-    expect(c.enemy.x).not.toBe(500);
+  it("selects keep_distance for spitter", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ variant: "spitter" }) });
+    const params = mapDifficultyToAIParams();
+    expect(selectBehavior(ctx, params)).toBe("keep_distance");
   });
 
-  it("ambush rushes when close", () => {
-    const enemy = makeEnemy({ x: 490, y: 500 });
-    const c = ctx({ enemy, allies: [enemy] });
-    const result = aiAmbush(c);
-    expect(result.shouldAttack || result.vx !== 0).toBe(true);
+  it("selects charge for tank", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ variant: "tank" }) });
+    const params = mapDifficultyToAIParams();
+    expect(selectBehavior(ctx, params)).toBe("charge");
   });
 
-  it("swarm keeps group cohesion", () => {
-    const enemy = makeEnemy({ x: 400, y: 500 });
-    const ally = makeEnemy({ id: "a2", x: 410, y: 500 });
-    const c = ctx({ enemy, allies: [enemy, ally] });
-    aiSwarm(c);
-    expect(c.enemy.x).toBeGreaterThan(400);
+  it("selects flank for runner", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ variant: "runner" }) });
+    const params = mapDifficultyToAIParams();
+    expect(selectBehavior(ctx, params)).toBe("flank");
   });
 
-  it("surround occupies a slot around player", () => {
-    const enemy = makeEnemy({ x: 400, y: 500 });
-    const c = ctx({ enemy, allies: [enemy] });
-    aiSurround(c, 160);
-    expect(c.enemy.x).toBeGreaterThan(400);
+  it("selects orbit for boss", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ isBoss: true }) });
+    const params = mapDifficultyToAIParams();
+    expect(selectBehavior(ctx, params)).toBe("orbit");
+  });
+
+  it("selects retreat when heavily damaged and low aggression", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ health: 10, maxHealth: 100 }) });
+    const params = mapDifficultyToAIParams({ finalDifficulty: 0.1 } as Parameters<typeof mapDifficultyToAIParams>[0]);
+    expect(selectBehavior(ctx, params)).toBe("retreat");
   });
 });
 
 describe("target selection", () => {
-  it("selects nearest living player", () => {
-    const enemy = makeEnemy();
-    const near = makePlayer({ id: "near", x: 405, y: 400 });
-    const far = makePlayer({ id: "far", x: 800, y: 800 });
-    expect(selectBestPlayer(enemy, [near, far])?.id).toBe("near");
+  it("selects core when enemy targets core", () => {
+    const core = { x: 100, y: 100, radius: 30, health: 1000, maxHealth: 1000, color: "#0ff" };
+    const ctx = makeContext({
+      enemy: makeEnemy({ targetCore: true }),
+      player: makePlayer({ x: 500, y: 500 }),
+      core,
+    });
+    const target = selectTarget(ctx);
+    expect(target.x).toBe(core.x);
+    expect(target.y).toBe(core.y);
   });
 
-  it("ignores dead players", () => {
-    const enemy = makeEnemy();
-    const dead = makePlayer({ id: "dead", health: 0 });
-    const alive = makePlayer({ id: "alive", x: 1000, y: 1000 });
-    expect(selectBestPlayer(enemy, [dead, alive])?.id).toBe("alive");
-  });
-
-  it("predicts player position", () => {
-    const player = makePlayer({ x: 0, y: 0, facing: 0, speed: 100 });
-    const predicted = predictPlayerPosition(player, 1);
-    expect(predicted.x).toBeGreaterThan(0);
-  });
-
-  it("finds weakest player", () => {
-    const weak = makePlayer({ id: "weak", health: 20 });
-    const strong = makePlayer({ id: "strong", health: 100 });
-    expect(findWeakestPlayer([strong, weak])?.id).toBe("weak");
-  });
-
-  it("computes group centroid", () => {
-    const a = makeEnemy({ id: "a", x: 0, y: 0 });
-    const b = makeEnemy({ id: "b", x: 200, y: 0 });
-    const centroid = computeGroupCentroid([a, b]);
-    expect(centroid.x).toBe(100);
+  it("selects player by default", () => {
+    const ctx = makeContext({ player: makePlayer({ x: 600, y: 600 }) });
+    const target = selectTarget(ctx);
+    expect(target.x).toBe(600);
+    expect(target.y).toBe(600);
   });
 });
 
-describe("boss behavior tree", () => {
-  it("creates default behavior nodes", () => {
-    const boss = makeEnemy({ isBoss: true, variant: "overlord" });
-    const nodes = createBossBehaviorTree(boss);
-    expect(nodes.length).toBeGreaterThanOrEqual(3);
-    expect(nodes.some((n) => n.id === "chase")).toBe(true);
+describe("steering outputs", () => {
+  it("chase moves toward player", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiChase(ctx, ctx.player);
+    expect(result.vx).toBeGreaterThan(0.9);
   });
 
-  it("runs boss ai and returns steering", () => {
-    const boss = makeEnemy({ isBoss: true, variant: "overlord", x: 400, y: 400 });
-    const nodes = createBossBehaviorTree(boss);
-    const c = {
-      enemy: boss,
-      player: makePlayer(),
-      allies: [boss],
-      enemies: [boss],
-      dt: 0.016,
-      mapWidth: 2000,
-      mapHeight: 2000,
-      difficulty: 1,
-      time: 0,
-    };
-    const result = runBossAI(c, nodes);
+  it("keep_distance backs away when too close", () => {
+    const enemy = makeEnemy({ x: 490, y: 500 });
+    const ctx = makeContext({ enemy, player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiKeepDistance(ctx, ctx.player, 200);
+    expect(result.vx).toBeLessThan(0);
+  });
+
+  it("flank produces non-zero lateral movement", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 300, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiFlank(ctx, ctx.player);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
+  });
+
+  it("charge returns speed multiplier", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiCharge(ctx, ctx.player);
+    expect(result.speedMultiplier).toBeGreaterThan(1);
+    expect(result.shouldAttack).toBe(true);
+  });
+
+  it("retreat moves away from target", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 490, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiRetreat(ctx, ctx.player);
+    expect(result.vx).toBeLessThan(0);
+    expect(result.shouldAttack).toBe(false);
+  });
+
+  it("orbit returns tangent direction", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 500, y: 300 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiOrbit(ctx, ctx.player, 200);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0.5);
+  });
+
+  it("ambush returns movement when close", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 490, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiAmbush(ctx, ctx.player);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
+  });
+
+  it("swarm delegates to surround", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiSwarm(ctx, ctx.player);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
+  });
+
+  it("surround distributes around target", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 500 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = aiSurround(ctx, ctx.player);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
+  });
+});
+
+describe("runEnemyAI", () => {
+  it("returns normalized velocity", () => {
+    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 400 }), player: makePlayer({ x: 500, y: 500 }) });
+    const result = runEnemyAI(ctx);
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
+    expect(result.shouldAttack).toBe(true);
+  });
+
+  it("keeps spitters at range", () => {
+    const ctx = makeContext({
+      enemy: makeEnemy({ variant: "spitter", x: 490, y: 500 }),
+      player: makePlayer({ x: 500, y: 500 }),
+    });
+    const result = runEnemyAI(ctx);
+    expect(result.vx).toBeLessThan(0);
+  });
+});
+
+describe("runBossAI", () => {
+  it("returns steering for boss", () => {
+    const boss = makeEnemy({ isBoss: true, variant: "overlord", x: 400, y: 400, maxHealth: 1000, health: 800 });
+    const ctx = makeContext({ enemy: boss, player: makePlayer({ x: 500, y: 500 }) });
+    const result = runBossAI(ctx);
     expect(result.vx).toBeDefined();
     expect(result.vy).toBeDefined();
   });
+
+  it("triggers skill/ultimate flags", () => {
+    const boss = makeEnemy({ isBoss: true, variant: "overlord", x: 500, y: 500, phase: 2 });
+    const ctx = makeContext({ enemy: boss, player: makePlayer({ x: 500, y: 500 }), time: 100 });
+    const result = runBossAI(ctx);
+    expect(typeof result.shouldUseSkill).toBe("boolean");
+    expect(typeof result.shouldUseUltimate).toBe("boolean");
+  });
 });
 
-describe("utilities", () => {
-  it("avoids obstacles", () => {
-    const enemy = makeEnemy({ x: 0, y: 0 });
-    const obstacles = [{ x: 20, y: 0, radius: 20 }];
-    const result = avoidObstacles(enemy, obstacles, { x: 1, y: 0 });
-    expect(result.x).toBeLessThan(0);
+describe("bot-ai", () => {
+  it("assigns sniper role for long range high damage weapon", () => {
+    const player = makePlayer({
+      weapons: [
+        {
+          id: "railgun",
+          name: "Railgun",
+          level: 1,
+          maxLevel: 5,
+          cooldown: 1.2,
+          timer: 0,
+          damage: 80,
+          range: 700,
+          projectileSpeed: 900,
+          count: 1,
+          spread: 0,
+          pierce: 3,
+          color: "#0ff",
+          description: "",
+        } as Player["weapons"][number],
+      ],
+    });
+    expect(assignBotRole(player)).toBe("sniper");
   });
 
-  it("updates enemy facing when moving", () => {
-    const enemy = makeEnemy();
-    updateEnemyFacing(enemy, 1, 0);
-    expect(enemy.facing).toBe(0);
-  });
+  it("runBotAI returns valid output", () => {
+    const bot: import("./types").DeathmatchBot = {
+      id: "bot_0",
+      targetId: null,
+      state: "idle",
+      timer: 0,
+      respawnTimer: 0,
+      aimX: 0,
+      aimY: 0,
+      fireTimer: 0,
+    };
+    const player = makePlayer({ id: "bot_0", x: 100, y: 100 });
+    const human = makePlayer({ id: "player", x: 200, y: 100 });
+    const state = {
+      player: human,
+      players: [player],
+      map: { width: 1000, height: 1000, theme: "industrial", obstacles: [], hazards: [] },
+      time: 0,
+    } as unknown as import("./types").GameState;
 
-  it("sets attack animation", () => {
-    const enemy = makeEnemy();
-    setAnimationFromMovement(enemy, false, true);
-    expect(enemy.animation).toBe("attack");
-  });
-
-  it("preserves death animation", () => {
-    const enemy = makeEnemy({ animation: "death" });
-    setAnimationFromMovement(enemy, true, true);
-    expect(enemy.animation).toBe("death");
+    const output = runBotAI({ bot, player, state, dt: 0.016, rng: () => 0.5 });
+    expect(Math.abs(output.move.x) + Math.abs(output.move.y)).toBeGreaterThan(0);
+    expect(Math.abs(output.aim.x) + Math.abs(output.aim.y)).toBeGreaterThan(0);
   });
 });

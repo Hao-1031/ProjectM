@@ -17,6 +17,7 @@ import {
   List,
   X,
 } from "@phosphor-icons/react";
+import AuthButton from "@/components/AuthButton";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -107,22 +108,25 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               })}
             </nav>
 
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-primary/40 hover:text-foreground focus-ring md:hidden"
-              aria-label="打开菜单"
-            >
-              <List size={20} weight="bold" />
-            </button>
+            <div className="flex items-center gap-2">
+              <AuthButton />
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-primary/40 hover:text-foreground focus-ring md:hidden"
+                aria-label="打开菜单"
+              >
+                <List size={20} weight="bold" />
+              </button>
+            </div>
           </div>
         </motion.header>
       )}
 
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
 
       {showNav && !isIndex && (
-        <footer className="border-t border-border py-6 text-center text-xs text-muted md:pb-6">
+        <footer className="border-t border-border py-3 text-center text-xs text-muted md:py-4">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 md:flex-row">
             <p>Project M · 公平竞技 · 无付费加成</p>
             <div className="flex gap-4">

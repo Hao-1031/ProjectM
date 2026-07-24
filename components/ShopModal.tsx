@@ -96,7 +96,7 @@ export default function ShopModal({
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 rounded-xl border border-border bg-[var(--panel-raised)] px-3 py-1.5">
+                <div className="flex items-center gap-1.5 rounded-xl border border-border bg-panel-raised px-3 py-1.5">
                   <Coins size={16} weight="bold" className="text-accent" />
                   <span className="font-mono text-sm font-bold">{resources}</span>
                 </div>
@@ -144,7 +144,7 @@ export default function ShopModal({
                             duration: 0.25,
                             ease: [0.22, 1, 0.36, 1],
                           }}
-                          className={`group relative flex flex-col rounded-2xl border border-border bg-[var(--panel-raised)] p-4 transition-all hover:border-primary/40 hover:bg-panel md:p-5 ${
+                          className={`group relative flex flex-col rounded-2xl border border-border bg-panel-raised p-4 transition-all hover:border-primary/40 hover:bg-panel md:p-5 ${
                             isFeatured
                               ? "col-span-2 row-span-2 md:col-span-2 md:row-span-2"
                               : "col-span-1"
@@ -200,7 +200,7 @@ export default function ShopModal({
                   </div>
                 </div>
 
-                <footer className="flex items-center justify-between border-t border-border bg-[var(--panel-raised)] px-5 py-3 md:px-6">
+                <footer className="flex items-center justify-between border-t border-border bg-panel-raised px-5 py-3 md:px-6">
                   <p className="text-xs text-muted">资源仅在当前运行中有效</p>
                   <div className="flex items-center gap-2">
                     {onReroll && (

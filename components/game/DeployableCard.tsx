@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake, Wall } from "@phosphor-icons/react";
+import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake, Wall, Skull } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { Deployable } from "@/lib/game/types";
 
@@ -17,6 +17,11 @@ const deployableMeta: Record<
     label: "冰冻领域",
     icon: <Snowflake size={16} weight="bold" />,
     color: "text-primary",
+  },
+  poisonField: {
+    label: "毒雾领域",
+    icon: <Skull size={16} weight="bold" />,
+    color: "text-success",
   },
   wall: { label: "水泥墙", icon: <Wall size={16} weight="bold" />, color: "text-warning" },
 };

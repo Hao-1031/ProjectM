@@ -169,26 +169,25 @@ function WeaponCard({
 
   return (
     <motion.article
-      initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.4, delay: index * 0.04 }}
-      className="group flex flex-col rounded-2xl border border-border bg-panel p-5 transition-colors hover:bg-panel-raised md:p-6"
+      initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.3) }}
+      className="group flex w-[260px] flex-none snap-start flex-col rounded-2xl border border-border bg-panel p-3 transition-colors hover:bg-panel-raised"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold tracking-tight">{weapon.name}</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted">{weapon.description}</p>
+          <h3 className="text-base font-bold tracking-tight">{weapon.name}</h3>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted">{weapon.description}</p>
         </div>
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
           style={{ backgroundColor: `${weapon.color}18`, color: weapon.color }}
         >
-          <Crosshair size={20} weight="duotone" />
+          <Crosshair size={16} weight="duotone" />
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {tags.map((tag) => (
           <WeaponTag key={tag.label} {...tag} />
         ))}
@@ -197,7 +196,7 @@ function WeaponCard({
         )}
       </div>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-3 grid gap-2">
         {stats.count > 1 ? (
           <>
             <StatBar label="单发伤害" value={stats.damage} max={180} color={weapon.color} />
@@ -211,31 +210,31 @@ function WeaponCard({
         <StatBar label="弹速" value={stats.projectileSpeed} max={700} color={weapon.color} />
       </div>
 
-      <div className="mt-5 border-t border-border pt-4">
-        <p className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted">
+      <div className="mt-3 border-t border-border pt-2">
+        <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
           <Swap size={10} />
           升级路线
         </p>
-        <ul className="space-y-1.5">
+        <ul className="space-y-1">
           {weapon.upgrades.slice(0, 3).map((upgrade, i) => (
-            <li key={i} className="flex items-start gap-1.5 text-xs text-muted">
-              <CaretRight size={10} className="mt-0.5 shrink-0 text-primary" />
+            <li key={i} className="flex items-start gap-1 text-[11px] text-muted">
+              <CaretRight size={8} className="mt-0.5 shrink-0 text-primary" />
               <span>{formatUpgradeDescription(upgrade)}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="mt-auto pt-5">
+      <div className="mt-auto pt-3">
         {unlocked ? (
           equipped ? (
             <button
               type="button"
               onClick={() => onUnequip(id)}
               disabled={save.equippedWeapons.length <= 1}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-[var(--panel-raised)] py-2.5 text-sm font-medium transition-all hover:border-danger/40 hover:bg-danger/10 hover:text-danger focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-[var(--panel-raised)] py-2 text-sm font-medium transition-all hover:border-danger/40 hover:bg-danger/10 hover:text-danger focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
-              <Minus size={16} weight="bold" />
+              <Minus size={14} weight="bold" />
               卸下
             </button>
           ) : (
@@ -243,9 +242,9 @@ function WeaponCard({
               type="button"
               onClick={() => onEquip(id)}
               disabled={atCapacity}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-background transition-all hover:bg-primary/90 focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2 text-sm font-bold text-background transition-all hover:bg-primary/90 focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
-              <Plus size={16} weight="bold" />
+              <Plus size={14} weight="bold" />
               装备
             </button>
           )
@@ -254,7 +253,7 @@ function WeaponCard({
             type="button"
             onClick={() => onBuy(id)}
             disabled={!canAfford}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             style={{
               backgroundColor: canAfford ? `${weapon.color}18` : undefined,
               color: canAfford ? weapon.color : undefined,
@@ -334,47 +333,46 @@ export default function ArmoryPage() {
 
   return (
     <Layout title="军械库">
-      <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">
+      <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         <motion.div
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="mb-10 md:mb-16"
+          className="mb-4 md:mb-5"
         >
-          <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
-            <Crosshair weight="duotone" size={14} />
-            军械库
-          </span>
-          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">武器与装备</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-                用任务奖励的游戏币解锁武器，并装配到出战栏位。合理搭配是据点防守胜利的关键。
+              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
+                <Crosshair weight="duotone" size={14} />
+                军械库
+              </span>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">武器与装备</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
+                用任务奖励的游戏币解锁武器，并装配到出战栏位。
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 self-start rounded-2xl border border-border bg-panel px-4 py-3 sm:self-auto">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-warning/10 text-warning">
-                <Coin size={18} weight="fill" />
+            <div className="inline-flex items-center gap-2 self-start rounded-xl border border-border bg-panel px-3 py-2 sm:self-auto">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                <Coin size={16} weight="fill" />
               </span>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted">游戏币</p>
-                <p className="font-mono text-xl font-bold">{coins}</p>
+                <p className="font-mono text-lg font-bold">{coins}</p>
               </div>
+              {save && (
+                <div className="ml-2 flex flex-col border-l border-border pl-2 text-[10px] text-muted">
+                  <span className="inline-flex items-center gap-1">
+                    <Check size={10} weight="bold" className="text-success" />
+                    {save.unlockedWeapons.length}/{weapons.length}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Crosshair size={10} weight="bold" className="text-primary" />
+                    {save.equippedWeapons.length}/{maxWeapons}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-
-          {save && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="inline-flex items-center gap-1 rounded-lg bg-panel px-2 py-1">
-                <Check size={12} weight="bold" className="text-success" />
-                已解锁 {save.unlockedWeapons.length} / {weapons.length}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-lg bg-panel px-2 py-1">
-                <Crosshair size={12} weight="bold" className="text-primary" />
-                已装备 {save.equippedWeapons.length} / {maxWeapons}
-              </span>
-            </div>
-          )}
         </motion.div>
 
         <AnimatePresence>
@@ -383,7 +381,7 @@ export default function ArmoryPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className={`mb-6 rounded-xl border px-4 py-3 text-sm font-medium ${
+              className={`mb-3 rounded-xl border px-3 py-2 text-xs font-medium ${
                 notice.type === "success"
                   ? "border-success/30 bg-success/10 text-success"
                   : "border-danger/30 bg-danger/10 text-danger"
@@ -394,7 +392,7 @@ export default function ArmoryPage() {
           )}
         </AnimatePresence>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
           {weapons.map(([id, weapon], index) => (
             <WeaponCard
               key={id}
@@ -411,26 +409,25 @@ export default function ArmoryPage() {
         </div>
 
         <motion.section
-          initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.45 }}
-          className="mt-16 rounded-2xl border border-border bg-panel p-6 md:p-8"
+          initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mt-4 rounded-2xl border border-border bg-panel p-3 md:p-4"
         >
-          <div className="mb-4 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
             <Sparkle size={12} />
             武器搭配建议
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-border bg-panel-raised p-4">
-              <p className="font-semibold">近战 + 控制</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-panel-raised p-3">
+              <p className="text-sm font-semibold">近战 + 控制</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted">
                 等离子刃配合冰冻发射器可清理贴脸敌人并封锁通道，适合突击与工程。
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-panel-raised p-4">
-              <p className="font-semibold">远程 + 群体</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted">
+            <div className="rounded-xl border border-border bg-panel-raised p-3">
+              <p className="text-sm font-semibold">远程 + 群体</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted">
                 磁轨炮点杀精英，榴弹发射器处理杂兵潮，侦察与医疗常用组合。
               </p>
             </div>

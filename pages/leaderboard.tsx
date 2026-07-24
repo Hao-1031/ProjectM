@@ -49,19 +49,18 @@ const MODE_OPTIONS = [
 ];
 
 function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
-  const { entries, loading, error, refetch } = useLeaderboard({ mode: modeFilter || undefined, limit: 50 });
+  const { entries, loading, error, refetch } = useLeaderboard({ mode: modeFilter || undefined, limit: 10 });
   const reducedMotion = useReducedMotion();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <SectionHeader title="全球榜单" />
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
         <Button variant="secondary" size="sm" leftIcon={<ArrowClockwise size={14} weight="bold" />} onClick={refetch}>
           刷新
         </Button>
       </div>
 
-      {loading && <Skeleton count={8} className="h-14" />}
+      {loading && <Skeleton count={5} className="h-11" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && entries.length === 0 && (
         <EmptyState
@@ -80,15 +79,15 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
       {!loading && !error && entries.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-border">
           <table className="w-full text-left text-sm">
-            <thead className="bg-panel-raised text-xs uppercase tracking-wider text-muted">
+            <thead className="bg-panel-raised text-[10px] uppercase tracking-wider text-muted">
               <tr>
-                <th className="px-4 py-3">排名</th>
-                <th className="px-4 py-3">玩家</th>
-                <th className="px-4 py-3">模式</th>
-                <th className="px-4 py-3 text-right">击杀</th>
-                <th className="px-4 py-3 text-right">波次</th>
-                <th className="px-4 py-3 text-right">分数</th>
-                <th className="px-4 py-3 text-right">时长</th>
+                <th className="px-3 py-2">排名</th>
+                <th className="px-3 py-2">玩家</th>
+                <th className="px-3 py-2">模式</th>
+                <th className="px-3 py-2 text-right">击杀</th>
+                <th className="px-3 py-2 text-right">波次</th>
+                <th className="px-3 py-2 text-right">分数</th>
+                <th className="px-3 py-2 text-right">时长</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -99,12 +98,12 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
                     initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ delay: index * 0.03 }}
+                    transition={{ delay: index * 0.02 }}
                     className="bg-panel hover:bg-panel-raised/50"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span
-                        className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                        className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                           index === 0
                             ? "bg-warning/15 text-warning"
                             : index === 1
@@ -117,12 +116,12 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
                         {index + 1}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-medium">{entry.player_name}</td>
-                    <td className="px-4 py-3 text-muted">{modeNames[entry.mode] ?? entry.mode}</td>
-                    <td className="px-4 py-3 text-right font-mono">{entry.kills}</td>
-                    <td className="px-4 py-3 text-right font-mono">{entry.waves}</td>
-                    <td className="px-4 py-3 text-right font-mono text-primary">{entry.score.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right font-mono text-xs text-muted">{entry.duration}s</td>
+                    <td className="px-3 py-2 font-medium">{entry.player_name}</td>
+                    <td className="px-3 py-2 text-muted">{modeNames[entry.mode] ?? entry.mode}</td>
+                    <td className="px-3 py-2 text-right font-mono">{entry.kills}</td>
+                    <td className="px-3 py-2 text-right font-mono">{entry.waves}</td>
+                    <td className="px-3 py-2 text-right font-mono text-primary">{entry.score.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right font-mono text-[10px] text-muted">{entry.duration}s</td>
                   </motion.tr>
                 ))}
               </AnimatePresence>
@@ -178,8 +177,8 @@ export default function LeaderboardPage() {
       <Head>
         <title>战绩 - Project M</title>
       </Head>
-      <div className="relative mx-auto max-w-6xl px-4 pt-10 md:pt-16">
-        <div className="grid gap-10 md:grid-cols-12">
+      <div className="relative mx-auto max-w-6xl px-4 py-4 md:py-6">
+        <div className="grid gap-4 md:grid-cols-12 md:gap-6">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,32 +188,32 @@ export default function LeaderboardPage() {
             <span className="inline-block rounded bg-accent/10 px-2 py-1 font-mono text-xs uppercase tracking-widest text-accent">
               作战记录
             </span>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
+            <h1 className="mt-2 text-2xl font-bold leading-[1.1] tracking-tight md:text-4xl">
               你的最佳撤离记录。
             </h1>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-muted md:text-base">
-              本地保存你的历史最佳，也可以将成绩提交到全球排行榜。
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+              本地保存历史最佳，也可提交到全球排行榜。
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
               >
-                <Play size={18} weight="fill" />
+                <Play size={16} weight="fill" />
                 <span className="whitespace-nowrap">再开一局</span>
               </Link>
               <Link
                 href="/base"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel px-5 py-3 text-sm font-medium transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel px-4 py-2.5 text-sm font-medium transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
               >
-                <Crosshair size={18} />
+                <Crosshair size={16} />
                 <span className="whitespace-nowrap">查看基地</span>
               </Link>
             </div>
           </motion.div>
 
           <div className="md:col-span-7">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <StatCard
                 value={save?.totalRuns ?? 0}
                 label="总出战次数"
@@ -239,7 +238,7 @@ export default function LeaderboardPage() {
               initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="relative mt-4 overflow-hidden rounded-2xl border border-border bg-panel p-6"
+              className="relative mt-3 overflow-hidden rounded-2xl border border-border bg-panel p-4"
             >
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
               <div className="relative flex items-start justify-between">
@@ -247,15 +246,15 @@ export default function LeaderboardPage() {
                   <p className="font-mono text-xs uppercase tracking-widest text-muted">最佳记录</p>
                   {best ? (
                     <>
-                      <p className="mt-2 text-3xl font-bold">
+                      <p className="mt-1 text-2xl font-bold">
                         {best.victory ? "撤离成功" : "任务失败"}
                       </p>
-                      <p className="mt-1 text-sm text-muted">
+                      <p className="mt-0.5 text-sm text-muted">
                         {modeNames[best.mode] ?? best.mode} · {formatTime(best.elapsed)}
                       </p>
                     </>
                   ) : (
-                    <p className="mt-2 text-lg font-medium">暂无记录</p>
+                    <p className="mt-1 text-base font-medium">暂无记录</p>
                   )}
                 </div>
                 {best && (
@@ -275,71 +274,71 @@ export default function LeaderboardPage() {
               </div>
 
               {best && (
-                <dl className="relative mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border bg-background p-4">
-                    <dt className="flex items-center gap-2 text-xs text-muted">
-                      <Skull size={14} /> 击杀
+                <dl className="relative mt-4 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <dt className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted">
+                      <Skull size={12} /> 击杀
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold">{best.stats.kills}</dd>
+                    <dd className="mt-0.5 text-xl font-bold">{best.stats.kills}</dd>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4">
-                    <dt className="flex items-center gap-2 text-xs text-muted">
-                      <Sword size={14} /> 造成伤害
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <dt className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted">
+                      <Sword size={12} /> 造成伤害
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold">{Math.floor(best.stats.damageDealt)}</dd>
+                    <dd className="mt-0.5 text-xl font-bold">{Math.floor(best.stats.damageDealt)}</dd>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4">
-                    <dt className="flex items-center gap-2 text-xs text-muted">
-                      <Clock size={14} /> 存活时间
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <dt className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted">
+                      <Clock size={12} /> 存活时间
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold">{formatTime(best.elapsed)}</dd>
+                    <dd className="mt-0.5 text-xl font-bold">{formatTime(best.elapsed)}</dd>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4">
-                    <dt className="flex items-center gap-2 text-xs text-muted">
-                      <Target size={14} /> 完成任务
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <dt className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted">
+                      <Target size={12} /> 完成任务
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold">{best.completedMissions}</dd>
+                    <dd className="mt-0.5 text-xl font-bold">{best.completedMissions}</dd>
                   </div>
                 </dl>
               )}
 
               {best && (
-                <div className="relative mt-6 rounded-2xl border border-border bg-background/50 p-4">
+                <div className="relative mt-4 rounded-2xl border border-border bg-background/50 p-3">
                   <p className="text-xs font-medium text-muted">提交到全球排行榜</p>
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                     <Input
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
                       placeholder="输入玩家名称"
                       maxLength={32}
-                      className="sm:max-w-[240px]"
+                      className="sm:max-w-[200px]"
                     />
                     <Button
                       loading={submitting}
-                      leftIcon={<Globe size={16} />}
+                      leftIcon={<Globe size={14} />}
                       onClick={handleSubmit}
                       className="sm:w-auto"
                     >
                       提交成绩
                     </Button>
                   </div>
-                  {submitError && <p className="mt-2 text-xs text-danger">{submitError}</p>}
-                  {submitSuccess && <p className="mt-2 text-xs text-success">提交成功！</p>}
+                  {submitError && <p className="mt-1 text-xs text-danger">{submitError}</p>}
+                  {submitSuccess && <p className="mt-1 text-xs text-success">提交成功！</p>}
                 </div>
               )}
             </motion.div>
           </div>
         </div>
 
-        <section className="relative z-10 mt-20">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div />
+        <section className="relative z-10 mt-6 md:mt-8">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">全球榜单</h2>
             <div className="flex items-center gap-2">
               <Funnel size={14} className="text-muted" />
               <select
                 value={modeFilter}
                 onChange={(e) => setModeFilter(e.target.value)}
-                className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+                className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
               >
                 {MODE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>

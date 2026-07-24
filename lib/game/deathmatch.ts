@@ -13,6 +13,7 @@ import { DEFAULT_BALANCE } from "./balance";
 import { uid, distance, normalize, clamp, randomRange, randomPointInBounds } from "./math";
 import { WEAPON_CREATORS } from "./weapons";
 import { seededRandom } from "./modes";
+import { runBotAI } from "./ai";
 
 export function createDeathmatchState(seed: number, botCount = 3): DeathmatchState {
   return {
@@ -258,119 +259,36 @@ function updateBot(bot: DeathmatchBot, state: GameState, dt: number, rng: () => 
   bot.timer -= dt;
   bot.fireTimer -= dt;
 
-  if (bot.timer <= 0) {
-    bot.timer = 0.4 + rng() * 0.6;
-    chooseBotState(bot, state, rng);
-  }
-
-  const target = findBotTarget(bot, state, player);
-  if (target) {
-    bot.targetId = target.id;
-    bot.aimX = target.x - player.x;
-    bot.aimY = target.y - player.y;
-  } else {
-    bot.targetId = null;
-  }
-
-  const move = getBotMove(bot, state, player, dt, rng);
-  const aim = normalize({ x: bot.aimX, y: bot.aimY });
+  const output = runBotAI({
+    bot,
+    player,
+    state,
+    dt,
+    rng,
+    alphaSnapshot: undefined,
+  });
 
   player.knockbackX *= Math.max(0, 1 - dt * 6);
   player.knockbackY *= Math.max(0, 1 - dt * 6);
 
   const speed = player.speed * (bot.state === "flee" ? 1.1 : 1);
-  player.x += (move.x * speed + player.knockbackX) * dt;
-  player.y += (move.y * speed + player.knockbackY) * dt;
+  player.x += (output.move.x * speed + player.knockbackX) * dt;
+  player.y += (output.move.y * speed + player.knockbackY) * dt;
 
   player.x = clamp(player.x, player.radius, state.map.width - player.radius);
   player.y = clamp(player.y, player.radius, state.map.height - player.radius);
 
-  if (aim.x !== 0 || aim.y !== 0) {
-    player.facing = Math.atan2(aim.y, aim.x);
+  if (output.aim.x !== 0 || output.aim.y !== 0) {
+    player.facing = Math.atan2(output.aim.y, output.aim.x);
   }
 
-  if (target && bot.fireTimer <= 0) {
-    const dist = distance(player, target);
-    if (dist < player.weapons[0].range) {
-      botFireWeapon(bot, player, state);
-      bot.fireTimer = Math.max(0.25, player.weapons[0].cooldown * (1 - player.cooldownReduction));
-    }
-  }
-}
-
-function chooseBotState(bot: DeathmatchBot, state: GameState, rng: () => number): void {
-  const player = state.players.find((p) => p.id === bot.id) ?? state.player;
-  if (!player) return;
-
-  const healthRatio = player.health / player.maxHealth;
-  const target = findBotTarget(bot, state, player);
-
-  if (healthRatio < 0.35) {
-    bot.state = rng() < 0.7 ? "flee" : "strafe";
-  } else if (target) {
-    const dist = distance(player, target);
-    if (dist < 220) {
-      bot.state = rng() < 0.5 ? "strafe" : "chase";
-    } else {
-      bot.state = "chase";
-    }
-  } else {
-    bot.state = "idle";
-  }
-}
-
-function findBotTarget(bot: DeathmatchBot, state: GameState, self: Player): Player | null {
-  const all = [state.player, ...state.players].filter((p) => p.id !== self.id && p.health > 0);
-  if (all.length === 0) return null;
-
-  let best: Player | null = null;
-  let bestScore = -Infinity;
-
-  for (const candidate of all) {
-    const dist = distance(self, candidate);
-    const healthBias = 1 - candidate.health / candidate.maxHealth;
-    const score = -dist + healthBias * 300 + (candidate.id === bot.targetId ? 120 : 0);
-    if (score > bestScore) {
-      bestScore = score;
-      best = candidate;
-    }
-  }
-  return best;
-}
-
-function getBotMove(
-  bot: DeathmatchBot,
-  state: GameState,
-  player: Player,
-  dt: number,
-  rng: () => number
-): Vec2 {
-  const target = bot.targetId
-    ? [state.player, ...state.players].find((p) => p.id === bot.targetId && p.health > 0)
-    : null;
-
-  if (!target) {
-    const angle = state.time * 0.5 + (player.id.charCodeAt(0) % 10);
-    return { x: Math.cos(angle), y: Math.sin(angle) };
+  if (output.fire && bot.fireTimer <= 0) {
+    botFireWeapon(bot, player, state);
+    bot.fireTimer = Math.max(0.25, player.weapons[0].cooldown * (1 - player.cooldownReduction));
   }
 
-  const dx = target.x - player.x;
-  const dy = target.y - player.y;
-  const len = Math.hypot(dx, dy) || 1;
-
-  if (bot.state === "flee") {
-    return normalize({ x: -dx / len, y: -dy / len });
-  }
-
-  if (bot.state === "chase") {
-    return normalize({ x: dx / len, y: dy / len });
-  }
-
-  const strafeAngle = (Math.PI / 2) * (Math.sin(state.time * 2) > 0 ? 1 : -1);
-  return normalize({
-    x: (dx / len) * Math.cos(strafeAngle) - (dy / len) * Math.sin(strafeAngle),
-    y: (dx / len) * Math.sin(strafeAngle) + (dy / len) * Math.cos(strafeAngle),
-  });
+  bot.aimX = output.aim.x;
+  bot.aimY = output.aim.y;
 }
 
 function botFireWeapon(bot: DeathmatchBot, player: Player, state: GameState): void {
@@ -447,13 +365,4 @@ export function getDeathmatchLeaderboard(
     .sort((a, b) => b.score - a.score || a.deaths - b.deaths);
 }
 
-export function getBotInput(_bot: DeathmatchBot): InputState {
-  return {
-    move: { x: 0, y: 0 },
-    aim: { x: 0, y: 0 },
-    fire: false,
-    pause: false,
-    useSkill: false,
-    useUltimate: false,
-  };
-}
+

@@ -39,6 +39,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   utility: "生存",
 };
 
+const TALENT_CATEGORY_STYLES: Record<string, { bg: string; text: string }> = {
+  damage: { bg: "bg-danger/10", text: "text-danger" },
+  skill: { bg: "bg-primary/10", text: "text-primary" },
+  utility: { bg: "bg-success/10", text: "text-success" },
+};
+
 interface LoadoutModalProps {
   mode: GameModeType;
   initialHero: HeroId;
@@ -137,7 +143,7 @@ export default function LoadoutModal({
                     className={`group relative flex items-center gap-3 rounded-2xl border p-3 text-left transition-all focus-ring lg:p-4 ${
                       active
                         ? "border-primary bg-primary/10"
-                        : "border-border bg-[var(--panel-raised)] hover:border-primary/30 hover:bg-panel"
+                        : "border-border bg-panel-raised hover:border-primary/30 hover:bg-panel"
                     }`}
                   >
                     <span
@@ -167,7 +173,7 @@ export default function LoadoutModal({
           {/* Detail + weapons */}
           <section className="flex flex-col gap-4 md:gap-6">
             {/* Hero detail card */}
-            <div className="grid grid-cols-1 gap-4 rounded-3xl border border-border bg-[var(--panel-raised)] p-4 sm:p-5 md:grid-cols-[1fr_280px] md:p-6">
+            <div className="grid grid-cols-1 gap-4 rounded-3xl border border-border bg-panel-raised p-4 sm:p-5 md:grid-cols-[1fr_280px] md:p-6">
               {/* Portrait + basic info */}
               <div className="flex flex-col gap-4">
                 <div
@@ -289,27 +295,15 @@ export default function LoadoutModal({
                   <span className="text-[10px] text-muted">战斗中升级获得</span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  {activeHero.talents.slice(0, 5).map((talent) => (
+                  {activeHero.talents.slice(0, 5).map((talent) => {
+                    const talentStyle = TALENT_CATEGORY_STYLES[talent.category] ?? TALENT_CATEGORY_STYLES.utility;
+                    return (
                     <div
                       key={talent.id}
-                      className="flex items-start gap-2 rounded-xl border border-border bg-[var(--panel-raised)] p-2.5"
+                      className="flex items-start gap-2 rounded-xl border border-border bg-panel-raised p-2.5"
                     >
                       <span
-                        className="mt-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                        style={{
-                          backgroundColor:
-                            talent.category === "damage"
-                              ? "rgba(224,90,106,0.12)"
-                              : talent.category === "skill"
-                                ? "rgba(168,85,247,0.12)"
-                                : "rgba(52,211,153,0.12)",
-                          color:
-                            talent.category === "damage"
-                              ? "#e05a6a"
-                              : talent.category === "skill"
-                                ? "#a855f7"
-                                : "#34d399",
-                        }}
+                        className={`mt-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${talentStyle.bg} ${talentStyle.text}`}
                       >
                         {CATEGORY_LABELS[talent.category]}
                       </span>
@@ -320,7 +314,8 @@ export default function LoadoutModal({
                         </p>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
             </div>
@@ -339,7 +334,7 @@ export default function LoadoutModal({
               </div>
 
               {weapons.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-[var(--panel-raised)] p-6 text-center text-sm text-muted">
+                <div className="rounded-2xl border border-border bg-panel-raised p-6 text-center text-sm text-muted">
                   军械库中暂无可用武器
                 </div>
               ) : (
@@ -355,7 +350,7 @@ export default function LoadoutModal({
                         className={`relative rounded-2xl border p-4 text-left transition-all focus-ring ${
                           active
                             ? "border-primary bg-primary/10"
-                            : "border-border bg-[var(--panel-raised)] hover:border-primary/30 hover:bg-panel"
+                            : "border-border bg-panel-raised hover:border-primary/30 hover:bg-panel"
                         }`}
                       >
                         {active && (
@@ -403,7 +398,7 @@ export default function LoadoutModal({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-xl border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-[var(--panel-raised)] focus-ring active:scale-95"
+              className="rounded-xl border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-panel-raised focus-ring active:scale-95"
             >
               返回
             </button>

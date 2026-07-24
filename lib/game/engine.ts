@@ -23,6 +23,9 @@ import type {
   WeaponId,
   DefenseState,
   DeathmatchState,
+  BossId,
+  Vec2,
+  DefenseWave,
 } from "./types";
 import {
   uid,
@@ -73,7 +76,11 @@ import {
   shouldExplodeOnDeath,
   shouldSplitOnDeath,
 } from "./affixes";
-import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId } from "./bosses";
+import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId, getBossTemplate } from "./bosses";
+import { AlphaScheduler, generateVariantStats } from "./alpha";
+import type { AlphaEnemyStats } from "./alpha/types";
+import { runEnemyAI, runBossAI, resetBossState } from "./ai";
+import type { AIContext } from "./ai";
 import {
   createGameModeConfig,
   generateCampaignMissions,
@@ -186,6 +193,14 @@ export class GameEngine {
   private pendingSpawns = 0;
   private spawnBatchTimer = 0;
   private graphicsQuality: "high" | "medium" | "low" = "medium";
+  private alphaScheduler?: AlphaScheduler;
+  private alphaPlanRef?: {
+    enemyStats: import("./alpha/types").AlphaEnemyStats;
+    snapshot: import("./alpha/types").AlphaDifficultySnapshot;
+    isBossWave: boolean;
+    spawned: number;
+    killed: number;
+  };
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -258,7 +273,7 @@ export class GameEngine {
       }
     }
 
-    return {
+    const state: GameState = {
       status: "idle",
       mode,
       modeConfig,
@@ -305,6 +320,51 @@ export class GameEngine {
       defenseState,
       deathmatchState,
       selectedHero: heroId ?? this.state?.selectedHero,
+    };
+
+    if (mode === "defense" && state.defenseState) {
+      this.initAlphaScheduler(state);
+    }
+
+    return state;
+  }
+
+  private initAlphaScheduler(state: GameState) {
+    const ds = state.defenseState;
+    if (!ds) return;
+
+    const bossWaves = ds.waves
+      .map((w, i): { w: DefenseWave; i: number } => ({ w, i }))
+      .filter(({ w }) => !!w.bossVariant)
+      .map(({ i }) => i);
+
+    this.alphaScheduler = new AlphaScheduler({
+      totalWaves: ds.totalWaves,
+      bossWaves,
+      playerCount: 1 + state.players.length,
+    });
+    this.alphaScheduler.syncPlayers([state.player, ...state.players]);
+    this.alphaScheduler.setWave(ds.currentWave);
+    this.applyAlphaPlanToDefenseState(ds);
+  }
+
+  private applyAlphaPlanToDefenseState(ds: DefenseState) {
+    if (!this.alphaScheduler) return;
+    const plan = this.alphaScheduler.getCurrentPlan();
+    const wave = ds.waves[ds.currentWave];
+    if (!wave) return;
+
+    wave.enemyCount = plan.enemyStats.waveEnemyCount;
+    wave.eliteCount = plan.enemyStats.eliteCount;
+    wave.enemyVariants = Object.keys(plan.enemyStats.variantWeights) as EnemyVariant[];
+    wave.bossVariant = plan.isBossWave ? plan.bossStats?.bossId ?? "colossus" : undefined;
+
+    this.alphaPlanRef = {
+      enemyStats: plan.enemyStats,
+      snapshot: plan.snapshot,
+      isBossWave: plan.isBossWave,
+      spawned: 0,
+      killed: 0,
     };
   }
 
@@ -494,12 +554,12 @@ export class GameEngine {
 
   useHeroSkill() {
     if (this.state.status !== "running") return;
-    triggerHeroSkill(this.state.player, this.state);
+    triggerHeroSkill(this.state.player, this.state, this.fx);
   }
 
   useHeroUltimate() {
     if (this.state.status !== "running") return;
-    triggerHeroUltimate(this.state.player, this.state);
+    triggerHeroUltimate(this.state.player, this.state, this.fx);
   }
 
   restart(mode: GameModeType = this.state.mode, seed?: number) {
@@ -546,6 +606,7 @@ export class GameEngine {
     this.updatePickups(dt);
     this.updateParticles(dt);
     this.updateDamageNumbers(dt);
+    this.cleanupDestroyedObstacles();
 
     if (!isDeathmatch) {
       this.updateMissionsAndExtraction(dt);
@@ -925,12 +986,23 @@ export class GameEngine {
     }
   }
 
-  private spawnEnemy(variantOverride?: EnemyVariant, elite = false) {
+  private spawnEnemy(variantOverride?: EnemyVariant, elite = false, alphaStats?: AlphaEnemyStats) {
     const pos = randomPointOnBorder(this.state.map.width, this.state.map.height);
-    const roll = Math.random();
     const difficulty = this.state.difficulty;
     let variant: EnemyVariant = variantOverride ?? "walker";
-    if (!variantOverride) {
+
+    // 检测是否传入 BossId
+    if (variantOverride && variantOverride in BOSSES) {
+      this.spawnBoss(variantOverride as BossId, pos, alphaStats);
+      return;
+    }
+
+    const alphaPlan = this.alphaPlanRef;
+    const isAlphaMode = this.alphaScheduler && alphaStats && alphaPlan;
+
+    // 仅在非 α 模式下走原有随机分支
+    if (!variantOverride && !isAlphaMode) {
+      const roll = Math.random();
       if (roll > 0.88) variant = "tank";
       else if (roll > 0.72) variant = "runner";
       else if (roll > 0.58 && difficulty > 3) variant = "spitter";
@@ -938,9 +1010,9 @@ export class GameEngine {
     }
 
     const balance = DEFAULT_BALANCE.enemies[variant] ?? DEFAULT_BALANCE.enemies.base;
-    let baseHealth = getDifficultyScaledHealth(difficulty, variant);
-    let speed = balance.speed;
-    let damage = balance.damage;
+    let baseHealth: number;
+    let speed: number;
+    let damage: number;
     let radius = balance.radius;
     let xpValue = balance.xpValue;
     let color = balance.color;
@@ -950,13 +1022,26 @@ export class GameEngine {
       elite = true;
     }
 
-    if (elite && variant !== "elite" && variant !== "boss") {
-      const e = balance;
-      baseHealth = Math.floor(baseHealth * (e.eliteHealthMul ?? 3));
-      damage *= e.eliteDamageMul ?? 1.6;
-      speed *= e.eliteSpeedMul ?? 1.1;
-      xpValue *= e.eliteXpMul ?? 3;
-      radius *= 1.15;
+    if (isAlphaMode && variant !== "elite" && variant !== "boss") {
+      // α 分支：按当前难度与精英状态直接生成数值
+      const stats = generateVariantStats(variant, alphaPlan.snapshot.finalDifficulty, elite);
+      baseHealth = stats.maxHp;
+      speed = stats.speed;
+      damage = stats.damage;
+    } else {
+      // 传统分支
+      baseHealth = getDifficultyScaledHealth(difficulty, variant);
+      speed = balance.speed;
+      damage = balance.damage;
+
+      if (elite && variant !== "elite" && variant !== "boss") {
+        const e = balance;
+        baseHealth = Math.floor(baseHealth * (e.eliteHealthMul ?? 3));
+        damage *= e.eliteDamageMul ?? 1.6;
+        speed *= e.eliteSpeedMul ?? 1.1;
+        xpValue *= e.eliteXpMul ?? 3;
+        radius *= 1.15;
+      }
     }
 
     const affixes: Enemy["affixes"] = [];
@@ -1004,6 +1089,11 @@ export class GameEngine {
       knockbackY: 0,
       burnDuration: 0,
       burnDamage: 0,
+      frostStacks: 0,
+      frostTimer: 0,
+      venomStacks: 0,
+      venomTimer: 0,
+      vulnerabilityStacks: 0,
       phase: 0,
       phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
       targetCore: this.state.mode === "defense",
@@ -1014,6 +1104,68 @@ export class GameEngine {
 
     applyAffixes(enemy);
     this.state.enemies.push(enemy);
+
+    if (isAlphaMode) {
+      this.alphaScheduler!.telemetry.recordSpawn(alphaPlan.snapshot.waveIndex, variant);
+      alphaPlan.spawned++;
+    }
+  }
+
+  private spawnBoss(bossId: BossId, pos: Vec2, alphaStats?: AlphaEnemyStats) {
+    const template = getBossTemplate(bossId);
+    const alphaPlan = this.alphaPlanRef;
+    const isAlphaMode = this.alphaScheduler && alphaPlan;
+    const bossStats = isAlphaMode ? this.alphaScheduler!.getCurrentPlan().bossStats : undefined;
+
+    const healthMul = bossStats?.healthMultiplier ?? 1 + (this.state.difficulty - 1) * 0.15;
+    const damageMul = bossStats?.damageMultiplier ?? 1;
+    const speedMul = bossStats?.speedMultiplier ?? 1;
+
+    const enemy: Enemy = {
+      id: uid("enemy"),
+      x: pos.x,
+      y: pos.y,
+      radius: template.radius,
+      speed: template.speed * speedMul,
+      health: Math.round(template.health * healthMul),
+      maxHealth: Math.round(template.health * healthMul),
+      damage: Math.round(template.damage * damageMul),
+      xpValue: DEFAULT_BALANCE.enemies.base.xpValue * 20,
+      color: template.color,
+      variant: bossId as EnemyVariant,
+      slow: 0,
+      slowTimer: 0,
+      freezeTimer: 0,
+      droneMarkTimer: 0,
+      isElite: false,
+      isBoss: true,
+      affixes: [],
+      attackTimer: randomRange(0, (template.phases[0]?.attackCooldown ?? 1.5)),
+      attackCooldown: template.phases[0]?.attackCooldown ?? 1.5,
+      knockbackX: 0,
+      knockbackY: 0,
+      burnDuration: 0,
+      burnDamage: 0,
+      frostStacks: 0,
+      frostTimer: 0,
+      venomStacks: 0,
+      venomTimer: 0,
+      vulnerabilityStacks: 0,
+      phase: 0,
+      phaseThresholds: template.phaseThresholds,
+      targetCore: this.state.mode === "defense",
+      facing: 0,
+      animation: "move",
+      animationTimer: 0,
+    };
+
+    applyAffixes(enemy);
+    this.state.enemies.push(enemy);
+
+    if (isAlphaMode) {
+      this.alphaScheduler!.telemetry.recordSpawn(alphaPlan.snapshot.waveIndex, bossId);
+      alphaPlan.spawned++;
+    }
   }
 
   private updateEnemies(dt: number) {
@@ -1036,6 +1188,62 @@ export class GameEngine {
         }
       }
 
+      if (enemy.frostStacks > 0) {
+        enemy.frostTimer -= dt;
+        if (enemy.frostTimer <= 0) {
+          enemy.frostStacks = Math.max(0, enemy.frostStacks - 1);
+          enemy.frostTimer = enemy.frostStacks > 0 ? 2 : 0;
+        }
+        if (enemy.frostStacks > 0 && Math.random() < dt * 3) {
+          this.particlePool.spawnPreset(
+            "spark",
+            enemy.x + randomRange(-enemy.radius, enemy.radius),
+            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            "#38bdf8",
+            { intensity: 0.5 }
+          );
+        }
+      }
+
+      if (enemy.freezeTimer > 0) {
+        enemy.freezeTimer -= dt;
+        if (enemy.freezeTimer <= 0 && enemy.health > 0) {
+          enemy.health -= 180;
+          this.state.stats.damageDealt += 180;
+          this.particlePool.spawnPreset("spark", enemy.x, enemy.y, "#e0f2fe", { intensity: 1 });
+        }
+      }
+
+      if (enemy.venomStacks > 0) {
+        enemy.venomTimer -= dt;
+        if (enemy.venomTimer <= 0) {
+          enemy.venomStacks = Math.max(0, enemy.venomStacks - 1);
+          enemy.venomTimer = enemy.venomStacks > 0 ? 0.5 : 0;
+        }
+        if (enemy.venomTimer > 0) {
+          enemy.health -= enemy.venomStacks * 6 * dt;
+        }
+        if (enemy.venomStacks > 0 && Math.random() < dt * 4) {
+          this.particlePool.spawnPreset(
+            "spark",
+            enemy.x + randomRange(-enemy.radius, enemy.radius),
+            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            "#84cc16",
+            { intensity: 0.5 }
+          );
+        }
+      }
+
+      if (enemy.vulnerabilityStacks > 0 && Math.random() < dt * 2) {
+        this.particlePool.spawnPreset(
+          "spark",
+          enemy.x + randomRange(-enemy.radius, enemy.radius),
+          enemy.y + randomRange(-enemy.radius, enemy.radius),
+          "#a855f7",
+          { intensity: 0.4 }
+        );
+      }
+
       const regen = getRegenRate(enemy);
       if (regen > 0) {
         enemy.health = Math.min(enemy.maxHealth, enemy.health + regen * dt);
@@ -1045,6 +1253,13 @@ export class GameEngine {
         const changed = checkBossPhaseTransition(enemy, this);
         if (changed) {
           this.callbacks.onBossPhaseChange?.(enemy, enemy.phase);
+          if (this.alphaScheduler && this.alphaPlanRef) {
+            this.alphaScheduler.telemetry.recordBossPhase(
+              this.alphaPlanRef.snapshot.waveIndex,
+              enemy.variant as BossId,
+              enemy.phase
+            );
+          }
           this.particlePool.spawnPreset("energy", enemy.x, enemy.y, enemy.color, {
             intensity: 1.5,
           });
@@ -1056,40 +1271,53 @@ export class GameEngine {
       enemy.knockbackX *= Math.max(0, 1 - dt * 5);
       enemy.knockbackY *= Math.max(0, 1 - dt * 5);
 
-      // Defense mode: enemies with targetCore move toward the core
-      const target = ds && enemy.targetCore && core ? core : player;
-      const dx = target.x - enemy.x;
-      const dy = target.y - enemy.y;
-      const len = Math.hypot(dx, dy);
-
-      if (len > 0) {
-        setFacing(enemy, target.x, target.y);
+      if (enemy.slowTimer > 0) {
+        enemy.slowTimer -= dt;
+        if (enemy.slowTimer <= 0) enemy.slow = 0;
       }
 
-      if (
-        (enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) &&
-        enemy.attackCooldown > 0
-      ) {
+      // β AI 行为决策
+      const aiCtx = this.buildAIContext(enemy, dt);
+      const steering = enemy.isBoss ? runBossAI(aiCtx) : runEnemyAI(aiCtx);
+
+      let speedMul = clamp(steering.speedMultiplier ?? 1, 0.6, 1.4);
+      if (enemy.freezeTimer > 0) {
+        speedMul = 0;
+      } else if (enemy.slow > 0) {
+        speedMul *= Math.max(0.1, 1 - enemy.slow);
+      }
+      const moveX = steering.vx * enemy.speed * speedMul * dt;
+      const moveY = steering.vy * enemy.speed * speedMul * dt;
+
+      // 朝向移动方向或目标
+      if (Math.hypot(steering.vx, steering.vy) > 0.1) {
+        setFacing(enemy, enemy.x + steering.vx, enemy.y + steering.vy);
+      } else if (steering.targetX !== undefined && steering.targetY !== undefined) {
+        setFacing(enemy, steering.targetX, steering.targetY);
+      }
+
+      enemy.x += moveX;
+      enemy.y += moveY;
+
+      // 远程 / Boss 攻击
+      if ((enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) && enemy.attackCooldown > 0) {
         enemy.attackTimer -= dt;
-        const preferredDistance = enemy.variant === "spitter" ? 300 : enemy.isBoss ? 280 : 220;
-        if (len > 0) {
-          const dirX = dx / len;
-          const dirY = dy / len;
-          if (len < preferredDistance - 40) {
-            enemy.x -= dirX * enemy.speed * dt * 0.6;
-            enemy.y -= dirY * enemy.speed * dt * 0.6;
-          } else if (len > preferredDistance + 40) {
-            enemy.x += dirX * enemy.speed * dt;
-            enemy.y += dirY * enemy.speed * dt;
-          }
-          if (enemy.attackTimer <= 0) {
-            this.fireEnemyProjectile(enemy);
-            enemy.attackTimer = enemy.attackCooldown;
-          }
+        if (steering.shouldAttack && enemy.attackTimer <= 0) {
+          this.fireEnemyProjectile(enemy);
+          enemy.attackTimer = enemy.attackCooldown;
         }
-      } else if (len > 0) {
-        enemy.x += (dx / len) * enemy.speed * dt;
-        enemy.y += (dy / len) * enemy.speed * dt;
+      }
+
+      // Boss 技能/终极技（由 β Boss 状态机触发）
+      if (enemy.isBoss) {
+        if (steering.shouldUseSkill) {
+          this.fireEnemyProjectile(enemy);
+          enemy.attackTimer = enemy.attackCooldown;
+        }
+        if (steering.shouldUseUltimate && enemy.phase >= 2) {
+          this.fireEnemyProjectile(enemy);
+          enemy.attackTimer = enemy.attackCooldown * 1.5;
+        }
       }
 
       enemy.x += enemy.knockbackX * dt;
@@ -1106,6 +1334,28 @@ export class GameEngine {
         getEnemySprite(enemy.variant, enemy.color, enemy.burnDuration > 0 ? "#fb923c" : "#000000")
       );
     }
+  }
+
+  private buildAIContext(enemy: Enemy, dt: number): AIContext {
+    const ds = this.state.defenseState;
+    const core = ds?.core;
+    const nodes = ds?.nodes;
+
+    return {
+      enemy,
+      player: this.state.player,
+      allies: this.state.enemies.filter((e) => e.id !== enemy.id),
+      players: [this.state.player, ...this.state.players],
+      dt,
+      mapWidth: this.state.map.width,
+      mapHeight: this.state.map.height,
+      difficulty: this.state.difficulty,
+      time: this.state.time,
+      obstacles: this.state.map.obstacles,
+      core,
+      nodes,
+      alphaSnapshot: this.alphaPlanRef?.snapshot,
+    };
   }
 
   private fireEnemyProjectile(enemy: Enemy) {
@@ -1218,6 +1468,15 @@ export class GameEngine {
       n.y -= 20 * dt;
       n.life -= dt;
       if (n.life <= 0) numbers.splice(i, 1);
+    }
+  }
+
+  private cleanupDestroyedObstacles() {
+    const obstacles = this.state.map.obstacles;
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      if (obstacles[i].health <= 0) {
+        obstacles.splice(i, 1);
+      }
     }
   }
 
@@ -1360,7 +1619,7 @@ export class GameEngine {
   }
 
   private updateHeroSkillsAndDeployables(dt: number) {
-    updateHeroSkillsAndDeployables(this.state, dt);
+    updateHeroSkillsAndDeployables(this.state, dt, this.fx);
   }
 
   private handleDeployableShieldCollisions() {
@@ -1441,50 +1700,99 @@ export class GameEngine {
         ds.waveInProgress = true;
         ds.waveTimer = 0;
         activateNodeForWave(ds, ds.currentWave);
+        // α 算法推进到下一波并应用生成计划
+        if (this.alphaScheduler) {
+          this.alphaScheduler.nextWave();
+          this.applyAlphaPlanToDefenseState(ds);
+        }
       }
     } else {
       const wave = ds.waves[ds.currentWave];
       if (wave) {
         ds.waveTimer += dt;
 
-        // Spawn wave enemies
-        if (ds.spawnTimer === undefined) {
-          ds.spawnTimer = 0;
-        }
-        ds.spawnTimer -= dt;
-        if (ds.spawnTimer <= 0) {
-          ds.spawnTimer = Math.max(0.35, 1.4 - ds.currentWave * 0.1);
-          const remainingSlots = wave.enemyCount - this.state.enemies.length;
-          const spawnBatch = Math.min(3, Math.max(1, Math.floor(remainingSlots / 4)));
-          for (let i = 0; i < spawnBatch && this.state.enemies.length < wave.enemyCount; i++) {
-            const variant = this.pickDefenseWaveVariant(wave);
-            this.spawnEnemy(variant, false);
+        if (this.alphaScheduler && this.alphaPlanRef) {
+          // α 动态节律生成
+          this.alphaScheduler.tick();
+          const alphaStats = this.alphaPlanRef.enemyStats;
+
+          if (ds.spawnTimer === undefined) {
+            ds.spawnTimer = 0;
           }
-        }
+          ds.spawnTimer -= dt;
+          if (ds.spawnTimer <= 0) {
+            ds.spawnTimer = Math.max(0.22, alphaStats.spawnIntervalMs / 1000);
+            const remainingSlots = wave.enemyCount - this.alphaPlanRef.spawned;
+            const batchSize = Math.min(4, Math.max(1, Math.floor(remainingSlots / 5)));
+            for (let i = 0; i < batchSize && this.alphaPlanRef.spawned < wave.enemyCount; i++) {
+              const variant = this.pickAlphaVariant(alphaStats.variantWeights);
+              this.spawnEnemy(variant, false, alphaStats);
+              this.alphaPlanRef.spawned++;
+            }
+          }
 
-        // Spawn elites
-        if (wave.eliteCount > 0 && this.rng() < 0.008 * dt * 60) {
-          this.spawnEnemy("elite", true);
-          wave.eliteCount--;
-        }
+          // 精英由 spawn 批次中的概率自动处理；保留少量随机精英补充
+          if (wave.eliteCount > 0 && this.rng() < alphaStats.eliteChance * dt * 0.5) {
+            const variant = this.pickAlphaVariant(alphaStats.variantWeights);
+            this.spawnEnemy(variant, true, alphaStats);
+            wave.eliteCount--;
+          }
 
-        // Spawn boss on final wave
-        if (
-          ds.currentWave === ds.totalWaves - 1 &&
-          wave.bossVariant &&
-          this.state.enemies.length > 0 &&
-          this.state.enemies.every((e) => !e.isBoss)
-        ) {
-          const bossId = wave.bossVariant as import("./types").BossId;
-          this.spawnEnemy(bossId as import("./types").EnemyVariant, true);
-        }
+          // Boss 波次生成
+          if (
+            this.alphaPlanRef.isBossWave &&
+            wave.bossVariant &&
+            this.alphaPlanRef.spawned >= wave.enemyCount &&
+            this.state.enemies.every((e) => !e.isBoss)
+          ) {
+            const bossId = wave.bossVariant as import("./types").BossId;
+            this.spawnEnemy(bossId as import("./types").EnemyVariant, true, alphaStats);
+          }
 
-        // End wave when duration elapsed and enemies cleared
-        if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
-          ds.waveInProgress = false;
-          ds.currentWave += 1;
-          ds.breakTimer = 8;
-          this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+          // End wave when duration elapsed and enemies cleared
+          if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
+            ds.waveInProgress = false;
+            ds.currentWave += 1;
+            ds.breakTimer = 8;
+            this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+          }
+        } else {
+          // Fallback legacy spawn
+          if (ds.spawnTimer === undefined) {
+            ds.spawnTimer = 0;
+          }
+          ds.spawnTimer -= dt;
+          if (ds.spawnTimer <= 0) {
+            ds.spawnTimer = Math.max(0.35, 1.4 - ds.currentWave * 0.1);
+            const remainingSlots = wave.enemyCount - this.state.enemies.length;
+            const spawnBatch = Math.min(3, Math.max(1, Math.floor(remainingSlots / 4)));
+            for (let i = 0; i < spawnBatch && this.state.enemies.length < wave.enemyCount; i++) {
+              const variant = this.pickDefenseWaveVariant(wave);
+              this.spawnEnemy(variant, false);
+            }
+          }
+
+          if (wave.eliteCount > 0 && this.rng() < 0.008 * dt * 60) {
+            this.spawnEnemy("elite", true);
+            wave.eliteCount--;
+          }
+
+          if (
+            ds.currentWave === ds.totalWaves - 1 &&
+            wave.bossVariant &&
+            this.state.enemies.length > 0 &&
+            this.state.enemies.every((e) => !e.isBoss)
+          ) {
+            const bossId = wave.bossVariant as import("./types").BossId;
+            this.spawnEnemy(bossId as import("./types").EnemyVariant, true);
+          }
+
+          if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
+            ds.waveInProgress = false;
+            ds.currentWave += 1;
+            ds.breakTimer = 8;
+            this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+          }
         }
       }
     }
@@ -1504,6 +1812,9 @@ export class GameEngine {
     const currentCaptured = getCapturedNodeCount(ds);
     if (currentCaptured > previousCaptured) {
       addNodeCapture(this.state, currentCaptured - previousCaptured);
+      if (this.alphaScheduler && this.alphaPlanRef) {
+        this.alphaScheduler.telemetry.recordNodeCaptured(this.alphaPlanRef.snapshot.waveIndex);
+      }
     }
   }
 
@@ -1513,6 +1824,21 @@ export class GameEngine {
     const fallback: import("./types").EnemyVariant[] = ["drone", "sentinel"];
     const variants = wave.enemyVariants.length > 0 ? wave.enemyVariants : fallback;
     return variants[Math.floor(this.rng() * variants.length)];
+  }
+
+  private pickAlphaVariant(weights: Record<EnemyVariant, number>): EnemyVariant {
+    const entries = Object.entries(weights)
+      .filter(([, w]) => w > 0)
+      .map(([variant, weight]) => ({ item: variant as EnemyVariant, weight }));
+    if (entries.length === 0) return "walker";
+
+    const total = entries.reduce((sum, e) => sum + e.weight, 0);
+    let roll = this.rng() * total;
+    for (const entry of entries) {
+      roll -= entry.weight;
+      if (roll <= 0) return entry.item;
+    }
+    return entries[entries.length - 1].item;
   }
 
   private startRandomEvent() {
@@ -1557,6 +1883,14 @@ export class GameEngine {
           damage = this.applyDamage(enemy, damage, p.burnDuration, p.burnDamage);
           p.pierce -= 1;
           this.state.stats.damageDealt += damage;
+
+          if (this.alphaScheduler && this.alphaPlanRef && !enemy.isBoss) {
+            this.alphaScheduler.telemetry.recordDamageDealt(
+              this.alphaPlanRef.snapshot.waveIndex,
+              enemy.variant,
+              damage
+            );
+          }
           this.spawnDamageNumber(enemy.x, enemy.y, damage, p.color, isCrit);
           if (isCrit) {
             this.fx.addTrauma(0.08);
@@ -1667,6 +2001,15 @@ export class GameEngine {
     const reduced = rawDamage * (1 - Math.min(0.75, player.armor));
     player.health -= reduced;
     this.state.stats.damageTaken += reduced;
+
+    if (this.alphaScheduler && this.alphaPlanRef && source) {
+      this.alphaScheduler.telemetry.recordDamageTaken(
+        this.alphaPlanRef.snapshot.waveIndex,
+        source.variant,
+        reduced
+      );
+    }
+
     if (withInvincibility) {
       player.invincible = 0.5;
     }
@@ -1697,12 +2040,15 @@ export class GameEngine {
     burnDuration?: number,
     burnDamage?: number
   ): number {
-    enemy.health -= rawDamage;
+    const vulnerabilityMul = 1 + enemy.vulnerabilityStacks * 0.08;
+    const finalDamage = rawDamage * vulnerabilityMul;
+    enemy.health -= finalDamage;
     if (burnDuration && burnDamage) {
       enemy.burnDuration = burnDuration;
+      enemy.burnDamage = burnDamage;
     }
     audio?.play("hit");
-    return rawDamage;
+    return finalDamage;
   }
 
   private explodeProjectile(p: Projectile) {
@@ -1729,6 +2075,7 @@ export class GameEngine {
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i];
       for (const obs of this.state.map.obstacles) {
+        if (obs.health <= 0) continue;
         if (circleRectCollision(p, obs)) {
           if (p.isExplosive) {
             this.explodeProjectile(p);
@@ -1791,6 +2138,12 @@ export class GameEngine {
 
     this.state.enemies.splice(index, 1);
     addKill(this.state);
+
+    if (this.alphaScheduler && this.alphaPlanRef) {
+      this.alphaScheduler.telemetry.recordKill(this.alphaPlanRef.snapshot.waveIndex, enemy.variant);
+      this.alphaPlanRef.killed++;
+    }
+
     this.addKillCombo(enemy.isBoss);
     if (enemy.isElite) {
       this.state.stats.elitesKilled++;
@@ -2159,21 +2512,31 @@ export class GameEngine {
   private drawBackground(ctx: CanvasRenderingContext2D) {
     const map = this.state.map;
     const theme = THEMES[map.theme];
+    const { camera } = this.state;
 
     ctx.fillStyle = theme.bg;
     ctx.fillRect(0, 0, map.width, map.height);
 
+    // Viewport culling: only draw grid lines that can be seen.
+    // Add one cell of padding so small camera rotations / shake do not expose empty edges.
+    const halfW = (this.canvasWidth / 2) / camera.scale;
+    const halfH = (this.canvasHeight / 2) / camera.scale;
+    const gridSize = 80;
+    const left = Math.max(0, Math.floor((camera.x - halfW) / gridSize) * gridSize - gridSize);
+    const right = Math.min(map.width, Math.ceil((camera.x + halfW) / gridSize) * gridSize + gridSize);
+    const top = Math.max(0, Math.floor((camera.y - halfH) / gridSize) * gridSize - gridSize);
+    const bottom = Math.min(map.height, Math.ceil((camera.y + halfH) / gridSize) * gridSize + gridSize);
+
     ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 2;
-    const gridSize = 80;
     ctx.beginPath();
-    for (let x = 0; x <= map.width; x += gridSize) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, map.height);
+    for (let x = left; x <= right; x += gridSize) {
+      ctx.moveTo(x, top);
+      ctx.lineTo(x, bottom);
     }
-    for (let y = 0; y <= map.height; y += gridSize) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(map.width, y);
+    for (let y = top; y <= bottom; y += gridSize) {
+      ctx.moveTo(left, y);
+      ctx.lineTo(right, y);
     }
     ctx.stroke();
 

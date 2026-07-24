@@ -84,7 +84,7 @@ export default function ModesPage() {
 
   return (
     <Layout title="作战模式">
-      <div className="relative min-h-[100dvh]">
+      <div className="relative">
         <NuclearBackground />
         <div className="noise-overlay" />
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -92,19 +92,19 @@ export default function ModesPage() {
           <div className="absolute -left-[10%] bottom-[10%] h-[45vh] w-[45vh] rounded-full bg-accent/4 blur-[100px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-20">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-4 md:py-6">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-10 md:mb-16"
+            className="mb-4 md:mb-5"
           >
             <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
               <Radioactive weight="duotone" size={14} />
               作战模式
             </span>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">选择辐射区任务</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
+            <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">选择辐射区任务</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
               三种模式覆盖单人任务、无尽生存与 PvE 合作。据点防守为 L3V100 创世版主打玩法。
             </p>
           </motion.div>
@@ -125,7 +125,7 @@ export default function ModesPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                  className={`group relative overflow-hidden rounded-2xl border border-border bg-panel p-5 transition-all hover:border-primary/30 hover:bg-panel-raised md:p-6 ${
+                  className={`group relative overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-primary/30 hover:bg-panel-raised ${
                     large ? "md:col-span-7 md:row-span-2" : "md:col-span-5"
                   }`}
                 >
@@ -134,8 +134,8 @@ export default function ModesPage() {
                   )}
                   <div className="relative flex h-full flex-col">
                     <div className="flex items-start justify-between gap-4">
-                      <div className={`rounded-xl bg-panel-raised p-3 ${meta.accent}`}>
-                        <Icon size={28} weight="duotone" />
+                      <div className={`rounded-xl bg-panel-raised p-2 ${meta.accent}`}>
+                        <Icon size={22} weight="duotone" />
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         {large && (
@@ -155,28 +155,28 @@ export default function ModesPage() {
                         </span>
                       </div>
                     </div>
-                    <h2 className="mt-5 text-xl font-bold tracking-tight md:text-2xl">
+                    <h2 className="mt-2 text-base font-bold tracking-tight md:text-lg">
                       {mode.name}
                     </h2>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">{mode.description}</p>
-                    <ul className="mt-4 space-y-2">
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{mode.description}</p>
+                    <ul className="mt-2 space-y-1">
                       {meta.bullets.map((bullet, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted">
-                          <CaretRight size={14} className="mt-0.5 shrink-0 text-primary" />
+                        <li key={i} className="flex items-start gap-2 text-xs text-muted">
+                          <CaretRight size={12} className="mt-0.5 shrink-0 text-primary" />
                           {bullet}
                         </li>
                       ))}
                     </ul>
                     {large && (
-                      <div className="mt-4 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted">
-                        <Users size={14} />
+                      <div className="mt-2 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted">
+                        <Users size={12} />
                         推荐 2-4 人合作
                       </div>
                     )}
-                    <div className="mt-auto pt-5">
+                    <div className="mt-auto pt-3">
                       <Link
                         href={href}
-                        className="inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all hover:bg-primary hover:text-background focus-ring"
+                        className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-all hover:bg-primary hover:text-background focus-ring"
                       >
                         <Play size={16} weight="fill" />
                         进入任务
@@ -193,22 +193,22 @@ export default function ModesPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 grid gap-4 lg:grid-cols-3"
+            className="mt-4 grid gap-3 lg:grid-cols-3"
           >
-            <div className="rounded-2xl border border-border bg-panel p-6 lg:col-span-2 lg:p-8">
-              <div className="mb-6 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+            <div className="rounded-2xl border border-border bg-panel p-4 lg:col-span-2">
+              <div className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
                 <Sparkle size={12} />
                 环境词缀
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {dailyModifiers.map((mod, index) => (
                   <div
                     key={index}
-                    className="rounded-xl border border-border bg-panel-raised p-4 transition-colors hover:border-warning/20"
+                    className="rounded-xl border border-border bg-panel-raised p-3 transition-colors hover:border-warning/20"
                   >
                     <div className="flex items-center gap-2">
-                      <Warning size={14} weight="bold" className="text-warning" />
-                      <p className="font-semibold">{mod.title}</p>
+                      <Warning size={12} weight="bold" className="text-warning" />
+                      <p className="text-sm font-semibold">{mod.title}</p>
                     </div>
                     <p className="mt-1 text-xs leading-relaxed text-muted">{mod.description}</p>
                   </div>
@@ -216,19 +216,19 @@ export default function ModesPage() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-danger/20 bg-danger/5 p-6">
+            <div className="relative overflow-hidden rounded-2xl border border-danger/20 bg-danger/5 p-4">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-danger/10 blur-3xl" />
               <div className="relative">
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger">
-                  <Skull size={20} weight="bold" />
+                <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                  <Skull size={18} weight="bold" />
                 </div>
-                <h3 className="text-lg font-bold tracking-tight">威胁图鉴</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
+                <h3 className="text-base font-bold tracking-tight">威胁图鉴</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
                   查看机械敌人的行为模式、精英词缀与首领机制，提前制定防守策略。
                 </p>
                 <Link
                   href="/enemies"
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-danger hover:underline focus-ring rounded"
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-danger hover:underline focus-ring rounded"
                 >
                   浏览图鉴 <CaretRight size={14} />
                 </Link>

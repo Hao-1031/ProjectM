@@ -48,9 +48,9 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={`rounded-2xl border border-border bg-panel p-5 shadow-2xl md:p-6 ${className}`}
+      className={`rounded-2xl border border-border bg-panel p-4 shadow-2xl ${className}`}
     >
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <section>
           <div className="flex items-center gap-2">
             {settings.audioEnabled ? (
@@ -68,7 +68,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             className={`mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all focus-ring active:scale-95 ${
               settings.audioEnabled
                 ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
-                : "border-border bg-[var(--panel-raised)] text-muted hover:border-primary/30 hover:text-foreground"
+                : "border-border bg-panel-raised text-muted hover:border-primary/30 hover:text-foreground"
             }`}
           >
             <Check
@@ -143,7 +143,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             className={`mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all focus-ring active:scale-95 ${
               settings.vibrationEnabled
                 ? "border-success/40 bg-success/10 text-success hover:bg-success/15"
-                : "border-border bg-[var(--panel-raised)] text-muted hover:border-success/30 hover:text-foreground"
+                : "border-border bg-panel-raised text-muted hover:border-success/30 hover:text-foreground"
             }`}
           >
             <Check
@@ -170,7 +170,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             className={`mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all focus-ring active:scale-95 ${
               settings.reducedMotion
                 ? "border-warning/40 bg-warning/10 text-warning hover:bg-warning/15"
-                : "border-border bg-[var(--panel-raised)] text-muted hover:border-warning/30 hover:text-foreground"
+                : "border-border bg-panel-raised text-muted hover:border-warning/30 hover:text-foreground"
             }`}
           >
             <Check
@@ -187,17 +187,17 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             <Monitor size={18} weight="bold" className="text-primary" />
             <h3 className="text-sm font-semibold">画面质量</h3>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-2 grid grid-cols-3 gap-2">
             {QUALITIES.map((q) => (
               <button
                 key={q.value}
                 type="button"
                 onClick={() => setGraphicsQuality(q.value)}
                 aria-pressed={settings.graphicsQuality === q.value}
-                className={`rounded-xl border p-3 text-left transition-all focus-ring active:scale-95 ${
+                className={`rounded-xl border p-2 text-left transition-all focus-ring active:scale-95 ${
                   settings.graphicsQuality === q.value
                     ? "border-primary/50 bg-primary/10"
-                    : "border-border bg-[var(--panel-raised)] hover:border-primary/30"
+                    : "border-border bg-panel-raised hover:border-primary/30"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -222,7 +222,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             <h3 className="text-sm font-semibold">移动操控辅助</h3>
           </div>
           <p className="mt-1 text-xs text-muted">仅影响触屏设备，不影响键鼠操作</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <ToggleButton
               label="辅助瞄准"
               description="轻微磁性吸附"
@@ -252,7 +252,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             <Sliders size={18} weight="bold" className="text-success" />
             <h3 className="text-sm font-semibold">摇杆与 HUD</h3>
           </div>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
             <div>
               <div className="flex justify-between text-xs text-muted">
                 <span>摇杆大小</span>
@@ -268,7 +268,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
                     className={`flex-1 rounded-lg border py-2 text-xs font-medium transition-all focus-ring active:scale-95 ${
                       settings.joystickSize === size
                         ? "border-success/50 bg-success/10 text-success"
-                        : "border-border bg-[var(--panel-raised)] text-muted hover:border-success/30"
+                        : "border-border bg-panel-raised text-muted hover:border-success/30"
                     }`}
                   >
                     {size === "small" ? "小" : size === "medium" ? "中" : "大"}
@@ -312,7 +312,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
         </section>
       </div>
 
-      <div className="mt-6 flex items-start gap-2 rounded-xl border border-border bg-[var(--panel-raised)] p-3 text-xs text-muted">
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-panel-raised p-3 text-xs text-muted">
         <ArrowCounterClockwise size={16} weight="bold" className="mt-0.5 shrink-0 text-primary" />
         <p>设置会随当前设备保存。需要跨设备同步请手动导出备份。</p>
       </div>
@@ -334,10 +334,10 @@ function ToggleButton({ label, description, icon, pressed, onClick }: ToggleButt
       type="button"
       onClick={onClick}
       aria-pressed={pressed}
-      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all focus-ring active:scale-95 ${
+      className={`flex items-center gap-2 rounded-xl border p-2.5 text-left transition-all focus-ring active:scale-95 ${
         pressed
           ? "border-primary/40 bg-primary/10"
-          : "border-border bg-[var(--panel-raised)] hover:border-primary/30"
+          : "border-border bg-panel-raised hover:border-primary/30"
       }`}
     >
       <div className="shrink-0">{icon}</div>

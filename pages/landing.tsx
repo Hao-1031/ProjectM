@@ -7,10 +7,7 @@ import {
   Play,
   Trophy,
   GameController,
-  Users,
   Skull,
-  Clock,
-  Lightning,
   ShieldCheck,
   ArrowRight,
   CaretRight,
@@ -22,45 +19,10 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import Skeleton from "@/components/ui/Skeleton";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
-
-const FEATURES = [
-  {
-    icon: Clock,
-    title: "15 分钟生存挑战",
-    desc: "限时高压环境，每局都是完整的割草爽感体验。",
-    accent: "#b84a55",
-  },
-  {
-    icon: Crosshair,
-    title: "自动攻击 + 自由走位",
-    desc: "左手移动，右手闪避，武器自动索敌，专注策略与走位。",
-    accent: "#7a8f3e",
-  },
-  {
-    icon: Lightning,
-    title: "构建你的流派",
-    desc: "升级武器、叠加被动、选择天赋，每局 build 都不相同。",
-    accent: "#b87a3d",
-  },
-  {
-    icon: Users,
-    title: "据点合作防守",
-    desc: "2-4 人联机守护能量核心，配合英雄技能击退敌潮。",
-    accent: "#5e8c6a",
-  },
-  {
-    icon: GameController,
-    title: "横屏双摇杆",
-    desc: "为移动端优化的虚拟摇杆，PC 端同样支持键鼠与手柄。",
-    accent: "#818cf8",
-  },
-  {
-    icon: ShieldCheck,
-    title: "无付费加成",
-    desc: "皮肤与便利道具可购，战力永远只靠操作与策略。",
-    accent: "#c9a34e",
-  },
-];
+import FeatureBento from "@/components/landing/FeatureBento";
+import RhythmSection from "@/components/landing/RhythmSection";
+import ModesShowcase from "@/components/landing/ModesShowcase";
+import FooterCTA from "@/components/landing/FooterCTA";
 
 const FAQS = [
   {
@@ -140,15 +102,15 @@ function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20 md:py-32">
-      <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+    <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+      <div className="grid gap-6 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-4">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">常见问题</h2>
-          <p className="mt-4 text-sm leading-relaxed text-muted">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">常见问题</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
             如果还有其他疑问，欢迎通过关于页面或游戏内反馈联系我们。
           </p>
         </div>
-        <div className="space-y-3 lg:col-span-8">
+        <div className="space-y-2 lg:col-span-8">
           {FAQS.map((faq, i) => {
             const open = openIndex === i;
             return (
@@ -159,13 +121,13 @@ function FAQSection() {
                 <button
                   type="button"
                   onClick={() => setOpenIndex(open ? null : i)}
-                  className="flex w-full items-center justify-between px-5 py-4 text-left"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
                 >
-                  <span className="font-semibold">{faq.q}</span>
-                  <CaretRight size={16} className={`shrink-0 text-muted transition-transform ${open ? "rotate-90" : ""}`} />
+                  <span className="text-sm font-semibold">{faq.q}</span>
+                  <CaretRight size={14} className={`shrink-0 text-muted transition-transform ${open ? "rotate-90" : ""}`} />
                 </button>
                 {open && (
-                  <div className="px-5 pb-4">
+                  <div className="px-4 pb-3">
                     <p className="text-sm leading-relaxed text-muted">{faq.a}</p>
                   </div>
                 )}
@@ -184,7 +146,7 @@ export default function LandingPage() {
   const heroY = useTransform(scrollYProgress, [0, 0.5], ["0%", "20%"]);
 
   return (
-    <div className="relative min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+    <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
         <title>Project M 2.0 - 一人一枪，杀穿辐射区</title>
         <meta name="description" content="Project M 2.0 是核污染废土背景的横屏动作射击 Web 游戏。生存割草、据点合作、无付费加成。" />
@@ -227,11 +189,11 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-10">
-        <section className="mx-auto max-w-7xl px-4 pb-16 pt-10 md:pt-16">
-          <div className="grid items-center gap-12 lg:grid-cols-12">
+        <section className="mx-auto max-w-7xl px-4 pb-8 pt-6 md:pt-8">
+          <div className="grid items-center gap-6 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
@@ -239,44 +201,44 @@ export default function LandingPage() {
                   <Radioactive size={10} weight="fill" />
                   2.0 正式上线
                 </span>
-                <h1 className="mt-6 text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[0.95] tracking-tight">
+                <h1 className="mt-4 text-[clamp(2rem,5vw,4rem)] font-bold leading-[0.95] tracking-tight">
                   一人一枪
                   <br />
                   <span className="text-primary">杀穿辐射区</span>
                 </h1>
-                <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted md:text-base">
+                <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted">
                   Project M 2.0 将横屏双摇杆操作与生存割草节奏融合。15 分钟限时、自动攻击、自由 build，在无尽敌潮中挑战你的极限。
                 </p>
               </motion.div>
 
               <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-8 flex flex-col gap-4 sm:flex-row"
+                className="mt-5 flex flex-col gap-3 sm:flex-row"
               >
                 <Link
                   href="/game?mode=survival"
-                  className="group relative inline-flex h-16 items-center justify-center gap-3 overflow-hidden rounded-2xl bg-primary px-10 text-lg font-bold text-background shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95"
+                  className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-6 text-base font-bold text-background shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95"
                 >
                   <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
-                  <Play size={28} weight="fill" />
+                  <Play size={22} weight="fill" />
                   <span className="whitespace-nowrap">立即开战</span>
                 </Link>
                 <Link
                   href="/modes"
-                  className="inline-flex h-16 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-6 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-5 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
                 >
-                  <GameController size={20} />
+                  <GameController size={18} />
                   <span className="whitespace-nowrap">选择模式</span>
                 </Link>
               </motion.div>
 
               <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-10 flex flex-wrap items-center gap-6 text-xs text-muted"
+                className="mt-6 flex flex-wrap items-center gap-5 text-xs text-muted"
               >
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck size={14} className="text-success" />
@@ -305,15 +267,15 @@ export default function LandingPage() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
-                    <Crosshair size={80} weight="bold" className="relative text-primary" />
+                    <Crosshair size={64} weight="bold" className="relative text-primary" />
                   </div>
                 </div>
-                <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-md">
+                <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-border bg-background/80 p-3 backdrop-blur-md">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted">生存模式</span>
                     <span className="font-mono text-danger">14:32</span>
                   </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border">
                     <div className="h-full w-3/4 rounded-full bg-primary" />
                   </div>
                 </div>
@@ -322,66 +284,39 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-20 md:py-32">
-          <div className="mb-10 md:mb-14">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">为什么选择 Project M</h2>
-            <p className="mt-3 max-w-xl text-sm text-muted">从核心循环到商业模型，每个设计都围绕「爽快的操作」与「公平的竞技」展开。</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((feature, i) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={feature.title}
-                  initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.45, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                  className="group rounded-2xl border border-border bg-panel p-6 transition-all hover:border-primary/30 hover:bg-panel-raised"
-                >
-                  <div
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${feature.accent}15`, color: feature.accent }}
-                  >
-                    <Icon size={24} weight="bold" />
-                  </div>
-                  <h3 className="mt-5 text-base font-bold">{feature.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{feature.desc}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </section>
+        <FeatureBento />
+        <RhythmSection />
+        <ModesShowcase />
 
         <section className="border-y border-border bg-panel/30">
-          <div className="mx-auto max-w-7xl px-4 py-20 md:py-32">
-            <div className="grid items-center gap-12 lg:grid-cols-12">
+          <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+            <div className="grid items-center gap-6 lg:grid-cols-12">
               <div className="lg:col-span-5">
                 <LeaderboardPreview />
               </div>
               <div className="lg:col-span-6 lg:col-start-7">
-                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
                   全球排行榜
                   <br />
                   <span className="text-primary">记录每一次撤离</span>
                 </h2>
-                <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
                   生存模式、据点防守、个人死斗的成绩都会进入全球榜单。每一局结束后自动提交最高分，与所有幸存者一较高下。
                 </p>
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/leaderboard"
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-background transition-colors hover:bg-primary/90 focus-ring"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-background transition-colors hover:bg-primary/90 focus-ring"
                   >
-                    <Trophy size={18} weight="bold" />
+                    <Trophy size={16} weight="bold" />
                     查看榜单
                   </Link>
                   <Link
                     href="/game?mode=survival"
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-panel px-6 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-panel px-5 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
                   >
                     挑战生存模式
-                    <ArrowRight size={16} />
+                    <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -391,49 +326,8 @@ export default function LandingPage() {
 
         <FAQSection />
 
-        <section className="mx-auto max-w-5xl px-4 py-20 text-center md:py-32">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-10 md:p-16">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
-            <h2 className="relative text-3xl font-bold tracking-tight md:text-4xl">准备好进入辐射区了吗？</h2>
-            <p className="relative mx-auto mt-4 max-w-lg text-sm text-muted">
-              无需下载，浏览器即玩。公平竞技，只拼操作与策略。
-            </p>
-            <div className="relative mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/game?mode=survival"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-8 text-base font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
-              >
-                <Play size={22} weight="fill" />
-                立即开战
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border border-border px-8 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
-              >
-                了解更多
-              </Link>
-            </div>
-          </div>
-        </section>
+        <FooterCTA />
       </main>
-
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-muted sm:flex-row">
-          <p>Project M · 公平竞技 · 无付费加成</p>
-          <div className="flex gap-4">
-            <Link href="/" className="hover:text-foreground focus-ring rounded">
-              游戏首页
-            </Link>
-            <Link href="/leaderboard" className="hover:text-foreground focus-ring rounded">
-              战绩
-            </Link>
-            <Link href="/about" className="hover:text-foreground focus-ring rounded">
-              关于
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

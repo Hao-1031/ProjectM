@@ -1,5 +1,6 @@
 import type { HeroId, HeroSkill, Player, GameState, Deployable, Enemy, HeroTalent } from "./types";
 import { uid, distance, angleBetween, normalize, clamp } from "./math";
+import type { FXSystem } from "./fx";
 
 export interface HeroDef {
   id: HeroId;
@@ -36,20 +37,20 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "nitrogen_grenade",
       name: "冰冻手雷",
-      description: "投掷后形成半径 80 的低温区域，持续 4 秒，减速 40%",
-      cooldown: 12,
+      description: "投掷后形成半径 100 的低温区域，持续 5 秒；区域内敌人每 0.5 秒叠加 1 层霜冻，满 5 层冻结 1.5 秒并碎裂造成 120 伤害",
+      cooldown: 11,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 4,
+      duration: 5,
       color: "#38bdf8",
     },
     ultimate: {
       id: "nitrogen_zero",
       name: "绝对零度",
-      description: "以自身为中心释放半径 200 的冰冻爆发，冻结范围内敌人 3 秒并造成 180 点伤害",
-      cooldown: 45,
+      description: "以自身为中心释放半径 220 的冰冻爆发，立即造成 280 伤害并冻结 3 秒；冻结结束时再次碎裂造成 180 伤害",
+      cooldown: 42,
       timer: 0,
-      range: 200,
+      range: 220,
       duration: 3,
       color: "#0ea5e9",
     },
@@ -74,12 +75,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "nitrogen_supercooled",
         name: "超冷溶液",
-        description: "冰冻手雷减速效果提升至 55%，作用半径 +10%",
+        description: "冰冻手雷作用半径 +15%，霜冻叠层上限 +2，碎裂伤害 +30",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { areaMul: 1.1 },
+        modifiers: { areaMul: 1.15 },
       },
       {
         id: "nitrogen_thermal_sink",
@@ -296,8 +297,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "viper_spit",
       name: "毒液喷射",
-      description: "朝目标方向喷射毒液，对路径敌人造成 60 点伤害并附加 4 秒腐蚀",
-      cooldown: 10,
+      description: "扇形喷射神经毒素，命中敌人叠加 1 层毒素（最多 4 层）；满层引爆造成 160 伤害并向附近 2 个目标传染 1 层",
+      cooldown: 9,
       timer: 0,
       range: BASE_SKILL_RANGE,
       duration: 4,
@@ -306,11 +307,11 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     ultimate: {
       id: "viper_nest",
       name: "蝰蛇巢穴",
-      description: "在目标位置生成半径 160 的毒雾区域，持续 7 秒，每秒造成 45 点伤害并减速 30%",
-      cooldown: 48,
+      description: "生成半径 180 的毒雾区域，持续 8 秒；每秒造成 35 伤害并叠加 1 层脆弱，每层使受到伤害 +8%（最多 5 层）",
+      cooldown: 44,
       timer: 0,
-      range: 180,
-      duration: 7,
+      range: 200,
+      duration: 8,
       color: "#65a30d",
     },
     passive: { critAdd: 0.05, speedMul: 1.04 },
@@ -326,12 +327,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "viper_corrosive_touch",
         name: "腐蚀之触",
-        description: "毒液喷射腐蚀持续时间 +1.5 秒",
+        description: "毒液喷射最多叠加层数 +1，满层引爆伤害 +40 并向附近 3 个目标传染",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { skillDurationMul: 1.5 },
+        modifiers: { skillDurationMul: 1 },
       },
       {
         id: "viper_swift_slither",
@@ -556,7 +557,7 @@ export function applyHeroToPlayer(player: Player, heroId: HeroId): Player {
   return player;
 }
 
-export function useHeroSkill(player: Player, state: GameState): void {
+export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): void {
   if (!player.heroId || !player.activeSkill) return;
   if (player.skillTimer > 0) return;
 
@@ -577,15 +578,17 @@ export function useHeroSkill(player: Player, state: GameState): void {
     case "nitrogen": {
       ds.deployables.push({
         id: uid("deploy"),
-        x: player.x + aim.x * 40,
-        y: player.y + aim.y * 40,
-        radius: 80 * rangeMul,
+        x: player.x + aim.x * 60,
+        y: player.y + aim.y * 60,
+        radius: 100 * rangeMul,
         type: "freezeField",
         ownerId: player.id,
         health: 1,
         maxHealth: 1,
         timer: deployDuration,
         maxTimer: deployDuration,
+        tickTimer: 0.5,
+        tickInterval: 0.5,
         color: def.color,
       });
       break;
@@ -650,17 +653,31 @@ export function useHeroSkill(player: Player, state: GameState): void {
     }
     case "viper": {
       const range = 260 * rangeMul;
+      const coneAngle = Math.cos(Math.PI / 6);
+      const maxStacks = hasTalent(player, "viper_corrosive_touch") ? 5 : 4;
+      const burstDamage = hasTalent(player, "viper_corrosive_touch") ? 200 : 160;
+      const spreadCount = hasTalent(player, "viper_corrosive_touch") ? 3 : 2;
+
       for (const enemy of state.enemies) {
         const dx = enemy.x - player.x;
         const dy = enemy.y - player.y;
         const dist = Math.hypot(dx, dy);
-        if (dist > range + enemy.radius) continue;
-        const dot = (dx / (dist || 1)) * aim.x + (dy / (dist || 1)) * aim.y;
-        if (dot < 0.55) continue;
-        enemy.health -= 60;
-        enemy.burnDuration = Math.max(enemy.burnDuration, 4);
-        enemy.burnDamage = Math.max(enemy.burnDamage, 8);
-        state.stats.damageDealt += 60;
+        if (dist > range + enemy.radius || dist < 1) continue;
+        const dot = (dx / dist) * aim.x + (dy / dist) * aim.y;
+        if (dot < coneAngle) continue;
+
+        const wasFull = enemy.venomStacks >= maxStacks;
+        enemy.venomStacks = Math.min(maxStacks, enemy.venomStacks + 1);
+        enemy.venomTimer = 4;
+        state.stats.damageDealt += 10;
+
+        if (!wasFull && enemy.venomStacks >= maxStacks) {
+          enemy.health -= burstDamage;
+          state.stats.damageDealt += burstDamage;
+          spawnVenomSpread(state, enemy, spreadCount);
+          fx?.addTrauma(0.08);
+          fx?.triggerFlash({ duration: 0.2, color: "#84cc16", opacity: 0.25 });
+        }
       }
       break;
     }
@@ -708,7 +725,7 @@ export function useHeroSkill(player: Player, state: GameState): void {
   }
 }
 
-export function useHeroUltimate(player: Player, state: GameState): void {
+export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem): void {
   if (!player.heroId || !player.ultimateSkill) return;
   if (player.ultimateTimer > 0) return;
 
@@ -722,30 +739,19 @@ export function useHeroUltimate(player: Player, state: GameState): void {
 
   switch (player.heroId) {
     case "nitrogen": {
-      if (!ds) return;
       const rangeMul = getDeployableMultiplier(player, "range");
-      const deployDuration = ultimate.duration * getDeployableMultiplier(player, "duration");
-      ds.deployables.push({
-        id: uid("deploy"),
-        x: player.x,
-        y: player.y,
-        radius: 200 * rangeMul,
-        type: "freezeField",
-        ownerId: player.id,
-        health: 1,
-        maxHealth: 1,
-        timer: deployDuration,
-        maxTimer: deployDuration,
-        color: def.color,
-      });
+      const burstRange = 220 * rangeMul;
       for (const enemy of state.enemies) {
-        if (distance(enemy, player) <= 200 * rangeMul + enemy.radius) {
-          enemy.health -= 180;
+        if (distance(enemy, player) <= burstRange + enemy.radius) {
+          enemy.health -= 280;
           enemy.freezeTimer = Math.max(enemy.freezeTimer, 3);
           enemy.slow = 1;
-          state.stats.damageDealt += 180;
+          enemy.slowTimer = Math.max(enemy.slowTimer, 3);
+          state.stats.damageDealt += 280;
         }
       }
+      fx?.addShake(2.5, 0);
+      fx?.triggerFlash({ duration: 0.35, color: "#38bdf8", opacity: 0.35 });
       break;
     }
     case "twilight": {
@@ -783,15 +789,19 @@ export function useHeroUltimate(player: Player, state: GameState): void {
         id: uid("deploy"),
         x: player.x + aim.x * 60,
         y: player.y + aim.y * 60,
-        radius: 160 * rangeMul,
-        type: "freezeField",
+        radius: 180 * rangeMul,
+        type: "poisonField",
         ownerId: player.id,
         health: 1,
         maxHealth: 1,
         timer: deployDuration,
         maxTimer: deployDuration,
+        tickTimer: 1,
+        tickInterval: 1,
         color: def.color,
       });
+      fx?.addTrauma(0.12);
+      fx?.triggerFlash({ duration: 0.25, color: "#65a30d", opacity: 0.25 });
       break;
     }
     case "falcon": {
@@ -843,7 +853,7 @@ export function useHeroUltimate(player: Player, state: GameState): void {
   }
 }
 
-export function updateHeroSkillsAndDeployables(state: GameState, dt: number): void {
+export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?: FXSystem): void {
   const ds = state.defenseState;
 
   const players = [state.player, ...state.players];
@@ -888,18 +898,54 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number): vo
     }
 
     if (d.type === "freezeField") {
+      d.tickTimer = (d.tickTimer ?? 0.5) - dt;
+      const shouldTick = d.tickTimer <= 0;
+      if (shouldTick) {
+        d.tickTimer = d.tickInterval ?? 0.5;
+      }
+      const maxFrost =
+        owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 7 : 5;
+      const shatterDamage =
+        owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 150 : 120;
+
       for (const enemy of state.enemies) {
         if (distance(enemy, d) <= d.radius + enemy.radius) {
-          if (owner.heroId === "viper") {
-            enemy.burnDuration = Math.max(enemy.burnDuration, 1);
-            enemy.burnDamage = Math.max(enemy.burnDamage, 22);
-            enemy.slow = Math.max(enemy.slow, 0.3);
+          if (owner.heroId === "nitrogen") {
+            if (shouldTick && enemy.freezeTimer <= 0) {
+              enemy.frostStacks = Math.min(maxFrost, enemy.frostStacks + 1);
+              enemy.frostTimer = 2;
+              if (enemy.frostStacks >= maxFrost) {
+                spawnFrostBurst(state, enemy, shatterDamage, fx);
+              }
+            }
+
+            const slowPerStack = 0.08;
+            enemy.slow = Math.min(0.5, Math.max(enemy.slow, enemy.frostStacks * slowPerStack));
             enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
           } else {
-            const slowStrength =
-              owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 0.55 : 0.4;
-            enemy.slow = Math.max(enemy.slow, slowStrength);
+            enemy.slow = Math.max(enemy.slow, 0.4);
             enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
+          }
+        }
+      }
+    }
+
+    if (d.type === "poisonField") {
+      d.tickTimer = (d.tickTimer ?? 1) - dt;
+      const shouldTick = d.tickTimer <= 0;
+      if (shouldTick) {
+        d.tickTimer = d.tickInterval ?? 1;
+      }
+
+      for (const enemy of state.enemies) {
+        if (distance(enemy, d) <= d.radius + enemy.radius) {
+          enemy.slow = Math.max(enemy.slow, 0.3);
+          enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
+
+          if (shouldTick) {
+            enemy.health -= 35;
+            state.stats.damageDealt += 35;
+            enemy.vulnerabilityStacks = Math.min(5, enemy.vulnerabilityStacks + 1);
           }
         }
       }
@@ -1124,6 +1170,29 @@ export function createNullHeroState(player: Player): void {
   player.leopardFrenzyTimer = 0;
   player.leopardBloodlustStacks = 0;
   player.leopardBloodlustTimer = 0;
+}
+
+function spawnVenomSpread(state: GameState, source: Enemy, count: number): void {
+  let spread = 0;
+  const candidates = state.enemies
+    .filter((e) => e.id !== source.id)
+    .map((e) => ({ enemy: e, dist: distance(e, source) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, count);
+  for (const { enemy } of candidates) {
+    enemy.venomStacks = Math.min(5, enemy.venomStacks + 1);
+    enemy.venomTimer = Math.max(enemy.venomTimer, 4);
+    spread++;
+  }
+}
+
+function spawnFrostBurst(state: GameState, enemy: Enemy, damage: number, fx?: FXSystem): void {
+  enemy.health -= damage;
+  state.stats.damageDealt += damage;
+  enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.5);
+  enemy.frostStacks = 0;
+  enemy.frostTimer = 0;
+  fx?.addTrauma(0.06);
 }
 
 function pointSegmentDistance(

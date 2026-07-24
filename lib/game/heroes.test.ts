@@ -75,6 +75,11 @@ function createWalker(x: number, y: number): Enemy {
     slow: 0,
     slowTimer: 0,
     freezeTimer: 0,
+    frostStacks: 0,
+    frostTimer: 0,
+    venomStacks: 0,
+    venomTimer: 0,
+    vulnerabilityStacks: 0,
     droneMarkTimer: 0,
     isElite: false,
     isBoss: false,
@@ -229,16 +234,15 @@ describe("useHeroSkill", () => {
     expect(state.defenseState!.deployables[0].type).toBe("drone");
   });
 
-  it("viper spit damages and corrodes enemies in cone", () => {
+  it("viper spit applies venom stacks to enemies in cone", () => {
     const state = createDefenseGameState();
     applyHeroToPlayer(state.player, "viper");
     state.player.facing = 0;
     state.enemies.push(createWalker(state.player.x + 120, state.player.y));
-    const beforeHealth = state.enemies[0].health;
     state.player.skillTimer = 0;
     useHeroSkill(state.player, state);
-    expect(state.enemies[0].health).toBeLessThan(beforeHealth);
-    expect(state.enemies[0].burnDuration).toBeGreaterThan(0);
+    expect(state.enemies[0].venomStacks).toBeGreaterThan(0);
+    expect(state.enemies[0].venomTimer).toBeGreaterThan(0);
   });
 
   it("falcon dash repositions and stuns nearby enemies", () => {
@@ -332,7 +336,7 @@ describe("useHeroUltimate", () => {
     state.player.ultimateTimer = 0;
     useHeroUltimate(state.player, state);
     expect(state.defenseState!.deployables).toHaveLength(1);
-    expect(state.defenseState!.deployables[0].type).toBe("freezeField");
+    expect(state.defenseState!.deployables[0].type).toBe("poisonField");
   });
 
   it("falcon orbital laser damages enemies in front", () => {
@@ -411,6 +415,35 @@ describe("updateHeroSkillsAndDeployables", () => {
     expect(state.enemies[0].slow).toBeGreaterThan(0);
   });
 
+  it("freezeField builds frost stacks and shatters at max", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "nitrogen");
+    useHeroSkill(state.player, state);
+    const deployable = state.defenseState!.deployables[0];
+    const enemy = createWalker(deployable.x, deployable.y);
+    state.enemies.push(enemy);
+    const beforeHealth = enemy.health;
+    for (let i = 0; i < 5; i++) {
+      updateHeroSkillsAndDeployables(state, 0.5);
+    }
+    expect(enemy.frostStacks).toBe(0);
+    expect(enemy.freezeTimer).toBeGreaterThan(0);
+    expect(enemy.health).toBeLessThan(beforeHealth);
+  });
+
+  it("poisonField applies vulnerability stacks and damage", () => {
+    const state = createDefenseGameState();
+    applyHeroToPlayer(state.player, "viper");
+    useHeroUltimate(state.player, state);
+    const deployable = state.defenseState!.deployables[0];
+    const enemy = createWalker(deployable.x, deployable.y);
+    state.enemies.push(enemy);
+    const beforeHealth = enemy.health;
+    updateHeroSkillsAndDeployables(state, 1.2);
+    expect(enemy.vulnerabilityStacks).toBeGreaterThan(0);
+    expect(enemy.health).toBeLessThan(beforeHealth);
+  });
+
   it("drone marks enemies", () => {
     const state = createDefenseGameState();
     applyHeroToPlayer(state.player, "recon");
@@ -461,7 +494,7 @@ describe("applyHeroTalent", () => {
     applyHeroToPlayer(player, "nitrogen");
     applyHeroTalent(player, "nitrogen_supercooled");
     expect(player.talentLevels["nitrogen_supercooled"]).toBe(1);
-    expect(player.areaMultiplier).toBe(1.1 * 1.1);
+    expect(player.areaMultiplier).toBe(1.1 * 1.15);
   });
 
   it("applies utility talent", () => {

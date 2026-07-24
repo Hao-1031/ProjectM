@@ -3,19 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --background: #070a07;
-  --foreground: #e7ebe3;
-  --panel: #0e120d;
-  --panel-raised: #131811;
-  --border: #1a2117;
-  --primary: #7a8f3e;
-  --primary-muted: #3d4a1f;
-  --accent: #b87a3d;
-  --accent-muted: #5c3d1f;
-  --danger: #b84a55;
-  --success: #5e8c6a;
-  --warning: #c9a34e;
-  --muted: #6e7870;
+  /* Base canvas - deep charcoal, not pure black */
+  --background: #0b0c10;
+  --foreground: #e8e9ea;
+
+  /* Primary: muted teal/cyan - rhythm pulse */
+  --primary: #3d9fa8;
+  --primary-muted: #1f5459;
+  --primary-subtle: #0f2a2d;
+
+  /* Accent: muted amber/gold - warning/intensity */
+  --accent: #c8a45c;
+  --accent-muted: #5c4a26;
+  --accent-subtle: #2a2110;
+
+  /* Surfaces */
+  --panel: #111317;
+  --panel-raised: #161a1f;
+  --border: #1e2226;
+
+  /* Semantic */
+  --danger: #b85c5c;
+  --success: #5e9a7a;
+  --warning: #c8a45c;
+  --muted: #6e757a;
+
+  /* Neutral scale - warm/cool balanced */
+  --neutral-50: #f7f8f8;
+  --neutral-100: #e8e9ea;
+  --neutral-200: #c5c8cb;
+  --neutral-300: #9ca1a5;
+  --neutral-400: #6e757a;
+  --neutral-500: #4a5056;
+  --neutral-600: #31363b;
+  --neutral-700: #1e2226;
+  --neutral-800: #15191d;
+  --neutral-900: #0b0c10;
+
+  /* Typography */
   --font-geist-sans: "Geist Sans";
   --font-geist-mono: "Geist Mono";
 }
@@ -39,6 +64,12 @@ body {
   overscroll-behavior: none;
 }
 
+/* Selection with primary tint */
+::selection {
+  background: rgba(61, 159, 168, 0.22);
+}
+
+/* Subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -54,19 +85,36 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-muted);
-}
-
-::selection {
-  background: rgba(122, 143, 62, 0.25);
+  background: var(--neutral-600);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Gradient text utility */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shimmer loading skeleton */
+  .bg-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--panel) 0%,
+      var(--panel-raised) 50%,
+      var(--panel) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
 }
 
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -74,9 +122,11 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
+/* Focus ring */
 .focus-ring:focus-visible {
   outline: none;
   box-shadow:
@@ -84,23 +134,29 @@ body {
     0 0 0 4px var(--primary);
 }
 
-/* Nuclear wasteland noise texture overlay */
+/* Texture overlay - pointer-events-none layer */
 .noise-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.04;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Hazard stripes utility */
+/* Grid dot texture for panels */
+.dot-grid {
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Hazard/alert stripes - muted */
 .hazard-stripes {
   background: repeating-linear-gradient(
     45deg,
-    rgba(184, 122, 61, 0.08),
-    rgba(184, 122, 61, 0.08) 8px,
-    rgba(184, 122, 61, 0.02) 8px,
-    rgba(184, 122, 61, 0.02) 16px
+    rgba(200, 164, 92, 0.06),
+    rgba(200, 164, 92, 0.06) 8px,
+    rgba(200, 164, 92, 0.015) 8px,
+    rgba(200, 164, 92, 0.015) 16px
   );
 }

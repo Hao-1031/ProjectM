@@ -61,10 +61,10 @@ export default function AboutPage() {
           <div className="absolute left-[20%] top-[20%] h-px w-[40%] bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
 
-        <section className="relative mx-auto max-w-7xl px-4 pt-16 md:pt-24">
-          <div className="grid gap-10 md:grid-cols-12">
+        <section className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <div className="grid gap-4 md:grid-cols-12 md:gap-6">
             <motion.div
-              initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
+              initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="md:col-span-7"
@@ -72,10 +72,10 @@ export default function AboutPage() {
               <span className="inline-block rounded bg-primary/10 px-2 py-1 font-mono text-xs uppercase tracking-widest text-primary">
                 关于 Project M
               </span>
-              <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
+              <h1 className="mt-2 text-2xl font-bold leading-[1.1] tracking-tight md:text-4xl">
                 为喜欢自己掌控数据的玩家设计。
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
                 Project M 是一款冷色调科技末日风格的 Rogue-lite
                 幸存者游戏。你只需控制移动，武器会自动索敌射击。在有限时间内完成清剿、坚守、回收与营救任务，最终抵达撤离点。
               </p>
@@ -87,12 +87,12 @@ export default function AboutPage() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="md:col-span-5"
             >
-              <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-6 md:p-8">
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-4">
                 <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
                 <p className="relative font-mono text-xs uppercase tracking-widest text-muted">
                   设计信条
                 </p>
-                <blockquote className="relative mt-4 text-lg font-medium leading-relaxed">
+                <blockquote className="relative mt-2 text-sm font-medium leading-relaxed">
                   “不要让界面替玩家思考。给出清晰的信息、真实的反馈、可预知的规则，然后把战场交还给他们。”
                 </blockquote>
               </div>
@@ -100,9 +100,9 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">我们相信什么</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <section className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <h2 className="text-xl font-bold tracking-tight md:text-2xl">我们相信什么</h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
             {values.map((value, index) => (
               <FeatureCard
                 key={value.title}
@@ -116,13 +116,13 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-          <div className="grid gap-10 md:grid-cols-12">
+        <section className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <div className="grid gap-4 md:grid-cols-12 md:gap-6">
             <div className="md:col-span-5">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              <h2 className="text-xl font-bold tracking-tight md:text-2xl">
                 一座可以重复进入的废墟
               </h2>
-              <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
+              <div className="mt-3 space-y-2 text-sm leading-relaxed text-muted">
                 <p>
                   我们希望每次开局都能带来新的压力与选择：是优先提升射程在远处风筝，还是堆叠护甲冲入敌群？是单人潜行完成回收，还是和朋友分工守住据点？
                 </p>
@@ -144,13 +144,13 @@ export default function AboutPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.4, delay: index * 0.05 }}
-                      className={`border-b border-r border-border/50 p-5 transition-colors hover:bg-panel-raised ${
+                      className={`border-b border-r border-border/50 p-3 transition-colors hover:bg-panel-raised ${
                         isWide ? "col-span-2" : ""
                       }`}
                     >
-                      <Icon size={22} weight="bold" className="text-primary" />
-                      <p className="mt-3 font-semibold">{tech.name}</p>
-                      <p className="text-xs text-muted">{tech.role}</p>
+                      <Icon size={18} weight="bold" className="text-primary" />
+                      <p className="mt-2 text-sm font-semibold">{tech.name}</p>
+                      <p className="text-[10px] text-muted">{tech.role}</p>
                     </motion.div>
                   );
                 })}
@@ -159,26 +159,26 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-7xl px-4 py-16 md:pb-24">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-8 md:p-12">
+        <section className="relative mx-auto max-w-7xl px-4 py-4 md:pb-6">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-4 md:p-5">
             <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
+            <div className="relative grid gap-4 md:grid-cols-2 md:items-center">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                <h2 className="text-lg font-bold tracking-tight md:text-xl">
                   公平竞技，无付费加成
                 </h2>
-                <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted">
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted">
                   Project M
                   的核心设计信条是公平。商店、通行证与外观系统仅提供装饰与便利，不出售任何影响战局的英雄、武器或属性。所有成长均来自局内升级与战斗表现。
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
-                <div className="inline-flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-2 text-sm text-success">
-                  <Shield size={16} weight="bold" />
+                <div className="inline-flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-1.5 text-xs text-success">
+                  <Shield size={14} weight="bold" />
                   无属性售卖
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-4 py-2 text-sm text-muted">
-                  <Eye size={16} />
+                <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-3 py-1.5 text-xs text-muted">
+                  <Eye size={14} />
                   透明规则
                 </div>
               </div>

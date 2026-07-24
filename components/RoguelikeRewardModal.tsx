@@ -17,7 +17,7 @@ interface RoguelikeRewardModalProps {
 const ICONS = [Sword, Heartbeat, ShieldCheck, ShootingStar, Sparkle];
 
 const RARITY_STYLES = [
-  { border: "border-border", bg: "bg-[var(--panel-raised)]", badge: "common" },
+  { border: "border-border", bg: "bg-panel-raised", badge: "common" },
   { border: "border-primary/30", bg: "bg-primary/5", badge: "rare" },
   { border: "border-accent/30", bg: "bg-accent/5", badge: "epic" },
 ];

@@ -92,11 +92,11 @@ export default function HelpPage() {
 
   return (
     <Layout title="操作指南">
-      <div className="relative mx-auto max-w-7xl px-4 pt-10 md:pt-16">
-        <div className="grid gap-8 md:grid-cols-12">
+      <div className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
+        <div className="grid gap-4 md:grid-cols-12 md:gap-6">
           <aside className="md:col-span-3">
             <div className="sticky top-24 space-y-1">
-              <p className="mb-3 font-mono text-xs uppercase tracking-widest text-muted">目录</p>
+              <p className="mb-2 font-mono text-xs uppercase tracking-widest text-muted">目录</p>
               {sections.map((section) => {
                 const Icon = section.icon;
                 const isActive = active === section.id;
@@ -105,13 +105,13 @@ export default function HelpPage() {
                     key={section.id}
                     type="button"
                     onClick={() => scrollTo(section.id)}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all focus-ring ${
+                    className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-all focus-ring ${
                       isActive
                         ? "bg-primary/10 font-medium text-primary"
                         : "text-muted hover:bg-panel hover:text-foreground"
                     }`}
                   >
-                    <Icon size={16} weight={isActive ? "bold" : "regular"} />
+                    <Icon size={14} weight={isActive ? "bold" : "regular"} />
                     {section.label}
                   </button>
                 );
@@ -119,24 +119,24 @@ export default function HelpPage() {
             </div>
           </aside>
 
-          <div className="space-y-20 md:col-span-9 md:space-y-28">
+          <div className="space-y-8 md:col-span-9 md:space-y-12">
             <section id="controls">
               <SectionHeader title="基本操作" />
-              <div className="mt-6 grid gap-3 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
                 {controls.map((item) => (
                   <FeatureCard
                     key={item.keys}
-                    icon={<Keyboard size={22} weight="bold" className="text-primary" />}
+                    icon={<Keyboard size={18} weight="bold" className="text-primary" />}
                     title={item.keys}
                     description={item.action}
                     variant="muted"
                   />
                 ))}
               </div>
-              <div className="mt-4 rounded-2xl border border-border bg-panel p-5 text-sm text-muted">
+              <div className="mt-3 rounded-2xl border border-border bg-panel p-3 text-sm text-muted">
                 <div className="flex items-start gap-3">
-                  <DeviceMobile size={20} className="mt-0.5 shrink-0 text-accent" />
-                  <p>
+                  <DeviceMobile size={18} className="mt-0.5 shrink-0 text-accent" />
+                  <p className="text-xs leading-relaxed">
                     在触屏设备上，左下角虚拟摇杆控制移动；角色会自动朝敌人方向开火。无需额外瞄准按钮。
                   </p>
                 </div>
@@ -145,34 +145,35 @@ export default function HelpPage() {
 
             <section id="missions">
               <SectionHeader title="任务与撤离" />
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {missions.map((mission) => (
-                  <FeatureCard
-                    key={mission.type}
-                    icon={<Flag size={22} weight="bold" className="text-accent" />}
-                    title={mission.title}
-                    description={mission.description}
-                    meta={mission.timeLimit ? `限时 ${mission.timeLimit} 秒` : undefined}
-                    variant="accent"
-                  />
+                  <div key={mission.type} className="w-[260px] flex-none snap-start md:w-[280px]">
+                    <FeatureCard
+                      icon={<Flag size={18} weight="bold" className="text-accent" />}
+                      title={mission.title}
+                      description={mission.description}
+                      meta={mission.timeLimit ? `限时 ${mission.timeLimit} 秒` : undefined}
+                      variant="accent"
+                    />
+                  </div>
                 ))}
               </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-panel p-5">
-                  <Check size={20} weight="bold" className="text-success" />
-                  <p className="mt-3 font-semibold">完成任务</p>
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                <div className="rounded-2xl border border-border bg-panel p-3">
+                  <Check size={18} weight="bold" className="text-success" />
+                  <p className="mt-2 text-sm font-semibold">完成任务</p>
                   <p className="mt-1 text-xs text-muted">
                     每局 4 个随机顺序任务，完成后撤离点激活。
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-panel p-5">
-                  <Crosshair size={20} weight="bold" className="text-primary" />
-                  <p className="mt-3 font-semibold">进入撤离点</p>
+                <div className="rounded-2xl border border-border bg-panel p-3">
+                  <Crosshair size={18} weight="bold" className="text-primary" />
+                  <p className="mt-2 text-sm font-semibold">进入撤离点</p>
                   <p className="mt-1 text-xs text-muted">抵达撤离区域并存活至倒计时结束。</p>
                 </div>
-                <div className="rounded-2xl border border-border bg-panel p-5">
-                  <Heart size={20} weight="bold" className="text-danger" />
-                  <p className="mt-3 font-semibold">生命归零</p>
+                <div className="rounded-2xl border border-border bg-panel p-3">
+                  <Heart size={18} weight="bold" className="text-danger" />
+                  <p className="mt-2 text-sm font-semibold">生命归零</p>
                   <p className="mt-1 text-xs text-muted">受到过多伤害或撤离超时即判定失败。</p>
                 </div>
               </div>
@@ -180,22 +181,23 @@ export default function HelpPage() {
 
             <section id="modes">
               <SectionHeader title="作战模式" />
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {modes.map((mode) => (
-                  <FeatureCard
-                    key={mode.type}
-                    icon={<Crosshair size={22} weight="bold" className="text-primary" />}
-                    title={mode.name}
-                    description={mode.description}
-                    variant="muted"
-                  />
+                  <div key={mode.type} className="w-[260px] flex-none snap-start md:w-[280px]">
+                    <FeatureCard
+                      icon={<Crosshair size={18} weight="bold" className="text-primary" />}
+                      title={mode.name}
+                      description={mode.description}
+                      variant="muted"
+                    />
+                  </div>
                 ))}
               </div>
             </section>
 
             <section id="heroes">
               <SectionHeader title="英雄与技能" />
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {heroes.map((hero) => {
                   const passiveLabels = Object.entries(hero.passive).map(([key, value]) => {
                     const map: Record<string, string> = {
@@ -210,38 +212,39 @@ export default function HelpPage() {
                     return `${map[key] ?? key} ${value}`;
                   });
                   return (
-                    <FeatureCard
-                      key={hero.id}
-                      icon={
-                        <div
-                          className="h-8 w-8 rounded-lg"
-                          style={{
-                            backgroundColor: `${hero.color}20`,
-                            border: `1px solid ${hero.color}40`,
-                          }}
-                        >
+                    <div key={hero.id} className="w-[300px] flex-none snap-start md:w-[340px]">
+                      <FeatureCard
+                        icon={
                           <div
-                            className="m-2 h-4 w-4 rounded-full"
-                            style={{ backgroundColor: hero.color }}
-                          />
+                            className="h-7 w-7 rounded-lg"
+                            style={{
+                              backgroundColor: `${hero.color}20`,
+                              border: `1px solid ${hero.color}40`,
+                            }}
+                          >
+                            <div
+                              className="m-1.5 h-4 w-4 rounded-full"
+                              style={{ backgroundColor: hero.color }}
+                            />
+                          </div>
+                        }
+                        title={hero.name}
+                        description={hero.description}
+                        meta={hero.skill.name}
+                        variant="muted"
+                      >
+                        <div className="mt-2 space-y-1.5 text-xs text-muted">
+                          <p className="leading-relaxed">
+                            <span className="text-foreground">主动技能：</span>
+                            {hero.skill.description}（冷却 {hero.skill.cooldown} 秒）
+                          </p>
+                          <p className="leading-relaxed">
+                            <span className="text-foreground">被动：</span>
+                            {passiveLabels.join("，")}
+                          </p>
                         </div>
-                      }
-                      title={hero.name}
-                      description={hero.description}
-                      meta={hero.skill.name}
-                      variant="muted"
-                    >
-                      <div className="mt-3 space-y-2 text-xs text-muted">
-                        <p>
-                          <span className="text-foreground">主动技能：</span>
-                          {hero.skill.description}（冷却 {hero.skill.cooldown} 秒）
-                        </p>
-                        <p>
-                          <span className="text-foreground">被动：</span>
-                          {passiveLabels.join("，")}
-                        </p>
-                      </div>
-                    </FeatureCard>
+                      </FeatureCard>
+                    </div>
                   );
                 })}
               </div>
@@ -249,36 +252,36 @@ export default function HelpPage() {
 
             <section id="progression">
               <SectionHeader title="成长与掉落" />
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
                 <FeatureCard
-                  icon={<Cube size={22} weight="bold" className="text-success" />}
+                  icon={<Cube size={18} weight="bold" className="text-success" />}
                   title="拾取资源"
                   description="击杀敌人后掉落经验（青色）、资源（橙色）与生命（绿色）。经验用于升级，资源用于局内商店与事件。"
                   variant="muted"
                 />
                 <FeatureCard
-                  icon={<Sword size={22} weight="bold" className="text-primary" />}
+                  icon={<Sword size={18} weight="bold" className="text-primary" />}
                   title="升级选项"
                   description="每次升级可从武器强化或属性被动中选择一项。武器满级后仍可获得被动加成。"
                   variant="muted"
                 />
               </div>
-              <div className="mt-6">
-                <h3 className="mb-4 text-lg font-semibold">可用被动</h3>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-3">
+                <h3 className="mb-2 text-sm font-semibold">可用被动</h3>
+                <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
                   {passives.map((passive) => (
                     <div
                       key={passive.id}
-                      className="flex items-start gap-3 rounded-xl border border-border bg-panel p-4 transition-colors hover:bg-panel-raised"
+                      className="w-[200px] flex-none snap-start rounded-xl border border-border bg-panel p-3 transition-colors hover:bg-panel-raised"
                     >
-                      <div
-                        className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: passive.color }}
-                      />
-                      <div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: passive.color }}
+                        />
                         <p className="text-sm font-medium">{passive.name}</p>
-                        <p className="mt-0.5 text-xs text-muted">{passive.description}</p>
                       </div>
+                      <p className="mt-1 text-xs leading-relaxed text-muted">{passive.description}</p>
                     </div>
                   ))}
                 </div>
@@ -287,11 +290,11 @@ export default function HelpPage() {
 
             <section id="tips">
               <SectionHeader title="实战技巧" />
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
                 {tips.map((tip) => (
                   <FeatureCard
                     key={tip.title}
-                    icon={<Target size={22} weight="bold" className="text-accent" />}
+                    icon={<Target size={18} weight="bold" className="text-accent" />}
                     title={tip.title}
                     description={tip.description}
                     variant="accent"

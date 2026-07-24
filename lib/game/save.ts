@@ -1,6 +1,15 @@
-import type { RunResult, WeaponId, HeroId } from "./types";
+import type { RunResult, WeaponId, HeroId, GameModeType } from "./types";
 import { DEFAULT_BALANCE } from "./balance";
 import { HERO_DEFS } from "./heroes";
+
+export interface RunHistoryEntry {
+  timestamp: number;
+  mode: GameModeType;
+  elapsed: number;
+  reward: number;
+  victory: boolean;
+  surrendered: boolean;
+}
 
 export interface SaveData {
   version: number;
@@ -11,6 +20,7 @@ export interface SaveData {
   unlockedWeapons: WeaponId[];
   equippedWeapons: WeaponId[];
   selectedHero: HeroId;
+  runHistory: RunHistoryEntry[];
   settings: {
     audioEnabled: boolean;
     volume: number;
@@ -19,8 +29,11 @@ export interface SaveData {
   };
 }
 
-const SAVE_KEY = "project_m_save_v3";
-const CURRENT_SAVE_VERSION = 3;
+const SAVE_KEY = "project_m_save_v4";
+const CURRENT_SAVE_VERSION = 4;
+const MAX_RUN_HISTORY = 20;
+const DEATH_REWARD_CAP = 200;
+const MIN_DEATH_REWARD_TIME = 45;
 
 function getWeaponCost(id: WeaponId): number {
   return DEFAULT_BALANCE.weapons[id]?.cost ?? 0;
@@ -44,6 +57,7 @@ function createFallback(): SaveData {
     unlockedWeapons: ["pulse"],
     equippedWeapons: ["pulse"],
     selectedHero: "recon",
+    runHistory: [],
     settings: {
       audioEnabled: true,
       volume: 0.8,
@@ -80,6 +94,18 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
     selectedHero = migratedHero && migratedHero in HERO_DEFS ? migratedHero : fallback.selectedHero;
   }
 
+  const runHistory: RunHistoryEntry[] = Array.isArray(parsed.runHistory)
+    ? parsed.runHistory.filter(
+        (h): h is RunHistoryEntry =>
+          !!h &&
+          typeof h.timestamp === "number" &&
+          typeof h.elapsed === "number" &&
+          typeof h.reward === "number" &&
+          typeof h.victory === "boolean" &&
+          typeof h.surrendered === "boolean"
+      )
+    : fallback.runHistory;
+
   return {
     ...fallback,
     ...parsed,
@@ -89,6 +115,7 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
     unlockedWeapons: unlocked.length > 0 ? unlocked : fallback.unlockedWeapons,
     equippedWeapons: clampedEquipped,
     selectedHero,
+    runHistory,
     settings: { ...fallback.settings, ...parsed.settings },
   };
 }
@@ -100,7 +127,12 @@ export function loadSave(): SaveData {
     let raw = localStorage.getItem(SAVE_KEY);
     if (!raw) {
       // Migrate from older save keys if present
-      for (const oldKey of ["project_m_save_v2", "project_m_save_v1", "project_m_save"]) {
+      for (const oldKey of [
+        "project_m_save_v3",
+        "project_m_save_v2",
+        "project_m_save_v1",
+        "project_m_save",
+      ]) {
         raw = localStorage.getItem(oldKey);
         if (raw) break;
       }
@@ -140,14 +172,86 @@ export function recordRun(result: RunResult) {
     save.bestRun = result;
   }
 
-  const reward = calculateRunReward(result);
+  const reward = calculateRunReward(result, save.runHistory);
   save.coins = Math.max(0, save.coins + reward);
+
+  // Track run history for anti-farm analysis on future runs.
+  save.runHistory.push({
+    timestamp: Date.now(),
+    mode: result.mode,
+    elapsed: result.elapsed,
+    reward,
+    victory: result.victory,
+    surrendered: !!result.surrendered,
+  });
+  if (save.runHistory.length > MAX_RUN_HISTORY) {
+    save.runHistory = save.runHistory.slice(-MAX_RUN_HISTORY);
+  }
 
   saveSave(save);
 }
 
-export function calculateRunReward(result: RunResult): number {
-  if (!result.victory) return 0;
+function computeAntiFarmMultiplier(result: RunResult, history: RunHistoryEntry[]): number {
+  // Instant death farming: no reward.
+  if (result.elapsed < MIN_DEATH_REWARD_TIME) return 0;
+
+  // AFK / no engagement: no reward.
+  const hasEngagement = result.stats.kills > 0 || result.stats.damageDealt >= 300;
+  if (!hasEngagement) return 0;
+
+  // Look at recent forced deaths (non-victory, non-surrender) for pattern detection.
+  const recentDefeats = history.filter((h) => !h.victory && !h.surrendered).slice(-5);
+
+  let multiplier = 1;
+
+  if (recentDefeats.length >= 2) {
+    const avgElapsed = recentDefeats.reduce((sum, h) => sum + h.elapsed, 0) / recentDefeats.length;
+    if (avgElapsed < 90) multiplier *= 0.5;
+  }
+
+  if (recentDefeats.length >= 3) {
+    const avgElapsed = recentDefeats.reduce((sum, h) => sum + h.elapsed, 0) / recentDefeats.length;
+    if (avgElapsed < 120) multiplier *= 0.3;
+  }
+
+  // Repeated rapid deaths are a strong farming signal.
+  const rapidDefeats = recentDefeats.filter((h) => h.elapsed < 60).length;
+  if (rapidDefeats >= 2) multiplier *= 0.2;
+
+  return Math.max(0, multiplier);
+}
+
+export function calculateDeathReward(result: RunResult, history: RunHistoryEntry[] = []): number {
+  if (result.surrendered || result.victory) return 0;
+
+  const farmMultiplier = computeAntiFarmMultiplier(result, history);
+  if (farmMultiplier <= 0) return 0;
+
+  // Base from resources actually collected during the run.
+  const resourceBase = Math.max(0, result.stats.resourcesCollected);
+
+  // Engagement bonuses.
+  const killBonus = Math.min(result.stats.kills * 2, 50);
+  const missionBonus = result.completedMissions * 10;
+  const waveBonus = (result.stats.wavesCleared ?? 0) * 5;
+
+  // Time multiplier: longer genuine attempts are rewarded more, but capped.
+  const timeMultiplier = Math.min(1, Math.max(0.4, result.elapsed / 180));
+
+  const total = Math.floor(
+    (resourceBase + killBonus + missionBonus + waveBonus) * timeMultiplier * farmMultiplier
+  );
+
+  return Math.min(total, DEATH_REWARD_CAP);
+}
+
+export function calculateRunReward(
+  result: RunResult,
+  history: RunHistoryEntry[] = []
+): number {
+  if (result.surrendered) return 0;
+  if (!result.victory) return calculateDeathReward(result, history);
+
   const base = 150;
   const killReward = result.stats.kills * 2;
   const waveReward = (result.stats.wavesCleared ?? 0) * 20;

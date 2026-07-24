@@ -38,7 +38,7 @@ function typeMeta(type: UpgradeOption["type"]) {
         label: "属性",
         Icon: TrendUp,
         color: "text-foreground",
-        bg: "bg-[var(--panel-raised)]",
+        bg: "bg-panel-raised",
         border: "border-border",
       };
   }
@@ -102,7 +102,7 @@ export default function UpgradeModal({ options, onSelect }: UpgradeModalProps) {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onSelect(option)}
-                  className={`group relative flex flex-col items-start overflow-hidden rounded-2xl border bg-[var(--panel-raised)] p-5 text-left transition-colors hover:bg-panel focus-ring ${meta.border} col-span-1`}
+                  className={`group relative flex flex-col items-start overflow-hidden rounded-2xl border bg-panel-raised p-5 text-left transition-colors hover:bg-panel focus-ring ${meta.border} col-span-1`}
                 >
                   <div className="flex w-full items-start justify-between gap-3">
                     <span

@@ -83,6 +83,15 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   const prevWaveInProgressRef = useRef<boolean | null>(null);
   const prevBossRef = useRef<boolean>(false);
 
+  // Capture initial values to avoid recreating the engine when these change.
+  const initialModeRef = useRef(selectedMode);
+  const initialLoadoutRef = useRef(loadoutSnapshot);
+  const qualityRef = useRef(settings.graphicsQuality);
+  const vibrationEnabledRef = useRef(settings.vibrationEnabled);
+
+  qualityRef.current = settings.graphicsQuality;
+  vibrationEnabledRef.current = settings.vibrationEnabled;
+
   const addNotification = useCallback((notification: Omit<GameNotification, "id">) => {
     const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     setNotifications((prev) => [...prev, { ...notification, id }]);
@@ -115,12 +124,12 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     input.setJoystickSize(settings.joystickSize);
   }, [settings.aimAssistEnabled, settings.autoFireEnabled, settings.joystickSize]);
 
-  // Sync graphics quality to engine
+  // Sync graphics quality to engine and trigger canvas resize on touch devices
   useEffect(() => {
     engineRef.current?.setQuality(settings.graphicsQuality);
+    window.dispatchEvent(new Event("resize"));
   }, [settings.graphicsQuality]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -157,17 +166,17 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           });
         },
         onMissionComplete: () => {
-          if (settings.vibrationEnabled && navigator.vibrate) {
+          if (vibrationEnabledRef.current && navigator.vibrate) {
             navigator.vibrate(150);
           }
         },
         onExtractionReady: () => {
-          if (settings.vibrationEnabled && navigator.vibrate) {
+          if (vibrationEnabledRef.current && navigator.vibrate) {
             navigator.vibrate(300);
           }
         },
         onEventStart: () => {
-          if (settings.vibrationEnabled && navigator.vibrate) {
+          if (vibrationEnabledRef.current && navigator.vibrate) {
             navigator.vibrate(150);
           }
         },
@@ -175,9 +184,9 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           setRoguelikeRewardOptions(options);
         },
       },
-      selectedMode,
+      initialModeRef.current,
       undefined,
-      loadoutSnapshot
+      initialLoadoutRef.current
     );
     engineRef.current = engine;
 
@@ -194,7 +203,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
 
     const resize = () => {
       const rect = container.getBoundingClientRect();
-      const dpr = isTouch ? qualityDpr[settings.graphicsQuality] : Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = isTouch ? qualityDpr[qualityRef.current] : Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.floor(rect.width * dpr);
       canvas.height = Math.floor(rect.height * dpr);
       canvas.style.width = `${rect.width}px`;
@@ -305,12 +314,17 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           input: {
             move: input.state.move,
             aim: input.state.aim,
-            fire: false,
-            pause: false,
+            fire: input.state.fire,
+            pause: input.state.pause,
           },
           timestamp: Date.now(),
           frame: inputFrameRef.current,
         });
+
+        // Host serializes authoritative world state and queues it for batched broadcast.
+        if (room.isHost() && inputFrameRef.current % 2 === 0) {
+          room.queueBatchedState(engine.serialize(), inputFrameRef.current);
+        }
       }
 
       setFrame((f) => f + 1);
@@ -325,7 +339,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       input.unbind();
       roomRef.current?.close();
     };
-  }, [settings.vibrationEnabled, addNotification]);
+  }, [addNotification]);
 
   useEffect(() => {
     if (!multiplayer) return;
@@ -345,6 +359,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       if (roomRef.current?.isHost() === false) {
         engine.applySerialized(message.state);
       }
+    } else if (message.type === "state_batch") {
+      if (roomRef.current?.isHost() === false && message.states.length > 0) {
+        engine.applySerialized(message.states[message.states.length - 1]);
+      }
     } else if (message.type === "input") {
       if (roomRef.current?.isHost()) {
         engine.updateRemotePlayerInput(peerId, message.input, 1 / 60);
@@ -361,6 +379,19 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     }
   }, []);
 
+  const startGameLocally = useCallback((seed: number, mode: GameModeType) => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    setGameStarted(true);
+    setLobbyOpen(false);
+    engine.restart(mode, seed);
+    setTimeout(() => {
+      engine.start();
+      audio?.startBgm();
+      setIsStarted(true);
+    }, 100);
+  }, []);
+
   const createRoom = useCallback(
     async (playerName: string, mode: GameModeType) => {
       setNetError(null);
@@ -372,6 +403,16 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         onPlayerListChange: (list) =>
           setPlayers(list.filter((p) => p.peerId !== room.getLocalPeerId())),
         onNetworkMessage: handleNetworkMessage,
+        onPeerConnect: (peerId) => {
+          const engine = engineRef.current;
+          if (!engine) return;
+          const map = engine.state.map;
+          engine.addRemotePlayer(peerId, map.width / 2, map.height / 2);
+        },
+        onPeerDisconnect: (peerId) => {
+          engineRef.current?.removeRemotePlayer(peerId);
+        },
+        onGameStart: (seed, startedMode) => startGameLocally(seed, startedMode),
         onError: (err) => setNetError(err.message),
         onReconnecting: () => setIsReconnecting(true),
         onReconnected: () => {
@@ -388,7 +429,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         setNetError(err instanceof Error ? err.message : "创建房间失败");
       }
     },
-    [handleNetworkMessage]
+    [handleNetworkMessage, startGameLocally]
   );
 
   const joinRoom = useCallback(
@@ -401,10 +442,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         onPlayerListChange: (list) =>
           setPlayers(list.filter((p) => p.peerId !== room.getLocalPeerId())),
         onNetworkMessage: handleNetworkMessage,
-        onGameStart: (seed, mode) => {
-          setGameStarted(true);
-          setLobbyOpen(false);
-        },
+        onGameStart: (seed, startedMode) => startGameLocally(seed, startedMode),
         onError: (err) => setNetError(err.message),
         onReconnecting: (peerId) => {
           setIsReconnecting(true);
@@ -424,7 +462,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         setNetError(err instanceof Error ? err.message : "加入房间失败");
       }
     },
-    [handleNetworkMessage]
+    [handleNetworkMessage, startGameLocally]
   );
 
   const discoverRooms = useCallback(() => {
@@ -635,8 +673,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
                 width: radius * 2,
                 height: radius * 2,
                 opacity,
-                backgroundColor: `rgba(122, 143, 62, 0.12)`,
-                borderColor: `rgba(122, 143, 62, ${opacity})`,
+                backgroundColor: "var(--primary-subtle)",
               }}
             />
             <div

@@ -37,6 +37,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          provider: string;
+          provider_id: string;
+          avatar_url: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          provider: string;
+          provider_id: string;
+          avatar_url?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          provider?: string;
+          provider_id?: string;
+          avatar_url?: string | null;
+        };
+        Relationships: [];
+      };
       announcements: {
         Row: {
           id: string;

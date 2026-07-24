@@ -61,7 +61,7 @@ export default function FeatureCard({
           {icon && <div className="text-foreground/90">{icon}</div>}
           {meta && <div className="ml-auto shrink-0 text-xs text-muted">{meta}</div>}
         </div>
-        <h3 className="relative mt-3 text-lg font-semibold tracking-tight">{title}</h3>
+        <h3 className="relative mt-2 text-base font-semibold tracking-tight">{title}</h3>
         {description && (
           <p className="relative mt-1 text-sm leading-relaxed text-muted">{description}</p>
         )}
@@ -70,7 +70,7 @@ export default function FeatureCard({
     </>
   );
 
-  const classes = `group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${variantStyles[variant]} ${className}`;
+  const classes = `group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-4 ${variantStyles[variant]} ${className}`;
 
   if (as === "link" && href) {
     return (

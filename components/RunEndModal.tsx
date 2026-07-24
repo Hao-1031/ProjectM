@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import type { RunResult } from "@/lib/game/types";
 import { formatTime } from "@/lib/game/math";
+import { calculateRunReward } from "@/lib/game/save";
 import {
   Trophy,
   Skull,
@@ -11,6 +12,7 @@ import {
   ChartBar,
   House,
   ArrowClockwise,
+  Coins,
 } from "@phosphor-icons/react";
 
 interface RunEndModalProps {
@@ -24,6 +26,7 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
 
   const victory = result.victory;
   const surrendered = result.surrendered;
+  const deathReward = !victory && !surrendered ? calculateRunReward(result) : 0;
   const accentColor = victory ? "text-success" : "text-danger";
   const accentBorder = victory ? "border-success/30" : "border-danger/30";
   const accentBg = victory ? "bg-success/10" : "bg-danger/10";
@@ -72,9 +75,23 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
               ? "你已完成全部任务并安全撤离。战绩已更新。"
               : surrendered
                 ? "你已主动放弃本局战斗。不会记录任何奖励与进度。"
-                : "信号中断，等待下一次部署。总结经验后再次尝试。"}
+                : deathReward > 0
+                  ? `被迫阵亡。根据本局表现结算 ${deathReward} 枚资源币，可用于解锁外观。`
+                  : "被迫阵亡。本局未满足最低结算条件，无资源奖励。"}
           </p>
         </div>
+
+        {!victory && !surrendered && (
+          <div className="px-6 md:px-8">
+            <div className="flex items-center justify-between rounded-2xl border border-border bg-panel-raised px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-muted">
+                <Coins size={16} weight="bold" />
+                结算资源
+              </div>
+              <span className="font-mono text-lg font-bold text-accent">+{deathReward}</span>
+            </div>
+          </div>
+        )}
 
         <div className="px-6 md:px-8">
           <div className="grid grid-flow-dense grid-cols-2 gap-3">
@@ -88,7 +105,7 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.05 }}
-                  className={`rounded-2xl border border-border bg-[var(--panel-raised)] p-4 ${
+                  className={`rounded-2xl border border-border bg-panel-raised p-4 ${
                     isWide ? "col-span-2 sm:col-span-1" : "col-span-1"
                   }`}
                 >
@@ -108,7 +125,7 @@ export default function RunEndModal({ result, onRestart, onExit }: RunEndModalPr
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onExit ?? (() => router.push("/"))}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-[var(--panel-raised)] focus-ring"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-panel-raised focus-ring"
           >
             <House size={16} weight="bold" />
             返回指挥部

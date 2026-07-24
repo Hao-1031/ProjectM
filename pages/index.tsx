@@ -152,7 +152,7 @@ export default function HomePage() {
         initial={reducedMotion ? undefined : { opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-4 py-4"
+        className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-4 py-3"
       >
         <Link href="/" className="group flex items-center gap-2 focus-ring rounded-lg">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
@@ -190,7 +190,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero section */}
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 md:pt-6">
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pb-2 pt-2 md:pt-3">
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
           {/* Left: title + play */}
           <div className="flex flex-col justify-center lg:col-span-7">
@@ -200,14 +200,13 @@ export default function HomePage() {
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
               <RadiationBadge />
-              <h1 className="mt-6 text-[clamp(2.75rem,8vw,6rem)] font-bold leading-[0.92] tracking-tight">
+              <h1 className="mt-3 text-[clamp(1.75rem,5vw,3rem)] font-bold leading-[0.95] tracking-tight">
                 一人一枪
                 <br />
                 <span className="text-primary">杀穿辐射区</span>
               </h1>
-              <p className="mt-5 max-w-md text-sm leading-relaxed text-muted md:text-base">
-                Project M 2.0 主打生存割草：自动攻击、自由移动、构建流派。在 15 分钟限时内
-                抵御无尽敌潮，挑战最高击杀纪录。
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+                自动攻击、自由移动、构建流派。15 分钟限时抵御无尽敌潮。
               </p>
             </motion.div>
 
@@ -215,22 +214,22 @@ export default function HomePage() {
               initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
+              className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Link
                 href={playHref}
-                className="group relative inline-flex h-16 items-center justify-center gap-3 overflow-hidden rounded-2xl bg-primary px-10 text-lg font-bold text-background shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95 md:h-20 md:text-xl"
+                className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95 md:h-12 md:text-base"
               >
                 <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
-                <Play size={28} weight="fill" />
+                <Play size={20} weight="fill" />
                 <span className="whitespace-nowrap">立即开始</span>
-                <CaretRight size={20} weight="bold" />
+                <CaretRight size={16} weight="bold" />
               </Link>
               <Link
                 href="/game?multiplayer=1"
-                className="inline-flex h-16 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-6 text-sm font-semibold transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring active:scale-95"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-panel px-4 text-sm font-semibold transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring active:scale-95 md:h-12"
               >
-                <Users size={20} />
+                <Users size={16} />
                 <span className="whitespace-nowrap">组队大厅</span>
               </Link>
             </motion.div>
@@ -240,9 +239,9 @@ export default function HomePage() {
               initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8"
+              className="mt-3"
             >
-              <p className="mb-3 font-mono text-xs uppercase tracking-widest text-muted">
+              <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-muted">
                 选择任务类型
               </p>
               <div className="flex flex-wrap gap-2">
@@ -254,7 +253,7 @@ export default function HomePage() {
                       key={mode.type}
                       type="button"
                       onClick={() => setSelectedMode(mode.type)}
-                      className={`group inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all focus-ring ${
+                      className={`group inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-all focus-ring ${
                         active
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"
@@ -281,7 +280,7 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-5"
           >
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-6 shadow-2xl shadow-black/20 md:p-8">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-4 shadow-2xl shadow-black/20">
               <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-danger opacity-60" />
               <div className="relative">
@@ -300,26 +299,26 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-border bg-background/50 p-4">
-                    <p className="font-mono text-xs uppercase tracking-widest text-muted">出战</p>
-                    <p className="mt-1 text-3xl font-bold">{save?.totalRuns ?? 0}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl border border-border bg-background/50 p-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">出战</p>
+                    <p className="mt-0.5 text-xl font-bold">{save?.totalRuns ?? 0}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/50 p-4">
-                    <p className="font-mono text-xs uppercase tracking-widest text-muted">击杀</p>
-                    <p className="mt-1 text-3xl font-bold">{save?.totalKills ?? 0}</p>
+                  <div className="rounded-xl border border-border bg-background/50 p-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">击杀</p>
+                    <p className="mt-0.5 text-xl font-bold">{save?.totalKills ?? 0}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/50 p-4">
-                    <p className="font-mono text-xs uppercase tracking-widest text-muted">最佳</p>
-                    <p className="mt-1 text-3xl font-bold">{save?.bestRun?.stats.kills ?? 0}</p>
+                  <div className="rounded-xl border border-border bg-background/50 p-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">最佳</p>
+                    <p className="mt-0.5 text-xl font-bold">{save?.bestRun?.stats.kills ?? 0}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/50 p-4">
-                    <p className="font-mono text-xs uppercase tracking-widest text-muted">武器</p>
-                    <p className="mt-1 text-3xl font-bold">{save?.unlockedWeapons.length ?? 1}</p>
+                  <div className="rounded-xl border border-border bg-background/50 p-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">武器</p>
+                    <p className="mt-0.5 text-xl font-bold">{save?.unlockedWeapons.length ?? 1}</p>
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between border-t border-border pt-5">
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                   <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/50 px-3 py-2">
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
                       <Coin size={16} weight="fill" />
@@ -349,12 +348,12 @@ export default function HomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-12 md:mt-20"
+          className="mt-4 md:mt-5"
         >
-          <div className="mb-4 flex items-end justify-between">
+          <div className="mb-2 flex items-end justify-between">
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-muted">快速进入</p>
-              <h2 className="mt-1 text-xl font-bold tracking-tight">作战模式</h2>
+              <h2 className="mt-0.5 text-lg font-bold tracking-tight">作战模式</h2>
             </div>
             <Link
               href="/modes"
@@ -385,7 +384,7 @@ export default function HomePage() {
                         ? "/game?mode=defense&multiplayer=1"
                         : `/game?mode=${mode.type}`
                     }
-                    className="group relative flex h-full min-h-[160px] flex-col justify-between overflow-hidden rounded-2xl border bg-panel p-5 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
+                    className="group relative flex h-full min-h-[96px] flex-col justify-between overflow-hidden rounded-2xl border bg-panel p-3 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
                     style={{ borderColor: featured ? `${mode.accent}30` : undefined }}
                   >
                     <div
@@ -397,10 +396,10 @@ export default function HomePage() {
                     )}
                     <div className="relative flex items-start justify-between">
                       <div
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg"
                         style={{ backgroundColor: `${mode.accent}15`, color: mode.accent }}
                       >
-                        <Icon size={22} weight="bold" />
+                        <Icon size={18} weight="bold" />
                       </div>
                       {featured && (
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
@@ -409,9 +408,9 @@ export default function HomePage() {
                         </span>
                       )}
                     </div>
-                    <div className="relative mt-8">
-                      <h3 className="text-lg font-bold tracking-tight">{mode.label}</h3>
-                      <p className="mt-1 text-xs text-muted">
+                    <div className="relative mt-4">
+                      <h3 className="text-base font-bold tracking-tight">{mode.label}</h3>
+                      <p className="mt-0.5 text-xs text-muted">
                         {modes.find((m) => m.type === mode.type)?.description}
                       </p>
                     </div>
@@ -428,15 +427,15 @@ export default function HomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8"
+          className="mt-3"
         >
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-3">
             <Link
               href="/heroes"
-              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
+              className="group flex items-center gap-2 rounded-xl border border-border bg-panel p-2.5 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
             >
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Users size={20} weight="bold" />
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Users size={16} weight="bold" />
               </div>
               <div>
                 <p className="font-semibold">{heroes.length} 位英雄</p>
@@ -449,10 +448,10 @@ export default function HomePage() {
             </Link>
             <Link
               href="/armory"
-              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring"
+              className="group flex items-center gap-2 rounded-xl border border-border bg-panel p-2.5 transition-all hover:border-accent/40 hover:bg-panel-raised focus-ring"
             >
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <Sword size={20} weight="bold" />
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <Sword size={16} weight="bold" />
               </div>
               <div>
                 <p className="font-semibold">{weapons.length} 种武器</p>
@@ -465,10 +464,10 @@ export default function HomePage() {
             </Link>
             <Link
               href="/enemies"
-              className="group flex items-center gap-4 rounded-2xl border border-border bg-panel p-4 transition-all hover:border-danger/40 hover:bg-panel-raised focus-ring"
+              className="group flex items-center gap-2 rounded-xl border border-border bg-panel p-2.5 transition-all hover:border-danger/40 hover:bg-panel-raised focus-ring"
             >
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger">
-                <Skull size={20} weight="bold" />
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-danger/10 text-danger">
+                <Skull size={16} weight="bold" />
               </div>
               <div>
                 <p className="font-semibold">
@@ -490,10 +489,10 @@ export default function HomePage() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-10 overflow-hidden rounded-2xl border border-warning/20 bg-warning/5"
+          className="mt-3 overflow-hidden rounded-xl border border-warning/20 bg-warning/5"
         >
-          <div className="flex items-center gap-3 px-4 py-3">
-            <Radioactive size={20} weight="bold" className="shrink-0 text-warning" />
+          <div className="flex items-center gap-3 px-3 py-2">
+            <Radioactive size={18} weight="bold" className="shrink-0 text-warning" />
             <p className="text-xs leading-relaxed text-muted sm:text-sm">
               2.0 生存模式已上线：15 分钟限时挑战，全球排行榜记录你的最高击杀。
             </p>
@@ -506,7 +505,7 @@ export default function HomePage() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-xs text-muted sm:flex-row"
+          className="mt-3 flex flex-col items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted sm:flex-row"
         >
           <p>公平竞技 · 无付费加成 · Project M</p>
           <div className="flex gap-4">

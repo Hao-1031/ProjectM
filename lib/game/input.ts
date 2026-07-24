@@ -315,6 +315,7 @@ export class InputManager {
 
     this.state.useSkill = this.skillPressed;
     this.state.useUltimate = this.ultimatePressed;
+    this.state.pause = this.pausePressed;
     this.skillPressed = false;
     this.ultimatePressed = false;
 

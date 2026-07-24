@@ -124,6 +124,11 @@ describe("GameEngine", () => {
       slow: 0,
       slowTimer: 0,
       freezeTimer: 0,
+      frostStacks: 0,
+      frostTimer: 0,
+      venomStacks: 0,
+      venomTimer: 0,
+      vulnerabilityStacks: 0,
       droneMarkTimer: 0,
       affixes: [],
       phase: 0,
@@ -213,8 +218,13 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-      burnDamage: 0,
-      targetCore: false,
+        burnDamage: 0,
+        frostStacks: 0,
+        frostTimer: 0,
+        venomStacks: 0,
+        venomTimer: 0,
+        vulnerabilityStacks: 0,
+        targetCore: false,
       });
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThan(0);
@@ -255,6 +265,11 @@ describe("GameEngine", () => {
         knockbackY: 0,
         burnDuration: 0,
         burnDamage: 0,
+        frostStacks: 0,
+        frostTimer: 0,
+        venomStacks: 0,
+        venomTimer: 0,
+        vulnerabilityStacks: 0,
       });
       engine.update(idleInput, 100);
       expect(engine.state.enemyProjectiles.length).toBeGreaterThanOrEqual(3);
@@ -536,8 +551,13 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-      burnDamage: 0,
-      targetCore: false,
+        burnDamage: 0,
+        frostStacks: 0,
+        frostTimer: 0,
+        venomStacks: 0,
+        venomTimer: 0,
+        vulnerabilityStacks: 0,
+        targetCore: false,
       });
       engine.update(idleInput, 16);
       expect(engine.state.stats.damageTaken).toBe(20);
@@ -578,8 +598,13 @@ describe("GameEngine", () => {
         knockbackX: 0,
         knockbackY: 0,
         burnDuration: 0,
-      burnDamage: 0,
-      targetCore: false,
+        burnDamage: 0,
+        frostStacks: 0,
+        frostTimer: 0,
+        venomStacks: 0,
+        venomTimer: 0,
+        vulnerabilityStacks: 0,
+        targetCore: false,
       });
       engine.update(rightInput, performance.now() + 100);
       const critNumber = engine.state.damageNumbers.find((n) => n.isCritical);

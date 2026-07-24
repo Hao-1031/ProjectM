@@ -58,7 +58,7 @@ export interface Deployable {
   x: number;
   y: number;
   radius: number;
-  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField" | "wall";
+  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField" | "poisonField" | "wall";
   ownerId: string;
   health: number;
   maxHealth: number;
@@ -67,6 +67,8 @@ export interface Deployable {
   targetId?: string;
   fireTimer?: number;
   fireCooldown?: number;
+  tickTimer?: number;
+  tickInterval?: number;
   color: string;
 }
 
@@ -345,6 +347,12 @@ export interface Enemy {
   knockbackY: number;
   burnDuration: number;
   burnDamage: number;
+  // Hero-specific status stacks
+  frostStacks: number;
+  frostTimer: number;
+  venomStacks: number;
+  venomTimer: number;
+  vulnerabilityStacks: number;
   // Boss phase
   phase: number;
   phaseThresholds: number[];

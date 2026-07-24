@@ -186,7 +186,7 @@ export default function MultiplayerLobby({
 
         {!isInRoom ? (
           <div className="p-5">
-            <div className="mb-4 flex rounded-xl border border-border bg-[var(--panel-raised)] p-1">
+            <div className="mb-4 flex rounded-xl border border-border bg-panel-raised p-1">
               {TABS.map((t) => {
                 const Icon = t.icon;
                 const active = tab === t.id;
@@ -249,7 +249,7 @@ export default function MultiplayerLobby({
                           className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all focus-ring ${
                             active
                               ? "border-primary/50 bg-primary/10"
-                              : "border-border bg-[var(--panel-raised)] hover:border-primary/30 hover:bg-panel"
+                              : "border-border bg-panel-raised hover:border-primary/30 hover:bg-panel"
                           }`}
                         >
                           <div
@@ -322,7 +322,7 @@ export default function MultiplayerLobby({
                   <button
                     type="button"
                     onClick={onDiscoverRooms}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-[var(--panel-raised)] py-2.5 text-sm font-medium transition-colors hover:border-primary/50 hover:bg-panel focus-ring active:scale-95"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-panel-raised py-2.5 text-sm font-medium transition-colors hover:border-primary/50 hover:bg-panel focus-ring active:scale-95"
                   >
                     <ArrowsClockwise size={16} weight="bold" />
                     刷新房间列表
@@ -339,7 +339,7 @@ export default function MultiplayerLobby({
                           setRoomCode(r.roomCode);
                           setTab("join");
                         }}
-                        className="flex w-full items-center justify-between rounded-xl border border-border bg-[var(--panel-raised)] px-3 py-3 text-left transition-colors hover:border-primary/50 hover:bg-panel focus-ring"
+                        className="flex w-full items-center justify-between rounded-xl border border-border bg-panel-raised px-3 py-3 text-left transition-colors hover:border-primary/50 hover:bg-panel focus-ring"
                       >
                         <div>
                           <p className="text-sm font-bold">{r.playerName} 的房间</p>
@@ -355,7 +355,7 @@ export default function MultiplayerLobby({
           </div>
         ) : (
           <div className="p-5">
-            <div className="mb-4 flex items-center justify-between rounded-xl border border-border bg-[var(--panel-raised)] px-3 py-3">
+            <div className="mb-4 flex items-center justify-between rounded-xl border border-border bg-panel-raised px-3 py-3">
               <div>
                 <p className="text-xs text-muted">房间代码</p>
                 <p className="font-mono text-lg font-bold tracking-widest text-primary">
@@ -409,7 +409,7 @@ export default function MultiplayerLobby({
                 {players.map((p) => (
                   <div
                     key={p.peerId}
-                    className="flex items-center justify-between rounded-xl border border-border bg-[var(--panel-raised)] px-3 py-2.5"
+                    className="flex items-center justify-between rounded-xl border border-border bg-panel-raised px-3 py-2.5"
                   >
                     <div className="flex items-center gap-2">
                       {p.ready ? (
