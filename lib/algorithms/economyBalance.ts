@@ -21,6 +21,7 @@ export interface EconomyAdjustmentReport {
   expectedValuePerHour: number;
   totalWeight: number;
   pityTriggered: string[];
+  botSuspicionScore: number;
 }
 
 export function adjustDropRates(
@@ -53,6 +54,10 @@ export function adjustDropRates(
     Object.values(state.globalDropCounts).reduce((a, b) => a + b, 0)
   );
 
+  // 反脚本检测：掉落序列规律性越高，越像脚本
+  const botSuspicionScore = detectBotPattern(state.playerRecentDrops);
+  const botPenalty = clamp(botSuspicionScore * 0.3, 0, 0.5);
+
   const adjustedItems = table.map((item) => {
     const globalCount = state.globalDropCounts[item.id] ?? 0;
     const globalRatio = globalCount / totalGlobalDrops;
@@ -67,7 +72,7 @@ export function adjustDropRates(
       : 1;
 
     const adjustedWeight = clamp(
-      item.baseWeight * globalModifier * scarcityBoost * pityBoost,
+      item.baseWeight * globalModifier * scarcityBoost * pityBoost * (1 - botPenalty),
       0.01,
       item.baseWeight * 5
     );
@@ -94,7 +99,50 @@ export function adjustDropRates(
     expectedValuePerHour: round2(expectedValuePerHour),
     totalWeight: round2(totalWeight),
     pityTriggered: adjustedItems.filter((i) => i.triggeredPity).map((i) => i.id),
+    botSuspicionScore: round2(botSuspicionScore),
   };
+}
+
+/**
+ * 检测掉落序列是否过于规律，常用于识别脚本/自动化刷取。
+ * 返回 0-1 的怀疑分数：相同道具循环、短周期重复都会提高分数。
+ */
+export function detectBotPattern(drops: string[]): number {
+  if (drops.length < 6) return 0;
+
+  let score = 0;
+
+  // 检查连续重复
+  let repeatStreak = 0;
+  let maxRepeatStreak = 0;
+  for (let i = 1; i < drops.length; i++) {
+    if (drops[i] === drops[i - 1]) {
+      repeatStreak++;
+      maxRepeatStreak = Math.max(maxRepeatStreak, repeatStreak);
+    } else {
+      repeatStreak = 0;
+    }
+  }
+  if (maxRepeatStreak >= 2) score += 0.2;
+
+  // 检查短周期循环（2-4 长度）
+  for (let period = 2; period <= 4; period++) {
+    const matches = drops.slice(period).filter((d, i) => d === drops[i]).length;
+    const ratio = matches / Math.max(1, drops.length - period);
+    if (ratio > 0.7) {
+      score += 0.3 + (ratio - 0.7) * 0.5;
+      break;
+    }
+  }
+
+  // 检查唯一掉落种类过少
+  const unique = new Set(drops).size;
+  const uniqueRatio = unique / drops.length;
+  if (uniqueRatio < 0.3) {
+    score += (0.3 - uniqueRatio);
+  }
+
+  return clamp(score, 0, 1);
 }
 
 function clamp(value: number, min: number, max: number): number {

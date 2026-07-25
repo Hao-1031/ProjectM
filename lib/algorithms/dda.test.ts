@@ -88,4 +88,29 @@ describe("DDA 动态难度", () => {
       newAdjusted.enemyDamageMultiplier
     );
   });
+
+  it("英雄协同组合缓解混合队伍难度惩罚", () => {
+    const mixedNoSynergy: TeamProfile = {
+      players: [
+        { ...elitePlayer, heroId: "nitrogen" },
+        { ...averagePlayer, heroId: "recon" },
+      ],
+    };
+    const mixedSynergy: TeamProfile = {
+      players: [
+        { ...elitePlayer, heroId: "nitrogen" },
+        { ...averagePlayer, heroId: "twilight" },
+      ],
+    };
+    expect(calculateTeamSkillScore(mixedSynergy)).toBeGreaterThan(
+      calculateTeamSkillScore(mixedNoSynergy)
+    );
+  });
+
+  it("后期波次对高手加成更大", () => {
+    const team: TeamProfile = { players: [elitePlayer] };
+    const early = calculateDifficultyAdjustment(team, undefined, 1);
+    const late = calculateDifficultyAdjustment(team, undefined, 15);
+    expect(late).toBeGreaterThan(early);
+  });
 });

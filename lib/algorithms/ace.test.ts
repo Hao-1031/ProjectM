@@ -44,7 +44,7 @@ describe("ACE 反作弊", () => {
     ];
     const combined = combineRisk(cheatingClient, events);
     expect(combined.level).toBe("critical");
-    expect(combined.score).toBeGreaterThanOrEqual(combined.clientScore);
+    expect(combined.score).toBeGreaterThanOrEqual(combined.serverScore);
   });
 
   it("正常玩家不产生误报", () => {

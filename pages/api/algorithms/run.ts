@@ -7,6 +7,10 @@ import {
   analyzeMapBalance,
   rankContent,
   adjustDropRates,
+  recommendRewards,
+  optimizeSpawns,
+  evaluateNetwork,
+  predictEntityState,
 } from "@/lib/algorithms";
 
 export interface AlgorithmRunRequest {
@@ -76,6 +80,37 @@ export default async function handler(
         };
         const result = adjustDropRates(table as never[], state as never, options);
         return res.status(200).json({ algorithm, result });
+      }
+      case "reward-recommendation": {
+        const { options, build, enemies, config } = input as {
+          options: unknown[];
+          build: unknown;
+          enemies: unknown;
+          config?: object;
+        };
+        const result = recommendRewards(options as never[], build as never, enemies as never, config);
+        return res.status(200).json({ algorithm, result });
+      }
+      case "spawn-optimizer": {
+        const { candidates, pressure, options } = input as {
+          candidates: unknown[];
+          pressure: unknown;
+          options?: object;
+        };
+        const result = optimizeSpawns(candidates as never[], pressure as never, options);
+        return res.status(200).json({ algorithm, result });
+      }
+      case "network-prediction": {
+        const { snapshot, entity, options } = input as {
+          snapshot: unknown;
+          entity?: unknown;
+          options?: object;
+        };
+        const network = evaluateNetwork(snapshot as never);
+        const predicted = entity
+          ? predictEntityState(entity as never, snapshot as never, options)
+          : null;
+        return res.status(200).json({ algorithm, result: { network, predicted } });
       }
       default:
         return res.status(400).json({ error: "未知算法 ID" });

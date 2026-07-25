@@ -4,7 +4,10 @@ export type AlgorithmId =
   | "matchmaking"
   | "map-balance"
   | "content-recommendation"
-  | "economy-balance";
+  | "economy-balance"
+  | "reward-recommendation"
+  | "spawn-optimizer"
+  | "network-prediction";
 
 export interface AlgorithmMeta {
   id: AlgorithmId;

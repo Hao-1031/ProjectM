@@ -22,8 +22,10 @@ export interface RiskReport {
   level: RiskLevel;
   clientScore: number;
   serverScore: number;
+  confidence: number;
   reasons: string[];
   evidence: string[];
+  banRecommendation: boolean;
 }
 
 const REACTION_TIME_THRESHOLD_MS = 120;
@@ -115,19 +117,36 @@ export function evaluateServerRisk(events: ServerBehaviorEvent[]): { score: numb
   return { score: clamp(score, 0, 100), reasons, evidence };
 }
 
+export function calculateTemporalConfidence(events: ServerBehaviorEvent[]): number {
+  if (events.length < 2) return 0.5;
+
+  const timestamps = events.map((e) => e.timestamp).sort((a, b) => a - b);
+  const spans = timestamps.slice(1).map((t, i) => t - timestamps[i]);
+  const avgSpan = spans.reduce((a, b) => a + b, 0) / spans.length;
+
+  // 事件时间分布越均匀、样本越多，置信度越高
+  const variance = spans.reduce((sum, s) => sum + Math.abs(s - avgSpan), 0) / spans.length;
+  const regularity = clamp(1 - variance / Math.max(avgSpan, 1), 0, 1);
+  const sampleConfidence = clamp(events.length / 10, 0, 1);
+
+  return clamp((regularity * 0.4 + sampleConfidence * 0.6), 0.2, 1);
+}
+
 export function combineRisk(
   clientSnapshot: ClientFeatureSnapshot,
   serverEvents: ServerBehaviorEvent[]
 ): RiskReport {
   const client = evaluateClientRisk(clientSnapshot);
   const server = evaluateServerRisk(serverEvents);
+  const confidence = calculateTemporalConfidence(serverEvents);
 
   // 双向验证：任何一方高分都会推高总分；双方同时异常时额外加权
   let combined = client.score * 0.45 + server.score * 0.55;
-  if (client.score > 50 && server.score > 50) {
+  if (client.score > 50 && server.score >= 50) {
     combined = clamp(combined * 1.15, 0, 100);
   }
 
+  // 风险等级使用原始融合分，避免低样本置信度稀释强异常信号
   const score = Math.round(combined);
   const level = scoreToLevel(score);
 
@@ -136,8 +155,10 @@ export function combineRisk(
     level,
     clientScore: Math.round(client.score),
     serverScore: Math.round(server.score),
+    confidence: round2(confidence),
     reasons: Array.from(new Set([...client.reasons, ...server.reasons])),
     evidence: Array.from(new Set([...client.evidence, ...server.evidence])),
+    banRecommendation: score >= 85 && confidence >= 0.7,
   };
 }
 
@@ -151,4 +172,8 @@ function scoreToLevel(score: number): RiskLevel {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }

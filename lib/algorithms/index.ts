@@ -6,3 +6,6 @@ export * from "./matchmaking";
 export * from "./mapBalance";
 export * from "./contentRecommendation";
 export * from "./economyBalance";
+export * from "./rewardRecommendation";
+export * from "./spawnOptimizer";
+export * from "./networkPrediction";

@@ -7,6 +7,9 @@ import {
   MapTrifold,
   Sparkle,
   Coin,
+  Gift,
+  WaveSine,
+  WifiHigh,
   Play,
   ArrowRight,
   BracketsCurly,
@@ -25,6 +28,10 @@ import {
   analyzeMapBalance,
   rankContent,
   adjustDropRates,
+  recommendRewards,
+  optimizeSpawns,
+  evaluateNetwork,
+  predictEntityState,
   type AlgorithmId,
 } from "@/lib/algorithms";
 
@@ -35,6 +42,9 @@ const ICONS: Record<AlgorithmId, typeof Robot> = {
   "map-balance": MapTrifold,
   "content-recommendation": Sparkle,
   "economy-balance": Coin,
+  "reward-recommendation": Gift,
+  "spawn-optimizer": WaveSine,
+  "network-prediction": WifiHigh,
 };
 
 const DEMO_RUNNERS: Record<
@@ -161,6 +171,62 @@ const DEMO_RUNNERS: Record<
         },
         { targetValuePerHour: 150 }
       ),
+  },
+  "reward-recommendation": {
+    label: "模拟奖励推荐",
+    run: () =>
+      recommendRewards(
+        [
+          { id: "w1", name: "散射脉冲", type: "weapon", tags: ["area", "multishot"], rarity: "rare" },
+          { id: "p1", name: "纳米再生", type: "passive", tags: ["regen"], rarity: "epic" },
+          { id: "w2", name: "穿甲磁轨", type: "weapon", tags: ["pierce", "bossDamage"], rarity: "legendary" },
+          { id: "p2", name: "动能护盾", type: "passive", tags: ["shield"], rarity: "common" },
+        ],
+        { weapons: ["plasma"], passives: ["speed"], heroId: "nitrogen", healthPercent: 0.3 },
+        { variants: ["tank", "elite"], eliteRatio: 0.35, bossPresent: true }
+      ),
+  },
+  "spawn-optimizer": {
+    label: "模拟刷怪调度",
+    run: () =>
+      optimizeSpawns(
+        [
+          { variant: "walker", baseWeight: 40, baseIntervalSec: 1.2 },
+          { variant: "runner", baseWeight: 20, baseIntervalSec: 1.5 },
+          { variant: "tank", baseWeight: 10, baseIntervalSec: 3 },
+          { variant: "spitter", baseWeight: 12, baseIntervalSec: 2.5 },
+          { variant: "elite", baseWeight: 6, baseIntervalSec: 5 },
+          { variant: "boss", baseWeight: 1, baseIntervalSec: 12 },
+        ],
+        {
+          playerHealthPercent: 0.35,
+          coreHealthPercent: 0.6,
+          activeEnemyCount: 42,
+          maxEnemyCount: 60,
+          elapsedWaveSec: 45,
+          waveDurationSec: 120,
+          recentDamageTaken: 180,
+        }
+      ),
+  },
+  "network-prediction": {
+    label: "模拟网络补偿",
+    run: () => {
+      const snapshot = {
+        latencyMs: 145,
+        jitterMs: 22,
+        packetLossPercent: 1.2,
+        serverTime: 1000,
+        clientTime: 1150,
+      };
+      return {
+        network: evaluateNetwork(snapshot),
+        predicted: predictEntityState(
+          { x: 120, y: 80, vx: 240, vy: -60, timestamp: 950 },
+          snapshot
+        ),
+      };
+    },
   },
 };
 
