@@ -10,6 +10,7 @@ import {
   Gift,
   WaveSine,
   WifiHigh,
+  Crosshair,
   Play,
   ArrowRight,
   BracketsCurly,
@@ -32,6 +33,7 @@ import {
   optimizeSpawns,
   evaluateNetwork,
   predictEntityState,
+  calculateEnemyMovement,
   type AlgorithmId,
 } from "@/lib/algorithms";
 
@@ -45,6 +47,7 @@ const ICONS: Record<AlgorithmId, typeof Robot> = {
   "reward-recommendation": Gift,
   "spawn-optimizer": WaveSine,
   "network-prediction": WifiHigh,
+  "enemy-movement": Crosshair,
 };
 
 const DEMO_RUNNERS: Record<
@@ -227,6 +230,34 @@ const DEMO_RUNNERS: Record<
         ),
       };
     },
+  },
+  "enemy-movement": {
+    label: "模拟移动走位",
+    run: () =>
+      calculateEnemyMovement({
+        entity: {
+          id: "runner_01",
+          position: { x: 200, y: 200 },
+          radius: 16,
+          speed: 140,
+          variant: "runner",
+          health: 80,
+          maxHealth: 100,
+        },
+        target: {
+          position: { x: 500, y: 220 },
+          velocity: { x: 120, y: 0 },
+          type: "player",
+        },
+        allies: [
+          { id: "runner_02", position: { x: 190, y: 210 }, radius: 16 },
+          { id: "runner_03", position: { x: 210, y: 190 }, radius: 16 },
+        ],
+        obstacles: [{ id: "crate", x: 350, y: 180, width: 60, height: 60 }],
+        bounds: { width: 1200, height: 800 },
+        coordinateMode: "vector",
+        config: { behavior: "flank", flankAngle: Math.PI / 5, time: 12.5 },
+      }),
   },
 };
 

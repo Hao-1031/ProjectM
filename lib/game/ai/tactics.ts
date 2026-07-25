@@ -3,6 +3,7 @@ import type { AIBehavior, AIContext, AIParams, SteeringOutput } from "./types";
 import { distance, normalize, clamp } from "../math";
 import { getFlowDirection, hasLineOfSight, findOpenDirection } from "./pathfinding";
 import { mapDifficultyToAIParams } from "./alpha-bridge";
+import { calculateEnemyMovement, type MovementBehavior } from "@/lib/algorithms";
 
 /**
  * β-1 群体战术与行为决策
@@ -19,8 +20,99 @@ export function runEnemyAI(ctx: AIContext): SteeringOutput {
   const target = selectTarget(ctx);
   const behavior = selectBehavior(ctx, params);
 
-  const output = executeBehavior(ctx, behavior, target, params);
-  return applyFlockingAndObstacles(ctx, output, params);
+  const movementBehavior = toMovementBehavior(behavior);
+  if (!movementBehavior) {
+    const output = executeBehavior(ctx, behavior, target, params);
+    return applyFlockingAndObstacles(ctx, output, params);
+  }
+
+  const output = calculateEnemyMovement({
+    entity: {
+      id: ctx.enemy.id,
+      position: { x: ctx.enemy.x, y: ctx.enemy.y },
+      radius: ctx.enemy.radius,
+      speed: ctx.enemy.speed,
+      variant: ctx.enemy.variant,
+      health: ctx.enemy.health,
+      maxHealth: ctx.enemy.maxHealth,
+      targetCore: ctx.enemy.targetCore,
+      isElite: ctx.enemy.isElite,
+      isBoss: ctx.enemy.isBoss,
+    },
+    target: {
+      position: { x: target.x, y: target.y },
+      type: target.isCore ? "core" : target.isNode ? "node" : "player",
+    },
+    allies: ctx.allies.map((a) => ({
+      id: a.id,
+      position: { x: a.x, y: a.y },
+      radius: a.radius,
+    })),
+    obstacles: ctx.obstacles.map((o) => ({
+      id: o.id,
+      x: o.x,
+      y: o.y,
+      width: o.width,
+      height: o.height,
+    })),
+    bounds: { width: ctx.mapWidth, height: ctx.mapHeight },
+    coordinateMode: "vector",
+    config: {
+      behavior: movementBehavior,
+      aggression: params.aggression,
+      separationWeight: params.separationWeight,
+      obstacleWeight: params.obstacleWeight,
+      boundaryWeight: 1.0,
+      preferredDistance: 220 * params.preferredDistanceMul,
+      attackRange: getAttackRange(ctx.enemy),
+      maxSpeedMultiplier: params.speedMulCap,
+      time: ctx.time,
+    },
+  });
+
+  const vlen = Math.hypot(output.velocity.x, output.velocity.y);
+  return {
+    vx: vlen > 0.001 ? output.velocity.x / vlen : 0,
+    vy: vlen > 0.001 ? output.velocity.y / vlen : 0,
+    speedMultiplier: clamp(output.speedMultiplier, 0.6, params.speedMulCap),
+    shouldAttack: output.shouldAttack,
+  };
+}
+
+function toMovementBehavior(behavior: AIBehavior): MovementBehavior | null {
+  switch (behavior) {
+    case "chase":
+    case "attack_core":
+    case "capture_node":
+      return "pursue";
+    case "keep_distance":
+      return "kite";
+    case "flank":
+    case "ambush":
+      return "flank";
+    case "retreat":
+      return "retreat";
+    case "charge":
+      return "intercept";
+    case "surround":
+    case "swarm":
+      return "surround";
+    case "orbit":
+    default:
+      return null;
+  }
+}
+
+function getAttackRange(enemy: Enemy): number {
+  if (
+    enemy.variant === "spitter" ||
+    enemy.variant === "sniper" ||
+    enemy.variant === "artillery"
+  ) {
+    return 280;
+  }
+  if (enemy.isBoss) return 220;
+  return 80;
 }
 
 export function selectTarget(ctx: AIContext): { x: number; y: number; isCore?: boolean; isNode?: boolean } {

@@ -9,3 +9,4 @@ export * from "./economyBalance";
 export * from "./rewardRecommendation";
 export * from "./spawnOptimizer";
 export * from "./networkPrediction";
+export * from "./enemyMovement";

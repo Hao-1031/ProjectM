@@ -11,6 +11,7 @@ import {
   optimizeSpawns,
   evaluateNetwork,
   predictEntityState,
+  calculateEnemyMovement,
 } from "@/lib/algorithms";
 
 export interface AlgorithmRunRequest {
@@ -111,6 +112,11 @@ export default async function handler(
           ? predictEntityState(entity as never, snapshot as never, options)
           : null;
         return res.status(200).json({ algorithm, result: { network, predicted } });
+      }
+      case "enemy-movement": {
+        const { request } = input as { request: unknown };
+        const result = calculateEnemyMovement(request as never);
+        return res.status(200).json({ algorithm, result });
       }
       default:
         return res.status(400).json({ error: "未知算法 ID" });
