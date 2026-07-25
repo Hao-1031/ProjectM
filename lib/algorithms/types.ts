@@ -8,7 +8,8 @@ export type AlgorithmId =
   | "reward-recommendation"
   | "spawn-optimizer"
   | "network-prediction"
-  | "enemy-movement";
+  | "enemy-movement"
+  | "bot-ai";
 
 export interface AlgorithmMeta {
   id: AlgorithmId;

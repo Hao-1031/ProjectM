@@ -11,6 +11,7 @@ import {
   WaveSine,
   WifiHigh,
   Crosshair,
+  Target,
   Play,
   ArrowRight,
   BracketsCurly,
@@ -34,6 +35,7 @@ import {
   evaluateNetwork,
   predictEntityState,
   calculateEnemyMovement,
+  calculateBotAI,
   type AlgorithmId,
 } from "@/lib/algorithms";
 
@@ -48,6 +50,7 @@ const ICONS: Record<AlgorithmId, typeof Robot> = {
   "spawn-optimizer": WaveSine,
   "network-prediction": WifiHigh,
   "enemy-movement": Crosshair,
+  "bot-ai": Target,
 };
 
 const DEMO_RUNNERS: Record<
@@ -257,6 +260,58 @@ const DEMO_RUNNERS: Record<
         bounds: { width: 1200, height: 800 },
         coordinateMode: "vector",
         config: { behavior: "flank", flankAngle: Math.PI / 5, time: 12.5 },
+      }),
+  },
+  "bot-ai": {
+    label: "模拟 Bot 战术决策",
+    run: () =>
+      calculateBotAI({
+        self: {
+          id: "bot_alpha",
+          x: 200,
+          y: 200,
+          radius: 16,
+          speed: 180,
+          maxHealth: 120,
+          health: 120,
+          teamId: "red",
+          weapon: { id: "pulse", range: 320, damage: 24, cooldown: 0.4, projectileSpeed: 500 },
+        },
+        targets: [
+          {
+            id: "player_1",
+            x: 600,
+            y: 220,
+            radius: 16,
+            speed: 180,
+            maxHealth: 100,
+            health: 60,
+            teamId: "blue",
+            weapon: { id: "shotgun", range: 260, damage: 36, cooldown: 0.8 },
+            velocity: { x: 80, y: 0 },
+          },
+        ],
+        allies: [
+          {
+            id: "bot_beta",
+            x: 190,
+            y: 210,
+            radius: 16,
+            speed: 180,
+            maxHealth: 100,
+            health: 100,
+            teamId: "red",
+            weapon: { id: "pulse", range: 320, damage: 24, cooldown: 0.4 },
+          },
+        ],
+        obstacles: [{ id: "barrier", x: 400, y: 210, width: 80, height: 80 }],
+        bounds: { width: 1200, height: 800 },
+        time: 12.5,
+        dt: 0.016,
+        rngSeed: 42,
+        config: {
+          difficulty: { aggression: 0.7, botAccuracy: 0.82, botReactionDelay: 0.14 },
+        },
       }),
   },
 };

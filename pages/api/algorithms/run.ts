@@ -12,6 +12,7 @@ import {
   evaluateNetwork,
   predictEntityState,
   calculateEnemyMovement,
+  calculateBotAI,
 } from "@/lib/algorithms";
 
 export interface AlgorithmRunRequest {
@@ -116,6 +117,11 @@ export default async function handler(
       case "enemy-movement": {
         const { request } = input as { request: unknown };
         const result = calculateEnemyMovement(request as never);
+        return res.status(200).json({ algorithm, result });
+      }
+      case "bot-ai": {
+        const { request } = input as { request: unknown };
+        const result = calculateBotAI(request as never);
         return res.status(200).json({ algorithm, result });
       }
       default:

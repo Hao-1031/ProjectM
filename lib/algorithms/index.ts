@@ -10,3 +10,4 @@ export * from "./rewardRecommendation";
 export * from "./spawnOptimizer";
 export * from "./networkPrediction";
 export * from "./enemyMovement";
+export * from "./botAI";
