@@ -157,4 +157,38 @@ describe("敌人移动走位", () => {
     expect(result.velocity.x).not.toBeCloseTo(1, 1);
     expect(result.velocity.y).not.toBeCloseTo(0, 1);
   });
+
+  it("侧向走位会产生切向速度分量", () => {
+    const result = calculateEnemyMovement(
+      makeRequest(
+        { config: { behavior: "strafe", strafeFrequency: 2, time: 1 } },
+        { position: { x: 100, y: 100 }, variant: "spitter" },
+        { position: { x: 200, y: 100 } }
+      )
+    );
+    expect(result.behavior).toBe("strafe");
+    expect(Math.abs(result.velocity.y)).toBeGreaterThan(10);
+  });
+
+  it("找掩体行为会偏向障碍物方向", () => {
+    const result = calculateEnemyMovement(
+      makeRequest(
+        {
+          config: {
+            behavior: "seek_cover",
+            coverLookAhead: 120,
+            obstacleWeight: 0,
+            separationWeight: 0,
+            boundaryWeight: 0,
+          },
+          obstacles: [{ id: "cover", x: 20, y: 80, width: 60, height: 60 }],
+        },
+        { position: { x: 100, y: 100 }, health: 20, maxHealth: 100 },
+        { position: { x: 300, y: 100 } }
+      )
+    );
+    expect(result.behavior).toBe("seek_cover");
+    // 掩体在目标反方向，应远离目标朝掩体移动
+    expect(result.velocity.x).toBeLessThan(0);
+  });
 });

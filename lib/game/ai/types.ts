@@ -16,6 +16,8 @@ export type AIBehavior =
   | "flank"
   | "swarm"
   | "retreat"
+  | "seek_cover"
+  | "strafe"
   | "charge"
   | "orbit"
   | "ambush"

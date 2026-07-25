@@ -92,6 +92,10 @@ function toMovementBehavior(behavior: AIBehavior): MovementBehavior | null {
       return "flank";
     case "retreat":
       return "retreat";
+    case "seek_cover":
+      return "seek_cover";
+    case "strafe":
+      return "strafe";
     case "charge":
       return "intercept";
     case "surround":
@@ -115,39 +119,94 @@ function getAttackRange(enemy: Enemy): number {
   return 80;
 }
 
-export function selectTarget(ctx: AIContext): { x: number; y: number; isCore?: boolean; isNode?: boolean } {
-  const { player, core, nodes } = ctx;
+export function selectTarget(
+  ctx: AIContext
+): { x: number; y: number; isCore?: boolean; isNode?: boolean; targetId?: string } {
+  const { player, players, core, nodes } = ctx;
+  const enemy = ctx.enemy;
 
-  // 据点模式：core 存在时按概率选择 core 或最近节点
-  if (core && ctx.enemy.targetCore) {
-    return { x: core.x, y: core.y, isCore: true };
+  // 据点模式：被标记为直冲核心的敌人优先选择核心
+  if (core && enemy.targetCore && !enemy.isBoss) {
+    return { x: core.x, y: core.y, isCore: true, targetId: "core" };
   }
 
-  // 据点模式：有可占领节点时，部分敌人优先去节点
-  if (nodes && nodes.length > 0 && !ctx.enemy.isElite && !ctx.enemy.isBoss) {
+  // 据点模式：非精英敌人可能去占领节点
+  if (nodes && nodes.length > 0 && !enemy.isElite && !enemy.isBoss) {
     const activeNodes = nodes.filter((n) => n.active && !n.captured);
     if (activeNodes.length > 0 && Math.random() < 0.25) {
       const nearest = activeNodes.reduce((best, n) =>
-        distance(ctx.enemy, n) < distance(ctx.enemy, best) ? n : best
+        distance(enemy, n) < distance(enemy, best) ? n : best
       );
-      return { x: nearest.x, y: nearest.y, isNode: true };
+      return { x: nearest.x, y: nearest.y, isNode: true, targetId: nearest.id };
     }
   }
 
-  // 默认追击玩家
-  return { x: player.x, y: player.y };
+  // Bot AI 式目标选择：在多个玩家中按威胁与易伤程度评分
+  const candidates = [player, ...players].filter((p) => p.id !== enemy.id && p.health > 0);
+  if (candidates.length === 0) {
+    return { x: player.x, y: player.y, targetId: player.id };
+  }
+
+  let best: Player | null = null;
+  let bestScore = -Infinity;
+
+  for (const candidate of candidates) {
+    const dist = distance(enemy, candidate);
+    const healthRatio = candidate.maxHealth > 0 ? candidate.health / candidate.maxHealth : 1;
+    const isCurrentTarget = candidate.id === enemy.id; // 敌人本身无 targetId 状态，此处用占位
+
+    let score = -dist * 0.35 + (1 - healthRatio) * 250;
+
+    // 威胁修正：残血玩家更容易被集火
+    if (healthRatio < 0.4) score += 150;
+
+    // 距离偏好：远程敌人喜欢保持一定距离，但不完全放弃近处残血
+    if (
+      enemy.variant === "spitter" ||
+      enemy.variant === "sniper" ||
+      enemy.variant === "artillery"
+    ) {
+      score += Math.max(0, dist - 300) * 0.15;
+    }
+
+    // 障碍物遮挡扣分
+    if (!hasLineOfSight(enemy.x, enemy.y, candidate.x, candidate.y, ctx.obstacles, enemy.radius)) {
+      score -= 120;
+    }
+
+    // 玩家当前武器射程越远威胁越高，优先处理
+    const playerWeaponRange = candidate.weapons[0]?.range ?? 200;
+    score += Math.min(playerWeaponRange, 600) * 0.05;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = candidate;
+    }
+  }
+
+  const chosen = best ?? player;
+  return { x: chosen.x, y: chosen.y, targetId: chosen.id };
 }
 
 export function selectBehavior(ctx: AIContext, params: AIParams): AIBehavior {
-  const { enemy } = ctx;
+  const { enemy, obstacles } = ctx;
+  const target = selectTarget(ctx);
+  const dist = distance(enemy, target);
+  const attackRange = getAttackRange(enemy);
   const healthRatio = enemy.maxHealth > 0 ? enemy.health / enemy.maxHealth : 1;
   const aggression = params.aggression;
+
+  // 低血量且附近有障碍物时优先找掩体，否则撤退
+  if (healthRatio < 0.25) {
+    if (obstacles.length > 0 && aggression < 0.5) return "seek_cover";
+    return "retreat";
+  }
 
   // 据点模式下敌人以直冲核心为主，避免过多横向乱跑
   if (enemy.targetCore) {
     if (enemy.isBoss) return "orbit";
     if (enemy.variant === "spitter" || enemy.variant === "sniper" || enemy.variant === "artillery") {
-      return healthRatio < 0.3 ? "retreat" : "keep_distance";
+      return dist < attackRange * 1.2 ? "strafe" : "chase";
     }
     if (enemy.variant === "tank" || enemy.variant === "crusher") return "charge";
     if (healthRatio < 0.2 && aggression < 0.5) return "retreat";
@@ -155,14 +214,20 @@ export function selectBehavior(ctx: AIContext, params: AIParams): AIBehavior {
   }
 
   if (enemy.isBoss) return "orbit";
-  if (enemy.variant === "spitter") return healthRatio < 0.3 ? "retreat" : "keep_distance";
-  if (enemy.variant === "sniper" || enemy.variant === "artillery") return "keep_distance";
+
+  if (enemy.variant === "spitter") {
+    return dist < attackRange * 1.1 ? "strafe" : "chase";
+  }
+  if (enemy.variant === "sniper" || enemy.variant === "artillery") {
+    return dist < attackRange * 1.3 ? "strafe" : "chase";
+  }
   if (enemy.variant === "runner" || enemy.variant === "raptor") return "flank";
   if (enemy.variant === "stalker") return "ambush";
   if (enemy.variant === "tank" || enemy.variant === "crusher") return "charge";
   if (enemy.variant === "disruptor" || enemy.variant === "shielder") return "surround";
 
-  if (healthRatio < 0.25 && aggression < 0.6) return "retreat";
+  // 通用敌人：进入攻击范围后采用侧向走位降低被命中概率
+  if (dist < attackRange * 1.1 && healthRatio > 0.5) return "strafe";
   if (ctx.allies.length >= 5) return "surround";
   if (aggression > 0.75 && ctx.allies.length >= 3) return "flank";
 

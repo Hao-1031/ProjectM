@@ -69,7 +69,9 @@ export type MovementBehavior =
   | "flank"
   | "surround"
   | "avoid_crowd"
-  | "retreat";
+  | "retreat"
+  | "strafe"
+  | "seek_cover";
 
 export interface MovementConfig {
   /** 指定行为；不指定时根据 entity 状态自动选择 */
@@ -98,6 +100,10 @@ export interface MovementConfig {
   obstacleBuffer?: number;
   /** 当前时间（秒），用于时间相关扰动；未提供时使用 Date.now */
   time?: number;
+  /** 侧向移动频率，默认 2.0 */
+  strafeFrequency?: number;
+  /** 掩体探测距离，默认 120 */
+  coverLookAhead?: number;
 }
 
 export interface MovementRequest {
@@ -140,6 +146,8 @@ const DEFAULT_CONFIG: Required<MovementConfig> = {
   crowdRadius: 120,
   obstacleBuffer: 8,
   time: Date.now() / 1000,
+  strafeFrequency: 2,
+  coverLookAhead: 120,
 };
 
 function isGridCoord(v: Vec2 | GridCoord): v is GridCoord {
@@ -316,6 +324,67 @@ function computeSurroundForce(from: Vec2, to: Vec2, entityId: string): Vec2 {
   return normalize(sub(surroundTarget, from));
 }
 
+function computeStrafeForce(
+  from: Vec2,
+  to: Vec2,
+  time: number,
+  frequency: number,
+  aggression: number
+): Vec2 {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1) return { x: 1, y: 0 };
+
+  const toward = { x: dx / dist, y: dy / dist };
+  const strafeDir = Math.sin(time * frequency + from.x * 0.01) > 0 ? 1 : -1;
+  const forwardBias = aggression > 0.6 ? 0.3 : 0.1;
+
+  return normalize({
+    x: -toward.y * strafeDir + toward.x * forwardBias,
+    y: toward.x * strafeDir + toward.y * forwardBias,
+  });
+}
+
+function computeCoverForce(
+  from: Vec2,
+  to: Vec2,
+  obstacles: MovementObstacle[],
+  radius: number,
+  lookAhead: number
+): Vec2 {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const away = { x: -dx / dist, y: -dy / dist };
+
+  let best = away;
+  let bestScore = -Infinity;
+
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
+    const dir = { x: Math.cos(angle), y: Math.sin(angle) };
+    const projected = add(from, scale(dir, lookAhead));
+
+    let coverScore = 0;
+    for (const obs of obstacles) {
+      const closest = rectClosestPoint(obs, projected);
+      const d = Math.hypot(closest.x - projected.x, closest.y - projected.y);
+      const threshold = radius + 40;
+      if (d < threshold) coverScore += 1;
+    }
+
+    const alignment = dot(dir, away);
+    const score = coverScore * 2 + alignment;
+    if (score > bestScore) {
+      bestScore = score;
+      best = dir;
+    }
+  }
+
+  return best;
+}
+
 function computeRetreatForce(
   from: Vec2,
   to: Vec2,
@@ -452,7 +521,8 @@ function resolveBehaviorForce(
   to: Vec2,
   entity: MovementEntity,
   target: MovementTarget,
-  cfg: Required<MovementConfig>
+  cfg: Required<MovementConfig>,
+  obstacles: MovementObstacle[]
 ): Vec2 {
   switch (behavior) {
     case "intercept":
@@ -463,9 +533,14 @@ function resolveBehaviorForce(
       return computeFlankForce(from, to, entity.id, cfg.flankAngle);
     case "surround":
       return computeSurroundForce(from, to, entity.id);
+    case "strafe":
+      return computeStrafeForce(from, to, cfg.time, cfg.strafeFrequency, cfg.aggression);
+    case "seek_cover":
+      return computeCoverForce(from, to, obstacles, entity.radius, cfg.coverLookAhead);
     case "avoid_crowd":
       return { x: 0, y: 0 };
     case "retreat":
+      return computeRetreatForce(from, to, obstacles, [], cfg.obstacleBuffer);
     case "pursue":
     default:
       return computePursuitForce(from, to);
@@ -492,24 +567,15 @@ export function calculateEnemyMovement(
 
   const behavior = selectBehavior(entity, target, targetPos, fromPos, allies, cfg);
 
-  let behaviorForce = resolveBehaviorForce(
+  const behaviorForce = resolveBehaviorForce(
     behavior,
     fromPos,
     targetPos,
     entity,
     target,
-    cfg
+    cfg,
+    obstacles
   );
-
-  if (behavior === "retreat") {
-    behaviorForce = computeRetreatForce(
-      fromPos,
-      targetPos,
-      obstacles,
-      allies,
-      cfg.obstacleBuffer
-    );
-  }
 
   const separation = computeSeparationForce(fromPos, allies, cfg.crowdRadius);
   const obstacle = computeObstacleForce(
