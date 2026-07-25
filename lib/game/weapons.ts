@@ -80,6 +80,22 @@ export function createShardRepeater(): Weapon {
   return getWeaponBase("shardRepeater");
 }
 
+export function createShortBlade(): Weapon {
+  return getWeaponBase("shortBlade");
+}
+
+export function createSpear(): Weapon {
+  return getWeaponBase("spear");
+}
+
+export function createGreatsword(): Weapon {
+  return getWeaponBase("greatsword");
+}
+
+export function createGauntlet(): Weapon {
+  return getWeaponBase("gauntlet");
+}
+
 export const WEAPON_CREATORS: Record<WeaponId, () => Weapon> = {
   pulse: createPulseRifle,
   shotgun: createShotgun,
@@ -99,10 +115,14 @@ export const WEAPON_CREATORS: Record<WeaponId, () => Weapon> = {
   vortexCannon: createVortexCannon,
   seekerRifle: createSeekerRifle,
   shardRepeater: createShardRepeater,
+  shortBlade: createShortBlade,
+  spear: createSpear,
+  greatsword: createGreatsword,
+  gauntlet: createGauntlet,
 };
 
 export function getStarterWeapons(): Weapon[] {
-  return [createPulseRifle()];
+  return [createPulseRifle(), createShotgun(), createSpear()];
 }
 
 export function cloneWeapon(weapon: Weapon): Weapon {
@@ -314,8 +334,6 @@ function getWeaponUpgradeDescription(weapon: Weapon): string {
       return "伤害 +22%，连锁次数 +1，跳跃距离提升";
     case "cryoLauncher":
       return "伤害 +24%，冻结延长，爆炸范围提升";
-    case "plasmaBlade":
-      return "伤害 +28%，斩击范围提升，穿透 +2";
     case "naniteSwarm":
       return "伤害 +20%，弹丸 +1，纳米层数提升";
     case "gravityWell":
@@ -326,6 +344,16 @@ function getWeaponUpgradeDescription(weapon: Weapon): string {
       return "伤害 +22%，弹丸 +1，追踪距离提升";
     case "shardRepeater":
       return "伤害 +18%，弹丸 +1，冷却 -8%";
+    case "shortBlade":
+      return "伤害 +18%，冷却 -8%，斩击范围提升";
+    case "spear":
+      return "伤害 +22%，冷却 -10%，突刺距离提升";
+    case "greatsword":
+      return "伤害 +24%，冷却 -10%，斩击范围提升";
+    case "gauntlet":
+      return "伤害 +16%，冷却 -6%，连击角度扩大";
+    case "plasmaBlade":
+      return "伤害 +28%，斩击范围提升，穿透 +2，燃烧延长";
     default:
       return "属性全面提升";
   }

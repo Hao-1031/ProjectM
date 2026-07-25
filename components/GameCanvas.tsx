@@ -23,6 +23,8 @@ import MultiplayerLobby from "./MultiplayerLobby";
 import NotificationToast, { type GameNotification } from "./game/NotificationToast";
 import WaveAnnouncement, { type WavePhase } from "./game/WaveAnnouncement";
 import LoadoutModal from "./game/LoadoutModal";
+import OverclockChoiceModal from "./extreme-survival/OverclockChoiceModal";
+import RedBreathOverlay from "./extreme-survival/RedBreathOverlay";
 import type { HeroId, WeaponId } from "@/lib/game/types";
 
 interface GameCanvasProps {
@@ -65,12 +67,22 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     const params = new URLSearchParams(window.location.search);
     const m = params.get("mode") as GameModeType | null;
     return m &&
-      ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch", "survival"].includes(m)
+      [
+        "campaign",
+        "endless",
+        "daily",
+        "roguelike",
+        "defense",
+        "deathmatch",
+        "survival",
+        "extreme-survival",
+      ].includes(m)
       ? m
       : "campaign";
   });
   const [notifications, setNotifications] = useState<GameNotification[]>([]);
   const [showLoadout, setShowLoadout] = useState(true);
+  const [showBranchChoice, setShowBranchChoice] = useState(false);
   const [loadoutSnapshot, setLoadoutSnapshot] = useState(() => getLoadout());
   const [waveAnnouncement, setWaveAnnouncement] = useState<{
     visible: boolean;
@@ -182,6 +194,9 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         },
         onRoguelikeRewardOffer: (options) => {
           setRoguelikeRewardOptions(options);
+        },
+        onBranchChoiceRequest: () => {
+          setShowBranchChoice(true);
         },
       },
       initialModeRef.current,
@@ -539,6 +554,20 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     [handleStart]
   );
 
+  const handleBranchChoice = useCallback((choice: "overclock" | "continue") => {
+    engineRef.current?.chooseOverclockBranch(choice);
+    setShowBranchChoice(false);
+    if (choice === "overclock") {
+      addNotification({
+        title: "超频极限已启动",
+        message: "敌人强度陡增，奖励倍率提升至 1.7 倍",
+        variant: "danger",
+        icon: "danger",
+        durationMs: 4000,
+      });
+    }
+  }, [addNotification]);
+
   const handlePauseToggle = useCallback(() => {
     engineRef.current?.pause();
     setFrame((f) => f + 1);
@@ -575,6 +604,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     setSurrendered(false);
     setIsStarted(false);
     setShowLoadout(true);
+    setShowBranchChoice(false);
     setLoadoutSnapshot(getLoadout());
     engineRef.current?.restart();
   }, []);
@@ -700,7 +730,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         />
       )}
 
-      {paused && (
+      {paused && !showBranchChoice && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-border bg-panel p-6 text-center sm:p-8">
             <h2 className="text-2xl font-bold">已暂停</h2>
@@ -728,6 +758,13 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         <RoguelikeRewardModal options={roguelikeRewardOptions} onSelect={handleRoguelikeReward} />
       )}
       {runResult && <RunEndModal result={runResult} onRestart={handleRestart} onExit={onExit} />}
+
+      {showBranchChoice && <OverclockChoiceModal onChoose={handleBranchChoice} />}
+
+      <RedBreathOverlay
+        active={engine?.state.extremeSurvivalRun?.phase === "overclock"}
+        intensity={1 - (engine?.state.defenseState?.core.health ?? 1) / (engine?.state.defenseState?.core.maxHealth ?? 1)}
+      />
     </div>
   );
 }

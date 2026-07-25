@@ -137,8 +137,8 @@ describe("DEFAULT_BALANCE", () => {
     expect(DEFAULT_BALANCE.modes).toBeDefined();
   });
 
-  it("has 18 weapon definitions", () => {
-    expect(Object.keys(DEFAULT_BALANCE.weapons)).toHaveLength(18);
+  it("has 22 weapon definitions", () => {
+    expect(Object.keys(DEFAULT_BALANCE.weapons)).toHaveLength(22);
   });
 
   it("every weapon has positive base stats", () => {
@@ -146,7 +146,10 @@ describe("DEFAULT_BALANCE", () => {
       expect(cfg.base.damage, `${id} damage`).toBeGreaterThan(0);
       expect(cfg.base.cooldown, `${id} cooldown`).toBeGreaterThan(0);
       expect(cfg.base.range, `${id} range`).toBeGreaterThan(0);
-      expect(cfg.base.projectileSpeed, `${id} projectileSpeed`).toBeGreaterThan(0);
+      // 扇形瞬发近战武器不使用弹速，允许为 0
+      if (!cfg.base.isMelee || cfg.base.meleeShape !== "arc") {
+        expect(cfg.base.projectileSpeed, `${id} projectileSpeed`).toBeGreaterThan(0);
+      }
       expect(cfg.base.count, `${id} count`).toBeGreaterThan(0);
       expect(cfg.maxLevel, `${id} maxLevel`).toBeGreaterThanOrEqual(1);
       expect(cfg.upgrades.length, `${id} upgrades`).toBeGreaterThan(0);

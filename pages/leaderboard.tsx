@@ -35,10 +35,12 @@ const modeNames: Record<string, string> = {
   defense: "据点防守",
   deathmatch: "个人死斗",
   survival: "生存模式",
+  "extreme-survival": "极限生存",
 };
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式" },
+  { value: "extreme-survival", label: "极限生存" },
   { value: "survival", label: "生存模式" },
   { value: "defense", label: "据点防守" },
   { value: "deathmatch", label: "个人死斗" },
@@ -150,6 +152,10 @@ export default function LeaderboardPage() {
 
   const handleSubmit = async () => {
     if (!best) return;
+    if (best.mode === "extreme-survival" && best.extremeSurvivalPhase !== "overclock") {
+      setSubmitError("极限生存模式仅记录进入超频极限阶段的 run");
+      return;
+    }
     const name = playerName.trim() || "匿名幸存者";
     setSubmitting(true);
     setSubmitError(null);

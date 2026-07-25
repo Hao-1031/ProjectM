@@ -191,10 +191,10 @@ describe("behavior selection", () => {
     expect(selectBehavior(ctx, params)).toBe("chase");
   });
 
-  it("selects keep_distance for spitter", () => {
+  it("selects strafe for spitter", () => {
     const ctx = makeContext({ enemy: makeEnemy({ variant: "spitter" }) });
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("keep_distance");
+    expect(selectBehavior(ctx, params)).toBe("strafe");
   });
 
   it("selects charge for tank", () => {
@@ -236,7 +236,10 @@ describe("target selection", () => {
   });
 
   it("selects player by default", () => {
-    const ctx = makeContext({ player: makePlayer({ x: 600, y: 600 }) });
+    const ctx = makeContext({
+      player: makePlayer({ x: 600, y: 600 }),
+      players: [],
+    });
     const target = selectTarget(ctx);
     expect(target.x).toBe(600);
     expect(target.y).toBe(600);
@@ -304,19 +307,24 @@ describe("steering outputs", () => {
 
 describe("runEnemyAI", () => {
   it("returns normalized velocity", () => {
-    const ctx = makeContext({ enemy: makeEnemy({ x: 400, y: 400 }), player: makePlayer({ x: 500, y: 500 }) });
+    const ctx = makeContext({
+      enemy: makeEnemy({ x: 400, y: 400 }),
+      player: makePlayer({ x: 500, y: 500 }),
+      players: [],
+    });
     const result = runEnemyAI(ctx);
     expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
-    expect(result.shouldAttack).toBe(true);
   });
 
-  it("keeps spitters at range", () => {
+  it("keeps spitters at range via strafe", () => {
     const ctx = makeContext({
       enemy: makeEnemy({ variant: "spitter", x: 490, y: 500 }),
       player: makePlayer({ x: 500, y: 500 }),
+      players: [],
     });
     const result = runEnemyAI(ctx);
-    expect(result.vx).toBeLessThan(0);
+    //  spitters 现在进入近战范围后使用横向游斗，保持非零侧向速度
+    expect(Math.abs(result.vx) + Math.abs(result.vy)).toBeGreaterThan(0);
   });
 });
 

@@ -68,6 +68,12 @@ export interface WeaponStatBlock {
   homing?: boolean;
   isMelee?: boolean;
   swarmCount?: number;
+  // Melee tuning
+  meleeShape?: "arc" | "thrust";
+  meleeAngle?: number;
+  meleeWidth?: number;
+  lungeDistance?: number;
+  comboCount?: number;
 }
 
 export interface WeaponUpgradeStep {
@@ -549,29 +555,6 @@ export const DEFAULT_BALANCE: BalanceConfig = {
         { level: 5, damageMul: 1.24, cooldownMul: 0.9, areaMul: 1.16, freezeDurationAdd: 0.6 },
       ],
     },
-    plasmaBlade: {
-      name: "等离子刃",
-      description: "近身高伤害斩击，可穿透路径上所有敌人",
-      color: "#e879f9",
-      cost: 600,
-      maxLevel: 5,
-      base: {
-        damage: 64,
-        cooldown: 0.72,
-        range: 170,
-        projectileSpeed: 820,
-        count: 1,
-        spread: 0.18,
-        pierce: 6,
-        isMelee: true,
-      },
-      upgrades: [
-        { level: 2, damageMul: 1.28, cooldownMul: 0.88, rangeMul: 1.08 },
-        { level: 3, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 2 },
-        { level: 4, damageMul: 1.28, cooldownMul: 0.88, rangeMul: 1.08 },
-        { level: 5, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 3, rangeMul: 1.1 },
-      ],
-    },
     naniteSwarm: {
       name: "纳米虫群",
       description: "释放持续侵蚀敌人的微型机器人，可叠加多层",
@@ -691,6 +674,133 @@ export const DEFAULT_BALANCE: BalanceConfig = {
         { level: 3, damageMul: 1.18, cooldownMul: 0.92, countAdd: 1 },
         { level: 4, damageMul: 1.18, cooldownMul: 0.92, countAdd: 1 },
         { level: 5, damageMul: 1.18, cooldownMul: 0.92, countAdd: 2, pierceAdd: 1 },
+      ],
+    },
+    shortBlade: {
+      name: "碳钢短刃",
+      description: "极快的近身斩击，适合清理贴脸杂兵",
+      color: "#94a3b8",
+      cost: 0,
+      maxLevel: 5,
+      base: {
+        damage: 30,
+        cooldown: 0.28,
+        range: 115,
+        projectileSpeed: 0,
+        count: 1,
+        spread: 0,
+        pierce: 3,
+        isMelee: true,
+        meleeShape: "arc",
+        meleeAngle: 2.27,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.18, cooldownMul: 0.92, rangeMul: 1.06 },
+        { level: 3, damageMul: 1.18, cooldownMul: 0.92, pierceAdd: 1 },
+        { level: 4, damageMul: 1.18, cooldownMul: 0.92, rangeMul: 1.06 },
+        { level: 5, damageMul: 1.18, cooldownMul: 0.9, pierceAdd: 2, rangeMul: 1.08 },
+      ],
+    },
+    spear: {
+      name: "合金长枪",
+      description: "中距离突刺，可穿透直线上多个目标",
+      color: "#cbd5e1",
+      cost: 0,
+      maxLevel: 5,
+      base: {
+        damage: 52,
+        cooldown: 0.55,
+        range: 220,
+        projectileSpeed: 1450,
+        count: 1,
+        spread: 0,
+        pierce: 5,
+        isMelee: true,
+        meleeShape: "thrust",
+        meleeWidth: 36,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.22, cooldownMul: 0.9, rangeMul: 1.06 },
+        { level: 3, damageMul: 1.22, cooldownMul: 0.9, pierceAdd: 1 },
+        { level: 4, damageMul: 1.22, cooldownMul: 0.9, rangeMul: 1.06 },
+        { level: 5, damageMul: 1.22, cooldownMul: 0.88, pierceAdd: 2, rangeMul: 1.08 },
+      ],
+    },
+    greatsword: {
+      name: "等离子重剑",
+      description: "缓慢但毁灭性的挥砍，对大群敌人造成巨额伤害",
+      color: "#f87171",
+      cost: 0,
+      maxLevel: 5,
+      base: {
+        damage: 88,
+        cooldown: 0.98,
+        range: 165,
+        projectileSpeed: 0,
+        count: 1,
+        spread: 0,
+        pierce: 6,
+        isMelee: true,
+        meleeShape: "arc",
+        meleeAngle: 1.66,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.24, cooldownMul: 0.9, rangeMul: 1.06 },
+        { level: 3, damageMul: 1.24, cooldownMul: 0.9, pierceAdd: 2 },
+        { level: 4, damageMul: 1.24, cooldownMul: 0.9, rangeMul: 1.06 },
+        { level: 5, damageMul: 1.24, cooldownMul: 0.88, pierceAdd: 2, rangeMul: 1.1 },
+      ],
+    },
+    gauntlet: {
+      name: "脉冲拳套",
+      description: "超高速连击，每次攻击覆盖身前大角度范围",
+      color: "#facc15",
+      cost: 0,
+      maxLevel: 5,
+      base: {
+        damage: 17,
+        cooldown: 0.16,
+        range: 88,
+        projectileSpeed: 0,
+        count: 1,
+        spread: 0,
+        pierce: 2,
+        isMelee: true,
+        meleeShape: "arc",
+        meleeAngle: 2.62,
+        comboCount: 3,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.16, cooldownMul: 0.94, rangeMul: 1.05 },
+        { level: 3, damageMul: 1.16, cooldownMul: 0.94, pierceAdd: 1 },
+        { level: 4, damageMul: 1.16, cooldownMul: 0.94, rangeMul: 1.05 },
+        { level: 5, damageMul: 1.16, cooldownMul: 0.92, pierceAdd: 1, rangeMul: 1.08 },
+      ],
+    },
+    plasmaBlade: {
+      name: "等离子刃·改",
+      description: "进阶能量刃，斩击附带高热灼烧，可穿透路径上所有敌人",
+      color: "#e879f9",
+      cost: 0,
+      maxLevel: 5,
+      base: {
+        damage: 105,
+        cooldown: 0.72,
+        range: 195,
+        projectileSpeed: 0,
+        count: 1,
+        spread: 0,
+        pierce: 8,
+        isMelee: true,
+        meleeShape: "arc",
+        meleeAngle: 1.83,
+        burnDuration: 3,
+      },
+      upgrades: [
+        { level: 2, damageMul: 1.28, cooldownMul: 0.88, rangeMul: 1.08, burnAdd: 0.5 },
+        { level: 3, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 2 },
+        { level: 4, damageMul: 1.28, cooldownMul: 0.88, rangeMul: 1.08, burnAdd: 0.5 },
+        { level: 5, damageMul: 1.28, cooldownMul: 0.88, pierceAdd: 3, rangeMul: 1.1, burnAdd: 0.5 },
       ],
     },
   },
@@ -1601,6 +1711,11 @@ export function getWeaponBase(id: WeaponId): Weapon {
     homing: cfg.base.homing,
     isMelee: cfg.base.isMelee,
     swarmCount: cfg.base.swarmCount,
+    meleeShape: cfg.base.meleeShape,
+    meleeAngle: cfg.base.meleeAngle,
+    meleeWidth: cfg.base.meleeWidth,
+    lungeDistance: cfg.base.lungeDistance,
+    comboCount: cfg.base.comboCount,
   };
 }
 
@@ -1998,7 +2113,7 @@ export const PASSIVE_BALANCE_DEFS: PassiveBalanceDef[] = [
   {
     id: "area",
     name: "范围增幅",
-    description: "范围效果 +10%",
+    description: "范围效果与近战攻击范围 +10%",
     color: "#38bdf8",
     maxLevel: 5,
     apply: (p) => {

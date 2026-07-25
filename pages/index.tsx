@@ -23,6 +23,7 @@ import {
   Plus,
   Megaphone,
   PaintBrush,
+  Lightning,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -41,6 +42,7 @@ const MODES: {
   accent: string;
   desc: string;
 }[] = [
+  { type: "extreme-survival", label: "极限生存", icon: Lightning, accent: "#c45c4a", desc: "满配超频挑战" },
   { type: "survival", label: "生存模式", icon: Skull, accent: "#b84a55", desc: "15 分钟割草" },
   { type: "defense", label: "据点防守", icon: Shield, accent: "#7a8f3e", desc: "2-4 人合作" },
   { type: "campaign", label: "战役模式", icon: Target, accent: "#b87a3d", desc: "连续任务" },
@@ -132,7 +134,11 @@ export default function HomePage() {
   const bossNames = Object.values(DEFAULT_BALANCE.bosses).map((b) => b.name);
 
   const playHref =
-    selectedMode === "defense" ? "/game?mode=defense&multiplayer=1" : `/game?mode=${selectedMode}`;
+    selectedMode === "defense"
+      ? "/game?mode=defense&multiplayer=1"
+      : selectedMode === "extreme-survival"
+        ? "/game?mode=extreme-survival"
+        : `/game?mode=${selectedMode}`;
 
   return (
     <div
@@ -382,7 +388,7 @@ export default function HomePage() {
           >
             {MODES.map((mode) => {
               const Icon = mode.icon;
-              const featured = mode.type === "survival";
+              const featured = mode.type === "extreme-survival";
               return (
                 <motion.div
                   key={mode.type}
@@ -393,7 +399,9 @@ export default function HomePage() {
                     href={
                       mode.type === "defense"
                         ? "/game?mode=defense&multiplayer=1"
-                        : `/game?mode=${mode.type}`
+                        : mode.type === "extreme-survival"
+                          ? "/game?mode=extreme-survival"
+                          : `/game?mode=${mode.type}`
                     }
                     className="group relative flex h-full min-h-[96px] flex-col justify-between overflow-hidden rounded-2xl border bg-panel p-3 transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring"
                     style={{ borderColor: featured ? `${mode.accent}30` : undefined }}

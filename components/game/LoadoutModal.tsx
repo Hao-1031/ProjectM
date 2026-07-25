@@ -68,6 +68,7 @@ export default function LoadoutModal({
   const [selectedWeapons, setSelectedWeapons] = useState<WeaponId[]>(initialWeapons);
   const [selectedSkin, setSelectedSkin] = useState<string | null>(() => getEquippedSkin());
   const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
+  const isExtremeSurvival = mode === "extreme-survival";
   const heroes = Object.values(HERO_DEFS);
   const save = useMemo(() => loadSave(), []);
   const unlockedSet = useMemo(() => new Set(save.unlockedWeapons), [save]);
@@ -75,12 +76,12 @@ export default function LoadoutModal({
     WeaponId,
     (typeof DEFAULT_BALANCE.weapons)[WeaponId],
   ][];
-  const weapons = allWeapons.filter(([id]) => unlockedSet.has(id));
+  const weapons = isExtremeSurvival ? allWeapons : allWeapons.filter(([id]) => unlockedSet.has(id));
 
   const activeHero = HERO_DEFS[selectedHero];
   const availableSkins = useMemo(
-    () => getSkinsForHero(selectedHero).filter((s) => isCosmeticOwned(s.id)),
-    [selectedHero]
+    () => getSkinsForHero(selectedHero).filter((s) => isExtremeSurvival || isCosmeticOwned(s.id)),
+    [selectedHero, isExtremeSurvival]
   );
 
   useEffect(() => {
@@ -112,10 +113,14 @@ export default function LoadoutModal({
 
   const handleConfirm = useCallback(() => {
     const weaponIds: WeaponId[] = selectedWeapons.length > 0 ? selectedWeapons : ["pulse"];
-    equipSkin(selectedSkin);
-    saveLoadout(selectedHero, weaponIds);
+    if (selectedSkin && isCosmeticOwned(selectedSkin)) {
+      equipSkin(selectedSkin);
+    }
+    if (!isExtremeSurvival) {
+      saveLoadout(selectedHero, weaponIds);
+    }
     onConfirm({ heroId: selectedHero, weaponIds });
-  }, [selectedHero, selectedWeapons, selectedSkin, onConfirm]);
+  }, [selectedHero, selectedWeapons, selectedSkin, onConfirm, isExtremeSurvival]);
 
   const isTouch = typeof window !== "undefined" && "ontouchstart" in window;
 
@@ -349,7 +354,9 @@ export default function LoadoutModal({
                     <PaintBrush size={14} weight="bold" className="text-accent" />
                     <span className="text-sm font-bold">外观</span>
                   </div>
-                  <span className="text-[10px] text-muted">只显示已拥有的涂装</span>
+                  <span className="text-[10px] text-muted">
+                    {isExtremeSurvival ? "极限生存临时解锁全部涂装" : "只显示已拥有的涂装"}
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -524,6 +531,7 @@ function modeName(mode: GameModeType): string {
     roguelike: "冒险模式",
     deathmatch: "个人死斗",
     survival: "生存模式",
+    "extreme-survival": "极限生存",
   };
   return names[mode] ?? mode;
 }

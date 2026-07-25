@@ -39,8 +39,8 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       id: "nitrogen_grenade",
       name: "冰冻手雷",
       description:
-        "投掷后形成半径 120 的低温区域，持续 6 秒；区域内敌人每 0.4 秒叠加 1 层霜冻，满 4 层冻结 1.8 秒并碎裂造成 180 伤害。落地瞬间对中心敌人造成 40 伤害与强烈减速",
-      cooldown: 10,
+        "投掷后形成半径 135 的低温区域，持续 6 秒；区域内敌人每 0.35 秒叠加 1 层霜冻，满 4 层冻结 2 秒并碎裂造成 220 伤害。落地瞬间对中心敌人造成 55 伤害与强烈减速",
+      cooldown: 9,
       timer: 0,
       range: BASE_SKILL_RANGE,
       duration: 6,
@@ -50,11 +50,11 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       id: "nitrogen_zero",
       name: "绝对零度",
       description:
-        "以自身为中心释放半径 260 的冰冻爆发，立即造成 420 伤害并冻结 3.2 秒；冻结结束时碎裂造成 260 伤害，幸存者附加 3 层霜冻",
-      cooldown: 42,
+        "以自身为中心释放半径 280 的冰冻爆发，立即造成 480 伤害并冻结 3.5 秒；冻结结束时碎裂造成 300 伤害，幸存者附加 3 层霜冻",
+      cooldown: 38,
       timer: 0,
-      range: 260,
-      duration: 3.2,
+      range: 280,
+      duration: 3.5,
       color: "#0ea5e9",
     },
     passive: { armorAdd: 0.06, areaMul: 1.12 },
@@ -105,21 +105,21 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "twilight_pulse",
       name: "治疗脉冲",
-      description: "在目标位置生成半径 110 的治疗场，每秒恢复 30 点生命，持续 6 秒",
-      cooldown: 15,
+      description: "在目标位置生成半径 125 的治疗场，每秒恢复 36 点生命，持续 7 秒",
+      cooldown: 13,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 6,
+      duration: 7,
       color: "#a78bfa",
     },
     ultimate: {
       id: "twilight_cocoon",
       name: "蛹化复苏",
-      description: "瞬间为自身及附近友方恢复 120 点生命并清除燃烧/腐蚀减益，随后 4 秒内额外恢复 32 点生命/秒",
-      cooldown: 50,
+      description: "瞬间为自身及附近友方恢复 150 点生命并清除燃烧/腐蚀减益，随后 4.5 秒内额外恢复 38 点生命/秒",
+      cooldown: 45,
       timer: 0,
-      range: 260,
-      duration: 4,
+      range: 280,
+      duration: 4.5,
       color: "#8b5cf6",
     },
     passive: { regenAdd: 2, cooldownReductionAdd: 0.06 },
@@ -170,21 +170,21 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "leopard_pounce",
       name: "猛扑",
-      description: "向面朝方向冲刺 260 距离，路径上敌人受到 130 点伤害并被击退；命中后自身移速 +12% 持续 2.5 秒",
-      cooldown: 10,
+      description: "向面朝方向冲刺 280 距离，路径上敌人受到 160 点伤害并被击退；命中后自身移速 +15% 持续 3 秒",
+      cooldown: 8,
       timer: 0,
-      range: 260,
+      range: 280,
       duration: 0,
       color: "#fb923c",
     },
     ultimate: {
       id: "leopard_instinct",
       name: "猎杀本能",
-      description: "8 秒内移动速度 +35%、暴击率 +25%，击杀会刷新猛扑冷却",
-      cooldown: 40,
+      description: "10 秒内移动速度 +40%、暴击率 +30%，击杀会刷新猛扑冷却",
+      cooldown: 35,
       timer: 0,
       range: 0,
-      duration: 8,
+      duration: 10,
       color: "#f97316",
     },
     passive: { speedMul: 1.12, critAdd: 0.06 },
@@ -198,12 +198,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         modifiers: { damageMul: 1.05 },
       },
       {
-        id: "leopard_predator",
-        name: "掠食本能",
-        description: "暴击率 +3%",
+        id: "leopard_blade_mastery",
+        name: "利刃精通",
+        description: "近战武器伤害 +12%，攻击范围 +8%",
         maxLevel: 5,
         category: "damage",
-        modifiers: { critAdd: 0.03 },
+        modifiers: { meleeDamageMul: 1.12, meleeRangeMul: 1.08 },
       },
       {
         id: "leopard_feral_pounce",
@@ -235,20 +235,20 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "recon_drone",
       name: "侦察无人机",
-      description: "部署无人机，半径 130 范围内敌人受到伤害 +18%，持续 7 秒",
-      cooldown: 14,
+      description: "部署无人机，半径 150 范围内敌人受到伤害 +25%，持续 8 秒",
+      cooldown: 12,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 7,
+      duration: 8,
       color: "#34d399",
     },
     ultimate: {
       id: "recon_strike",
       name: "集束打击",
-      description: "召唤轨道打击，对面朝方向 140 距离处半径 170 区域造成 420 点伤害；幸存者被标记 4 秒，受到伤害 +15%",
-      cooldown: 55,
+      description: "召唤轨道打击，对面朝方向 160 距离处半径 190 区域造成 500 点伤害；幸存者被标记 5 秒，受到伤害 +20%",
+      cooldown: 48,
       timer: 0,
-      range: 170,
+      range: 190,
       duration: 0,
       color: "#10b981",
     },
@@ -301,10 +301,10 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       id: "viper_spit",
       name: "毒液喷射",
       description:
-        "扇形喷射神经毒素，射程 300；命中敌人受到 30 伤害并叠加 1 层毒素（最多 5 层）。毒素敌人每秒受到 10/层伤害，满层引爆造成 240 伤害并向附近 3 个目标传染 1 层",
-      cooldown: 9,
+        "扇形喷射神经毒素，射程 340；命中敌人受到 40 伤害并叠加 1 层毒素（最多 5 层）。毒素敌人每秒受到 12/层伤害，满层引爆造成 300 伤害并向附近 4 个目标传染 1 层",
+      cooldown: 8,
       timer: 0,
-      range: 300,
+      range: 340,
       duration: 5,
       color: "#84cc16",
     },
@@ -312,11 +312,11 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       id: "viper_nest",
       name: "蝰蛇巢穴",
       description:
-        "生成半径 220 的毒雾区域，持续 8 秒；每秒造成 70 伤害并叠加 1 层脆弱，每层使受到伤害 +10%（最多 5 层）。区域内敌人减速 30%。中毒敌人死亡时尸体爆裂，对附近敌人造成 100 伤害并传染 1 层毒素",
-      cooldown: 44,
+        "生成半径 240 的毒雾区域，持续 9 秒；每秒造成 85 伤害并叠加 1 层脆弱，每层使受到伤害 +10%（最多 5 层）。区域内敌人减速 35%。中毒敌人死亡时尸体爆裂，对附近敌人造成 130 伤害并传染 1 层毒素",
+      cooldown: 40,
       timer: 0,
-      range: 240,
-      duration: 8,
+      range: 260,
+      duration: 9,
       color: "#65a30d",
     },
     passive: { critAdd: 0.06, speedMul: 1.05 },
@@ -348,12 +348,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
         modifiers: { speedMul: 1.03 },
       },
       {
-        id: "viper_neurotoxin",
-        name: "神经毒素",
-        description: "暴击率 +3%",
+        id: "viper_toxic_blade",
+        name: "毒刃",
+        description: "近战武器伤害 +10%，近战命中附加 2 秒毒素（每秒 15 伤害）",
         maxLevel: 5,
         category: "damage",
-        modifiers: { critAdd: 0.03 },
+        modifiers: { meleeDamageMul: 1.1 },
       },
     ],
   },
@@ -367,21 +367,21 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "falcon_dash",
       name: "跃迁推进",
-      description: "朝移动方向快速冲刺 180 距离，终点电磁脉冲眩晕附近敌人 1.0 秒并造成 90 伤害",
-      cooldown: 9,
+      description: "朝移动方向快速冲刺 200 距离，终点电磁脉冲眩晕附近敌人 1.2 秒并造成 120 伤害",
+      cooldown: 7.5,
       timer: 0,
-      range: 180,
-      duration: 1,
+      range: 200,
+      duration: 1.2,
       color: "#f59e0b",
     },
     ultimate: {
       id: "falcon_orbital_laser",
       name: "轨道激光",
-      description: "呼叫轨道激光扫射前方 240 距离、宽 50 的区域，持续 3 秒，每秒造成 220 点伤害",
-      cooldown: 52,
+      description: "呼叫轨道激光扫射前方 260 距离、宽 60 的区域，持续 3.5 秒，每秒造成 260 点伤害",
+      cooldown: 45,
       timer: 0,
-      range: 280,
-      duration: 3,
+      range: 300,
+      duration: 3.5,
       color: "#ea580c",
     },
     passive: { speedMul: 1.08, critAdd: 0.06 },
@@ -432,20 +432,20 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "bastion_wall",
       name: "水泥墙",
-      description: "在面前放置一堵 1600 生命值的水泥墙，阻挡敌人前进并吸收伤害，持续 12 秒",
-      cooldown: 14,
+      description: "在面前放置一堵 2200 生命值的水泥墙，阻挡敌人前进并吸收伤害，持续 14 秒；墙存在期间附近友方护甲 +10%",
+      cooldown: 12,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 12,
+      duration: 14,
       color: "#b45309",
     },
     ultimate: {
       id: "bastion_swarm",
       name: "巡飞弹集群",
-      description: "释放 8 枚大范围自索敌巡飞弹，每枚对命中敌人造成 240 点爆炸伤害",
-      cooldown: 55,
+      description: "释放 10 枚大范围自索敌巡飞弹，每枚对命中敌人造成 300 点爆炸伤害",
+      cooldown: 48,
       timer: 0,
-      range: 340,
+      range: 380,
       duration: 0,
       color: "#ea580c",
     },
@@ -587,23 +587,23 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         id: uid("deploy"),
         x: fxX,
         y: fxY,
-        radius: 120 * rangeMul,
+        radius: 135 * rangeMul,
         type: "freezeField",
         ownerId: player.id,
         health: 1,
         maxHealth: 1,
         timer: deployDuration,
         maxTimer: deployDuration,
-        tickTimer: 0.4,
-        tickInterval: 0.4,
+        tickTimer: 0.35,
+        tickInterval: 0.35,
         color: def.color,
       });
       for (const enemy of state.enemies) {
-        if (distance(enemy, { x: fxX, y: fxY }) <= 40 + enemy.radius) {
-          enemy.health -= 40;
-          state.stats.damageDealt += 40;
-          enemy.slow = Math.max(enemy.slow, 0.5);
-          enemy.slowTimer = Math.max(enemy.slowTimer, 2);
+        if (distance(enemy, { x: fxX, y: fxY }) <= 45 + enemy.radius) {
+          enemy.health -= 55;
+          state.stats.damageDealt += 55;
+          enemy.slow = Math.max(enemy.slow, 0.55);
+          enemy.slowTimer = Math.max(enemy.slowTimer, 2.5);
         }
       }
       audio?.play("nitrogenGrenade");
@@ -619,7 +619,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         id: uid("deploy"),
         x: healX,
         y: healY,
-        radius: 110 * rangeMul,
+        radius: 125 * rangeMul,
         type: "healAura",
         ownerId: player.id,
         health: 1,
@@ -635,7 +635,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       break;
     }
     case "leopard": {
-      const pounceRange = 260;
+      const pounceRange = 280;
       const startX = player.x;
       const startY = player.y;
       const endX = player.x + aim.x * pounceRange;
@@ -645,15 +645,15 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       for (const enemy of state.enemies) {
         if (
           pointSegmentDistance(enemy.x, enemy.y, startX, startY, endX, endY) <=
-          player.radius + enemy.radius + 24
+          player.radius + enemy.radius + 28
         ) {
-          enemy.health -= 130;
+          enemy.health -= 160;
           const dx = enemy.x - player.x;
           const dy = enemy.y - player.y;
           const dist = Math.hypot(dx, dy) || 1;
-          enemy.knockbackX += (dx / dist) * 220;
-          enemy.knockbackY += (dy / dist) * 220;
-          state.stats.damageDealt += 130;
+          enemy.knockbackX += (dx / dist) * 260;
+          enemy.knockbackY += (dy / dist) * 260;
+          state.stats.damageDealt += 160;
           hitCount++;
         }
       }
@@ -661,8 +661,8 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       player.x = clamp(endX, player.radius, state.map.width - player.radius);
       player.y = clamp(endY, player.radius, state.map.height - player.radius);
       if (hitCount > 0) {
-        player.leopardPounceSpeedTimer = 2.5;
-        player.speed *= 1.12;
+        player.leopardPounceSpeedTimer = 3;
+        player.speed *= 1.15;
       }
       audio?.play("leopardPounce");
       fx?.addTrauma(0.12);
@@ -680,7 +680,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         id: uid("deploy"),
         x: droneX,
         y: droneY,
-        radius: 130 * rangeMul,
+        radius: 150 * rangeMul,
         type: "drone",
         ownerId: player.id,
         health: 1,
@@ -696,7 +696,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       break;
     }
     case "viper": {
-      const range = 300 * rangeMul;
+      const range = 340 * rangeMul;
       const coneAngle = Math.cos(Math.PI / 6);
       const maxStacks = hasTalent(player, "viper_corrosive_touch") ? 6 : 5;
       const burstDamage = hasTalent(player, "viper_corrosive_touch") ? 300 : 240;
@@ -712,8 +712,8 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         if (dot < coneAngle) continue;
 
         const wasFull = enemy.venomStacks >= maxStacks;
-        enemy.health -= 30;
-        state.stats.damageDealt += 30;
+        enemy.health -= 40;
+        state.stats.damageDealt += 40;
         enemy.venomStacks = Math.min(maxStacks, enemy.venomStacks + 1);
         enemy.venomTimer = 5;
         hitCount++;
@@ -736,7 +736,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       break;
     }
     case "falcon": {
-      const dashRange = 180;
+      const dashRange = 200;
       const endX = clamp(
         player.x + aim.x * dashRange,
         player.radius,
@@ -751,10 +751,10 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       player.y = endY;
       let hitCount = 0;
       for (const enemy of state.enemies) {
-        if (distance(enemy, player) <= 90 * rangeMul + enemy.radius) {
-          enemy.health -= 90;
-          enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.0);
-          state.stats.damageDealt += 90;
+        if (distance(enemy, player) <= 110 * rangeMul + enemy.radius) {
+          enemy.health -= 120;
+          enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.2);
+          state.stats.damageDealt += 120;
           hitCount++;
         }
       }
@@ -769,14 +769,14 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
     }
     case "bastion": {
       const healthMul = getDeployableMultiplier(player, "health");
-      const wallHealth = Math.round(1600 * healthMul);
+      const wallHealth = Math.round(2200 * healthMul);
       const wallX = player.x + aim.x * 60;
       const wallY = player.y + aim.y * 60;
       ds.deployables.push({
         id: uid("deploy"),
         x: wallX,
         y: wallY,
-        radius: 46,
+        radius: 56,
         type: "wall",
         ownerId: player.id,
         health: wallHealth,
@@ -934,7 +934,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
       break;
     }
     case "bastion": {
-      const count = hasTalent(player, "bastion_overload") ? 10 : 8;
+      const count = hasTalent(player, "bastion_overload") ? 12 : 10;
       const damageMul = getDeployableMultiplier(player, "damage");
       const speed = 420;
       for (let i = 0; i < count; i++) {
@@ -946,7 +946,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           radius: 10,
-          damage: Math.round(240 * damageMul),
+          damage: Math.round(300 * damageMul),
           speed,
           color: def.color,
           pierce: 0,
@@ -954,7 +954,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
           life: 3.5,
           homing: true,
           isExplosive: true,
-          areaRadius: 55,
+          areaRadius: 60,
         });
       }
       audio?.play("bastionSwarm");
@@ -1251,6 +1251,14 @@ export function applyHeroTalent(player: Player, talentId: string): Player {
     if (m.healthMul) {
       player.maxHealth = Math.floor(player.maxHealth * m.healthMul);
       player.health = player.maxHealth;
+    }
+    if (m.meleeDamageMul || m.meleeRangeMul) {
+      for (const weapon of player.weapons) {
+        if (weapon.isMelee) {
+          if (m.meleeDamageMul) weapon.damage = Math.round(weapon.damage * m.meleeDamageMul);
+          if (m.meleeRangeMul) weapon.range *= m.meleeRangeMul;
+        }
+      }
     }
     if (m.skillDurationMul && player.activeSkill) {
       player.activeSkill.duration *= 1 + m.skillDurationMul;

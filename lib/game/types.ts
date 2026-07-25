@@ -1,6 +1,8 @@
 import type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom } from "@/lib/network/types";
+import type { ExtremeSurvivalRun } from "@/lib/extreme-survival/types";
 
 export type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom };
+export type { ExtremeSurvivalRun };
 
 export interface Vec2 {
   x: number;
@@ -28,7 +30,8 @@ export type GameModeType =
   | "roguelike"
   | "defense"
   | "deathmatch"
-  | "survival";
+  | "survival"
+  | "extreme-survival";
 
 export type MissionType =
   | "eliminate"
@@ -107,6 +110,7 @@ export interface DefenseWave {
   enemyHealthMultiplier?: number;
   enemyDamageMultiplier?: number;
   spawnIntervalMultiplier?: number;
+  speedMultiplier?: number;
   specialEventChance?: number;
 }
 
@@ -187,7 +191,11 @@ export type WeaponId =
   | "gravityWell"
   | "vortexCannon"
   | "seekerRifle"
-  | "shardRepeater";
+  | "shardRepeater"
+  | "shortBlade"
+  | "spear"
+  | "greatsword"
+  | "gauntlet";
 
 export interface Weapon {
   id: WeaponId;
@@ -214,6 +222,12 @@ export interface Weapon {
   homing?: boolean;
   isMelee?: boolean;
   swarmCount?: number;
+  // Melee-specific shape and feel
+  meleeShape?: "arc" | "thrust";
+  meleeAngle?: number;
+  meleeWidth?: number;
+  lungeDistance?: number;
+  comboCount?: number;
 }
 
 export type PassiveId =
@@ -428,6 +442,9 @@ export interface Projectile {
   homingTarget?: string;
   isMelee?: boolean;
   swarmCount?: number;
+  // Melee thrust projectile rendering helpers
+  thrustWidth?: number;
+  thrustLength?: number;
 }
 
 export interface EnemyProjectile {
@@ -549,6 +566,8 @@ export interface HeroTalent {
     armorAdd?: number;
     regenAdd?: number;
     speedMul?: number;
+    meleeDamageMul?: number;
+    meleeRangeMul?: number;
     healthMul?: number;
     skillDurationMul?: number;
     deployableDamageMul?: number;
@@ -636,6 +655,7 @@ export interface GameState {
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
   deathmatchState?: DeathmatchState;
+  extremeSurvivalRun?: ExtremeSurvivalRun;
   selectedHero?: HeroId;
 }
 
@@ -658,6 +678,7 @@ export interface RunResult {
   completedMissions: number;
   elapsed: number;
   mode: GameModeType;
+  extremeSurvivalPhase?: "normal" | "overclock";
 }
 
 // Sprite / animation types
@@ -733,6 +754,7 @@ export interface SerializedGameState {
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
   deathmatchState?: DeathmatchState;
+  extremeSurvivalRun?: ExtremeSurvivalRun;
   selectedHero?: HeroId;
 }
 

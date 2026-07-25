@@ -151,8 +151,21 @@ import {
   createNullHeroState,
 } from "./heroes";
 import { HERO_DEFS } from "./heroes";
-import { getEquippedSkin } from "./save";
+import { getEquippedSkin, addCoins } from "./save";
 import { getCosmetic } from "./cosmetics";
+import type { ExtremeSurvivalRun, ExtremeSurvivalPhase, PerformanceSnapshot } from "@/lib/extreme-survival/types";
+import {
+  calculateWaveConfig,
+  calculatePerformanceScore,
+  shouldTriggerBranchChoice,
+  BRANCH_WAVE,
+} from "@/lib/extreme-survival/engine";
+import { triggerOverloadShield } from "@/lib/extreme-survival/overloadShield";
+import {
+  calculateRewards,
+  getTodayClaimed,
+  addTodayClaimed,
+} from "@/lib/extreme-survival/rewards";
 
 const MAP_WIDTH = 2400;
 const MAP_HEIGHT = 1800;
@@ -188,6 +201,7 @@ export interface GameCallbacks {
   onBossPhaseChange?: (boss: Enemy, phase: number) => void;
   onRoguelikeRewardOffer?: (options: RoguelikeRewardBalance[]) => void;
   onKillStreak?: (count: number) => void;
+  onBranchChoiceRequest?: () => void;
 }
 
 export interface Loadout {
@@ -217,6 +231,9 @@ export class GameEngine {
     spawned: number;
     killed: number;
   };
+  private extremeSurvivalPendingChoice = false;
+  private extremeSurvivalLastSnapshot?: PerformanceSnapshot;
+  private extremeSurvivalLastKills = 0;
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -239,7 +256,9 @@ export class GameEngine {
     const modeConfig = createGameModeConfig(mode, this.seed);
     const theme = this.randomTheme();
     const roguelikeRunState = mode === "roguelike" ? createRoguelikeRun(this.seed) : undefined;
-    const defenseState = mode === "defense" ? createDefenseState(this.seed) : undefined;
+    const isDefenseLike = mode === "defense" || mode === "extreme-survival";
+    const defenseState = isDefenseLike ? createDefenseState(this.seed) : undefined;
+    const extremeSurvivalRun = mode === "extreme-survival" ? this.createExtremeSurvivalRun() : undefined;
     const missions = modeConfig.allowMissions
       ? mode === "roguelike"
         ? roguelikeRunState
@@ -252,7 +271,7 @@ export class GameEngine {
 
     let map: MapConfig;
     let deathmatchState: DeathmatchState | undefined;
-    if (mode === "defense") {
+    if (mode === "defense" || mode === "extreme-survival") {
       map = createDefenseMap(this.seed);
     } else if (mode === "deathmatch") {
       map = createDeathmatchMap(this.seed);
@@ -260,8 +279,8 @@ export class GameEngine {
     } else {
       map = this.createMap(theme);
     }
-    const startX = mode === "defense" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
-    const startY = mode === "defense" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
+    const startX = mode === "defense" || mode === "extreme-survival" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
+    const startY = mode === "defense" || mode === "extreme-survival" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
 
     const player = this.createPlayer("player", startX, startY);
     const heroId = this.loadout.heroId ?? this.state?.selectedHero;
@@ -337,6 +356,7 @@ export class GameEngine {
       roguelikeRunState,
       defenseState,
       deathmatchState,
+      extremeSurvivalRun,
       selectedHero: heroId ?? this.state?.selectedHero,
     };
 
@@ -344,7 +364,59 @@ export class GameEngine {
       this.initAlphaScheduler(state);
     }
 
+    if (mode === "extreme-survival" && state.defenseState) {
+      state.defenseState.totalWaves = 999;
+      state.defenseState.waves = this.generateExtremeSurvivalWaves(state.defenseState, state.extremeSurvivalRun?.phase ?? "normal");
+    }
+
     return state;
+  }
+
+  private createExtremeSurvivalRun(): ExtremeSurvivalRun {
+    return {
+      runId: `es_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      wave: 1,
+      phase: "normal",
+      loadout: { heroId: this.loadout.heroId ?? "recon", weaponIds: this.loadout.weaponIds.slice() },
+      performanceScore: 50,
+      shieldUsed: false,
+      overclockBranchChosen: false,
+      coreHealthPercent: 1,
+      elapsedTime: 0,
+    };
+  }
+
+  private generateExtremeSurvivalWaves(
+    ds: DefenseState,
+    phase: ExtremeSurvivalPhase
+  ): DefenseWave[] {
+    const waves: DefenseWave[] = [];
+    for (let i = 0; i < ds.totalWaves; i++) {
+      const waveNumber = i + 1;
+      const snapshot: PerformanceSnapshot = this.extremeSurvivalLastSnapshot ?? {
+        killsLastWave: 0,
+        damageTakenLastWave: 0,
+        coreHealthPercent: 1,
+        elapsedWaveSec: 60,
+      };
+      const result = calculateWaveConfig(waveNumber, phase, snapshot, this.state?.extremeSurvivalRun?.performanceScore ?? 50);
+      const cfg = result.waveConfig.enemyConfig;
+      waves.push({
+        index: i,
+        enemyCount: Math.max(5, Math.round(cfg.spawnCount)),
+        enemyVariants: ["walker", "runner", "tank", "spitter", "drone", "sentinel", "crusher", "sniper"],
+        eliteCount: Math.max(0, Math.round(cfg.eliteRatio * cfg.spawnCount)),
+        bossVariant: waveNumber % 15 === 0 ? "colossus" : undefined,
+        nodeActivator: false,
+        duration: 40 + (phase === "overclock" ? 10 : 0),
+        enemyHealthMultiplier: cfg.healthMultiplier,
+        enemyDamageMultiplier: cfg.damageMultiplier,
+        speedMultiplier: cfg.speedMultiplier,
+        spawnIntervalMultiplier: 1 / Math.max(0.5, cfg.speedMultiplier),
+        specialEventChance: cfg.specialChance,
+      });
+    }
+    return waves;
   }
 
   private initAlphaScheduler(state: GameState) {
@@ -556,6 +628,29 @@ export class GameEngine {
         player.weapons = this.loadout.weaponIds.map((id) => WEAPON_CREATORS[id]());
       }
     }
+
+    if (this.state.mode === "extreme-survival" && this.state.extremeSurvivalRun) {
+      this.state.extremeSurvivalRun.loadout = {
+        heroId: this.loadout.heroId ?? "recon",
+        weaponIds: this.loadout.weaponIds.slice(),
+      };
+    }
+  }
+
+  getExtremeSurvivalPhase(): ExtremeSurvivalPhase | null {
+    return this.state.extremeSurvivalRun?.phase ?? null;
+  }
+
+  chooseOverclockBranch(choice: "overclock" | "continue") {
+    const run = this.state.extremeSurvivalRun;
+    const ds = this.state.defenseState;
+    if (!run || !ds || this.state.mode !== "extreme-survival") return;
+    run.overclockBranchChosen = true;
+    run.phase = choice === "overclock" ? "overclock" : "normal";
+    this.extremeSurvivalPendingChoice = false;
+    ds.waves = this.generateExtremeSurvivalWaves(ds, run.phase);
+    this.state.status = "running";
+    this.state.lastTime = performance.now();
   }
 
   pause() {
@@ -798,6 +893,15 @@ export class GameEngine {
       return;
     }
 
+    if (weapon.isMelee) {
+      if (weapon.meleeShape === "arc") {
+        this.fireMeleeArc(weapon);
+      } else {
+        this.fireMeleeThrust(weapon);
+      }
+      return;
+    }
+
     const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
     if (!nearest) return;
 
@@ -887,6 +991,134 @@ export class GameEngine {
       });
     }
     audio?.play("shoot");
+  }
+
+  private fireMeleeArc(weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    const range = weapon.range * player.areaMultiplier;
+    const halfAngle = (weapon.meleeAngle ?? Math.PI / 2) / 2;
+    const nearest = this.findNearestEnemy(player.x, player.y, range);
+    const facing = nearest ? angleBetween(player, nearest) : player.facing;
+
+    const hits: Enemy[] = [];
+    for (const enemy of this.state.enemies) {
+      const dist = distance(player, enemy);
+      if (dist > range + enemy.radius) continue;
+      const delta = Math.atan2(enemy.y - player.y, enemy.x - player.x) - facing;
+      let normalized = delta;
+      while (normalized > Math.PI) normalized -= Math.PI * 2;
+      while (normalized < -Math.PI) normalized += Math.PI * 2;
+      if (Math.abs(normalized) <= halfAngle) {
+        hits.push(enemy);
+      }
+    }
+
+    hits.sort((a, b) => distance(player, a) - distance(player, b));
+    const maxTargets = weapon.pierce + 1;
+    const actualHits = hits.slice(0, maxTargets);
+
+    for (const enemy of actualHits) {
+      this.damageEnemyWithMelee(enemy, weapon);
+    }
+
+    if (actualHits.length > 0) {
+      audio?.play("shoot");
+      this.spawnMeleeArcEffect(player.x, player.y, facing, range, halfAngle * 2, weapon.color);
+    }
+  }
+
+  private fireMeleeThrust(weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
+    const angle = nearest ? angleBetween(player, nearest) : player.facing;
+    const speed = weapon.projectileSpeed;
+    const life = weapon.range / speed;
+
+    this.state.projectiles.push({
+      id: uid("proj"),
+      x: player.x + Math.cos(angle) * 22,
+      y: player.y + Math.sin(angle) * 22,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: (weapon.meleeWidth ?? 30) / 2,
+      damage: weapon.damage,
+      speed,
+      color: weapon.color,
+      pierce: weapon.pierce,
+      weaponId: weapon.id,
+      life,
+      ownerId: player.id,
+      isMelee: true,
+      thrustWidth: weapon.meleeWidth ?? 30,
+      thrustLength: weapon.range,
+      burnDuration: weapon.burnDuration,
+      burnDamage: weapon.burnDuration ? weapon.damage * 0.4 : undefined,
+    });
+    audio?.play("shoot");
+  }
+
+  private damageEnemyWithMelee(enemy: Enemy, weapon: (typeof this.state.player.weapons)[number]) {
+    const player = this.state.player;
+    const isCrit = Math.random() < player.critChance;
+    const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
+    const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
+    let damage = weapon.damage * comboMul * critMul;
+    damage = this.applyDamage(enemy, damage, weapon.burnDuration, weapon.burnDuration ? weapon.damage * 0.4 : undefined);
+    this.state.stats.damageDealt += damage;
+
+    if (this.alphaScheduler && this.alphaPlanRef && !enemy.isBoss) {
+      this.alphaScheduler.telemetry.recordDamageDealt(
+        this.alphaPlanRef.snapshot.waveIndex,
+        enemy.variant,
+        damage
+      );
+    }
+    this.spawnDamageNumber(enemy.x, enemy.y, damage, weapon.color, isCrit);
+    if (isCrit) {
+      this.fx.addTrauma(0.1);
+      this.fx.addShake(0.5, 0);
+      this.particlePool.spawnPreset("crit", enemy.x, enemy.y, "#facc15", { intensity: 1.2 });
+      audio?.play("crit");
+    } else {
+      this.particlePool.spawnPreset("hit", enemy.x, enemy.y, weapon.color, { intensity: 0.9 });
+    }
+
+    const knockbackPower = weapon.id === "greatsword" ? 160 : weapon.id === "gauntlet" ? 70 : 110;
+    const dx = enemy.x - player.x;
+    const dy = enemy.y - player.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    enemy.knockbackX += (dx / dist) * knockbackPower;
+    enemy.knockbackY += (dy / dist) * knockbackPower;
+  }
+
+  private spawnMeleeArcEffect(
+    x: number,
+    y: number,
+    facing: number,
+    range: number,
+    angle: number,
+    color: string
+  ) {
+    const id = uid("melee");
+    // Reuse projectile as a short-lived visual marker for the arc
+    this.state.projectiles.push({
+      id,
+      x,
+      y,
+      vx: Math.cos(facing) * range * 4,
+      vy: Math.sin(facing) * range * 4,
+      radius: range,
+      damage: 0,
+      speed: range * 4,
+      color,
+      pierce: 0,
+      weaponId: "meleeArcVisual",
+      life: 0.08,
+      ownerId: "visual",
+      isMelee: true,
+      thrustWidth: angle,
+      thrustLength: range,
+    });
   }
 
   private findNearestEnemy(x: number, y: number, range: number) {
@@ -1121,11 +1353,22 @@ export class GameEngine {
       vulnerabilityStacks: 0,
       phase: 0,
       phaseThresholds: variant === "boss" ? [0.65, 0.35] : [],
-      targetCore: this.state.mode === "defense",
+      targetCore: this.state.mode === "defense" || this.state.mode === "extreme-survival",
       facing: 0,
       animation: "move",
       animationTimer: 0,
     };
+
+    if (this.state.mode === "extreme-survival" && this.state.defenseState) {
+      const ds = this.state.defenseState;
+      const wave = ds.waves[ds.currentWave];
+      if (wave) {
+        enemy.maxHealth = Math.max(1, Math.round(enemy.maxHealth * (wave.enemyHealthMultiplier ?? 1)));
+        enemy.health = enemy.maxHealth;
+        enemy.damage = Math.max(1, enemy.damage * (wave.enemyDamageMultiplier ?? 1));
+        enemy.speed = Math.max(0.1, enemy.speed * (wave.speedMultiplier ?? 1));
+      }
+    }
 
     applyAffixes(enemy);
     this.state.enemies.push(enemy);
@@ -1702,27 +1945,48 @@ export class GameEngine {
 
   private updateDefenseState(dt: number) {
     const ds = this.state.defenseState;
-    if (!ds || this.state.mode !== "defense") return;
+    if (!ds || (this.state.mode !== "defense" && this.state.mode !== "extreme-survival")) return;
 
-    // Victory / defeat checks
-    if (isDefenseVictory(ds)) {
-      const reward = calculateDefenseCompletionRewards(this.state);
-      grantMissionReward(this.state, reward);
-      this.endRun(true);
+    const isExtreme = this.state.mode === "extreme-survival";
+    const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
+
+    // Victory / defeat checks (defense only)
+    if (!isExtreme) {
+      if (isDefenseVictory(ds)) {
+        const reward = calculateDefenseCompletionRewards(this.state);
+        grantMissionReward(this.state, reward);
+        this.endRun(true);
+        return;
+      }
+      if (isDefenseDefeat(ds)) {
+        this.endRun(false);
+        return;
+      }
+    }
+
+    // Node capture by all players (defense only)
+    let previousCaptured = 0;
+    if (!isExtreme) {
+      const players = [this.state.player, ...this.state.players];
+      for (const player of players) {
+        updateNodeCapture(ds, player, dt);
+      }
+      previousCaptured = getCapturedNodeCount(ds);
+    }
+
+    // Overload shield for extreme survival
+    if (isExtreme && run && ds.core.health <= 0 && !run.shieldUsed) {
+      triggerOverloadShield(ds, this.state.enemies, ds.core.maxHealth * 0.34);
+      run.shieldUsed = true;
+      run.coreHealthPercent = ds.core.health / ds.core.maxHealth;
+      audio?.play("alert");
       return;
     }
-    if (isDefenseDefeat(ds)) {
+
+    if (isExtreme && isDefenseDefeat(ds)) {
       this.endRun(false);
       return;
     }
-
-    // Node capture by all players
-    const players = [this.state.player, ...this.state.players];
-    for (const player of players) {
-      updateNodeCapture(ds, player, dt);
-    }
-
-    const previousCaptured = getCapturedNodeCount(ds);
 
     // Wave management
     if (!ds.waveInProgress) {
@@ -1730,8 +1994,9 @@ export class GameEngine {
       if (ds.breakTimer <= 0 && ds.currentWave < ds.totalWaves) {
         ds.waveInProgress = true;
         ds.waveTimer = 0;
-        activateNodeForWave(ds, ds.currentWave);
-        // α 算法推进到下一波并应用生成计划
+        if (!isExtreme) {
+          activateNodeForWave(ds, ds.currentWave);
+        }
         if (this.alphaScheduler) {
           this.alphaScheduler.nextWave();
           this.applyAlphaPlanToDefenseState(ds);
@@ -1743,7 +2008,7 @@ export class GameEngine {
         ds.waveTimer += dt;
 
         if (this.alphaScheduler && this.alphaPlanRef) {
-          // α 动态节律生成
+          // α 动态节律生成 (defense only)
           this.alphaScheduler.tick();
           const alphaStats = this.alphaPlanRef.enemyStats;
 
@@ -1762,14 +2027,12 @@ export class GameEngine {
             }
           }
 
-          // 精英由 spawn 批次中的概率自动处理；保留少量随机精英补充
           if (wave.eliteCount > 0 && this.rng() < alphaStats.eliteChance * dt * 0.5) {
             const variant = this.pickAlphaVariant(alphaStats.variantWeights);
             this.spawnEnemy(variant, true, alphaStats);
             wave.eliteCount--;
           }
 
-          // Boss 波次生成
           if (
             this.alphaPlanRef.isBossWave &&
             wave.bossVariant &&
@@ -1780,49 +2043,44 @@ export class GameEngine {
             this.spawnEnemy(bossId as import("./types").EnemyVariant, true, alphaStats);
           }
 
-          // End wave when duration elapsed and enemies cleared
           if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
-            ds.waveInProgress = false;
-            ds.currentWave += 1;
-            ds.breakTimer = 8;
-            this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+            this.finalizeDefenseWave(ds);
           }
         } else {
-          // Fallback legacy spawn
+          // Fallback legacy spawn (used by extreme survival)
           if (ds.spawnTimer === undefined) {
             ds.spawnTimer = 0;
           }
           ds.spawnTimer -= dt;
           if (ds.spawnTimer <= 0) {
-            ds.spawnTimer = Math.max(0.35, 1.4 - ds.currentWave * 0.1);
+            const intervalMul = isExtreme ? wave.spawnIntervalMultiplier ?? 1 : 1;
+            ds.spawnTimer = Math.max(0.25, (1.4 - ds.currentWave * 0.02) * intervalMul);
             const remainingSlots = wave.enemyCount - this.state.enemies.length;
-            const spawnBatch = Math.min(3, Math.max(1, Math.floor(remainingSlots / 4)));
+            const spawnBatch = Math.min(4, Math.max(1, Math.floor(remainingSlots / 4)));
             for (let i = 0; i < spawnBatch && this.state.enemies.length < wave.enemyCount; i++) {
               const variant = this.pickDefenseWaveVariant(wave);
               this.spawnEnemy(variant, false);
             }
           }
 
-          if (wave.eliteCount > 0 && this.rng() < 0.008 * dt * 60) {
+          if (wave.eliteCount > 0 && this.rng() < (isExtreme ? 0.015 : 0.008) * dt * 60) {
             this.spawnEnemy("elite", true);
             wave.eliteCount--;
           }
 
           if (
-            ds.currentWave === ds.totalWaves - 1 &&
             wave.bossVariant &&
             this.state.enemies.length > 0 &&
-            this.state.enemies.every((e) => !e.isBoss)
+            this.state.enemies.every((e) => !e.isBoss) &&
+            this.state.enemies.length >= wave.enemyCount * 0.8
           ) {
             const bossId = wave.bossVariant as import("./types").BossId;
             this.spawnEnemy(bossId as import("./types").EnemyVariant, true);
+            wave.bossVariant = undefined;
           }
 
           if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
-            ds.waveInProgress = false;
-            ds.currentWave += 1;
-            ds.breakTimer = 8;
-            this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+            this.finalizeDefenseWave(ds);
           }
         }
       }
@@ -1839,13 +2097,54 @@ export class GameEngine {
       }
     }
 
-    // Track node captures for missions
-    const currentCaptured = getCapturedNodeCount(ds);
-    if (currentCaptured > previousCaptured) {
-      addNodeCapture(this.state, currentCaptured - previousCaptured);
-      if (this.alphaScheduler && this.alphaPlanRef) {
-        this.alphaScheduler.telemetry.recordNodeCaptured(this.alphaPlanRef.snapshot.waveIndex);
+    // Track node captures for missions (defense only)
+    if (!isExtreme) {
+      const currentCaptured = getCapturedNodeCount(ds);
+      if (currentCaptured > previousCaptured) {
+        addNodeCapture(this.state, currentCaptured - previousCaptured);
+        if (this.alphaScheduler && this.alphaPlanRef) {
+          this.alphaScheduler.telemetry.recordNodeCaptured(this.alphaPlanRef.snapshot.waveIndex);
+        }
       }
+    }
+  }
+
+  private finalizeDefenseWave(ds: DefenseState) {
+    const isExtreme = this.state.mode === "extreme-survival";
+    const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
+
+    const waveIndex = ds.currentWave;
+    const wave = ds.waves[waveIndex];
+    const snapshot: PerformanceSnapshot = {
+      killsLastWave: this.state.stats.kills - this.extremeSurvivalLastKills,
+      damageTakenLastWave: 0,
+      coreHealthPercent: ds.core.health / ds.core.maxHealth,
+      elapsedWaveSec: ds.waveTimer,
+    };
+
+    if (isExtreme && run) {
+      run.wave = waveIndex + 1;
+      run.coreHealthPercent = snapshot.coreHealthPercent;
+      run.elapsedTime = this.state.stats.timeSurvived;
+      run.performanceScore = calculatePerformanceScore(snapshot);
+      this.extremeSurvivalLastSnapshot = snapshot;
+      this.extremeSurvivalLastKills = this.state.stats.kills;
+    }
+
+    ds.waveInProgress = false;
+    ds.currentWave += 1;
+    ds.breakTimer = isExtreme ? 5 : 8;
+    this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+
+    if (isExtreme && run && shouldTriggerBranchChoice(waveIndex + 1, run.phase) && !this.extremeSurvivalPendingChoice) {
+      this.extremeSurvivalPendingChoice = true;
+      this.state.status = "paused";
+      this.callbacks.onBranchChoiceRequest?.();
+      return;
+    }
+
+    if (isExtreme && ds.currentWave >= ds.waves.length - 5) {
+      ds.waves = this.generateExtremeSurvivalWaves(ds, run?.phase ?? "normal");
     }
   }
 
@@ -2373,12 +2672,18 @@ export class GameEngine {
 
   private endRun(victory: boolean) {
     this.state.status = victory ? "victory" : "defeat";
+
+    if (this.state.mode === "extreme-survival") {
+      this.applyExtremeSurvivalRewards();
+    }
+
     const result: RunResult = {
       victory,
       stats: { ...this.state.stats },
       completedMissions: this.state.missions.filter((m) => m.completed).length,
       elapsed: this.state.stats.timeSurvived,
       mode: this.state.mode,
+      extremeSurvivalPhase: this.state.extremeSurvivalRun?.phase,
     };
     if (victory) {
       audio?.play("levelup");
@@ -2386,6 +2691,24 @@ export class GameEngine {
     } else {
       audio?.play("alert");
       this.callbacks.onDefeat?.(result);
+    }
+  }
+
+  private applyExtremeSurvivalRewards() {
+    const run = this.state.extremeSurvivalRun;
+    if (!run) return;
+    const todayClaimed = getTodayClaimed();
+    const reward = calculateRewards({
+      wave: run.wave,
+      isOverclock: run.phase === "overclock",
+      performanceScore: run.performanceScore,
+      elapsedTime: run.elapsedTime,
+      todayClaimed,
+    });
+    this.state.stats.score = reward.tokens;
+    if (reward.tokens > 0) {
+      addTodayClaimed(reward.tokens);
+      addCoins(reward.tokens);
     }
   }
 
@@ -2858,7 +3181,31 @@ export class GameEngine {
       ctx.save();
       ctx.translate(p.x, p.y);
 
-      if (p.weaponId === "rocket") {
+      if (p.weaponId === "meleeArcVisual") {
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        const alpha = Math.min(1, p.life / 0.08);
+        ctx.globalAlpha = alpha * 0.55;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, p.radius, -(p.thrustWidth ?? Math.PI / 2) / 2, (p.thrustWidth ?? Math.PI / 2) / 2);
+        ctx.closePath();
+        ctx.fill();
+      } else if (p.isMelee) {
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        const alpha = Math.min(1, p.life / 0.12);
+        ctx.globalAlpha = alpha * 0.75;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        const length = (p.thrustLength ?? 60) * 0.35;
+        const width = p.thrustWidth ?? 30;
+        ctx.beginPath();
+        ctx.roundRect(-length * 0.2, -width / 2, length, width, width / 2);
+        ctx.fill();
+      } else if (p.weaponId === "rocket") {
         ctx.rotate(Math.atan2(p.vy, p.vx));
         ctx.fillStyle = p.color;
         ctx.beginPath();

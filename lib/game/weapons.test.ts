@@ -115,10 +115,13 @@ describe("weapons", () => {
   });
 
   describe("getStarterWeapons", () => {
-    it("returns only pulse rifle", () => {
+    it("returns starter loadout with two ranged and one melee weapon", () => {
       const weapons = getStarterWeapons();
-      expect(weapons).toHaveLength(1);
+      expect(weapons).toHaveLength(3);
       expect(weapons[0].id).toBe("pulse");
+      expect(weapons[1].id).toBe("shotgun");
+      expect(weapons[2].id).toBe("spear");
+      expect(weapons[2].isMelee).toBe(true);
     });
   });
 
@@ -236,15 +239,15 @@ describe("weapons", () => {
       const option: UpgradeOption = {
         id: "opt_1",
         type: "weapon",
-        targetId: "shotgun",
-        name: "解锁霰弹爆破",
-        description: "扇形散射",
+        targetId: "laser",
+        name: "解锁贯穿激光",
+        description: "高能光束",
         level: 1,
         maxLevel: 5,
       };
       const next = applyUpgrade(basePlayer(), option);
-      expect(next.weapons).toHaveLength(2);
-      expect(next.weapons[1].id).toBe("shotgun");
+      expect(next.weapons).toHaveLength(4);
+      expect(next.weapons[3].id).toBe("laser");
     });
 
     it("applies passive upgrade", () => {

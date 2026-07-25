@@ -65,6 +65,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: true,
   },
+  "extreme-survival": {
+    type: "extreme-survival",
+    name: "极限生存",
+    description: "全程满配干员与武器，第 25 波后可选进入超频极限，无尽生存冲击排行榜",
+    allowMissions: false,
+    endless: true,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -94,6 +101,7 @@ export function getDefaultMode(): GameModeType {
 export function getModeList(): { type: GameModeType; name: string; description: string }[] {
   return [
     { type: "survival", name: "生存模式", description: MODE_DEFS.survival.description },
+    { type: "extreme-survival", name: "极限生存", description: MODE_DEFS["extreme-survival"].description },
     { type: "campaign", name: "战役模式", description: MODE_DEFS.campaign.description },
     { type: "endless", name: "无尽生存", description: MODE_DEFS.endless.description },
     { type: "daily", name: "每日挑战", description: MODE_DEFS.daily.description },
