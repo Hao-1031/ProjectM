@@ -633,6 +633,7 @@ export function createBossEnemy(id: BossId, x: number, y: number): Enemy {
     slow: 0,
     slowTimer: 0,
       freezeTimer: 0,
+      freezeShatterDamage: 0,
       frostStacks: 0,
       frostTimer: 0,
       venomStacks: 0,

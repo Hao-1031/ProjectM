@@ -1,6 +1,7 @@
 import type { HeroId, HeroSkill, Player, GameState, Deployable, Enemy, HeroTalent } from "./types";
 import { uid, distance, angleBetween, normalize, clamp } from "./math";
 import type { FXSystem } from "./fx";
+import { audio } from "./audio";
 
 export interface HeroDef {
   id: HeroId;
@@ -37,24 +38,26 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "nitrogen_grenade",
       name: "冰冻手雷",
-      description: "投掷后形成半径 100 的低温区域，持续 5 秒；区域内敌人每 0.5 秒叠加 1 层霜冻，满 5 层冻结 1.5 秒并碎裂造成 120 伤害",
-      cooldown: 11,
+      description:
+        "投掷后形成半径 120 的低温区域，持续 6 秒；区域内敌人每 0.4 秒叠加 1 层霜冻，满 4 层冻结 1.8 秒并碎裂造成 180 伤害。落地瞬间对中心敌人造成 40 伤害与强烈减速",
+      cooldown: 10,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 5,
+      duration: 6,
       color: "#38bdf8",
     },
     ultimate: {
       id: "nitrogen_zero",
       name: "绝对零度",
-      description: "以自身为中心释放半径 220 的冰冻爆发，立即造成 280 伤害并冻结 3 秒；冻结结束时再次碎裂造成 180 伤害",
+      description:
+        "以自身为中心释放半径 260 的冰冻爆发，立即造成 420 伤害并冻结 3.2 秒；冻结结束时碎裂造成 260 伤害，幸存者附加 3 层霜冻",
       cooldown: 42,
       timer: 0,
-      range: 220,
-      duration: 3,
+      range: 260,
+      duration: 3.2,
       color: "#0ea5e9",
     },
-    passive: { armorAdd: 0.06, areaMul: 1.1 },
+    passive: { armorAdd: 0.06, areaMul: 1.12 },
     talents: [
       {
         id: "nitrogen_conduction",
@@ -75,7 +78,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "nitrogen_supercooled",
         name: "超冷溶液",
-        description: "冰冻手雷作用半径 +15%，霜冻叠层上限 +2，碎裂伤害 +30",
+        description: "冰冻手雷作用半径 +15%，霜冻叠层上限 +2，碎裂伤害 +50",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
@@ -102,24 +105,24 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "twilight_pulse",
       name: "治疗脉冲",
-      description: "在目标位置生成半径 100 的治疗场，每秒恢复 22 点生命，持续 5 秒",
+      description: "在目标位置生成半径 110 的治疗场，每秒恢复 30 点生命，持续 6 秒",
       cooldown: 15,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 5,
+      duration: 6,
       color: "#a78bfa",
     },
     ultimate: {
       id: "twilight_cocoon",
       name: "蛹化复苏",
-      description: "瞬间为自身及附近友方恢复 80 点生命并清除燃烧/腐蚀减益，半径 250",
+      description: "瞬间为自身及附近友方恢复 120 点生命并清除燃烧/腐蚀减益，随后 4 秒内额外恢复 32 点生命/秒",
       cooldown: 50,
       timer: 0,
-      range: 250,
-      duration: 0,
+      range: 260,
+      duration: 4,
       color: "#8b5cf6",
     },
-    passive: { regenAdd: 1.5, cooldownReductionAdd: 0.05 },
+    passive: { regenAdd: 2, cooldownReductionAdd: 0.06 },
     talents: [
       {
         id: "twilight_harmony",
@@ -140,12 +143,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "twilight_surge",
         name: "脉冲涌动",
-        description: "治疗脉冲每秒治疗量提升至 30，作用半径 +15%",
+        description: "治疗脉冲每秒治疗量提升至 42，作用半径 +15%",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { deployableDamageMul: 1.36 },
+        modifiers: { deployableDamageMul: 1.4 },
       },
       {
         id: "twilight_biomass",
@@ -167,24 +170,24 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "leopard_pounce",
       name: "猛扑",
-      description: "向面朝方向冲刺 250 距离，路径上敌人受到 90 点伤害并被击退",
+      description: "向面朝方向冲刺 260 距离，路径上敌人受到 130 点伤害并被击退；命中后自身移速 +12% 持续 2.5 秒",
       cooldown: 10,
       timer: 0,
-      range: 250,
+      range: 260,
       duration: 0,
       color: "#fb923c",
     },
     ultimate: {
       id: "leopard_instinct",
       name: "猎杀本能",
-      description: "8 秒内移动速度 +30%、暴击率 +20%",
+      description: "8 秒内移动速度 +35%、暴击率 +25%，击杀会刷新猛扑冷却",
       cooldown: 40,
       timer: 0,
       range: 0,
       duration: 8,
       color: "#f97316",
     },
-    passive: { speedMul: 1.1, critAdd: 0.05 },
+    passive: { speedMul: 1.12, critAdd: 0.06 },
     talents: [
       {
         id: "leopard_shredder",
@@ -205,12 +208,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "leopard_feral_pounce",
         name: "凶性猛扑",
-        description: "猛扑距离 +20%，伤害 +15%，命中后自身移速 +10% 持续 2 秒",
+        description: "猛扑距离 +20%，伤害 +20%，命中后自身移速 +15% 持续 2.5 秒",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { rangeMul: 1.2, damageMul: 1.15 },
+        modifiers: { rangeMul: 1.2, damageMul: 1.2 },
       },
       {
         id: "leopard_reflexes",
@@ -232,24 +235,24 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "recon_drone",
       name: "侦察无人机",
-      description: "部署无人机，半径 120 范围内敌人受到伤害 +12%，持续 6 秒",
+      description: "部署无人机，半径 130 范围内敌人受到伤害 +18%，持续 7 秒",
       cooldown: 14,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 6,
+      duration: 7,
       color: "#34d399",
     },
     ultimate: {
       id: "recon_strike",
       name: "集束打击",
-      description: "召唤轨道打击，对面朝方向 120 距离处半径 150 区域造成 320 点伤害",
+      description: "召唤轨道打击，对面朝方向 140 距离处半径 170 区域造成 420 点伤害；幸存者被标记 4 秒，受到伤害 +15%",
       cooldown: 55,
       timer: 0,
-      range: 150,
+      range: 170,
       duration: 0,
       color: "#10b981",
     },
-    passive: { critAdd: 0.1, rangeMul: 1.08 },
+    passive: { critAdd: 0.12, rangeMul: 1.1 },
     talents: [
       {
         id: "recon_ballistics",
@@ -270,12 +273,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "recon_overclock_drone",
         name: "超频无人机",
-        description: "侦察无人机增伤效果提升至 20%，持续时间 +2 秒",
+        description: "侦察无人机增伤效果提升至 28%，持续时间 +2 秒",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { deployableDurationMul: 1.33 },
+        modifiers: { deployableDurationMul: 1.29 },
       },
       {
         id: "recon_evasion",
@@ -297,24 +300,26 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "viper_spit",
       name: "毒液喷射",
-      description: "扇形喷射神经毒素，命中敌人叠加 1 层毒素（最多 4 层）；满层引爆造成 160 伤害并向附近 2 个目标传染 1 层",
+      description:
+        "扇形喷射神经毒素，射程 300；命中敌人受到 30 伤害并叠加 1 层毒素（最多 5 层）。毒素敌人每秒受到 10/层伤害，满层引爆造成 240 伤害并向附近 3 个目标传染 1 层",
       cooldown: 9,
       timer: 0,
-      range: BASE_SKILL_RANGE,
-      duration: 4,
+      range: 300,
+      duration: 5,
       color: "#84cc16",
     },
     ultimate: {
       id: "viper_nest",
       name: "蝰蛇巢穴",
-      description: "生成半径 180 的毒雾区域，持续 8 秒；每秒造成 35 伤害并叠加 1 层脆弱，每层使受到伤害 +8%（最多 5 层）",
+      description:
+        "生成半径 220 的毒雾区域，持续 8 秒；每秒造成 70 伤害并叠加 1 层脆弱，每层使受到伤害 +10%（最多 5 层）。区域内敌人减速 30%。中毒敌人死亡时尸体爆裂，对附近敌人造成 100 伤害并传染 1 层毒素",
       cooldown: 44,
       timer: 0,
-      range: 200,
+      range: 240,
       duration: 8,
       color: "#65a30d",
     },
-    passive: { critAdd: 0.05, speedMul: 1.04 },
+    passive: { critAdd: 0.06, speedMul: 1.05 },
     talents: [
       {
         id: "viper_venom_glands",
@@ -327,7 +332,7 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "viper_corrosive_touch",
         name: "腐蚀之触",
-        description: "毒液喷射最多叠加层数 +1，满层引爆伤害 +40 并向附近 3 个目标传染",
+        description: "毒液喷射最多叠加层数 +1，满层引爆伤害 +60 并向附近 4 个目标传染",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
@@ -362,24 +367,24 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "falcon_dash",
       name: "跃迁推进",
-      description: "朝移动方向快速冲刺一段距离，并在终点释放一圈电磁脉冲，眩晕附近敌人 0.8 秒",
+      description: "朝移动方向快速冲刺 180 距离，终点电磁脉冲眩晕附近敌人 1.0 秒并造成 90 伤害",
       cooldown: 9,
       timer: 0,
-      range: 160,
-      duration: 0.8,
+      range: 180,
+      duration: 1,
       color: "#f59e0b",
     },
     ultimate: {
       id: "falcon_orbital_laser",
       name: "轨道激光",
-      description: "呼叫轨道激光扫射前方 200 距离、宽 40 的区域，持续 3 秒，每秒造成 150 点伤害",
+      description: "呼叫轨道激光扫射前方 240 距离、宽 50 的区域，持续 3 秒，每秒造成 220 点伤害",
       cooldown: 52,
       timer: 0,
-      range: 240,
+      range: 280,
       duration: 3,
       color: "#ea580c",
     },
-    passive: { speedMul: 1.06, critAdd: 0.05 },
+    passive: { speedMul: 1.08, critAdd: 0.06 },
     talents: [
       {
         id: "falcon_afterburners",
@@ -400,12 +405,12 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
       {
         id: "falcon_overload",
         name: "超载推进",
-        description: "跃迁推进冷却 -2 秒，电磁脉冲范围 +20%",
+        description: "跃迁推进冷却 -2 秒，电磁脉冲范围 +25%",
         maxLevel: 1,
         category: "skill",
         variantFor: "skill",
         isSkillVariant: true,
-        modifiers: { cooldownMul: 0.75, areaMul: 1.2 },
+        modifiers: { cooldownMul: 0.75, areaMul: 1.25 },
       },
       {
         id: "falcon_high_altitude",
@@ -427,24 +432,24 @@ export const HERO_DEFS: Record<HeroId, HeroDef> = {
     skill: {
       id: "bastion_wall",
       name: "水泥墙",
-      description: "在面前放置一堵大血量水泥墙，阻挡敌人前进并吸收伤害，持续 10 秒",
+      description: "在面前放置一堵 1600 生命值的水泥墙，阻挡敌人前进并吸收伤害，持续 12 秒",
       cooldown: 14,
       timer: 0,
       range: BASE_SKILL_RANGE,
-      duration: 10,
+      duration: 12,
       color: "#b45309",
     },
     ultimate: {
       id: "bastion_swarm",
       name: "巡飞弹集群",
-      description: "释放 6 枚大范围自索敌巡飞弹，每枚对命中敌人造成 180 点爆炸伤害",
+      description: "释放 8 枚大范围自索敌巡飞弹，每枚对命中敌人造成 240 点爆炸伤害",
       cooldown: 55,
       timer: 0,
-      range: 320,
+      range: 340,
       duration: 0,
       color: "#ea580c",
     },
-    passive: { armorAdd: 0.08, maxHealthMul: 1.12 },
+    passive: { armorAdd: 0.1, maxHealthMul: 1.12 },
     talents: [
       {
         id: "bastion_overload",
@@ -576,29 +581,45 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
 
   switch (player.heroId) {
     case "nitrogen": {
+      const fxX = player.x + aim.x * 60;
+      const fxY = player.y + aim.y * 60;
       ds.deployables.push({
         id: uid("deploy"),
-        x: player.x + aim.x * 60,
-        y: player.y + aim.y * 60,
-        radius: 100 * rangeMul,
+        x: fxX,
+        y: fxY,
+        radius: 120 * rangeMul,
         type: "freezeField",
         ownerId: player.id,
         health: 1,
         maxHealth: 1,
         timer: deployDuration,
         maxTimer: deployDuration,
-        tickTimer: 0.5,
-        tickInterval: 0.5,
+        tickTimer: 0.4,
+        tickInterval: 0.4,
         color: def.color,
       });
+      for (const enemy of state.enemies) {
+        if (distance(enemy, { x: fxX, y: fxY }) <= 40 + enemy.radius) {
+          enemy.health -= 40;
+          state.stats.damageDealt += 40;
+          enemy.slow = Math.max(enemy.slow, 0.5);
+          enemy.slowTimer = Math.max(enemy.slowTimer, 2);
+        }
+      }
+      audio?.play("nitrogenGrenade");
+      fx?.addTrauma(0.08);
+      fx?.triggerFlash({ duration: 0.22, color: def.color, opacity: 0.22 });
+      spawnParticles(state, fxX, fxY, def.color, 14, 160, 0.45);
       break;
     }
     case "twilight": {
+      const healX = player.x + aim.x * 40;
+      const healY = player.y + aim.y * 40;
       ds.deployables.push({
         id: uid("deploy"),
-        x: player.x + aim.x * 40,
-        y: player.y + aim.y * 40,
-        radius: 100 * rangeMul,
+        x: healX,
+        y: healY,
+        radius: 110 * rangeMul,
         type: "healAura",
         ownerId: player.id,
         health: 1,
@@ -607,40 +628,59 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         maxTimer: deployDuration,
         color: def.color,
       });
+      audio?.play("twilightPulse");
+      fx?.addTrauma(0.04);
+      fx?.triggerFlash({ duration: 0.2, color: def.color, opacity: 0.18 });
+      spawnParticles(state, healX, healY, def.color, 10, 90, 0.55);
       break;
     }
     case "leopard": {
-      const pounceRange = 250;
+      const pounceRange = 260;
       const startX = player.x;
       const startY = player.y;
       const endX = player.x + aim.x * pounceRange;
       const endY = player.y + aim.y * pounceRange;
+      let hitCount = 0;
 
       for (const enemy of state.enemies) {
         if (
           pointSegmentDistance(enemy.x, enemy.y, startX, startY, endX, endY) <=
-          player.radius + enemy.radius + 20
+          player.radius + enemy.radius + 24
         ) {
-          enemy.health -= 90;
+          enemy.health -= 130;
           const dx = enemy.x - player.x;
           const dy = enemy.y - player.y;
           const dist = Math.hypot(dx, dy) || 1;
-          enemy.knockbackX += (dx / dist) * 180;
-          enemy.knockbackY += (dy / dist) * 180;
-          state.stats.damageDealt += 90;
+          enemy.knockbackX += (dx / dist) * 220;
+          enemy.knockbackY += (dy / dist) * 220;
+          state.stats.damageDealt += 130;
+          hitCount++;
         }
       }
 
       player.x = clamp(endX, player.radius, state.map.width - player.radius);
       player.y = clamp(endY, player.radius, state.map.height - player.radius);
+      if (hitCount > 0) {
+        player.leopardPounceSpeedTimer = 2.5;
+        player.speed *= 1.12;
+      }
+      audio?.play("leopardPounce");
+      fx?.addTrauma(0.12);
+      fx?.addShake(1.2, 0);
+      if (hitCount > 0) {
+        fx?.triggerFlash({ duration: 0.18, color: def.color, opacity: 0.2 });
+      }
+      spawnParticles(state, player.x, player.y, def.color, 10, 180, 0.35);
       break;
     }
     case "recon": {
+      const droneX = player.x + aim.x * 40;
+      const droneY = player.y + aim.y * 40;
       ds.deployables.push({
         id: uid("deploy"),
-        x: player.x + aim.x * 40,
-        y: player.y + aim.y * 40,
-        radius: 120 * rangeMul,
+        x: droneX,
+        y: droneY,
+        radius: 130 * rangeMul,
         type: "drone",
         ownerId: player.id,
         health: 1,
@@ -649,14 +689,19 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         maxTimer: deployDuration,
         color: def.color,
       });
+      audio?.play("reconDrone");
+      fx?.addTrauma(0.05);
+      fx?.triggerFlash({ duration: 0.18, color: def.color, opacity: 0.16 });
+      spawnParticles(state, droneX, droneY, def.color, 8, 70, 0.45);
       break;
     }
     case "viper": {
-      const range = 260 * rangeMul;
+      const range = 300 * rangeMul;
       const coneAngle = Math.cos(Math.PI / 6);
-      const maxStacks = hasTalent(player, "viper_corrosive_touch") ? 5 : 4;
-      const burstDamage = hasTalent(player, "viper_corrosive_touch") ? 200 : 160;
-      const spreadCount = hasTalent(player, "viper_corrosive_touch") ? 3 : 2;
+      const maxStacks = hasTalent(player, "viper_corrosive_touch") ? 6 : 5;
+      const burstDamage = hasTalent(player, "viper_corrosive_touch") ? 300 : 240;
+      const spreadCount = hasTalent(player, "viper_corrosive_touch") ? 4 : 3;
+      let hitCount = 0;
 
       for (const enemy of state.enemies) {
         const dx = enemy.x - player.x;
@@ -667,22 +712,31 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         if (dot < coneAngle) continue;
 
         const wasFull = enemy.venomStacks >= maxStacks;
+        enemy.health -= 30;
+        state.stats.damageDealt += 30;
         enemy.venomStacks = Math.min(maxStacks, enemy.venomStacks + 1);
-        enemy.venomTimer = 4;
-        state.stats.damageDealt += 10;
+        enemy.venomTimer = 5;
+        hitCount++;
 
         if (!wasFull && enemy.venomStacks >= maxStacks) {
           enemy.health -= burstDamage;
           state.stats.damageDealt += burstDamage;
           spawnVenomSpread(state, enemy, spreadCount);
-          fx?.addTrauma(0.08);
-          fx?.triggerFlash({ duration: 0.2, color: "#84cc16", opacity: 0.25 });
+          fx?.addTrauma(0.1);
+          fx?.triggerFlash({ duration: 0.22, color: "#84cc16", opacity: 0.28 });
         }
+      }
+      audio?.play("viperSpit");
+      if (hitCount === 0) {
+        fx?.addTrauma(0.05);
+      }
+      if (hitCount > 0) {
+        spawnParticles(state, player.x + aim.x * 80, player.y + aim.y * 80, def.color, 12, 120, 0.35);
       }
       break;
     }
     case "falcon": {
-      const dashRange = 160;
+      const dashRange = 180;
       const endX = clamp(
         player.x + aim.x * dashRange,
         player.radius,
@@ -695,23 +749,34 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       );
       player.x = endX;
       player.y = endY;
+      let hitCount = 0;
       for (const enemy of state.enemies) {
         if (distance(enemy, player) <= 90 * rangeMul + enemy.radius) {
-          enemy.health -= 50;
-          enemy.freezeTimer = Math.max(enemy.freezeTimer, 0.8);
-          state.stats.damageDealt += 50;
+          enemy.health -= 90;
+          enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.0);
+          state.stats.damageDealt += 90;
+          hitCount++;
         }
       }
+      audio?.play("falconDash");
+      fx?.addTrauma(0.07);
+      if (hitCount > 0) {
+        fx?.addShake(0.8, 0);
+        fx?.triggerFlash({ duration: 0.15, color: def.color, opacity: 0.18 });
+      }
+      spawnParticles(state, player.x, player.y, def.color, 8, 150, 0.3);
       break;
     }
     case "bastion": {
       const healthMul = getDeployableMultiplier(player, "health");
-      const wallHealth = Math.round(1200 * healthMul);
+      const wallHealth = Math.round(1600 * healthMul);
+      const wallX = player.x + aim.x * 60;
+      const wallY = player.y + aim.y * 60;
       ds.deployables.push({
         id: uid("deploy"),
-        x: player.x + aim.x * 60,
-        y: player.y + aim.y * 60,
-        radius: 42,
+        x: wallX,
+        y: wallY,
+        radius: 46,
         type: "wall",
         ownerId: player.id,
         health: wallHealth,
@@ -720,6 +785,11 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
         maxTimer: deployDuration,
         color: def.color,
       });
+      audio?.play("bastionWall");
+      fx?.addTrauma(0.1);
+      fx?.addShake(1.0, 0);
+      fx?.triggerFlash({ duration: 0.18, color: def.color, opacity: 0.18 });
+      spawnParticles(state, wallX, wallY, "#d4d4d8", 10, 80, 0.45);
       break;
     }
   }
@@ -740,18 +810,24 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
   switch (player.heroId) {
     case "nitrogen": {
       const rangeMul = getDeployableMultiplier(player, "range");
-      const burstRange = 220 * rangeMul;
+      const burstRange = 260 * rangeMul;
+      let hitCount = 0;
       for (const enemy of state.enemies) {
         if (distance(enemy, player) <= burstRange + enemy.radius) {
-          enemy.health -= 280;
-          enemy.freezeTimer = Math.max(enemy.freezeTimer, 3);
-          enemy.slow = 1;
-          enemy.slowTimer = Math.max(enemy.slowTimer, 3);
-          state.stats.damageDealt += 280;
+          enemy.health -= 420;
+          enemy.freezeTimer = Math.max(enemy.freezeTimer, 3.2);
+          enemy.freezeShatterDamage = 260;
+          enemy.frostStacks = 3;
+          enemy.frostTimer = 4;
+          state.stats.damageDealt += 420;
+          hitCount++;
         }
       }
-      fx?.addShake(2.5, 0);
-      fx?.triggerFlash({ duration: 0.35, color: "#38bdf8", opacity: 0.35 });
+      audio?.play("nitrogenZero");
+      fx?.addTrauma(0.22);
+      fx?.addShake(3.2, 0);
+      fx?.triggerFlash({ duration: 0.4, color: def.color, opacity: 0.38 });
+      spawnParticles(state, player.x, player.y, def.color, 24, 200, 0.55);
       break;
     }
     case "twilight": {
@@ -760,25 +836,48 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
         const dx = target.x - player.x;
         const dy = target.y - player.y;
         if (dx * dx + dy * dy <= ultimate.range * ultimate.range) {
-          target.health = Math.min(target.maxHealth, target.health + 80);
+          target.health = Math.min(target.maxHealth, target.health + 120);
           target.burnDuration = 0;
+          target.twilightCocoonTimer = 4;
         }
       }
+      audio?.play("twilightCocoon");
+      fx?.addTrauma(0.1);
+      fx?.triggerFlash({ duration: 0.35, color: def.color, opacity: 0.24 });
+      spawnParticles(state, player.x, player.y, def.color, 16, 110, 0.6);
       break;
     }
     case "leopard": {
+      if (!player.leopardFrenzyActive) {
+        player.leopardFrenzyActive = true;
+        player.critChance += 0.25;
+        player.speed *= 1.35;
+      }
       player.leopardFrenzyTimer = 8;
+      audio?.play("leopardInstinct");
+      fx?.addTrauma(0.16);
+      fx?.addShake(1.4, 0);
+      fx?.triggerFlash({ duration: 0.3, color: def.color, opacity: 0.24 });
+      spawnParticles(state, player.x, player.y, def.color, 18, 170, 0.55);
       break;
     }
     case "recon": {
-      const centerX = player.x + aim.x * 120;
-      const centerY = player.y + aim.y * 120;
+      const centerX = player.x + aim.x * 140;
+      const centerY = player.y + aim.y * 140;
+      let hitCount = 0;
       for (const enemy of state.enemies) {
         if (distance(enemy, { x: centerX, y: centerY }) <= ultimate.range + enemy.radius) {
-          enemy.health -= 320;
-          state.stats.damageDealt += 320;
+          enemy.health -= 420;
+          state.stats.damageDealt += 420;
+          enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, 4);
+          hitCount++;
         }
       }
+      audio?.play("reconStrike");
+      fx?.addTrauma(0.18);
+      fx?.addShake(2.0, 0);
+      fx?.triggerFlash({ duration: 0.3, color: def.color, opacity: 0.26 });
+      spawnParticles(state, centerX, centerY, def.color, 20, 190, 0.5);
       break;
     }
     case "viper": {
@@ -789,7 +888,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
         id: uid("deploy"),
         x: player.x + aim.x * 60,
         y: player.y + aim.y * 60,
-        radius: 180 * rangeMul,
+        radius: 220 * rangeMul,
         type: "poisonField",
         ownerId: player.id,
         health: 1,
@@ -800,32 +899,42 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
         tickInterval: 1,
         color: def.color,
       });
-      fx?.addTrauma(0.12);
-      fx?.triggerFlash({ duration: 0.25, color: "#65a30d", opacity: 0.25 });
+      audio?.play("viperNest");
+      fx?.addTrauma(0.16);
+      fx?.addShake(1.2, 0);
+      fx?.triggerFlash({ duration: 0.28, color: "#65a30d", opacity: 0.28 });
+      spawnParticles(state, player.x + aim.x * 60, player.y + aim.y * 60, def.color, 16, 120, 0.55);
       break;
     }
     case "falcon": {
-      const width = 40;
-      const length = 200;
-      const centerX = player.x + aim.x * 120;
-      const centerY = player.y + aim.y * 120;
-      const perpX = -aim.y;
-      const perpY = aim.x;
-      for (let i = 0; i < 15; i++) {
-        const t = i / 14;
-        const px = centerX + aim.x * (t - 0.5) * length + perpX * (Math.random() - 0.5) * width;
-        const py = centerY + aim.y * (t - 0.5) * length + perpY * (Math.random() - 0.5) * width;
-        for (const enemy of state.enemies) {
-          if (distance(enemy, { x: px, y: py }) <= 60 + enemy.radius) {
-            enemy.health -= 150 * 0.2;
-            state.stats.damageDealt += 150 * 0.2;
-          }
-        }
-      }
+      if (!ds) return;
+      const rangeMul = getDeployableMultiplier(player, "range");
+      const durationMul = getDeployableMultiplier(player, "duration");
+      const deployDuration = ultimate.duration * durationMul;
+      ds.deployables.push({
+        id: uid("deploy"),
+        x: player.x + aim.x * 120,
+        y: player.y + aim.y * 120,
+        radius: 240 * rangeMul,
+        type: "laserBeam",
+        ownerId: player.id,
+        health: 1,
+        maxHealth: 1,
+        timer: deployDuration,
+        maxTimer: deployDuration,
+        tickTimer: 0.2,
+        tickInterval: 0.2,
+        color: def.color,
+      });
+      audio?.play("falconOrbitalLaser");
+      fx?.addTrauma(0.18);
+      fx?.addShake(2.2, 0);
+      fx?.triggerFlash({ duration: 0.32, color: def.color, opacity: 0.26 });
+      spawnParticles(state, player.x + aim.x * 120, player.y + aim.y * 120, def.color, 22, 210, 0.6);
       break;
     }
     case "bastion": {
-      const count = hasTalent(player, "bastion_overload") ? 8 : 6;
+      const count = hasTalent(player, "bastion_overload") ? 10 : 8;
       const damageMul = getDeployableMultiplier(player, "damage");
       const speed = 420;
       for (let i = 0; i < count; i++) {
@@ -837,7 +946,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           radius: 10,
-          damage: Math.round(180 * damageMul),
+          damage: Math.round(240 * damageMul),
           speed,
           color: def.color,
           pierce: 0,
@@ -848,6 +957,11 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
           areaRadius: 55,
         });
       }
+      audio?.play("bastionSwarm");
+      fx?.addTrauma(0.2);
+      fx?.addShake(2.0, 0);
+      fx?.triggerFlash({ duration: 0.32, color: def.color, opacity: 0.3 });
+      spawnParticles(state, player.x, player.y, def.color, 16, 160, 0.5);
       break;
     }
   }
@@ -866,12 +980,29 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
     if (player.ultimateSkill && player.ultimateSkill.timer > 0) {
       player.ultimateSkill.timer -= dt;
     }
-    if (player.leopardFrenzyTimer > 0) player.leopardFrenzyTimer -= dt;
+    if (player.leopardFrenzyTimer > 0) {
+      player.leopardFrenzyTimer -= dt;
+      if (player.leopardFrenzyTimer <= 0 && player.leopardFrenzyActive) {
+        player.leopardFrenzyActive = false;
+        player.critChance -= 0.25;
+        player.speed /= 1.35;
+      }
+    }
+    if (player.leopardPounceSpeedTimer > 0) {
+      player.leopardPounceSpeedTimer -= dt;
+      if (player.leopardPounceSpeedTimer <= 0) {
+        player.speed /= 1.12;
+      }
+    }
     if (player.leopardBloodlustTimer > 0) {
       player.leopardBloodlustTimer -= dt;
       if (player.leopardBloodlustTimer <= 0) {
         player.leopardBloodlustStacks = 0;
       }
+    }
+    if (player.twilightCocoonTimer > 0) {
+      player.twilightCocoonTimer -= dt;
+      player.health = Math.min(player.maxHealth, player.health + 32 * dt);
     }
   }
 
@@ -892,7 +1023,7 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
       const healMul = getDeployableMultiplier(owner, "damage");
       for (const player of players) {
         if (distance(player, d) <= d.radius + player.radius) {
-          player.health = Math.min(player.maxHealth, player.health + 22 * dt * healMul);
+          player.health = Math.min(player.maxHealth, player.health + 30 * dt * healMul);
         }
       }
     }
@@ -943,8 +1074,8 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
           enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
 
           if (shouldTick) {
-            enemy.health -= 35;
-            state.stats.damageDealt += 35;
+            enemy.health -= 70;
+            state.stats.damageDealt += 70;
             enemy.vulnerabilityStacks = Math.min(5, enemy.vulnerabilityStacks + 1);
           }
         }
@@ -955,6 +1086,33 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
       for (const enemy of state.enemies) {
         if (distance(enemy, d) <= d.radius + enemy.radius) {
           enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, d.timer);
+        }
+      }
+    }
+
+    if (d.type === "laserBeam") {
+      d.tickTimer = (d.tickTimer ?? 0.2) - dt;
+      const shouldTick = d.tickTimer <= 0;
+      if (shouldTick) {
+        d.tickTimer = d.tickInterval ?? 0.2;
+      }
+      const damageMul = getDeployableMultiplier(owner, "damage");
+      const perShot = 220 * 0.2 * damageMul;
+      const aim = { x: Math.cos(owner.facing), y: Math.sin(owner.facing) };
+      const length = 240;
+      const width = 50;
+      const perpX = -aim.y;
+      const perpY = aim.x;
+      for (const enemy of state.enemies) {
+        const dx = enemy.x - d.x;
+        const dy = enemy.y - d.y;
+        const forward = dx * aim.x + dy * aim.y;
+        const lateral = Math.abs(dx * perpX + dy * perpY);
+        if (forward >= -length * 0.5 && forward <= length * 0.5 && lateral <= width * 0.5 + enemy.radius) {
+          if (shouldTick) {
+            enemy.health -= perShot;
+            state.stats.damageDealt += perShot;
+          }
         }
       }
     }
@@ -1189,10 +1347,38 @@ function spawnVenomSpread(state: GameState, source: Enemy, count: number): void 
 function spawnFrostBurst(state: GameState, enemy: Enemy, damage: number, fx?: FXSystem): void {
   enemy.health -= damage;
   state.stats.damageDealt += damage;
-  enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.5);
+  enemy.freezeTimer = Math.max(enemy.freezeTimer, 1.8);
+  enemy.freezeShatterDamage = damage;
   enemy.frostStacks = 0;
   enemy.frostTimer = 0;
   fx?.addTrauma(0.06);
+  spawnParticles(state, enemy.x, enemy.y, "#e0f2fe", 8, 140, 0.35);
+}
+
+function spawnParticles(
+  state: GameState,
+  x: number,
+  y: number,
+  color: string,
+  count: number,
+  speed: number,
+  life: number
+): void {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const vel = Math.random() * speed;
+    state.particles.push({
+      id: uid("particle"),
+      x,
+      y,
+      vx: Math.cos(angle) * vel,
+      vy: Math.sin(angle) * vel,
+      radius: Math.random() * 2 + 1,
+      color,
+      life,
+      maxLife: life,
+    });
+  }
 }
 
 function pointSegmentDistance(

@@ -16,6 +16,7 @@ import {
   Shield,
   List,
   X,
+  Robot,
 } from "@phosphor-icons/react";
 import AuthButton from "@/components/AuthButton";
 
@@ -27,6 +28,7 @@ interface LayoutProps {
 
 const NAV = [
   { href: "/", label: "指挥终端", icon: House },
+  { href: "/algorithms", label: "算法", icon: Robot },
   { href: "/landing", label: "官网", icon: Globe },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
@@ -41,6 +43,7 @@ const NAV = [
 
 const MOBILE_NAV = [
   { href: "/", label: "首页", icon: House },
+  { href: "/algorithms", label: "算法", icon: Robot },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/leaderboard", label: "战绩", icon: Trophy },

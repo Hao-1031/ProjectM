@@ -52,9 +52,19 @@ export type SfxKey =
   | "disruptorPulse"
   // Heroes
   | "nitrogenGrenade"
+  | "nitrogenZero"
   | "twilightPulse"
+  | "twilightCocoon"
   | "leopardPounce"
+  | "leopardInstinct"
+  | "reconDrone"
   | "reconStrike"
+  | "viperSpit"
+  | "viperNest"
+  | "falconDash"
+  | "falconOrbitalLaser"
+  | "bastionWall"
+  | "bastionSwarm"
   // UI
   | "buttonClick"
   | "upgradeSelect"
@@ -434,6 +444,15 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     slide: 400,
     pitchVariation: 0.04,
   },
+  nitrogenZero: {
+    category: "heroes",
+    frequency: 320,
+    duration: 0.6,
+    type: "sine",
+    volume: 0.22,
+    slide: -200,
+    pitchVariation: 0.05,
+  },
   twilightPulse: {
     category: "heroes",
     frequency: 520,
@@ -441,6 +460,15 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     type: "sine",
     volume: 0.13,
     slide: -80,
+    pitchVariation: 0.03,
+  },
+  twilightCocoon: {
+    category: "heroes",
+    frequency: 660,
+    duration: 0.7,
+    type: "sine",
+    volume: 0.16,
+    slide: 240,
     pitchVariation: 0.03,
   },
   leopardPounce: {
@@ -452,6 +480,24 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     slide: 250,
     pitchVariation: 0.05,
   },
+  leopardInstinct: {
+    category: "heroes",
+    frequency: 280,
+    duration: 0.55,
+    type: "sawtooth",
+    volume: 0.18,
+    slide: 120,
+    pitchVariation: 0.06,
+  },
+  reconDrone: {
+    category: "heroes",
+    frequency: 880,
+    duration: 0.35,
+    type: "triangle",
+    volume: 0.12,
+    slide: -120,
+    pitchVariation: 0.04,
+  },
   reconStrike: {
     category: "heroes",
     frequency: 160,
@@ -460,6 +506,59 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     volume: 0.18,
     slide: -60,
     pitchVariation: 0.03,
+  },
+  viperSpit: {
+    category: "heroes",
+    frequency: 260,
+    duration: 0.3,
+    type: "sawtooth",
+    volume: 0.15,
+    slide: -180,
+    pitchVariation: 0.07,
+  },
+  viperNest: {
+    category: "heroes",
+    frequency: 140,
+    duration: 0.65,
+    type: "sine",
+    volume: 0.18,
+    slide: -100,
+    pitchVariation: 0.05,
+  },
+  falconDash: {
+    category: "heroes",
+    frequency: 720,
+    duration: 0.22,
+    type: "sine",
+    volume: 0.13,
+    slide: 300,
+    pitchVariation: 0.05,
+  },
+  falconOrbitalLaser: {
+    category: "heroes",
+    frequency: 180,
+    duration: 0.8,
+    type: "sawtooth",
+    volume: 0.22,
+    slide: -80,
+    pitchVariation: 0.03,
+  },
+  bastionWall: {
+    category: "heroes",
+    frequency: 90,
+    duration: 0.45,
+    type: "noise",
+    volume: 0.2,
+    pitchVariation: 0.04,
+  },
+  bastionSwarm: {
+    category: "heroes",
+    frequency: 220,
+    duration: 0.55,
+    type: "square",
+    volume: 0.2,
+    slide: 400,
+    pitchVariation: 0.06,
   },
 
   // UI

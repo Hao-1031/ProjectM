@@ -9,6 +9,7 @@ import type {
 } from "./types";
 import { uid, rectOverlap } from "./math";
 import { getMapById, DEFAULT_DEFENSE_MAP_ID, type MapId } from "./maps";
+import { adjustDefenseWave, type TeamProfile } from "@/lib/algorithms/dda";
 
 const DEFAULT_MAP_WIDTH = 2200;
 const DEFAULT_MAP_HEIGHT = 1600;
@@ -110,7 +111,10 @@ export function generateDefenseNodes(seed: number): EnergyNode[] {
   return nodes;
 }
 
-export function generateDefenseWaves(seed: number): DefenseWave[] {
+export function generateDefenseWaves(
+  seed: number,
+  team?: TeamProfile
+): DefenseWave[] {
   const rng = seededRandom(seed);
   const waves: DefenseWave[] = [];
   const totalWaves = 8;
@@ -118,7 +122,7 @@ export function generateDefenseWaves(seed: number): DefenseWave[] {
   for (let i = 0; i < totalWaves; i++) {
     const baseCount = 12 + i * 4;
     const eliteCount = Math.min(3, Math.floor(i / 2));
-    waves.push({
+    const baseWave: DefenseWave = {
       index: i,
       enemyCount: baseCount,
       enemyVariants: MECH_VARIANTS,
@@ -126,7 +130,28 @@ export function generateDefenseWaves(seed: number): DefenseWave[] {
       bossVariant: i === totalWaves - 1 ? "colossus" : undefined,
       nodeActivator: true,
       duration: 35 + i * 3,
-    });
+    };
+
+    if (team && team.players.length > 0) {
+      const adjustment = adjustDefenseWave(
+        { index: i, enemyCount: baseCount, eliteCount },
+        team
+      );
+      baseWave.enemyCount = Math.max(
+        1,
+        Math.round(baseCount * adjustment.enemyCountMultiplier)
+      );
+      baseWave.eliteCount = Math.min(
+        Math.max(0, Math.round(baseWave.enemyCount * adjustment.eliteRatio)),
+        baseWave.enemyCount
+      );
+      baseWave.enemyHealthMultiplier = adjustment.enemyHealthMultiplier;
+      baseWave.enemyDamageMultiplier = adjustment.enemyDamageMultiplier;
+      baseWave.spawnIntervalMultiplier = adjustment.spawnIntervalMultiplier;
+      baseWave.specialEventChance = adjustment.specialEventChance;
+    }
+
+    waves.push(baseWave);
   }
   return waves;
 }

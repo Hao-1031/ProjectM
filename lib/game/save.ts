@@ -1,6 +1,7 @@
 import type { RunResult, WeaponId, HeroId, GameModeType } from "./types";
 import { DEFAULT_BALANCE } from "./balance";
 import { HERO_DEFS } from "./heroes";
+import { COSMETICS, DEFAULT_HEROES, getHeroCost, getCosmetic, type CosmeticType } from "./cosmetics";
 
 export interface RunHistoryEntry {
   timestamp: number;
@@ -20,6 +21,11 @@ export interface SaveData {
   unlockedWeapons: WeaponId[];
   equippedWeapons: WeaponId[];
   selectedHero: HeroId;
+  unlockedHeroes: HeroId[];
+  ownedSkins: string[];
+  equippedSkin: string | null;
+  ownedEmotes: string[];
+  ownedBadges: string[];
   runHistory: RunHistoryEntry[];
   settings: {
     audioEnabled: boolean;
@@ -29,8 +35,8 @@ export interface SaveData {
   };
 }
 
-const SAVE_KEY = "project_m_save_v4";
-const CURRENT_SAVE_VERSION = 4;
+const SAVE_KEY = "project_m_save_v5";
+const CURRENT_SAVE_VERSION = 5;
 const MAX_RUN_HISTORY = 20;
 const DEATH_REWARD_CAP = 200;
 const MIN_DEATH_REWARD_TIME = 45;
@@ -57,6 +63,11 @@ function createFallback(): SaveData {
     unlockedWeapons: ["pulse"],
     equippedWeapons: ["pulse"],
     selectedHero: "recon",
+    unlockedHeroes: [...DEFAULT_HEROES],
+    ownedSkins: [],
+    equippedSkin: null,
+    ownedEmotes: [],
+    ownedBadges: [],
     runHistory: [],
     settings: {
       audioEnabled: true,
@@ -106,6 +117,28 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
       )
     : fallback.runHistory;
 
+  const unlockedHeroes: HeroId[] = Array.isArray(parsed.unlockedHeroes)
+    ? (parsed.unlockedHeroes.filter((id) => id in HERO_DEFS) as HeroId[])
+    : fallback.unlockedHeroes;
+  const validHeroes =
+    unlockedHeroes.length > 0 ? unlockedHeroes : fallback.unlockedHeroes;
+  const validSelectedHero =
+    selectedHero && validHeroes.includes(selectedHero) ? selectedHero : fallback.selectedHero;
+
+  const ownedSkins: string[] = Array.isArray(parsed.ownedSkins)
+    ? parsed.ownedSkins.filter((id) => COSMETICS.some((c) => c.id === id))
+    : fallback.ownedSkins;
+  const ownedEmotes: string[] = Array.isArray(parsed.ownedEmotes)
+    ? parsed.ownedEmotes.filter((id) => COSMETICS.some((c) => c.id === id))
+    : fallback.ownedEmotes;
+  const ownedBadges: string[] = Array.isArray(parsed.ownedBadges)
+    ? parsed.ownedBadges.filter((id) => COSMETICS.some((c) => c.id === id))
+    : fallback.ownedBadges;
+  const equippedSkin =
+    typeof parsed.equippedSkin === "string" && ownedSkins.includes(parsed.equippedSkin)
+      ? parsed.equippedSkin
+      : null;
+
   return {
     ...fallback,
     ...parsed,
@@ -114,7 +147,12 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
       typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : fallback.coins,
     unlockedWeapons: unlocked.length > 0 ? unlocked : fallback.unlockedWeapons,
     equippedWeapons: clampedEquipped,
-    selectedHero,
+    selectedHero: validSelectedHero,
+    unlockedHeroes: validHeroes,
+    ownedSkins,
+    equippedSkin,
+    ownedEmotes,
+    ownedBadges,
     runHistory,
     settings: { ...fallback.settings, ...parsed.settings },
   };
@@ -128,6 +166,7 @@ export function loadSave(): SaveData {
     if (!raw) {
       // Migrate from older save keys if present
       for (const oldKey of [
+        "project_m_save_v4",
         "project_m_save_v3",
         "project_m_save_v2",
         "project_m_save_v1",
@@ -313,18 +352,84 @@ export function unequipWeapon(id: WeaponId): boolean {
   return true;
 }
 
+export function isHeroUnlocked(heroId: HeroId): boolean {
+  return loadSave().unlockedHeroes.includes(heroId);
+}
+
+export function buyHero(heroId: HeroId): boolean {
+  if (!(heroId in HERO_DEFS)) return false;
+  const save = loadSave();
+  if (save.unlockedHeroes.includes(heroId)) return true;
+
+  const cost = getHeroCost(heroId);
+  if (save.coins < cost) return false;
+
+  save.coins -= cost;
+  save.unlockedHeroes.push(heroId);
+  saveSave(save);
+  return true;
+}
+
 export function setSelectedHero(heroId: HeroId) {
   if (!(heroId in HERO_DEFS)) return;
   const save = loadSave();
+  if (!save.unlockedHeroes.includes(heroId)) return;
   save.selectedHero = heroId;
   saveSave(save);
+}
+
+export function isCosmeticOwned(id: string): boolean {
+  const save = loadSave();
+  const cosmetic = getCosmetic(id);
+  if (!cosmetic) return false;
+  if (cosmetic.type === "skin") return save.ownedSkins.includes(id);
+  if (cosmetic.type === "emote") return save.ownedEmotes.includes(id);
+  return save.ownedBadges.includes(id);
+}
+
+export function buyCosmetic(id: string): boolean {
+  const cosmetic = getCosmetic(id);
+  if (!cosmetic) return false;
+  if (isCosmeticOwned(id)) return true;
+
+  const save = loadSave();
+  if (save.coins < cosmetic.cost) return false;
+
+  save.coins -= cosmetic.cost;
+  if (cosmetic.type === "skin") save.ownedSkins.push(id);
+  else if (cosmetic.type === "emote") save.ownedEmotes.push(id);
+  else if (cosmetic.type === "badge") save.ownedBadges.push(id);
+  saveSave(save);
+  return true;
+}
+
+export function equipSkin(id: string | null): boolean {
+  const save = loadSave();
+  if (id === null) {
+    save.equippedSkin = null;
+    saveSave(save);
+    return true;
+  }
+  const cosmetic = getCosmetic(id);
+  if (!cosmetic || cosmetic.type !== "skin") return false;
+  if (!save.ownedSkins.includes(id)) return false;
+  save.equippedSkin = id;
+  saveSave(save);
+  return true;
+}
+
+export function getEquippedSkin(): string | null {
+  return loadSave().equippedSkin;
 }
 
 export function getLoadout(): { heroId: HeroId; weaponIds: WeaponId[] } {
   const save = loadSave();
   const weapons: WeaponId[] = save.equippedWeapons.length > 0 ? save.equippedWeapons : ["pulse"];
+  const heroId = save.unlockedHeroes.includes(save.selectedHero)
+    ? save.selectedHero
+    : DEFAULT_HEROES[0];
   return {
-    heroId: save.selectedHero,
+    heroId,
     weaponIds: weapons.slice(0, DEFAULT_BALANCE.progression.maxWeapons),
   };
 }
@@ -332,6 +437,7 @@ export function getLoadout(): { heroId: HeroId; weaponIds: WeaponId[] } {
 export function saveLoadout(heroId: HeroId, weaponIds: WeaponId[]) {
   if (!(heroId in HERO_DEFS)) return;
   const save = loadSave();
+  if (!save.unlockedHeroes.includes(heroId)) return;
   save.selectedHero = heroId;
   const validWeapons = weaponIds.filter(
     (id) => id in DEFAULT_BALANCE.weapons && save.unlockedWeapons.includes(id)

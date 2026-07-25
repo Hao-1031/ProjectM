@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Crosshair,
   Snowflake,
@@ -17,11 +17,14 @@ import {
   Radioactive,
   Bird,
   Wall,
+  PaintBrush,
+  Circle,
 } from "@phosphor-icons/react";
 import { HERO_DEFS } from "@/lib/game/heroes";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
 import type { WeaponId, HeroId, GameModeType } from "@/lib/game/types";
-import { saveLoadout, loadSave } from "@/lib/game/save";
+import { saveLoadout, loadSave, equipSkin, getEquippedSkin, isCosmeticOwned } from "@/lib/game/save";
+import { getSkinsForHero } from "@/lib/game/cosmetics";
 
 const HERO_ICONS: Record<HeroId, typeof Snowflake> = {
   nitrogen: Snowflake,
@@ -60,8 +63,10 @@ export default function LoadoutModal({
   onConfirm,
   onCancel,
 }: LoadoutModalProps) {
+  const reducedMotion = useReducedMotion();
   const [selectedHero, setSelectedHero] = useState<HeroId>(initialHero);
   const [selectedWeapons, setSelectedWeapons] = useState<WeaponId[]>(initialWeapons);
+  const [selectedSkin, setSelectedSkin] = useState<string | null>(() => getEquippedSkin());
   const maxWeapons = DEFAULT_BALANCE.progression.maxWeapons;
   const heroes = Object.values(HERO_DEFS);
   const save = useMemo(() => loadSave(), []);
@@ -73,6 +78,23 @@ export default function LoadoutModal({
   const weapons = allWeapons.filter(([id]) => unlockedSet.has(id));
 
   const activeHero = HERO_DEFS[selectedHero];
+  const availableSkins = useMemo(
+    () => getSkinsForHero(selectedHero).filter((s) => isCosmeticOwned(s.id)),
+    [selectedHero]
+  );
+
+  useEffect(() => {
+    const valid = availableSkins.some((s) => s.id === selectedSkin);
+    if (!valid) setSelectedSkin(null);
+  }, [availableSkins, selectedSkin]);
+
+  const previewColor = useMemo(() => {
+    if (selectedSkin) {
+      const cosmetic = availableSkins.find((s) => s.id === selectedSkin);
+      if (cosmetic) return cosmetic.color;
+    }
+    return activeHero.color;
+  }, [selectedSkin, availableSkins, activeHero]);
 
   const toggleWeapon = useCallback(
     (id: WeaponId) => {
@@ -90,18 +112,19 @@ export default function LoadoutModal({
 
   const handleConfirm = useCallback(() => {
     const weaponIds: WeaponId[] = selectedWeapons.length > 0 ? selectedWeapons : ["pulse"];
+    equipSkin(selectedSkin);
     saveLoadout(selectedHero, weaponIds);
     onConfirm({ heroId: selectedHero, weaponIds });
-  }, [selectedHero, selectedWeapons, onConfirm]);
+  }, [selectedHero, selectedWeapons, selectedSkin, onConfirm]);
 
   const isTouch = typeof window !== "undefined" && "ontouchstart" in window;
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-background/92 p-3 backdrop-blur-md sm:p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 20 }}
+        initial={reducedMotion ? undefined : { opacity: 0, scale: 0.98, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.99, y: 12 }}
+        exit={reducedMotion ? undefined : { opacity: 0, scale: 0.99, y: 12 }}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-6xl rounded-3xl border border-border bg-panel p-4 shadow-2xl sm:p-6 md:p-8"
       >
@@ -115,8 +138,8 @@ export default function LoadoutModal({
             <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">选择干员与装备</h2>
             <p className="mt-1 max-w-xl text-sm text-muted">
               {isTouch
-                ? "确认干员与出战武器后部署。战斗中无法更换干员。"
-                : "确认干员与出战武器后部署。战斗中无法更换干员。"}
+                ? "确认干员、外观与出战武器后部署。战斗中无法更换干员。"
+                : "确认干员、外观与出战武器后部署。战斗中无法更换干员。"}
             </p>
           </div>
           <div className="text-xs text-muted">
@@ -179,30 +202,30 @@ export default function LoadoutModal({
                 <div
                   className="relative flex min-h-[220px] flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl sm:min-h-[260px]"
                   style={{
-                    background: `radial-gradient(circle at 50% 100%, ${activeHero.color}22 0%, transparent 60%), linear-gradient(180deg, ${activeHero.color}0d 0%, transparent 100%)`,
+                    background: `radial-gradient(circle at 50% 100%, ${previewColor}22 0%, transparent 60%), linear-gradient(180deg, ${previewColor}0d 0%, transparent 100%)`,
                   }}
                 >
                   <div
                     className="pointer-events-none absolute inset-0 opacity-30"
                     style={{
-                      backgroundImage: `radial-gradient(${activeHero.color}33 1px, transparent 1px)`,
+                      backgroundImage: `radial-gradient(${previewColor}33 1px, transparent 1px)`,
                       backgroundSize: "18px 18px",
                     }}
                   />
                   <div
                     className="pointer-events-none absolute -bottom-16 h-48 w-48 rounded-full blur-3xl"
-                    style={{ backgroundColor: activeHero.color }}
+                    style={{ backgroundColor: previewColor }}
                   />
                   {(() => {
                     const Icon = HERO_ICONS[activeHero.id];
                     return (
                       <motion.div
                         key={activeHero.id}
-                        initial={{ scale: 0.9, opacity: 0 }}
+                        initial={reducedMotion ? undefined : { scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.3 }}
                         className="relative z-10 flex h-28 w-28 items-center justify-center rounded-full border-2"
-                        style={{ borderColor: activeHero.color, color: activeHero.color }}
+                        style={{ borderColor: previewColor, color: previewColor }}
                       >
                         <Icon size={64} weight="fill" />
                       </motion.div>
@@ -317,6 +340,80 @@ export default function LoadoutModal({
                   );
                 })}
                 </div>
+              </div>
+
+              {/* Skin selector */}
+              <div className="mt-4 flex flex-col rounded-2xl border border-border bg-panel p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PaintBrush size={14} weight="bold" className="text-accent" />
+                    <span className="text-sm font-bold">外观</span>
+                  </div>
+                  <span className="text-[10px] text-muted">只显示已拥有的涂装</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSkin(null)}
+                    className={`relative flex items-center gap-2 rounded-xl border p-2.5 text-left transition-all focus-ring active:scale-95 ${
+                      selectedSkin === null
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-panel-raised hover:border-primary/30 hover:bg-panel"
+                    }`}
+                  >
+                    {selectedSkin === null && (
+                      <span className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-background">
+                        <Check size={10} weight="bold" />
+                      </span>
+                    )}
+                    <span
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
+                      style={{ borderColor: activeHero.color, color: activeHero.color }}
+                    >
+                      <Circle size={16} weight="fill" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold">默认外观</p>
+                      <p className="text-[10px] text-muted">{activeHero.name}</p>
+                    </div>
+                  </button>
+                  {availableSkins.map((skin) => {
+                    const active = selectedSkin === skin.id;
+                    return (
+                      <button
+                        key={skin.id}
+                        type="button"
+                        onClick={() => setSelectedSkin(skin.id)}
+                        className={`relative flex items-center gap-2 rounded-xl border p-2.5 text-left transition-all focus-ring active:scale-95 ${
+                          active
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-panel-raised hover:border-primary/30 hover:bg-panel"
+                        }`}
+                      >
+                        {active && (
+                          <span className="absolute right-2 top-2 rounded-full bg-primary p-0.5 text-background">
+                            <Check size={10} weight="bold" />
+                          </span>
+                        )}
+                        <span
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                          style={{ backgroundColor: `${skin.color}18`, color: skin.color }}
+                        >
+                          <PaintBrush size={16} weight="fill" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold">{skin.name}</p>
+                          <p className="truncate text-[10px] text-muted">{skin.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {availableSkins.length === 0 && (
+                  <p className="mt-2 text-[10px] text-muted">
+                    该干员暂无可用的额外外观，可在英雄档案中解锁更多涂装。
+                  </p>
+                )}
               </div>
             </div>
 

@@ -47,8 +47,11 @@ function basePlayer(): Player {
     deployableUpgrades: {},
     talentLevels: {},
     leopardFrenzyTimer: 0,
+    leopardFrenzyActive: false,
+    leopardPounceSpeedTimer: 0,
     leopardBloodlustStacks: 0,
     leopardBloodlustTimer: 0,
+    twilightCocoonTimer: 0,
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
@@ -75,6 +78,7 @@ function createWalker(x: number, y: number): Enemy {
     slow: 0,
     slowTimer: 0,
     freezeTimer: 0,
+    freezeShatterDamage: 0,
     frostStacks: 0,
     frostTimer: 0,
     venomStacks: 0,
@@ -146,20 +150,20 @@ describe("applyHeroToPlayer", () => {
     const player = basePlayer();
     applyHeroToPlayer(player, "nitrogen");
     expect(player.armor).toBeGreaterThan(0);
-    expect(player.areaMultiplier).toBe(1.1);
+    expect(player.areaMultiplier).toBe(1.12);
   });
 
   it("applies twilight passive regen", () => {
     const player = basePlayer();
     applyHeroToPlayer(player, "twilight");
-    expect(player.regen).toBe(1.5);
+    expect(player.regen).toBe(2);
   });
 
   it("applies leopard passive speed and crit", () => {
     const player = basePlayer();
     applyHeroToPlayer(player, "leopard");
-    expect(player.speed).toBe(260 * 1.1);
-    expect(player.critChance).toBe(0.05);
+    expect(player.speed).toBe(260 * 1.12);
+    expect(player.critChance).toBe(0.06);
   });
 
   it("applies recon passive crit and weapon range", () => {
@@ -183,8 +187,8 @@ describe("applyHeroToPlayer", () => {
       },
     ];
     applyHeroToPlayer(player, "recon");
-    expect(player.critChance).toBe(0.1);
-    expect(player.weapons[0].range).toBe(300 * 1.08);
+    expect(player.critChance).toBe(0.12);
+    expect(player.weapons[0].range).toBe(300 * 1.1);
   });
 
   it("returns unchanged player for unknown hero", () => {
@@ -347,6 +351,7 @@ describe("useHeroUltimate", () => {
     const beforeHealth = state.enemies[0].health;
     state.player.ultimateTimer = 0;
     useHeroUltimate(state.player, state);
+    updateHeroSkillsAndDeployables(state, 0.2);
     expect(state.enemies[0].health).toBeLessThan(beforeHealth);
   });
 
@@ -494,7 +499,7 @@ describe("applyHeroTalent", () => {
     applyHeroToPlayer(player, "nitrogen");
     applyHeroTalent(player, "nitrogen_supercooled");
     expect(player.talentLevels["nitrogen_supercooled"]).toBe(1);
-    expect(player.areaMultiplier).toBe(1.1 * 1.15);
+    expect(player.areaMultiplier).toBe(1.12 * 1.15);
   });
 
   it("applies utility talent", () => {

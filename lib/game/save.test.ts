@@ -5,6 +5,12 @@ import {
   setSelectedHero,
   getLoadout,
   buyWeapon,
+  buyHero,
+  buyCosmetic,
+  equipSkin,
+  isHeroUnlocked,
+  isCosmeticOwned,
+  getEquippedSkin,
   recordRun,
   calculateRunReward,
   calculateDeathReward,
@@ -46,9 +52,12 @@ describe("save migration", () => {
 
   it("creates fallback with current version when no save exists", () => {
     const save = loadSave();
-    expect(save.version).toBe(4);
+    expect(save.version).toBe(5);
     expect(save.selectedHero).toBe("recon");
     expect(save.equippedWeapons).toEqual(["pulse"]);
+    expect(save.unlockedHeroes).toEqual(["recon"]);
+    expect(save.ownedSkins).toEqual([]);
+    expect(save.equippedSkin).toBeNull();
     expect(save.runHistory).toEqual([]);
   });
 
@@ -69,14 +78,15 @@ describe("save migration", () => {
     );
 
     const save = loadSave();
-    expect(save.version).toBe(4);
+    expect(save.version).toBe(5);
     expect(save.selectedHero).toBe("recon");
     expect(save.coins).toBe(120);
+    expect(save.unlockedHeroes).toEqual(["recon"]);
     expect(save.runHistory).toEqual([]);
     expect(save.settings.audioEnabled).toBe(false);
   });
 
-  it("migrates legacy v3 save to v4 with empty run history", () => {
+  it("migrates legacy v3 save to v5 with empty run history", () => {
     localStorage.setItem(
       "project_m_save_v3",
       JSON.stringify({
@@ -93,18 +103,24 @@ describe("save migration", () => {
     );
 
     const save = loadSave();
-    expect(save.version).toBe(4);
-    expect(save.selectedHero).toBe("leopard");
+    expect(save.version).toBe(5);
+    expect(save.selectedHero).toBe("recon");
     expect(save.coins).toBe(80);
+    expect(save.unlockedHeroes).toEqual(["recon"]);
     expect(save.runHistory).toEqual([]);
   });
 
   it("keeps current version hero when already migrated", () => {
     saveSave({
-      version: 4,
+      version: 5,
       selectedHero: "leopard",
       unlockedWeapons: ["pulse"],
       equippedWeapons: ["pulse"],
+      unlockedHeroes: ["recon", "leopard"],
+      ownedSkins: [],
+      equippedSkin: null,
+      ownedEmotes: [],
+      ownedBadges: [],
       coins: 0,
       totalRuns: 0,
       totalKills: 0,
@@ -114,6 +130,7 @@ describe("save migration", () => {
     });
 
     const save = loadSave();
+    expect(save.version).toBe(5);
     expect(save.selectedHero).toBe("leopard");
   });
 
@@ -135,7 +152,9 @@ describe("save migration", () => {
     );
 
     const save = loadSave();
+    expect(save.version).toBe(5);
     expect(save.selectedHero).toBe("recon");
+    expect(save.unlockedHeroes).toEqual(["recon"]);
   });
 
   it("getLoadout returns valid defaults", () => {
@@ -145,20 +164,29 @@ describe("save migration", () => {
     expect(loadout.weaponIds[0]).toBe("pulse");
   });
 
-  it("setSelectedHero persists and rejects invalid hero", () => {
+  it("setSelectedHero persists unlocked hero and rejects locked or invalid hero", () => {
+    saveSave({ ...loadSave(), unlockedHeroes: ["recon", "twilight"] });
     setSelectedHero("twilight");
     expect(loadSave().selectedHero).toBe("twilight");
 
     setSelectedHero("invalid" as import("./types").HeroId);
     expect(loadSave().selectedHero).toBe("twilight");
+
+    setSelectedHero("nitrogen");
+    expect(loadSave().selectedHero).toBe("twilight");
   });
 
   it("buyWeapon unlocks weapon and spends coins", () => {
     saveSave({
-      version: 4,
+      version: 5,
       selectedHero: "recon",
       unlockedWeapons: ["pulse"],
       equippedWeapons: ["pulse"],
+      unlockedHeroes: ["recon"],
+      ownedSkins: [],
+      equippedSkin: null,
+      ownedEmotes: [],
+      ownedBadges: [],
       coins: 500,
       totalRuns: 0,
       totalKills: 0,
@@ -229,5 +257,81 @@ describe("death settlement", () => {
   it("victory uses existing reward formula and ignores death anti-farm", () => {
     const result = baseRunResult({ victory: true });
     expect(calculateRunReward(result)).toBe(150 + 10 * 2 + 2 * 20 + 1 * 30);
+  });
+});
+
+describe("hero and cosmetic unlock", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it("default hero is unlocked and others are locked", () => {
+    expect(isHeroUnlocked("recon")).toBe(true);
+    expect(isHeroUnlocked("nitrogen")).toBe(false);
+  });
+
+  it("buyHero unlocks hero and spends coins", () => {
+    saveSave({ ...loadSave(), coins: 500 });
+    expect(buyHero("viper")).toBe(true);
+    const save = loadSave();
+    expect(save.unlockedHeroes).toContain("viper");
+    expect(save.coins).toBe(0);
+  });
+
+  it("buyHero fails when coins are insufficient", () => {
+    saveSave({ ...loadSave(), coins: 100 });
+    expect(buyHero("bastion")).toBe(false);
+    expect(isHeroUnlocked("bastion")).toBe(false);
+  });
+
+  it("setSelectedHero only works for unlocked heroes", () => {
+    saveSave({ ...loadSave(), coins: 500 });
+    buyHero("viper");
+    setSelectedHero("viper");
+    expect(loadSave().selectedHero).toBe("viper");
+
+    setSelectedHero("falcon");
+    expect(loadSave().selectedHero).toBe("viper");
+  });
+
+  it("buyCosmetic unlocks skin and spends coins", () => {
+    saveSave({ ...loadSave(), coins: 300 });
+    expect(buyCosmetic("skin-wasteland")).toBe(true);
+    const save = loadSave();
+    expect(save.ownedSkins).toContain("skin-wasteland");
+    expect(save.coins).toBe(50);
+  });
+
+  it("equipSkin requires ownership", () => {
+    saveSave({ ...loadSave(), coins: 300 });
+    buyCosmetic("skin-wasteland");
+    expect(equipSkin("skin-wasteland")).toBe(true);
+    expect(getEquippedSkin()).toBe("skin-wasteland");
+
+    expect(equipSkin("skin-ghost")).toBe(false);
+    expect(getEquippedSkin()).toBe("skin-wasteland");
+  });
+
+  it("equipSkin null clears equipped skin", () => {
+    saveSave({ ...loadSave(), coins: 300, ownedSkins: ["skin-wasteland"], equippedSkin: "skin-wasteland" });
+    expect(equipSkin(null)).toBe(true);
+    expect(getEquippedSkin()).toBeNull();
+  });
+
+  it("buyCosmetic unlocks emote and badge", () => {
+    saveSave({ ...loadSave(), coins: 500 });
+    expect(buyCosmetic("emote-salute")).toBe(true);
+    expect(buyCosmetic("badge-rookie")).toBe(true);
+    const save = loadSave();
+    expect(save.ownedEmotes).toContain("emote-salute");
+    expect(save.ownedBadges).toContain("badge-rookie");
+  });
+
+  it("isCosmeticOwned returns false for unknown id", () => {
+    expect(isCosmeticOwned("unknown-cosmetic")).toBe(false);
   });
 });

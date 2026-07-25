@@ -117,8 +117,11 @@ export function createBotPlayer(id: string, x: number, y: number): Player {
     deployableUpgrades: {},
     talentLevels: {},
     leopardFrenzyTimer: 0,
+    leopardFrenzyActive: false,
+    leopardPounceSpeedTimer: 0,
     leopardBloodlustStacks: 0,
     leopardBloodlustTimer: 0,
+    twilightCocoonTimer: 0,
     knockbackX: 0,
     knockbackY: 0,
     burnDuration: 0,
@@ -126,6 +129,7 @@ export function createBotPlayer(id: string, x: number, y: number): Player {
     facing: 0,
     animation: "idle",
     animationTimer: 0,
+    skinColor: "#f59e0b",
   };
 }
 

@@ -150,9 +150,25 @@ import {
   handleMineProximity,
   createNullHeroState,
 } from "./heroes";
+import { HERO_DEFS } from "./heroes";
+import { getEquippedSkin } from "./save";
+import { getCosmetic } from "./cosmetics";
 
 const MAP_WIDTH = 2400;
 const MAP_HEIGHT = 1800;
+const DEFAULT_PLAYER_COLOR = "#22d3ee";
+const REMOTE_PLAYER_COLOR = "#f59e0b";
+
+function resolvePlayerSkinColor(heroId?: HeroId | null, skinId?: string | null): string {
+  if (skinId) {
+    const cosmetic = getCosmetic(skinId);
+    if (cosmetic?.color) return cosmetic.color;
+  }
+  if (heroId && heroId in HERO_DEFS) {
+    return HERO_DEFS[heroId].color;
+  }
+  return DEFAULT_PLAYER_COLOR;
+}
 
 const THEMES: Record<MapTheme, { bg: string; grid: string; border: string; accent: string }> = {
   industrial: { bg: "#03040a", grid: "#11152a", border: "#1c2033", accent: "#22d3ee" },
@@ -249,9 +265,11 @@ export class GameEngine {
 
     const player = this.createPlayer("player", startX, startY);
     const heroId = this.loadout.heroId ?? this.state?.selectedHero;
+    const equippedSkin = getEquippedSkin();
     if (heroId) {
       applyHeroToPlayer(player, heroId);
     }
+    player.skinColor = resolvePlayerSkinColor(heroId, equippedSkin);
 
     const players: Player[] = [];
     if (mode === "deathmatch" && deathmatchState) {
@@ -403,8 +421,11 @@ export class GameEngine {
       deployableUpgrades: {},
       talentLevels: {},
       leopardFrenzyTimer: 0,
+      leopardFrenzyActive: false,
+      leopardPounceSpeedTimer: 0,
       leopardBloodlustStacks: 0,
       leopardBloodlustTimer: 0,
+      twilightCocoonTimer: 0,
       knockbackX: 0,
       knockbackY: 0,
       burnDuration: 0,
@@ -412,6 +433,7 @@ export class GameEngine {
       facing: 0,
       animation: "idle",
       animationTimer: 0,
+      skinColor: DEFAULT_PLAYER_COLOR,
     };
   }
 
@@ -529,6 +551,7 @@ export class GameEngine {
       if (heroId) {
         applyHeroToPlayer(player, heroId);
       }
+      player.skinColor = resolvePlayerSkinColor(heroId, getEquippedSkin());
       if (this.loadout.weaponIds.length > 0) {
         player.weapons = this.loadout.weaponIds.map((id) => WEAPON_CREATORS[id]());
       }
@@ -657,7 +680,7 @@ export class GameEngine {
       setFacing(player, player.x + move.x, player.y + move.y);
     }
 
-    updateAnimation(player, dt, getPlayerSprite("#22d3ee", "#0b0d17"));
+    updateAnimation(player, dt, getPlayerSprite(player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17"));
 
     if (player.invincible > 0) {
       player.invincible -= dt;
@@ -705,7 +728,8 @@ export class GameEngine {
       player.x = clamp(player.x, player.radius, this.state.map.width - player.radius);
       player.y = clamp(player.y, player.radius, this.state.map.height - player.radius);
       if (player.invincible > 0) player.invincible -= dt;
-      updateAnimation(player, dt, getPlayerSprite("#f59e0b", "#0b0d17"));
+      const remoteColor = player.skinColor || REMOTE_PLAYER_COLOR;
+      updateAnimation(player, dt, getPlayerSprite(remoteColor, "#0b0d17"));
     }
   }
 
@@ -1079,6 +1103,7 @@ export class GameEngine {
       slow: 0,
       slowTimer: 0,
       freezeTimer: 0,
+      freezeShatterDamage: 0,
       droneMarkTimer: 0,
       isElite: elite,
       isBoss: variant === "boss",
@@ -1136,6 +1161,7 @@ export class GameEngine {
       slow: 0,
       slowTimer: 0,
       freezeTimer: 0,
+      freezeShatterDamage: 0,
       droneMarkTimer: 0,
       isElite: false,
       isBoss: true,
@@ -1208,9 +1234,12 @@ export class GameEngine {
       if (enemy.freezeTimer > 0) {
         enemy.freezeTimer -= dt;
         if (enemy.freezeTimer <= 0 && enemy.health > 0) {
-          enemy.health -= 180;
-          this.state.stats.damageDealt += 180;
+          const shatterDamage = enemy.freezeShatterDamage > 0 ? enemy.freezeShatterDamage : 180;
+          enemy.health -= shatterDamage;
+          this.state.stats.damageDealt += shatterDamage;
+          enemy.freezeShatterDamage = 0;
           this.particlePool.spawnPreset("spark", enemy.x, enemy.y, "#e0f2fe", { intensity: 1 });
+          this.fx.addTrauma(0.06);
         }
       }
 
@@ -1221,7 +1250,9 @@ export class GameEngine {
           enemy.venomTimer = enemy.venomStacks > 0 ? 0.5 : 0;
         }
         if (enemy.venomTimer > 0) {
-          enemy.health -= enemy.venomStacks * 6 * dt;
+          const dot = enemy.venomStacks * 10 * dt;
+          enemy.health -= dot;
+          this.state.stats.damageDealt += dot;
         }
         if (enemy.venomStacks > 0 && Math.random() < dt * 4) {
           this.particlePool.spawnPreset(
@@ -2040,8 +2071,9 @@ export class GameEngine {
     burnDuration?: number,
     burnDamage?: number
   ): number {
-    const vulnerabilityMul = 1 + enemy.vulnerabilityStacks * 0.08;
-    const finalDamage = rawDamage * vulnerabilityMul;
+    const vulnerabilityMul = 1 + enemy.vulnerabilityStacks * 0.1;
+    const droneMul = enemy.droneMarkTimer > 0 ? 1.18 : 1;
+    const finalDamage = rawDamage * vulnerabilityMul * droneMul;
     enemy.health -= finalDamage;
     if (burnDuration && burnDamage) {
       enemy.burnDuration = burnDuration;
@@ -2134,6 +2166,21 @@ export class GameEngine {
         split.health = split.maxHealth;
         split.damage *= 0.6;
       }
+    }
+
+    if (enemy.venomStacks > 0) {
+      const corpseBurstRadius = 120;
+      for (const other of this.state.enemies) {
+        if (other.id === enemy.id) continue;
+        if (distance(other, enemy) <= corpseBurstRadius + other.radius) {
+          other.health -= 100;
+          this.state.stats.damageDealt += 100;
+          other.venomStacks = Math.min(5, other.venomStacks + 1);
+          other.venomTimer = Math.max(other.venomTimer, 4);
+        }
+      }
+      this.particlePool.spawnPreset("explosion", enemy.x, enemy.y, "#84cc16", { intensity: 0.9 });
+      this.fx.addTrauma(0.08);
     }
 
     this.state.enemies.splice(index, 1);
@@ -2687,13 +2734,14 @@ export class GameEngine {
   }
 
   private drawPlayer(ctx: CanvasRenderingContext2D) {
-    this.drawEntity(ctx, this.state.player, "#22d3ee", "#0b0d17");
+    this.drawEntity(ctx, this.state.player, this.state.player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17");
   }
 
   private drawRemotePlayers(ctx: CanvasRenderingContext2D) {
     for (const player of this.state.players) {
       if (player.id !== this.state.player.id) {
-        this.drawEntity(ctx, player, "#f59e0b", "#0b0d17");
+        const remoteColor = player.skinColor || REMOTE_PLAYER_COLOR;
+        this.drawEntity(ctx, player, remoteColor, "#0b0d17");
       }
     }
   }

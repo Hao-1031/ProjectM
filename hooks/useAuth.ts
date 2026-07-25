@@ -16,6 +16,11 @@ async function fetchSession(): Promise<SessionPayload> {
     headers: { Accept: "application/json" },
   });
 
+  // 登录功能临时关闭时，按未登录处理，不抛错
+  if (res.status === 503) {
+    return { user: null, isAuthenticated: false };
+  }
+
   if (!res.ok) {
     throw new Error("获取登录状态失败");
   }

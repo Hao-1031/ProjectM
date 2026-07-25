@@ -65,20 +65,20 @@ function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
   };
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
+    <div className="flex min-h-0 items-center justify-center px-4 py-4">
       <motion.div
         initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-panel p-8 shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-panel p-5 shadow-2xl md:p-6"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <LockKey size={28} weight="bold" />
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <LockKey size={24} weight="bold" />
         </div>
-        <h1 className="mt-5 text-center text-2xl font-bold tracking-tight">管理员后台</h1>
+        <h1 className="mt-3 text-center text-xl font-bold tracking-tight">管理员后台</h1>
         <p className="mt-2 text-center text-sm text-muted">输入环境变量 ADMIN_KEY 对应的密钥以继续</p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div className="relative">
             <Input
               type={visible ? "text" : "password"}
@@ -144,25 +144,25 @@ function AnnouncementEditor({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-panel-raised p-5">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-border bg-panel-raised p-3 md:p-4">
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted">标题</label>
+        <label className="mb-1 block text-xs font-medium text-muted">标题</label>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="公告标题" maxLength={120} />
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted">内容</label>
+        <label className="mb-1 block text-xs font-medium text-muted">内容</label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="公告内容，支持纯文本"
           maxLength={4000}
-          rows={5}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          rows={3}
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted">优先级 (0-100)</label>
+          <label className="mb-1 block text-xs font-medium text-muted">优先级 (0-100)</label>
           <Input
             type="number"
             min={0}
@@ -175,7 +175,7 @@ function AnnouncementEditor({
           <button
             type="button"
             onClick={() => setActive((v) => !v)}
-            className={`inline-flex h-10 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors ${
+            className={`inline-flex h-9 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors ${
               active
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-panel text-muted hover:text-foreground"
@@ -219,7 +219,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
   };
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-2">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-bold">
           <Megaphone size={18} weight="bold" className="text-accent" />
@@ -257,7 +257,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
               initial={reducedMotion ? undefined : itemVariants.hidden}
               animate={itemVariants.visible}
               exit={reducedMotion ? undefined : { opacity: 0 }}
-              className="rounded-2xl border border-border bg-panel p-3"
+              className="rounded-2xl border border-border bg-panel p-2.5"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -306,8 +306,8 @@ function LeaderboardBrowser() {
   const { entries, loading, error, refetch } = useLeaderboard({ mode: mode || undefined, limit: 50 });
 
   return (
-    <section className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="space-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="flex items-center gap-2 text-base font-bold">
           <Trophy size={18} weight="bold" className="text-warning" />
           排行榜浏览
@@ -335,7 +335,7 @@ function LeaderboardBrowser() {
       {!loading && !error && entries.length === 0 && <EmptyState title="暂无记录" description="该模式下还没有玩家提交成绩" />}
 
       {!loading && !error && entries.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-border">
+        <div className="max-h-[260px] overflow-auto rounded-2xl border border-border">
           <table className="w-full text-left text-sm">
             <thead className="bg-panel-raised text-[10px] uppercase tracking-wider text-muted">
               <tr>
@@ -434,10 +434,10 @@ export default function AdminPage() {
       <Head>
         <title>管理员后台 - Project M</title>
       </Head>
-      <div className="mx-auto max-w-6xl px-4 py-4 md:py-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-3 md:py-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">管理员后台</h1>
+            <h1 className="text-xl font-bold tracking-tight md:text-2xl">管理员后台</h1>
             <p className="mt-0.5 text-sm text-muted">管理公告与查看排行榜数据</p>
           </div>
           <Button variant="secondary" size="sm" onClick={handleLogout}>
@@ -445,7 +445,7 @@ export default function AdminPage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+        <div className="grid gap-3 lg:grid-cols-12 lg:gap-4">
           <div className="lg:col-span-7">
             <AnnouncementManager adminKey={adminKey} />
           </div>

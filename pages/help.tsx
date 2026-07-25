@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Layout from "@/components/Layout";
 import SectionHeader from "@/components/SectionHeader";
 import FeatureCard from "@/components/FeatureCard";
@@ -58,8 +58,10 @@ const tips = [
 export default function HelpPage() {
   const [active, setActive] = useState("controls");
   const reducedMotion = useReducedMotion();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const root = contentRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -68,7 +70,7 @@ export default function HelpPage() {
           }
         }
       },
-      { rootMargin: "-40% 0px -55% 0px" }
+      { root, rootMargin: "-40% 0px -55% 0px" }
     );
 
     for (const section of sections) {
@@ -80,8 +82,12 @@ export default function HelpPage() {
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+    if (el && contentRef.current) {
+      const top = el.offsetTop - contentRef.current.offsetTop;
+      contentRef.current.scrollTo({
+        top,
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
     }
   };
 
@@ -92,11 +98,11 @@ export default function HelpPage() {
 
   return (
     <Layout title="操作指南">
-      <div className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
-        <div className="grid gap-4 md:grid-cols-12 md:gap-6">
+      <div className="relative mx-auto max-w-7xl px-4 py-3 md:py-4">
+        <div className="grid gap-3 md:grid-cols-12 md:gap-4">
           <aside className="md:col-span-3">
-            <div className="sticky top-24 space-y-1">
-              <p className="mb-2 font-mono text-xs uppercase tracking-widest text-muted">目录</p>
+            <div className="sticky top-20 space-y-1">
+              <p className="mb-1.5 font-mono text-xs uppercase tracking-widest text-muted">目录</p>
               {sections.map((section) => {
                 const Icon = section.icon;
                 const isActive = active === section.id;
@@ -119,23 +125,26 @@ export default function HelpPage() {
             </div>
           </aside>
 
-          <div className="space-y-8 md:col-span-9 md:space-y-12">
+          <div
+            ref={contentRef}
+            className="space-y-5 md:col-span-9 md:space-y-6 md:max-h-[calc(100dvh-110px)] md:overflow-y-auto md:pr-2"
+          >
             <section id="controls">
               <SectionHeader title="基本操作" />
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <div className="mt-2 grid gap-1.5 md:grid-cols-2">
                 {controls.map((item) => (
                   <FeatureCard
                     key={item.keys}
-                    icon={<Keyboard size={18} weight="bold" className="text-primary" />}
+                    icon={<Keyboard size={16} weight="bold" className="text-primary" />}
                     title={item.keys}
                     description={item.action}
                     variant="muted"
                   />
                 ))}
               </div>
-              <div className="mt-3 rounded-2xl border border-border bg-panel p-3 text-sm text-muted">
+              <div className="mt-2 rounded-2xl border border-border bg-panel p-2.5 text-sm text-muted">
                 <div className="flex items-start gap-3">
-                  <DeviceMobile size={18} className="mt-0.5 shrink-0 text-accent" />
+                  <DeviceMobile size={16} className="mt-0.5 shrink-0 text-accent" />
                   <p className="text-xs leading-relaxed">
                     在触屏设备上，左下角虚拟摇杆控制移动；角色会自动朝敌人方向开火。无需额外瞄准按钮。
                   </p>
@@ -145,11 +154,11 @@ export default function HelpPage() {
 
             <section id="missions">
               <SectionHeader title="任务与撤离" />
-              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {missions.map((mission) => (
-                  <div key={mission.type} className="w-[260px] flex-none snap-start md:w-[280px]">
+                  <div key={mission.type} className="w-[240px] flex-none snap-start md:w-[260px]">
                     <FeatureCard
-                      icon={<Flag size={18} weight="bold" className="text-accent" />}
+                      icon={<Flag size={16} weight="bold" className="text-accent" />}
                       title={mission.title}
                       description={mission.description}
                       meta={mission.timeLimit ? `限时 ${mission.timeLimit} 秒` : undefined}
@@ -158,34 +167,34 @@ export default function HelpPage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 grid gap-2 md:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-panel p-3">
-                  <Check size={18} weight="bold" className="text-success" />
-                  <p className="mt-2 text-sm font-semibold">完成任务</p>
-                  <p className="mt-1 text-xs text-muted">
+              <div className="mt-2 grid gap-1.5 md:grid-cols-3">
+                <div className="rounded-2xl border border-border bg-panel p-2.5">
+                  <Check size={16} weight="bold" className="text-success" />
+                  <p className="mt-1.5 text-xs font-semibold">完成任务</p>
+                  <p className="mt-0.5 text-[11px] text-muted">
                     每局 4 个随机顺序任务，完成后撤离点激活。
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-panel p-3">
-                  <Crosshair size={18} weight="bold" className="text-primary" />
-                  <p className="mt-2 text-sm font-semibold">进入撤离点</p>
-                  <p className="mt-1 text-xs text-muted">抵达撤离区域并存活至倒计时结束。</p>
+                <div className="rounded-2xl border border-border bg-panel p-2.5">
+                  <Crosshair size={16} weight="bold" className="text-primary" />
+                  <p className="mt-1.5 text-xs font-semibold">进入撤离点</p>
+                  <p className="mt-0.5 text-[11px] text-muted">抵达撤离区域并存活至倒计时结束。</p>
                 </div>
-                <div className="rounded-2xl border border-border bg-panel p-3">
-                  <Heart size={18} weight="bold" className="text-danger" />
-                  <p className="mt-2 text-sm font-semibold">生命归零</p>
-                  <p className="mt-1 text-xs text-muted">受到过多伤害或撤离超时即判定失败。</p>
+                <div className="rounded-2xl border border-border bg-panel p-2.5">
+                  <Heart size={16} weight="bold" className="text-danger" />
+                  <p className="mt-1.5 text-xs font-semibold">生命归零</p>
+                  <p className="mt-0.5 text-[11px] text-muted">受到过多伤害或撤离超时即判定失败。</p>
                 </div>
               </div>
             </section>
 
             <section id="modes">
               <SectionHeader title="作战模式" />
-              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {modes.map((mode) => (
-                  <div key={mode.type} className="w-[260px] flex-none snap-start md:w-[280px]">
+                  <div key={mode.type} className="w-[240px] flex-none snap-start md:w-[260px]">
                     <FeatureCard
-                      icon={<Crosshair size={18} weight="bold" className="text-primary" />}
+                      icon={<Crosshair size={16} weight="bold" className="text-primary" />}
                       title={mode.name}
                       description={mode.description}
                       variant="muted"
@@ -197,7 +206,7 @@ export default function HelpPage() {
 
             <section id="heroes">
               <SectionHeader title="英雄与技能" />
-              <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {heroes.map((hero) => {
                   const passiveLabels = Object.entries(hero.passive).map(([key, value]) => {
                     const map: Record<string, string> = {
@@ -212,18 +221,18 @@ export default function HelpPage() {
                     return `${map[key] ?? key} ${value}`;
                   });
                   return (
-                    <div key={hero.id} className="w-[300px] flex-none snap-start md:w-[340px]">
+                    <div key={hero.id} className="w-[280px] flex-none snap-start md:w-[320px]">
                       <FeatureCard
                         icon={
                           <div
-                            className="h-7 w-7 rounded-lg"
+                            className="h-6 w-6 rounded-lg"
                             style={{
                               backgroundColor: `${hero.color}20`,
                               border: `1px solid ${hero.color}40`,
                             }}
                           >
                             <div
-                              className="m-1.5 h-4 w-4 rounded-full"
+                              className="m-1 h-3.5 w-3.5 rounded-full"
                               style={{ backgroundColor: hero.color }}
                             />
                           </div>
@@ -233,7 +242,7 @@ export default function HelpPage() {
                         meta={hero.skill.name}
                         variant="muted"
                       >
-                        <div className="mt-2 space-y-1.5 text-xs text-muted">
+                        <div className="mt-1.5 space-y-1 text-[11px] text-muted">
                           <p className="leading-relaxed">
                             <span className="text-foreground">主动技能：</span>
                             {hero.skill.description}（冷却 {hero.skill.cooldown} 秒）
@@ -252,36 +261,36 @@ export default function HelpPage() {
 
             <section id="progression">
               <SectionHeader title="成长与掉落" />
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <div className="mt-2 grid gap-1.5 md:grid-cols-2">
                 <FeatureCard
-                  icon={<Cube size={18} weight="bold" className="text-success" />}
+                  icon={<Cube size={16} weight="bold" className="text-success" />}
                   title="拾取资源"
                   description="击杀敌人后掉落经验（青色）、资源（橙色）与生命（绿色）。经验用于升级，资源用于局内商店与事件。"
                   variant="muted"
                 />
                 <FeatureCard
-                  icon={<Sword size={18} weight="bold" className="text-primary" />}
+                  icon={<Sword size={16} weight="bold" className="text-primary" />}
                   title="升级选项"
                   description="每次升级可从武器强化或属性被动中选择一项。武器满级后仍可获得被动加成。"
                   variant="muted"
                 />
               </div>
-              <div className="mt-3">
-                <h3 className="mb-2 text-sm font-semibold">可用被动</h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
+              <div className="mt-2">
+                <h3 className="mb-1.5 text-xs font-semibold">可用被动</h3>
+                <div className="flex gap-1.5 overflow-x-auto pb-2 snap-x snap-mandatory">
                   {passives.map((passive) => (
                     <div
                       key={passive.id}
-                      className="w-[200px] flex-none snap-start rounded-xl border border-border bg-panel p-3 transition-colors hover:bg-panel-raised"
+                      className="w-[180px] flex-none snap-start rounded-xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
                     >
                       <div className="flex items-center gap-2">
                         <div
                           className="h-2.5 w-2.5 shrink-0 rounded-full"
                           style={{ backgroundColor: passive.color }}
                         />
-                        <p className="text-sm font-medium">{passive.name}</p>
+                        <p className="text-xs font-medium">{passive.name}</p>
                       </div>
-                      <p className="mt-1 text-xs leading-relaxed text-muted">{passive.description}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-muted">{passive.description}</p>
                     </div>
                   ))}
                 </div>
@@ -290,11 +299,11 @@ export default function HelpPage() {
 
             <section id="tips">
               <SectionHeader title="实战技巧" />
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <div className="mt-2 grid gap-1.5 md:grid-cols-2">
                 {tips.map((tip) => (
                   <FeatureCard
                     key={tip.title}
-                    icon={<Target size={18} weight="bold" className="text-accent" />}
+                    icon={<Target size={16} weight="bold" className="text-accent" />}
                     title={tip.title}
                     description={tip.description}
                     variant="accent"

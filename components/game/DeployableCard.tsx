@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake, Wall, Skull } from "@phosphor-icons/react";
+import { Shield, Bomb, Crosshair, Broadcast, Robot, Heart, Snowflake, Wall, Skull, Scan } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { Deployable } from "@/lib/game/types";
 
@@ -24,6 +24,11 @@ const deployableMeta: Record<
     color: "text-success",
   },
   wall: { label: "水泥墙", icon: <Wall size={16} weight="bold" />, color: "text-warning" },
+  laserBeam: {
+    label: "轨道激光",
+    icon: <Scan size={16} weight="bold" />,
+    color: "text-warning",
+  },
 };
 
 export interface DeployableCardProps {

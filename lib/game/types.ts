@@ -58,7 +58,7 @@ export interface Deployable {
   x: number;
   y: number;
   radius: number;
-  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField" | "poisonField" | "wall";
+  type: "shield" | "mine" | "turret" | "beacon" | "drone" | "healAura" | "freezeField" | "poisonField" | "wall" | "laserBeam";
   ownerId: string;
   health: number;
   maxHealth: number;
@@ -103,6 +103,11 @@ export interface DefenseWave {
   bossVariant?: string;
   nodeActivator: boolean;
   duration: number;
+  // DDA 动态难度调整产生的可选参数
+  enemyHealthMultiplier?: number;
+  enemyDamageMultiplier?: number;
+  spawnIntervalMultiplier?: number;
+  specialEventChance?: number;
 }
 
 export interface DefenseState {
@@ -256,8 +261,11 @@ export interface Player {
   talentLevels: Record<string, number>;
   // Hero-specific transient buffs
   leopardFrenzyTimer: number;
+  leopardFrenzyActive: boolean;
+  leopardPounceSpeedTimer: number;
   leopardBloodlustStacks: number;
   leopardBloodlustTimer: number;
+  twilightCocoonTimer: number;
   // Transient state
   knockbackX: number;
   knockbackY: number;
@@ -267,6 +275,8 @@ export interface Player {
   facing: number;
   animation: SpriteAnimationState;
   animationTimer: number;
+  // Cosmetic override for player sprite primary color
+  skinColor?: string;
 }
 
 export type AffixId =
@@ -336,6 +346,7 @@ export interface Enemy {
   slow: number;
   slowTimer: number;
   freezeTimer: number;
+  freezeShatterDamage: number;
   droneMarkTimer: number;
   // Elite / boss properties
   isElite: boolean;

@@ -72,8 +72,8 @@ export default function BasePage() {
 
   return (
     <Layout title="幸存者基地">
-      <div className="relative mx-auto max-w-7xl px-4 py-4 md:py-6">
-        <div className="grid gap-4 md:grid-cols-12 md:gap-6">
+      <div className="relative mx-auto max-w-7xl px-4 py-3 md:py-4">
+        <div className="grid gap-3 md:grid-cols-12 md:gap-4">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -83,16 +83,16 @@ export default function BasePage() {
             <span className="inline-block rounded bg-success/10 px-2 py-1 font-mono text-xs uppercase tracking-widest text-success">
               幸存者基地
             </span>
-            <h1 className="mt-2 text-2xl font-bold leading-[1.1] tracking-tight md:text-4xl">
+            <h1 className="mt-2 text-xl font-bold leading-[1.1] tracking-tight md:text-3xl">
               战绩、武器与英雄。
             </h1>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+            <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
               累计数据、最佳撤离记录、已解锁武器与可用英雄。
             </p>
-            <div className="mt-4">
+            <div className="mt-3">
               <Link
                 href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
               >
                 <Play size={16} weight="fill" />
                 <span className="whitespace-nowrap">再次部署</span>
@@ -132,37 +132,37 @@ export default function BasePage() {
               initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="relative mt-3 overflow-hidden rounded-2xl border border-border bg-panel p-4"
+              className="relative mt-2 overflow-hidden rounded-2xl border border-border bg-panel p-3"
             >
               <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
               <p className="relative font-mono text-xs uppercase tracking-widest text-muted">
                 最佳撤离记录
               </p>
               {best ? (
-                <div className="relative mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="relative mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted">结果</p>
                     <p
-                      className={`mt-0.5 text-base font-bold ${best.victory ? "text-success" : "text-danger"}`}
+                      className={`mt-0.5 text-sm font-bold ${best.victory ? "text-success" : "text-danger"}`}
                     >
                       {best.victory ? "撤离成功" : "任务失败"}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted">模式</p>
-                    <p className="mt-0.5 text-base font-bold">{modeNames[best.mode] ?? best.mode}</p>
+                    <p className="mt-0.5 text-sm font-bold">{modeNames[best.mode] ?? best.mode}</p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted">存活时间</p>
-                    <p className="mt-0.5 font-mono text-base font-bold">{formatTime(best.elapsed)}</p>
+                    <p className="mt-0.5 font-mono text-sm font-bold">{formatTime(best.elapsed)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted">完成任务</p>
-                    <p className="mt-0.5 text-base font-bold">{best.completedMissions}</p>
+                    <p className="mt-0.5 text-sm font-bold">{best.completedMissions}</p>
                   </div>
                 </div>
               ) : (
-                <p className="relative mt-3 text-sm text-muted">
+                <p className="relative mt-2 text-xs text-muted">
                   暂无最佳记录。完成第一次部署后，这里会显示你的个人巅峰。
                 </p>
               )}
@@ -170,17 +170,17 @@ export default function BasePage() {
           </div>
         </div>
 
-        <section className="mt-6 md:mt-8">
-          <h2 className="text-xl font-bold tracking-tight md:text-2xl">已解锁武器</h2>
-          <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        <section className="mt-4 md:mt-5">
+          <h2 className="text-lg font-bold tracking-tight md:text-xl">已解锁武器</h2>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
             {weapons.map((weapon) => {
               const Icon = weaponIcons[weapon.id] ?? Crosshair;
               return (
-                <div key={weapon.id} className="w-[260px] flex-none snap-start md:w-[280px]">
+                <div key={weapon.id} className="w-[240px] flex-none snap-start md:w-[260px]">
                   <FeatureCard
                     icon={
                       <Icon
-                        size={22}
+                        size={20}
                         weight="bold"
                         className={weapon.unlocked ? "text-foreground" : "text-muted"}
                         style={weapon.unlocked ? { color: weapon.color } : undefined}
@@ -207,39 +207,40 @@ export default function BasePage() {
           </div>
         </section>
 
-        <section className="mt-6 md:mt-8">
-          <h2 className="text-xl font-bold tracking-tight md:text-2xl">英雄档案</h2>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <section className="mt-4 md:mt-5">
+          <h2 className="text-lg font-bold tracking-tight md:text-xl">英雄档案</h2>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
             {heroes.map((hero) => {
               const HeroIcon = heroIcons[hero.id] ?? Crosshair;
               return (
-                <FeatureCard
-                  key={hero.id}
-                  icon={
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-lg"
-                      style={{
-                        backgroundColor: `${hero.color}20`,
-                        border: `1px solid ${hero.color}40`,
-                      }}
-                    >
-                      <HeroIcon size={18} weight="bold" style={{ color: hero.color }} />
+                <div key={hero.id} className="w-[260px] flex-none snap-start md:w-[300px]">
+                  <FeatureCard
+                    icon={
+                      <div
+                        className="flex h-8 w-8 items-center justify-center rounded-lg"
+                        style={{
+                          backgroundColor: `${hero.color}20`,
+                          border: `1px solid ${hero.color}40`,
+                        }}
+                      >
+                        <HeroIcon size={16} weight="bold" style={{ color: hero.color }} />
+                      </div>
+                    }
+                    title={hero.name}
+                    description={hero.description}
+                    meta={hero.skill.name}
+                    variant="muted"
+                  >
+                    <div className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-muted">
+                      <span className="rounded-md border border-border bg-background px-2 py-1">
+                        冷却 {hero.skill.cooldown}s
+                      </span>
+                      <span className="rounded-md border border-border bg-background px-2 py-1">
+                        持续 {hero.skill.duration}s
+                      </span>
                     </div>
-                  }
-                  title={hero.name}
-                  description={hero.description}
-                  meta={hero.skill.name}
-                  variant="muted"
-                >
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
-                    <span className="rounded-md border border-border bg-background px-2 py-1">
-                      冷却 {hero.skill.cooldown}s
-                    </span>
-                    <span className="rounded-md border border-border bg-background px-2 py-1">
-                      持续 {hero.skill.duration}s
-                    </span>
-                  </div>
-                </FeatureCard>
+                  </FeatureCard>
+                </div>
               );
             })}
           </div>

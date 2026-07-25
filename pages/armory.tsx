@@ -172,22 +172,22 @@ function WeaponCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.3) }}
-      className="group flex w-[260px] flex-none snap-start flex-col rounded-2xl border border-border bg-panel p-3 transition-colors hover:bg-panel-raised"
+      className="group flex w-[240px] flex-none snap-start flex-col rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-base font-bold tracking-tight">{weapon.name}</h3>
-          <p className="mt-0.5 text-xs leading-relaxed text-muted">{weapon.description}</p>
+          <h3 className="text-sm font-bold tracking-tight">{weapon.name}</h3>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-muted">{weapon.description}</p>
         </div>
         <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
           style={{ backgroundColor: `${weapon.color}18`, color: weapon.color }}
         >
-          <Crosshair size={16} weight="duotone" />
+          <Crosshair size={14} weight="duotone" />
         </span>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      <div className="mt-1.5 flex flex-wrap gap-1">
         {tags.map((tag) => (
           <WeaponTag key={tag.label} {...tag} />
         ))}
@@ -196,7 +196,7 @@ function WeaponCard({
         )}
       </div>
 
-      <div className="mt-3 grid gap-2">
+      <div className="mt-2 grid gap-1.5">
         {stats.count > 1 ? (
           <>
             <StatBar label="单发伤害" value={stats.damage} max={180} color={weapon.color} />
@@ -210,14 +210,14 @@ function WeaponCard({
         <StatBar label="弹速" value={stats.projectileSpeed} max={700} color={weapon.color} />
       </div>
 
-      <div className="mt-3 border-t border-border pt-2">
-        <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
+      <div className="mt-2 border-t border-border pt-1.5">
+        <p className="mb-0.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
           <Swap size={10} />
           升级路线
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {weapon.upgrades.slice(0, 3).map((upgrade, i) => (
-            <li key={i} className="flex items-start gap-1 text-[11px] text-muted">
+            <li key={i} className="flex items-start gap-1 text-[10px] text-muted">
               <CaretRight size={8} className="mt-0.5 shrink-0 text-primary" />
               <span>{formatUpgradeDescription(upgrade)}</span>
             </li>
@@ -225,7 +225,7 @@ function WeaponCard({
         </ul>
       </div>
 
-      <div className="mt-auto pt-3">
+      <div className="mt-auto pt-2">
         {unlocked ? (
           equipped ? (
             <button
@@ -333,31 +333,31 @@ export default function ArmoryPage() {
 
   return (
     <Layout title="军械库">
-      <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl px-4 py-3 md:py-4">
         <motion.div
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="mb-4 md:mb-5"
+          className="mb-3 md:mb-4"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
                 <Crosshair weight="duotone" size={14} />
                 军械库
               </span>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">武器与装备</h1>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
+              <h1 className="mt-2 text-xl font-bold tracking-tight md:text-3xl">武器与装备</h1>
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
                 用任务奖励的游戏币解锁武器，并装配到出战栏位。
               </p>
             </div>
             <div className="inline-flex items-center gap-2 self-start rounded-xl border border-border bg-panel px-3 py-2 sm:self-auto">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
-                <Coin size={16} weight="fill" />
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                <Coin size={14} weight="fill" />
               </span>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted">游戏币</p>
-                <p className="font-mono text-lg font-bold">{coins}</p>
+                <p className="font-mono text-base font-bold">{coins}</p>
               </div>
               {save && (
                 <div className="ml-2 flex flex-col border-l border-border pl-2 text-[10px] text-muted">
@@ -381,7 +381,7 @@ export default function ArmoryPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className={`mb-3 rounded-xl border px-3 py-2 text-xs font-medium ${
+              className={`mb-2 rounded-xl border px-3 py-2 text-xs font-medium ${
                 notice.type === "success"
                   ? "border-success/30 bg-success/10 text-success"
                   : "border-danger/30 bg-danger/10 text-danger"
@@ -392,7 +392,7 @@ export default function ArmoryPage() {
           )}
         </AnimatePresence>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
           {weapons.map(([id, weapon], index) => (
             <WeaponCard
               key={id}
@@ -412,22 +412,22 @@ export default function ArmoryPage() {
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mt-4 rounded-2xl border border-border bg-panel p-3 md:p-4"
+          className="mt-3 rounded-2xl border border-border bg-panel p-2.5 md:p-3"
         >
-          <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
+          <div className="mb-1.5 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
             <Sparkle size={12} />
             武器搭配建议
           </div>
-          <div className="grid gap-2 md:grid-cols-2">
-            <div className="rounded-xl border border-border bg-panel-raised p-3">
-              <p className="text-sm font-semibold">近战 + 控制</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-muted">
+          <div className="grid gap-1.5 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-panel-raised p-2.5">
+              <p className="text-xs font-semibold">近战 + 控制</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
                 等离子刃配合冰冻发射器可清理贴脸敌人并封锁通道，适合突击与工程。
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-panel-raised p-3">
-              <p className="text-sm font-semibold">远程 + 群体</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-muted">
+            <div className="rounded-xl border border-border bg-panel-raised p-2.5">
+              <p className="text-xs font-semibold">远程 + 群体</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
                 磁轨炮点杀精英，榴弹发射器处理杂兵潮，侦察与医疗常用组合。
               </p>
             </div>

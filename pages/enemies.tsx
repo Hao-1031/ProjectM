@@ -233,36 +233,36 @@ export default function EnemiesPage() {
           <div className="absolute -left-[10%] top-[40%] h-[45vh] w-[45vh] rounded-full bg-primary/4 blur-[100px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-4 md:py-6">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-4 md:mb-5"
+            className="mb-3 md:mb-4"
           >
             <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-danger">
               <Skull weight="duotone" size={14} />
               威胁图鉴
             </span>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">识别辐射区敌人</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+            <h1 className="mt-2 text-xl font-bold tracking-tight md:text-3xl">识别辐射区敌人</h1>
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted">
               核污染催生了大量机械变异体。了解每种敌人的行为模式，是在废土中存活的关键。
             </p>
           </motion.div>
 
           {/* Enemy grid */}
-          <section className="mb-6 md:mb-8">
+          <section className="mb-4 md:mb-5">
             <motion.div
               initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="mb-3 flex items-center gap-2"
+              className="mb-2 flex items-center gap-2"
             >
               <Radioactive size={14} weight="bold" className="text-warning" />
-              <h2 className="text-base font-bold tracking-tight">常规敌人</h2>
+              <h2 className="text-sm font-bold tracking-tight">常规敌人</h2>
             </motion.div>
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
               {enemies.map((enemy, index) => {
                 const stats = DEFAULT_BALANCE.enemies[enemy.id];
                 return (
@@ -275,7 +275,7 @@ export default function EnemiesPage() {
                       delay: Math.min(index * 0.03, 0.3),
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className="group relative w-[260px] flex-none snap-start overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-danger/30 hover:bg-panel-raised md:w-[280px]"
+                    className="group relative w-[240px] flex-none snap-start overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-all hover:border-danger/30 hover:bg-panel-raised md:w-[260px]"
                   >
                     <div
                       className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl opacity-30 transition-opacity group-hover:opacity-60"
@@ -284,26 +284,26 @@ export default function EnemiesPage() {
                     <div className="relative">
                       <div className="flex items-start justify-between">
                         <div
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl"
                           style={{
                             backgroundColor: `${stats?.color ?? "#6e7870"}18`,
                             color: stats?.color ?? "#6e7870",
                           }}
                         >
-                          <Skull size={18} weight="bold" />
+                          <Skull size={16} weight="bold" />
                         </div>
                         <ThreatBadge threat={enemy.threat} />
                       </div>
-                      <h3 className="mt-2 text-base font-bold tracking-tight">{enemy.name}</h3>
+                      <h3 className="mt-1.5 text-sm font-bold tracking-tight">{enemy.name}</h3>
                       <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
                         {enemy.role}
                       </p>
-                      <p className="mt-1.5 text-xs leading-relaxed text-muted">{enemy.description}</p>
-                      <div className="mt-2 flex items-start gap-2 rounded-lg border border-border bg-panel-raised p-2">
-                        <CaretRight size={12} className="mt-0.5 shrink-0 text-primary" />
-                        <p className="text-[11px] leading-relaxed text-muted">{enemy.tactic}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-muted">{enemy.description}</p>
+                      <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-border bg-panel-raised p-1.5">
+                        <CaretRight size={11} className="mt-0.5 shrink-0 text-primary" />
+                        <p className="text-[10px] leading-relaxed text-muted">{enemy.tactic}</p>
                       </div>
-                      <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px] text-muted">
+                      <div className="mt-1.5 grid grid-cols-3 gap-2 text-center text-[10px] text-muted">
                         <div className="rounded-md border border-border bg-background/50 py-1">
                           <p className="font-mono font-bold text-foreground">
                             {stats?.speed ?? "-"}
@@ -331,18 +331,18 @@ export default function EnemiesPage() {
           </section>
 
           {/* Affixes */}
-          <section className="mb-6 md:mb-8">
+          <section className="mb-4 md:mb-5">
             <motion.div
               initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="mb-3 flex items-center gap-2"
+              className="mb-2 flex items-center gap-2"
             >
               <Warning size={14} weight="bold" className="text-danger" />
-              <h2 className="text-base font-bold tracking-tight">精英词缀</h2>
+              <h2 className="text-sm font-bold tracking-tight">精英词缀</h2>
             </motion.div>
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
               {affixes.map(([id, info], index) => {
                 const Icon = info.icon;
                 return (
@@ -351,13 +351,13 @@ export default function EnemiesPage() {
                     initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.3) }}
-                    className="w-[200px] flex-none snap-start rounded-2xl border border-border bg-panel p-3 transition-colors hover:border-danger/20 md:w-[220px]"
+                    className="w-[180px] flex-none snap-start rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:border-danger/20 md:w-[200px]"
                   >
-                    <div className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-danger/10 text-danger">
-                      <Icon size={16} weight="bold" />
+                    <div className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                      <Icon size={14} weight="bold" />
                     </div>
-                    <h3 className="mt-2 text-sm font-bold">{info.name}</h3>
-                    <p className="mt-1 text-xs leading-relaxed text-muted">{info.description}</p>
+                    <h3 className="mt-1.5 text-sm font-bold">{info.name}</h3>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted">{info.description}</p>
                   </motion.div>
                 );
               })}
@@ -371,12 +371,12 @@ export default function EnemiesPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="mb-3 flex items-center gap-2"
+              className="mb-2 flex items-center gap-2"
             >
               <Crown size={14} weight="bold" className="text-danger" />
-              <h2 className="text-base font-bold tracking-tight">首领单位</h2>
+              <h2 className="text-sm font-bold tracking-tight">首领单位</h2>
             </motion.div>
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
               {bosses.map((boss, index) => (
                 <motion.article
                   key={boss.id}
@@ -387,7 +387,7 @@ export default function EnemiesPage() {
                     delay: Math.min(index * 0.03, 0.3),
                     ease: [0.22, 1, 0.36, 1],
                   }}
-                  className="group relative w-[300px] flex-none snap-start overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-danger/30 md:w-[340px]"
+                  className="group relative w-[280px] flex-none snap-start overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-all hover:border-danger/30 md:w-[300px]"
                 >
                   <div
                     className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
@@ -400,20 +400,20 @@ export default function EnemiesPage() {
                   <div className="relative">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-base font-bold tracking-tight">{boss.name}</h3>
+                        <h3 className="text-sm font-bold tracking-tight">{boss.name}</h3>
                         <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
                           首领
                         </p>
                       </div>
                       <div
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-xl"
                         style={{ backgroundColor: `${boss.color}18`, color: boss.color }}
                       >
-                        <Crown size={16} weight="bold" />
+                        <Crown size={14} weight="bold" />
                       </div>
                     </div>
-                    <p className="mt-2 text-xs leading-relaxed text-muted">{boss.description}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-muted">{boss.description}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
                       {boss.phases.map((phase, phaseIndex) => (
                         <span
                           key={phaseIndex}
@@ -423,7 +423,7 @@ export default function EnemiesPage() {
                         </span>
                       ))}
                     </div>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px] text-muted">
+                    <div className="mt-1.5 grid grid-cols-3 gap-2 text-center text-[10px] text-muted">
                       <div className="rounded-md border border-border bg-background/50 py-1">
                         <p className="font-mono font-bold text-foreground">
                           {boss.health.toLocaleString()}
