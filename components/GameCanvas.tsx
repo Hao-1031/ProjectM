@@ -319,7 +319,9 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
 
       const intensity =
         engine.state.enemies.length / 25 +
-        (1 - engine.state.player.health / engine.state.player.maxHealth) * 0.4;
+        (engine.state.player.maxHealth > 0
+          ? (1 - engine.state.player.health / engine.state.player.maxHealth) * 0.4
+          : 0);
       audio?.setIntensity(Math.min(1, intensity));
 
       if (roomRef.current && engine.state.status === "running") {

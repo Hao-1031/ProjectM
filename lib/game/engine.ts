@@ -1228,7 +1228,7 @@ export class GameEngine {
 
   private damageEnemyWithMelee(enemy: Enemy, weapon: (typeof this.state.player.weapons)[number]) {
     const player = this.state.player;
-    const isCrit = Math.random() < player.critChance;
+    const isCrit = this.rng() < player.critChance;
     const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
     const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
     let damage = weapon.damage * comboMul * critMul;
@@ -1475,7 +1475,7 @@ export class GameEngine {
 
     // 仅在非 α 模式下走原有随机分支
     if (!variantOverride && !isAlphaMode) {
-      const roll = Math.random();
+      const roll = this.rng();
       if (roll > 0.88) variant = "tank";
       else if (roll > 0.72) variant = "runner";
       else if (roll > 0.58 && difficulty > 3) variant = "spitter";
@@ -1531,7 +1531,7 @@ export class GameEngine {
         "splitting",
       ] as Enemy["affixes"];
       for (let i = 0; i < count; i++) {
-        const idx = Math.floor(Math.random() * pool.length);
+        const idx = Math.floor(this.rng() * pool.length);
         affixes.push(pool[idx]);
         pool.splice(idx, 1);
       }
@@ -2543,7 +2543,7 @@ export class GameEngine {
         const enemy = enemies[j];
         if (circleCollision(p, enemy)) {
           hit = true;
-          const isCrit = Math.random() < this.state.player.critChance;
+          const isCrit = this.rng() < this.state.player.critChance;
           const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
           const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
           let damage = p.damage * comboMul * critMul;
@@ -2870,7 +2870,7 @@ export class GameEngine {
   }
 
   private dropPickup(enemy: Enemy) {
-    const roll = Math.random();
+    const roll = this.rng();
     const pickupCfg = DEFAULT_BALANCE.pickups;
     if (enemy.isBoss || (enemy.isElite && roll < pickupCfg.chestEliteChance)) {
       this.state.pickups.push({

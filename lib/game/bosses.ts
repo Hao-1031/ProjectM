@@ -498,6 +498,7 @@ export function advanceBossPhase(boss: Enemy, engine?: unknown): void {
 
 export function checkBossPhaseTransition(boss: Enemy, engine?: unknown): boolean {
   if (!boss.isBoss || boss.phase >= boss.phaseThresholds.length) return false;
+  if (boss.maxHealth <= 0) return false;
   const threshold = boss.phaseThresholds[boss.phase];
   const healthPercent = boss.health / boss.maxHealth;
   if (healthPercent <= threshold) {
