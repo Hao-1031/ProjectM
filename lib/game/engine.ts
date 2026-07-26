@@ -2344,6 +2344,7 @@ export class GameEngine {
           ) {
             const bossId = wave.bossVariant as import("./types").BossId;
             this.spawnEnemy(bossId as import("./types").EnemyVariant, true, alphaStats);
+            wave.bossVariant = undefined;
           }
 
           if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
@@ -2507,7 +2508,7 @@ export class GameEngine {
     const type = pickRandomEventType(this.state, this.rng);
     const event = startGameEvent(type, this.state);
 
-    if (type === "eliteHunt" && !this.state.fixedWaveState) {
+    if (type === "eliteHunt" && !this.state.fixedWaveState && !this.state.defenseState) {
       this.spawnEnemy("elite", true);
     }
 
@@ -2786,7 +2787,7 @@ export class GameEngine {
       this.fx.addTrauma(0.25);
     }
 
-    if (shouldSplitOnDeath(enemy) && !this.state.fixedWaveState) {
+    if (shouldSplitOnDeath(enemy) && !this.state.fixedWaveState && !this.state.defenseState) {
       for (let i = 0; i < 2; i++) {
         this.spawnEnemy(enemy.variant === "walker" ? "runner" : "walker", false);
         const split = this.state.enemies[this.state.enemies.length - 1];
