@@ -4,21 +4,17 @@ import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import {
   Crosshair,
-  Play,
   Trophy,
   GameController,
-  Skull,
-  ShieldCheck,
   ArrowRight,
   CaretRight,
-  Star,
-  Radioactive,
 } from "@phosphor-icons/react";
 import NuclearBackground from "@/components/effects/NuclearBackground";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import Skeleton from "@/components/ui/Skeleton";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
+import Hero from "@/components/landing/Hero";
 import FeatureBento from "@/components/landing/FeatureBento";
 import RhythmSection from "@/components/landing/RhythmSection";
 import ModesShowcase from "@/components/landing/ModesShowcase";
@@ -148,8 +144,8 @@ export default function LandingPage() {
   return (
     <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
-        <title>Project M 2.0 - 一人一枪，杀穿辐射区</title>
-        <meta name="description" content="Project M 2.0 是核污染废土背景的横屏动作射击 Web 游戏。生存割草、据点合作、无付费加成。" />
+        <title>Project M L3V100 旗舰版 - 守住最后一座人类据点</title>
+        <meta name="description" content="Project M L3V100 旗舰版是核污染废土背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
       </Head>
 
       <NuclearBackground />
@@ -189,100 +185,7 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-10">
-        <section className="mx-auto max-w-7xl px-4 pb-6 pt-4 md:pt-6">
-          <div className="grid items-center gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-7">
-              <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-                  <Radioactive size={10} weight="fill" />
-                  2.0 正式上线
-                </span>
-                <h1 className="mt-4 text-[clamp(2rem,5vw,4rem)] font-bold leading-[0.95] tracking-tight">
-                  一人一枪
-                  <br />
-                  <span className="text-primary">杀穿辐射区</span>
-                </h1>
-                <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted">
-                  Project M 2.0 将横屏双摇杆操作与生存割草节奏融合。15 分钟限时、自动攻击、自由 build，在无尽敌潮中挑战你的极限。
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-4 flex flex-col gap-2 sm:flex-row"
-              >
-                <Link
-                  href="/game?mode=survival"
-                  className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-6 text-base font-bold text-background shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-95"
-                >
-                  <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
-                  <Play size={22} weight="fill" />
-                  <span className="whitespace-nowrap">立即开战</span>
-                </Link>
-                <Link
-                  href="/modes"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-5 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
-                >
-                  <GameController size={18} />
-                  <span className="whitespace-nowrap">选择模式</span>
-                </Link>
-              </motion.div>
-
-              <motion.div
-                initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-muted"
-              >
-                <span className="flex items-center gap-1">
-                  <ShieldCheck size={12} className="text-success" />
-                  无付费加成
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star size={12} className="text-warning" />
-                  全球排行榜
-                </span>
-                <span className="flex items-center gap-1">
-                  <Skull size={12} className="text-danger" />
-                  15 分钟极限生存
-                </span>
-              </motion.div>
-            </div>
-
-            <motion.div
-              initial={reducedMotion ? undefined : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="relative lg:col-span-5"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border bg-panel shadow-2xl shadow-black/20">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(122,143,62,0.12),transparent_50%)]" />
-                <div className="absolute inset-0 hazard-stripes opacity-30" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
-                    <Crosshair size={64} weight="bold" className="relative text-primary" />
-                  </div>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-border bg-background/80 p-3 backdrop-blur-md">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted">生存模式</span>
-                    <span className="font-mono text-danger">14:32</span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border">
-                    <div className="h-full w-3/4 rounded-full bg-primary" />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+        <Hero />
 
         <FeatureBento />
         <RhythmSection />

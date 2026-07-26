@@ -100,6 +100,7 @@ function createMockState(mode: GameState["mode"] = "campaign", hasDefense = fals
       bossesKilled: 0,
     },
     activeEvent: null,
+    deployables: [],
     defenseState: hasDefense
       ? {
           core: { x: 1200, y: 900, radius: 60, health: 5000, maxHealth: 5000, color: "#22d3ee" },

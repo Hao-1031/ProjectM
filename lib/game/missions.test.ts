@@ -103,6 +103,7 @@ function createMockState(): GameState {
       bossesKilled: 0,
     },
     activeEvent: null,
+    deployables: [],
   };
 }
 

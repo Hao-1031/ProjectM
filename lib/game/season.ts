@@ -8,9 +8,9 @@ import type {
   SeasonShopItem,
 } from "./types";
 
-export const SEASON_ID = "s2-mobile-front";
-export const SEASON_NAME = "移动前线";
-export const SEASON_DURATION_DAYS = 56;
+export const SEASON_ID = "s1-stronghold-dawn";
+export const SEASON_NAME = "据点黎明";
+export const SEASON_DURATION_DAYS = 92;
 export const XP_PER_LEVEL = 1000;
 export const MAX_SEASON_LEVEL = 50;
 

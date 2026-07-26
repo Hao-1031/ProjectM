@@ -10,7 +10,7 @@ const FOOTER_LINKS = [
 ];
 
 const FOOTER_IMAGE =
-  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Dark%20premium%20product%20footer%20call%20to%20action%2C%20abstract%20glowing%20crosshair%20symbol%2C%20subtle%20hazard%20stripes%2C%20deep%20charcoal%20and%20muted%20teal%20ambient%20light%2C%20minimalist%20composition%2C%20cinematic%20atmosphere%2C%20no%20text&image_size=landscape_16_9";
+  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20cinematic%20footer%20call%20to%20action%2C%20glowing%20teal%20crosshair%20symbol%20floating%20over%20ash%20wasteland%2C%20distant%20fortified%20outpost%2C%20embers%20and%20dust%20particles%2C%20deep%20charcoal%20and%20muted%20teal%20ambient%20light%2C%20minimalist%20composition%2C%20no%20text&image_size=landscape_16_9";
 
 export default function FooterCTA() {
   const reducedMotion = useReducedMotion();
@@ -38,18 +38,18 @@ export default function FooterCTA() {
         <div className="relative flex min-h-[200px] flex-col items-start justify-between p-4 md:p-5 lg:flex-row lg:items-end">
           <div className="max-w-xl">
             <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-              下一局
+              下一座据点
               <br />
-              <span className="text-gradient">由你定义</span>
+              <span className="text-gradient">由你守护</span>
             </h2>
             <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-              无需下载，浏览器即玩。公平竞技，只拼操作与策略。α 节律与 β AI 正在等待你的表现。
+              L3V100 旗舰版已上线。无需下载，浏览器即玩。公平竞技，只拼操作与策略。
             </p>
           </div>
 
           <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row lg:mt-0 lg:w-auto">
             <Link
-              href="/game?mode=survival"
+              href="/game?mode=defense"
               className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
             >
               <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
@@ -57,11 +57,11 @@ export default function FooterCTA() {
               <span className="whitespace-nowrap">立即开战</span>
             </Link>
             <Link
-              href="/game?mode=defense"
+              href="/modes"
               className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-background/80 px-4 text-xs font-semibold backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-background focus-ring active:scale-95"
             >
               <GameController size={14} />
-              <span className="whitespace-nowrap">据点防守</span>
+              <span className="whitespace-nowrap">全部模式</span>
             </Link>
           </div>
         </div>

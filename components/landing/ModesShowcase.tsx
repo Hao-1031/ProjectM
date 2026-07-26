@@ -22,7 +22,7 @@ const MODES = [
     size: "large",
     tags: ["合作", "PVE", "核心守卫"],
     image:
-      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Dark%20tactical%20stronghold%20defense%20scene%2C%20massive%20enemy%20horde%20approaching%20a%20glowing%20energy%20core%2C%20wasteland%20military%20style%2C%20muted%20teal%20and%20amber%20lights%2C%20deep%20charcoal%20background%2C%20low%20saturation%2C%20cinematic%20atmosphere%2C%20no%20text&image_size=landscape_16_9",
+      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20cinematic%20stronghold%20defense%20battlefield%2C%20massive%20mechanical%20horde%20approaching%20a%20glowing%20teal%20energy%20core%2C%20stormy%20ash%20sky%2C%20fortified%20outpost%20silhouettes%2C%20embers%20and%20dust%2C%20muted%20teal%20and%20amber%20accent%20lights%2C%20low%20saturation%2C%20no%20text&image_size=landscape_16_9",
     meta: [
       { Icon: Users, label: "1-4 人" },
       { Icon: Clock, label: "12 波" },
@@ -31,11 +31,13 @@ const MODES = [
   {
     id: "survival",
     title: "极限生存",
-    desc: "15 分钟限时高压。击杀效率决定敌潮强度，节奏越快，奖励越丰厚。",
+    desc: "旗舰版主打模式。15 分钟限时高压，击杀效率决定敌潮强度，节奏越快，奖励越丰厚。",
     icon: Skull,
     accent: "accent",
     size: "large",
-    tags: ["单人", "限时", "排行榜"],
+    tags: ["旗舰", "限时", "排行榜"],
+    image:
+      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20survival%20arena%20in%20radioactive%20wasteland%2C%20lone%20commander%20surrounded%20by%20endless%20mechanical%20enemies%2C%20glowing%20teal%20weapon%20trails%2C%20ash%20and%20embers%2C%20dark%20cinematic%20atmosphere%2C%20muted%20teal%20and%20amber%20lights%2C%20no%20text&image_size=landscape_16_9",
     meta: [
       { Icon: Clock, label: "15 分钟" },
       { Icon: Target, label: "全球榜" },
@@ -62,7 +64,7 @@ const MODES = [
   {
     id: "roguelike",
     title: "肉鸽构建",
-    desc: "武器升级、被动叠加、天赋树，每局 build 都不相同。",
+    desc: "旗舰版融合要素。分支关卡、随机强化与最终首领，每局 build 都不相同。",
     icon: Lightning,
     accent: "warning",
     size: "small",
@@ -248,12 +250,12 @@ export default function ModesShowcase() {
         className="mb-3 max-w-2xl md:mb-4"
       >
         <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-          据点、生存、死斗
+          据点防守、极限生存、赛季挑战
           <br />
-          <span className="text-gradient">每种节奏都不相同</span>
+          <span className="text-gradient">旗舰版多模式融合</span>
         </h2>
         <p className="mt-1.5 text-xs leading-relaxed text-muted">
-          从合作防守到个人竞技，每个模式都有独立的节律曲线与 AI 策略。
+          每个模式都有独立的节律曲线与 AI 策略，并在赛季框架下持续演化。
         </p>
       </motion.div>
 

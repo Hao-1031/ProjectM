@@ -33,7 +33,7 @@ export default function LoginPage() {
 
           <div className="rounded-xl border border-border bg-background/50 p-4 text-sm leading-relaxed text-foreground/90">
             <p>
-              当前版本为 L3V100「创世版」公开演示阶段，所有游戏模式与算法页面均可直接访问，无需登录。
+              当前版本为 L3V100「旗舰版」公开演示阶段，所有游戏模式与算法页面均可直接访问，无需登录。
             </p>
           </div>
 

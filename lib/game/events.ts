@@ -131,6 +131,7 @@ export function getEligibleEventTypes(state: GameState): GameEventType[] {
   const mode = state.mode;
   return (Object.keys(EVENT_DEFINITIONS) as GameEventType[]).filter((type) => {
     const def = EVENT_DEFINITIONS[type];
+    if (state.fixedWaveState && type === "eliteHunt") return false;
     if (mode === "defense") return def.allowInDefense;
     if (mode === "campaign" || mode === "roguelike") return def.allowInCampaign;
     if (mode === "endless" || mode === "daily") return def.allowInEndless;

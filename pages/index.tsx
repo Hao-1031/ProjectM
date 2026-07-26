@@ -170,7 +170,7 @@ export default function HomePage() {
           </span>
           <div className="flex flex-col">
             <span className="font-mono text-sm font-bold uppercase tracking-widest">Project M</span>
-            <span className="text-[10px] text-muted">L3V100 创世版</span>
+            <span className="text-[10px] text-muted">L3V100 旗舰版</span>
           </div>
         </Link>
         <nav className="flex items-center gap-1">
@@ -213,12 +213,12 @@ export default function HomePage() {
             >
               <RadiationBadge />
               <h1 className="mt-3 text-[clamp(1.75rem,5vw,3rem)] font-bold leading-[0.95] tracking-tight">
-                一人一枪
+                守住据点
                 <br />
-                <span className="text-primary">杀穿辐射区</span>
+                <span className="text-primary">杀穿敌潮</span>
               </h1>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
-                自动攻击、自由移动、构建流派。15 分钟限时抵御无尽敌潮。
+                旗舰版多模式融合：据点防守、极限生存与赛季挑战。每一局都是独一无二的战役。
               </p>
             </motion.div>
 

@@ -1,7 +1,14 @@
-import type { RunResult, WeaponId, HeroId, GameModeType } from "./types";
+import type { RunResult, WeaponId, HeroId, GameModeType, SeasonState, SeasonShopItem } from "./types";
 import { DEFAULT_BALANCE } from "./balance";
 import { HERO_DEFS } from "./heroes";
 import { COSMETICS, DEFAULT_HEROES, getHeroCost, getCosmetic, type CosmeticType } from "./cosmetics";
+import {
+  createSeasonState,
+  addSeasonXp as addSeasonStateXp,
+  claimReward,
+  getSeasonCurrencyReward,
+  type SeasonPurchaseResult,
+} from "./season";
 
 export interface RunHistoryEntry {
   timestamp: number;
@@ -18,6 +25,9 @@ export interface SaveData {
   totalKills: number;
   totalRuns: number;
   coins: number;
+  seasonXp: number;
+  seasonCurrency: number;
+  seasonState: SeasonState;
   unlockedWeapons: WeaponId[];
   equippedWeapons: WeaponId[];
   selectedHero: HeroId;
@@ -60,6 +70,9 @@ function createFallback(): SaveData {
     totalKills: 0,
     totalRuns: 0,
     coins: 0,
+    seasonXp: 0,
+    seasonCurrency: 0,
+    seasonState: createSeasonState(),
     unlockedWeapons: ["pulse"],
     equippedWeapons: ["pulse"],
     selectedHero: "recon",
@@ -139,12 +152,28 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
       ? parsed.equippedSkin
       : null;
 
+  const seasonState: SeasonState =
+    parsed.seasonState &&
+    typeof parsed.seasonState === "object" &&
+    typeof parsed.seasonState.currentLevel === "number" &&
+    typeof parsed.seasonState.currentXp === "number" &&
+    Array.isArray(parsed.seasonState.rewards) &&
+    Array.isArray(parsed.seasonState.missions)
+      ? parsed.seasonState
+      : createSeasonState();
+
   return {
     ...fallback,
     ...parsed,
     version: CURRENT_SAVE_VERSION,
     coins:
       typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : fallback.coins,
+    seasonXp: typeof parsed.seasonXp === "number" ? Math.max(0, parsed.seasonXp) : fallback.seasonXp,
+    seasonCurrency:
+      typeof parsed.seasonCurrency === "number"
+        ? Math.max(0, parsed.seasonCurrency)
+        : fallback.seasonCurrency,
+    seasonState,
     unlockedWeapons: unlocked.length > 0 ? unlocked : fallback.unlockedWeapons,
     equippedWeapons: clampedEquipped,
     selectedHero: validSelectedHero,
@@ -188,10 +217,11 @@ export function loadSave(): SaveData {
   }
 }
 
-export function saveSave(data: SaveData) {
+export function saveSave(data: Partial<SaveData>) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    const fallback = createFallback();
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...fallback, ...data }));
   } catch {
     // Ignore quota errors
   }
@@ -303,6 +333,58 @@ export function addCoins(amount: number) {
   const save = loadSave();
   save.coins += Math.floor(amount);
   saveSave(save);
+}
+
+export function addSeasonXp(amount: number) {
+  if (amount <= 0) return;
+  const save = loadSave();
+  save.seasonXp += Math.floor(amount);
+  save.seasonState = addSeasonStateXp(save.seasonState, Math.floor(amount));
+  saveSave(save);
+}
+
+export function claimSeasonReward(rewardId: string): { success: boolean; reward: import("./types").SeasonReward | null } {
+  const save = loadSave();
+  const { state, reward } = claimReward(save.seasonState, rewardId);
+  save.seasonState = state;
+  if (reward?.type === "currency") {
+    save.seasonCurrency += getSeasonCurrencyReward(reward);
+  }
+  if (reward?.type === "skin" && !save.ownedSkins.includes(reward.id)) {
+    save.ownedSkins.push(reward.id);
+  }
+  if (reward?.type === "emote" && !save.ownedEmotes.includes(reward.id)) {
+    save.ownedEmotes.push(reward.id);
+  }
+  if (reward?.type === "badge" && !save.ownedBadges.includes(reward.id)) {
+    save.ownedBadges.push(reward.id);
+  }
+  saveSave(save);
+  return { success: reward !== null, reward };
+}
+
+export function addSeasonCurrency(amount: number) {
+  if (amount <= 0) return;
+  const save = loadSave();
+  save.seasonCurrency += Math.floor(amount);
+  save.seasonState = {
+    ...save.seasonState,
+    seasonCurrency: save.seasonState.seasonCurrency + Math.floor(amount),
+  };
+  saveSave(save);
+}
+
+export function spendSeasonCurrency(amount: number): boolean {
+  if (amount <= 0) return true;
+  const save = loadSave();
+  if (save.seasonCurrency < amount) return false;
+  save.seasonCurrency -= Math.floor(amount);
+  save.seasonState = {
+    ...save.seasonState,
+    seasonCurrency: Math.max(0, save.seasonState.seasonCurrency - Math.floor(amount)),
+  };
+  saveSave(save);
+  return true;
 }
 
 export function spendCoins(amount: number): boolean {

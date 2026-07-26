@@ -116,6 +116,17 @@ function MobileHud({
                   {defense.currentWave + 1}/{defense.totalWaves}
                 </span>
               </div>
+              {state.mode === "flagship" && state.flagshipState && (
+                <>
+                  <div className="h-4 w-px bg-border" />
+                  <div className="flex items-center gap-1.5">
+                    <Star size={14} weight="bold" className="text-warning" />
+                    <span className="font-mono text-xs font-bold text-warning">
+                      {state.flagshipState.seasonXp}
+                    </span>
+                  </div>
+                </>
+              )}
             </>
           )}
           {!defense && (
@@ -340,6 +351,30 @@ function DesktopHud({
                   {defense.currentWave + 1} / {defense.totalWaves}
                 </span>
               </div>
+              {state.mode === "flagship" && state.flagshipState && (
+                <div className="space-y-1.5 border-t border-border pt-2">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                    <span className="flex items-center gap-1 text-muted">
+                      <Star size={12} weight="bold" className="text-warning" />
+                      赛季 XP
+                    </span>
+                    <span className="font-mono text-warning">{state.flagshipState.seasonXp}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                    <span className="flex items-center gap-1 text-muted">
+                      <Coin size={12} weight="bold" className="text-primary" />
+                      赛季货币
+                    </span>
+                    <span className="font-mono text-primary">{state.flagshipState.seasonCurrency}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                    <span className="text-muted">挑战完成</span>
+                    <span className="font-mono text-success">
+                      {state.flagshipState.challenges.filter((c) => c.completed).length}/{state.flagshipState.challenges.length}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

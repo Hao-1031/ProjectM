@@ -165,4 +165,4 @@ LARK_OAUTH_SECRET=your-random-hmac-secret
 
 ---
 
-*本手册对应 Project-M L3V100 "创世版" OAuth 登录配置流程。*
+*本手册对应 Project-M L3V100 "旗舰版" OAuth 登录配置流程。*

@@ -5,7 +5,7 @@ interface StatCardProps {
   label: string;
   icon?: React.ReactNode;
   sub?: string;
-  variant?: "default" | "primary" | "accent" | "success" | "danger" | "muted";
+  variant?: "default" | "primary" | "accent" | "success" | "danger" | "muted" | "warning";
   className?: string;
 }
 
@@ -16,6 +16,7 @@ const variantBorder: Record<string, string> = {
   success: "border-success/20",
   danger: "border-danger/20",
   muted: "border-border",
+  warning: "border-warning/20",
 };
 
 const variantGlow: Record<string, string> = {
@@ -25,6 +26,7 @@ const variantGlow: Record<string, string> = {
   success: "bg-success/10",
   danger: "bg-danger/10",
   muted: "bg-muted/5",
+  warning: "bg-warning/10",
 };
 
 export default function StatCard({

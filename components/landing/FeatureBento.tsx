@@ -248,12 +248,12 @@ export default function FeatureBento() {
         className="mb-3 max-w-2xl md:mb-4"
       >
         <h2 className="text-lg font-bold tracking-tight md:text-xl">
-          由算法驱动的
+          旗舰版由算法驱动
           <br />
-          <span className="text-gradient">核心体验</span>
+          <span className="text-gradient">每一局都是史诗</span>
         </h2>
         <p className="mt-1.5 text-xs leading-relaxed text-muted">
-          不是随机刷怪，不是固定数值。Project M 的每一波敌潮都是对你表现的实时回应。
+          不是随机刷怪，不是固定数值。α 节律、β AI 与赛季挑战让你的每一次防守都独一无二。
         </p>
       </motion.div>
 

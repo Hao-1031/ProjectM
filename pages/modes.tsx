@@ -105,7 +105,7 @@ export default function ModesPage() {
             </span>
             <h1 className="mt-2 text-xl font-bold tracking-tight md:text-3xl">选择辐射区任务</h1>
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted">
-              三种模式覆盖单人任务、无尽生存与 PvE 合作。据点防守为 L3V100 创世版主打玩法。
+              三种模式覆盖单人任务、无尽生存与 PvE 合作。据点防守为 L3V100 旗舰版核心玩法。
             </p>
           </motion.div>
 

@@ -22,6 +22,7 @@ import {
   Globe,
   ArrowClockwise,
   Funnel,
+  Star,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { formatTime } from "@/lib/game/math";
@@ -36,10 +37,12 @@ const modeNames: Record<string, string> = {
   deathmatch: "个人死斗",
   survival: "生存模式",
   "extreme-survival": "极限生存",
+  flagship: "旗舰模式",
 };
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式" },
+  { value: "flagship", label: "旗舰模式" },
   { value: "extreme-survival", label: "极限生存" },
   { value: "survival", label: "生存模式" },
   { value: "defense", label: "据点防守" },
@@ -156,6 +159,10 @@ export default function LeaderboardPage() {
       setSubmitError("极限生存模式仅记录进入超频极限阶段的 run");
       return;
     }
+    if (best.mode === "flagship" && best.flagshipPhase !== "overclock") {
+      setSubmitError("旗舰模式排行榜仅记录进入超频阶段的 run");
+      return;
+    }
     const name = playerName.trim() || "匿名幸存者";
     setSubmitting(true);
     setSubmitError(null);
@@ -238,6 +245,12 @@ export default function LeaderboardPage() {
                 icon={<Trophy size={20} />}
                 variant="accent"
               />
+              <StatCard
+                value={save?.seasonXp ?? 0}
+                label="赛季 XP"
+                icon={<Star size={20} />}
+                variant="warning"
+              />
             </div>
 
             <motion.div
@@ -257,6 +270,9 @@ export default function LeaderboardPage() {
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
                         {modeNames[best.mode] ?? best.mode} · {formatTime(best.elapsed)}
+                        {best.mode === "flagship" && best.flagshipPhase && (
+                          <span className="ml-1.5">· {best.flagshipPhase === "overclock" ? "超频阶段" : "普通阶段"}</span>
+                        )}
                       </p>
                     </>
                   ) : (

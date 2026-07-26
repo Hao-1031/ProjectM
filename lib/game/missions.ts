@@ -145,7 +145,7 @@ export function updateMissions(state: GameState, dt: number): GameState {
     current.progress = clamp(current.elapsed, 0, current.target);
   }
 
-  if (current.type === "rescue") {
+  if (current.type === "rescue" || current.type === "extract") {
     const player = state.player;
     const beacon = state.extraction;
     if (beacon) {
@@ -234,13 +234,15 @@ export function advanceMission(state: GameState): GameState {
   if (current && current.completed) {
     state.currentMissionIndex += 1;
     if (state.currentMissionIndex >= state.missions.length) {
-      // Final extraction
-      state.extraction = createExtractionPoint(state.map, state.player);
+      // Final extraction — reuse beacon if extract mission already created it
+      if (!state.extraction) {
+        state.extraction = createExtractionPoint(state.map, state.player);
+      }
       state.extractionTimer = 30;
     } else {
-      // Reset extraction to act as mission beacon for rescue missions
+      // Create extraction beacon for rescue / extract mission types
       const next = state.missions[state.currentMissionIndex];
-      if (next.type === "rescue") {
+      if (next.type === "rescue" || next.type === "extract") {
         state.extraction = createExtractionPoint(state.map, state.player);
       }
     }

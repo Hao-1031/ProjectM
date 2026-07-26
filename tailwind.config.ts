@@ -21,6 +21,11 @@ const config: Config = {
           muted: "var(--accent-muted)",
           subtle: "var(--accent-subtle)",
         },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          muted: "var(--secondary-muted)",
+          subtle: "var(--secondary-subtle)",
+        },
         danger: "var(--danger)",
         success: "var(--success)",
         warning: "var(--warning)",

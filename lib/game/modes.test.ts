@@ -96,9 +96,9 @@ describe("modes", () => {
   });
 
   describe("getModeList", () => {
-    it("lists all eight modes", () => {
+    it("lists all nine modes", () => {
       const list = getModeList();
-      expect(list).toHaveLength(8);
+      expect(list).toHaveLength(9);
       expect(list.map((m) => m.type)).toContain("campaign");
       expect(list.map((m) => m.type)).toContain("endless");
       expect(list.map((m) => m.type)).toContain("daily");
@@ -107,6 +107,7 @@ describe("modes", () => {
       expect(list.map((m) => m.type)).toContain("deathmatch");
       expect(list.map((m) => m.type)).toContain("survival");
       expect(list.map((m) => m.type)).toContain("extreme-survival");
+      expect(list.map((m) => m.type)).toContain("flagship");
     });
   });
 

@@ -1,25 +1,34 @@
-# Project-M L3V100「创世版」完整生产部署手册
+# Project-M L3V100「旗舰版」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：注册/登录功能已临时关闭，所有页面公开访问；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线
+> 当前版本特性：注册/登录功能已临时关闭，所有页面公开访问；官网升级为史诗叙事风格并新增世界观 `/world`、旗舰模式 `/flagship`、赛季 `/season`、英雄档案 `/heroes` 等专题页；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为 L3V100「创世版」一次性全部上线，包含：
+本次部署为 L3V100「旗舰版」一次性全部上线，包含：
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 品牌官网 | `pages/landing.tsx`, `pages/index.tsx` | Awwwards 级暗色产品风格官网 |
-| 游戏前端 | `pages/game.tsx`, `components/game/` | 生存/据点防守/PvP/肉鸽等玩法 |
+| 品牌官网 | `pages/landing.tsx`, `pages/index.tsx` | 史诗叙事风格官网，非对称 Hero、Bento 网格、GSAP 动效 |
+| 世界观页 | `pages/world.tsx` | 旗舰版世界观与战场背景叙事 |
+| 旗舰模式页 | `pages/flagship.tsx` | 主打模式介绍：据点防守 + Roguelike + 赛季挑战 |
+| 赛季页 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
+| 英雄档案 | `pages/heroes.tsx` | 英雄、皮肤、表情、徽章收藏与解锁 |
+| 战绩排行 | `pages/leaderboard.tsx`, `pages/api/leaderboard.ts` | 本地最佳与全球排行榜，支持旗舰/极限生存等模式 |
+| 游戏前端 | `pages/game.tsx`, `components/game/` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法 |
 | 算法实验室 | `pages/algorithms.tsx` | 六大核心算法公开演示与实时输出 |
 | 算法 API | `pages/api/algorithms/run.ts` | 在线运行任意已注册算法 |
 | 管理后台 | `pages/admin.tsx`, `pages/api/announcements.ts` | 公告管理，需 `ADMIN_KEY` |
 | 排行榜 API | `pages/api/leaderboard.ts` | 全球战绩提交与查询 |
 | 登录入口 | `pages/login.tsx`, `middleware.ts` | 已临时关闭，显示维护提示 |
+| 旗舰模式核心 | `lib/game/flagship.ts`, `lib/game/engine.ts`, `lib/game/types.ts` | 赛季挑战、奖励分支、超频阶段、赛季 XP/货币 |
+| 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
+| 近战武器系统 | `lib/game/balance.ts`, `lib/game/engine.ts`, `lib/game/weapons.ts`, `lib/game/types.ts` | 4 基础近战 + 1 进阶能量刃，扇形/突刺双机制 |
+| 英雄技能增强 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果上调，新增近战天赋联动与部署物更新 |
 | Supabase 后端 | `lib/supabase/`, `supabase/schema.sql` | Postgres 数据库与类型契约 |
 | 进程管理 | `ecosystem.config.cjs` | PM2 跨平台配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
@@ -455,6 +464,14 @@ pm2 restart project-m --update-env
 - 确认修改后执行 `pm2 restart project-m --update-env`。
 - 通过 `/api/auth/debug-env`（如存在）或 `pm2 env project-m` 检查实际读取值。
 
+### 13.9 Windows 本地 `pnpm test:run` 出现 worker timeout
+
+症状：全部测试逻辑通过，但报告 `Worker exited unexpectedly` 或 `Timeout waiting for worker to respond`。
+
+原因：Vitest 在 Windows 上多 worker 并发时偶发通信超时。
+
+修复：项目已配置 `vitest.config.ts` 使用 `pool: "forks"` + `maxWorkers: 1`，强制顺序执行以规避 Windows worker 超时。Linux CI 环境可酌情调大 `maxWorkers` 提升速度。
+
 ---
 
 ## 14. 部署检查清单
@@ -478,8 +495,18 @@ pm2 restart project-m --update-env
 - [ ] HTTPS 证书已配置并可自动续期
 - [ ] Sentry 未配置时构建不报错
 - [ ] GitHub Actions Secrets 已配置，push 到 main 可自动部署
+- [ ] `/world` 世界观页可正常访问
+- [ ] `/flagship` 旗舰模式专题页可正常访问
+- [ ] `/season` 赛季页可正常访问并领取奖励
+- [ ] `/heroes` 页面显示英雄、皮肤、表情、徽章收藏
+- [ ] `/leaderboard` 页面可查看本地最佳与全球榜单
 - [ ] `/algorithms` 页面可正常访问并演示算法
 - [ ] `/login` 页面显示「登录入口临时关闭」提示
+- [ ] `/armory` 页面显示近战武器（短刃/长枪/重剑/拳套/等离子刃·改）
+- [ ] 游戏内可选择「旗舰模式」，完成挑战并进入超频阶段
+- [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
+- [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
+- [ ] 游戏内新手武器栏包含 2 远程 + 1 近战共 3 把武器
 
 ---
 
@@ -495,10 +522,113 @@ pm2 restart project-m --update-env
 | `nginx/project-m.conf` | Nginx 反向代理配置模板 |
 | `supabase/schema.sql` | 数据库建表、RLS、触发器 |
 | `lib/algorithms/` | 六大核心算法实现与注册表 |
+| `pages/world.tsx` | 世界观叙事页 |
+| `pages/flagship.tsx` | 旗舰模式专题页 |
+| `pages/season.tsx` | 赛季进度与奖励页 |
+| `pages/heroes.tsx` | 英雄、皮肤、表情、徽章档案 |
+| `pages/leaderboard.tsx` | 战绩与全球排行榜页 |
 | `pages/algorithms.tsx` | 算法公开演示页面 |
 | `pages/api/algorithms/run.ts` | 算法在线运行 API |
+| `lib/game/flagship.ts` | 旗舰模式挑战、奖励与状态管理 |
+| `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
+| `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
+| `lib/game/balance.ts` | 武器平衡数值与升级曲线（含近战） |
+| `lib/game/engine.ts` | 游戏核心循环与近战攻击/渲染逻辑 |
+| `lib/game/weapons.ts` | 武器创建器与新手武器栏 |
+| `lib/game/heroes.ts` | 英雄定义、技能、天赋与近战联动 |
+| `lib/game/types.ts` | 武器/英雄类型扩展（`isMelee`、`meleeShape` 等） |
+| `vitest.config.ts` | 测试运行池配置（forks + maxWorkers:1） |
 | `DEPLOYMENT.md` | 本手册 |
 
 ---
 
-*本手册对应 Project-M L3V100「创世版」一次性全部上线部署流程。当前版本注册/登录功能已临时关闭，所有游戏模式、算法页面与排行榜均可公开访问。*
+## 16. L3V100 旗舰版内容说明
+
+### 16.1 旗舰版核心内容
+
+L3V100「旗舰版」在原有玩法基础上完成品牌升级与内容扩展：
+
+- **官网叙事包装**：首页升级为史诗叙事 Hero，新增 `/world` 世界观、`/flagship` 旗舰模式、`/season` 赛季、`/heroes` 英雄档案等专题页，统一暗色产品基调与金属/灰烬质感。
+- **旗舰模式**：融合「据点防守 + Roguelike 强化选择 + 赛季挑战」。玩家守护核心、完成赛季挑战、在第 15 波进入超频阶段，并积累赛季 XP/货币。
+- **极限生存**：已有模式提升为旗舰主打，满配开局、15 分钟高压、进入超频阶段后才可提交排行榜。
+- **赛季系统**：`lib/game/season.ts` 提供赛季等级、奖励、任务与进度；`lib/game/save.ts` 持久化赛季 XP/货币。
+- **排行榜**：`pages/leaderboard.tsx` 支持按模式筛选，旗舰模式与极限生存仅记录进入超频阶段的 run。
+- **英雄与外观**：`pages/heroes.tsx` 展示英雄、皮肤、表情、徽章收藏；所有外观只改变视觉效果，不影响数值。
+
+### 16.2 近战武器概览
+
+L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基础近战武器免费解锁并进入军械库，1 把进阶能量刃由旧版「等离子刃」重做为近战武器。所有近战武器沿用现有升级系统、通用被动加成与英雄天赋联动。
+
+| 武器 ID | 名称 | 类型 | 机制 | 定位 |
+|---------|------|------|------|------|
+| `shortBlade` | 碳钢短刃 | 基础近战 | 扇形瞬发 (`arc`) | 高攻速、小范围、清杂兵 |
+| `spear` | 合金长枪 | 基础近战 | 短程弹道突刺 (`thrust`) | 中距离直线穿透 |
+| `greatsword` | 重型大剑 | 基础近战 | 短程弹道突刺 (`thrust`) | 慢速、高伤、重击破甲 |
+| `gauntlet` | 脉冲拳套 | 基础近战 | 扇形瞬发 (`arc`) | 超高速连击、大角度 |
+| `plasmaBlade` | 等离子刃·改 | 进阶近战 | 扇形瞬发 (`arc`) | 高伤能量斩击 + 灼烧 |
+
+### 16.3 双攻击机制
+
+近战武器采用混合机制，按武器类型区分：
+
+- **扇形瞬发 (`arc`)**：适用于短刃、拳套、等离子刃·改。攻击时以玩家面朝方向为中心，按 `meleeAngle` 展开扇形检测，命中范围内最多 `pierce + 1` 个敌人。判定为瞬时伤害，无飞行弹道。
+- **短程弹道突刺 (`thrust`)**：适用于长枪、重剑。生成短寿命穿透弹道，沿直线前进并命中路径上多个敌人，适合中距离直线清场。
+
+### 16.4 新手武器栏
+
+`getStarterWeapons()` 默认返回 3 把武器，确保新玩家开局即可体验远近搭配：
+
+```typescript
+[pulseRifle, shotgun, spear] // 2 远程 + 1 近战
+```
+
+### 16.5 高风险高回报平衡
+
+近战武器在数值上定位为「高风险高回报」：
+
+- 基础伤害为同阶远程武器的 1.5 ~ 3 倍；
+- 射程控制在 88 ~ 220 px（远程武器通常 > 400 px）；
+- 冷却较长，需要贴近敌人输出；
+- 穿透/连击属性鼓励冲入敌群。
+
+### 16.6 视觉表现
+
+采用分层视觉方案：
+
+- 基础攻击：几何扇形光效或矩形突刺轨迹，使用武器主题色；
+- 暴击/重击：触发粒子爆发；
+- 等离子刃·改：附带高热灼烧的离子残影。
+
+渲染逻辑位于 `lib/game/engine.ts` 的 `drawProjectiles` 中，通过 `isMelee` / `meleeArcVisual` 标志区分。
+
+### 16.7 英雄技能实用性增强
+
+本次更新对所有英雄的主动技能、终极技能、被动与天赋进行了数值上调和效果强化，提升实战存在感。关键改动包括：
+
+- 提高技能基础伤害与持续治疗效果；
+- 缩短主要技能冷却；
+- 扩大控制/治疗范围；
+- 增强被动加成幅度。
+
+### 16.8 近战天赋联动
+
+部分英雄新增近战专属天赋：
+
+- **豹（leopard）- 利刃精通**：近战武器伤害 +12%，攻击范围 +8%；
+- **蝰蛇（viper）- 毒刃**：近战武器伤害 +10%，近战命中附加 2 秒毒素（每秒 15 伤害）。
+
+天赋系统在 `applyHeroTalent` 中通过 `meleeDamageMul` 与 `meleeRangeMul` 修饰符仅对 `isMelee` 武器生效。
+
+### 16.9 测试覆盖
+
+近战武器与英雄改动已被以下测试覆盖：
+
+- `lib/game/weapons.test.ts`：新手武器栏、近战武器创建器；
+- `lib/game/balance.test.ts`：武器平衡数值、升级曲线、弹速例外；
+- `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算；
+- `lib/game/heroes.test.ts`：英雄技能数值、天赋应用；
+- `lib/game/ai.test.ts`：AI 行为适配近战范围（如 spitter 改为横向游斗）。
+
+---
+
+*本手册对应 Project-M L3V100「旗舰版」一次性全部上线部署流程。当前版本注册/登录功能已临时关闭，所有游戏模式、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*

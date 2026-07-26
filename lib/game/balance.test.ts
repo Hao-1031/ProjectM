@@ -122,6 +122,7 @@ const baseState = (): GameState => ({
     bossesKilled: 0,
   },
   activeEvent: null,
+  deployables: [],
 });
 
 describe("DEFAULT_BALANCE", () => {

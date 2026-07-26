@@ -17,6 +17,9 @@ import {
   List,
   X,
   Robot,
+  Radioactive,
+  Lightning,
+  Calendar,
 } from "@phosphor-icons/react";
 import AuthButton from "@/components/AuthButton";
 
@@ -28,8 +31,11 @@ interface LayoutProps {
 
 const NAV = [
   { href: "/", label: "指挥终端", icon: House },
-  { href: "/algorithms", label: "算法", icon: Robot },
   { href: "/landing", label: "官网", icon: Globe },
+  { href: "/world", label: "世界观", icon: Radioactive },
+  { href: "/flagship", label: "旗舰模式", icon: Lightning },
+  { href: "/season", label: "赛季", icon: Calendar },
+  { href: "/algorithms", label: "算法", icon: Robot },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/armory", label: "军械库", icon: Sword },

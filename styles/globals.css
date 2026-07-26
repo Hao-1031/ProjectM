@@ -4,41 +4,46 @@
 
 :root {
   /* Base canvas - deep charcoal, not pure black */
-  --background: #0b0c10;
+  --background: #0a0b0f;
   --foreground: #e8e9ea;
 
   /* Primary: muted teal/cyan - rhythm pulse */
-  --primary: #3d9fa8;
-  --primary-muted: #1f5459;
-  --primary-subtle: #0f2a2d;
+  --primary: #3a8f9a;
+  --primary-muted: #1d4c52;
+  --primary-subtle: #0e2629;
 
   /* Accent: muted amber/gold - warning/intensity */
-  --accent: #c8a45c;
-  --accent-muted: #5c4a26;
-  --accent-subtle: #2a2110;
+  --accent: #b8924a;
+  --accent-muted: #564425;
+  --accent-subtle: #261e0f;
+
+  /* Secondary accent: ember ash - epic narrative heat */
+  --secondary: #a85c4a;
+  --secondary-muted: #4d2a22;
+  --secondary-subtle: #1f120f;
 
   /* Surfaces */
-  --panel: #111317;
-  --panel-raised: #161a1f;
-  --border: #1e2226;
+  --panel: #101318;
+  --panel-raised: #161a20;
+  --border: #1d2227;
 
   /* Semantic */
   --danger: #b85c5c;
   --success: #5e9a7a;
   --warning: #c8a45c;
-  --muted: #6e757a;
+  --muted: #6b7278;
 
   /* Neutral scale - warm/cool balanced */
   --neutral-50: #f7f8f8;
   --neutral-100: #e8e9ea;
   --neutral-200: #c5c8cb;
   --neutral-300: #9ca1a5;
-  --neutral-400: #6e757a;
-  --neutral-500: #4a5056;
-  --neutral-600: #31363b;
-  --neutral-700: #1e2226;
-  --neutral-800: #15191d;
-  --neutral-900: #0b0c10;
+  --neutral-400: #6b7278;
+  --neutral-500: #484e54;
+  --neutral-600: #2f3439;
+  --neutral-700: #1d2227;
+  --neutral-800: #14181d;
+  --neutral-900: #0a0b0f;
 
   /* Typography */
   --font-geist-sans: "Geist Sans";

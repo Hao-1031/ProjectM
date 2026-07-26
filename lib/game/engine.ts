@@ -2507,7 +2507,7 @@ export class GameEngine {
     const type = pickRandomEventType(this.state, this.rng);
     const event = startGameEvent(type, this.state);
 
-    if (type === "eliteHunt") {
+    if (type === "eliteHunt" && !this.state.fixedWaveState) {
       this.spawnEnemy("elite", true);
     }
 
