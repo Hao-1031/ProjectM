@@ -427,11 +427,11 @@ describe("GameEngine", () => {
       }
 
       // Player should be stopped at the right edge of the obstacle.
-      // FIXME: collision resolution with default-mode map obstacles needs investigation.
-      // The player y=obstacle.top edge case causes incorrect push direction.
       const rightEdge = obstacle.x + obstacle.width + engine.state.player.radius;
       expect(engine.state.player.x).toBeGreaterThanOrEqual(obstacle.x + obstacle.width / 2 - 1);
       expect(engine.state.player.x).toBeLessThanOrEqual(rightEdge + 2);
+      // Player y should remain at the obstacle center (no vertical push)
+      expect(engine.state.player.y).toBeCloseTo(obstacle.y + obstacle.height / 2, 0);
     });
 
     it("hazard damages player over time", () => {

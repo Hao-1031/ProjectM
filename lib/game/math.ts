@@ -117,24 +117,27 @@ export function resolveCircleRectCollision(
 ): { x: number; y: number } | null {
   const bounds = rectBounds(rect);
   const inside =
-    circle.x >= bounds.left &&
-    circle.x <= bounds.right &&
-    circle.y >= bounds.top &&
-    circle.y <= bounds.bottom;
+    circle.x > bounds.left &&
+    circle.x < bounds.right &&
+    circle.y > bounds.top &&
+    circle.y < bounds.bottom;
 
   if (inside) {
-    // Center is inside rectangle. Push out through the nearest edge so the
-    // circle no longer collides (radius + small epsilon past the edge).
+    // Center is strictly inside rectangle. Push out through the nearest edge(s).
+    // When equidistant from two edges (corner case), push diagonally.
     const toLeft = circle.x - bounds.left;
     const toRight = bounds.right - circle.x;
     const toTop = circle.y - bounds.top;
     const toBottom = bounds.bottom - circle.y;
     const min = Math.min(toLeft, toRight, toTop, toBottom);
 
-    if (min === toLeft) return { x: bounds.left - circle.radius - EPSILON - circle.x, y: 0 };
-    if (min === toRight) return { x: bounds.right + circle.radius + EPSILON - circle.x, y: 0 };
-    if (min === toTop) return { y: bounds.top - circle.radius - EPSILON - circle.y, x: 0 };
-    return { y: bounds.bottom + circle.radius + EPSILON - circle.y, x: 0 };
+    let pushX = 0;
+    let pushY = 0;
+    if (min === toLeft) pushX = bounds.left - circle.radius - EPSILON - circle.x;
+    if (min === toRight) pushX = bounds.right + circle.radius + EPSILON - circle.x;
+    if (min === toTop) pushY = bounds.top - circle.radius - EPSILON - circle.y;
+    if (min === toBottom) pushY = bounds.bottom + circle.radius + EPSILON - circle.y;
+    return { x: pushX, y: pushY };
   }
 
   // Center is outside. Compute closest point on rectangle and push along normal.
@@ -146,17 +149,21 @@ export function resolveCircleRectCollision(
   const radiusSq = circle.radius * circle.radius;
 
   if (distSq === 0) {
-    // Circle center is exactly on an edge/corner but not inside. Use rectangle normal.
+    // Circle center is exactly on an edge/corner. Push along the nearest edge normal(s).
+    // When on a corner (equidistant from two edges), push diagonally.
     const toLeft = Math.abs(circle.x - bounds.left);
     const toRight = Math.abs(circle.x - bounds.right);
     const toTop = Math.abs(circle.y - bounds.top);
     const toBottom = Math.abs(circle.y - bounds.bottom);
     const min = Math.min(toLeft, toRight, toTop, toBottom);
 
-    if (min === toLeft) return { x: -(circle.radius + EPSILON), y: 0 };
-    if (min === toRight) return { x: circle.radius + EPSILON, y: 0 };
-    if (min === toTop) return { y: -(circle.radius + EPSILON), x: 0 };
-    return { y: circle.radius + EPSILON, x: 0 };
+    let pushX = 0;
+    let pushY = 0;
+    if (min === toLeft) pushX = -(circle.radius + EPSILON);
+    if (min === toRight) pushX = circle.radius + EPSILON;
+    if (min === toTop) pushY = -(circle.radius + EPSILON);
+    if (min === toBottom) pushY = circle.radius + EPSILON;
+    return { x: pushX, y: pushY };
   }
 
   if (distSq > radiusSq) return null;

@@ -196,6 +196,39 @@ describe("math utilities", () => {
         )
       ).toBeNull();
     });
+
+    it("pushes circle out from boundary edge (distSq===0 branch)", () => {
+      // Circle center exactly on right edge of rect — distSq === 0 triggers the boundary branch.
+      // rect: center(0,0), half-width=5, half-height=5 → bounds: left=-5, right=5, top=-5, bottom=5
+      // circle center at (5, 0) is exactly on the right edge, radius=3 overlaps the rect.
+      const circle = { x: 5, y: 0, radius: 3 };
+      const rect = { x: 0, y: 0, width: 10, height: 10 };
+      expect(circleRectCollision(circle, rect)).toBe(true);
+      const displacement = resolveCircleRectCollision(circle, rect);
+      expect(displacement).not.toBeNull();
+      circle.x += displacement!.x;
+      circle.y += displacement!.y;
+      expect(circleRectCollision(circle, rect)).toBe(false);
+      // Should push right (away from rect)
+      expect(circle.x).toBeGreaterThan(5);
+    });
+
+    it("pushes circle diagonally from corner boundary (distSq===0 branch)", () => {
+      // Circle center exactly on top-right corner of rect — distSq === 0 triggers the corner branch.
+      // rect: center(0,0), half-width=5, half-height=5 → bounds: left=-5, right=5, top=-5, bottom=5
+      // circle center at (5, -5) is exactly on the top-right corner, radius=3 overlaps.
+      const circle = { x: 5, y: -5, radius: 3 };
+      const rect = { x: 0, y: 0, width: 10, height: 10 };
+      expect(circleRectCollision(circle, rect)).toBe(true);
+      const displacement = resolveCircleRectCollision(circle, rect);
+      expect(displacement).not.toBeNull();
+      // Should push both right and up (away from rect corner)
+      expect(displacement!.x).toBeGreaterThan(0);
+      expect(displacement!.y).toBeLessThan(0);
+      circle.x += displacement!.x;
+      circle.y += displacement!.y;
+      expect(circleRectCollision(circle, rect)).toBe(false);
+    });
   });
 
   describe("pointInRect", () => {
