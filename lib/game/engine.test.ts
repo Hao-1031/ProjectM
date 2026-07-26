@@ -757,4 +757,68 @@ describe("GameEngine", () => {
       expect(engine.state.enemies.some((e) => e.isBoss)).toBe(true);
     });
   });
+
+  describe("extreme survival", () => {
+    it("caps regular enemy spawns at wave enemyCount", () => {
+      const engine = new GameEngine({}, "extreme-survival", 12345);
+      engine.resize(800, 600);
+      engine.start();
+
+      let now = 0;
+      // Wait for the initial break to end and wave to start.
+      now += 8000;
+      engine.update(idleInput, now);
+
+      const ds = engine.state.defenseState;
+      expect(ds).toBeDefined();
+      expect(ds!.waveInProgress).toBe(true);
+
+      const wave = ds!.waves[ds!.currentWave];
+      const expectedCount = wave.enemyCount;
+
+      // Simulate fast clearing: kill all enemies each frame while time passes.
+      for (let step = 0; step < 60; step++) {
+        for (const enemy of engine.state.enemies) {
+          enemy.health = 0;
+        }
+        now += 500;
+        engine.update(idleInput, now);
+      }
+
+      expect(wave.spawned).toBeLessThanOrEqual(expectedCount);
+      expect(wave.spawned).toBeGreaterThan(0);
+    });
+
+    it("does not respawn regular enemies to refill quota after kills", () => {
+      const engine = new GameEngine({}, "extreme-survival", 12345);
+      engine.resize(800, 600);
+      engine.start();
+
+      let now = 0;
+      now += 8000;
+      engine.update(idleInput, now);
+      const ds = engine.state.defenseState!;
+      const wave = ds.waves[ds.currentWave];
+      const expectedCount = wave.enemyCount;
+
+      // Let some enemies spawn.
+      now += 3000;
+      engine.update(idleInput, now);
+      const spawnedAfterFirstBatch = wave.spawned ?? 0;
+      expect(spawnedAfterFirstBatch).toBeGreaterThan(0);
+
+      // Kill all currently alive enemies.
+      for (const enemy of engine.state.enemies) {
+        enemy.health = 0;
+      }
+      now += 16;
+      engine.update(idleInput, now);
+      expect(engine.state.enemies.length).toBe(0);
+
+      // Advance time further; spawned count must not increase beyond the cap.
+      now += 5000;
+      engine.update(idleInput, now);
+      expect(wave.spawned).toBeLessThanOrEqual(expectedCount);
+    });
+  });
 });

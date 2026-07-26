@@ -8,7 +8,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    pool: "forks",
+    pool: "threads",
+    exclude: ["node_modules", ".next", "dist"],
   },
   resolve: {
     alias: {

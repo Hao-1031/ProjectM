@@ -106,6 +106,8 @@ export interface DefenseWave {
   bossVariant?: string;
   nodeActivator: boolean;
   duration: number;
+  // 已生成普通敌人数，避免以当前存活数计算导致无限补怪
+  spawned?: number;
   // DDA 动态难度调整产生的可选参数
   enemyHealthMultiplier?: number;
   enemyDamageMultiplier?: number;

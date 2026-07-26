@@ -1994,6 +1994,10 @@ export class GameEngine {
       if (ds.breakTimer <= 0 && ds.currentWave < ds.totalWaves) {
         ds.waveInProgress = true;
         ds.waveTimer = 0;
+        const startingWave = ds.waves[ds.currentWave];
+        if (startingWave) {
+          startingWave.spawned = 0;
+        }
         if (!isExtreme) {
           activateNodeForWave(ds, ds.currentWave);
         }
@@ -2055,11 +2059,13 @@ export class GameEngine {
           if (ds.spawnTimer <= 0) {
             const intervalMul = isExtreme ? wave.spawnIntervalMultiplier ?? 1 : 1;
             ds.spawnTimer = Math.max(0.25, (1.4 - ds.currentWave * 0.02) * intervalMul);
-            const remainingSlots = wave.enemyCount - this.state.enemies.length;
+            const spawned = wave.spawned ?? 0;
+            const remainingSlots = wave.enemyCount - spawned;
             const spawnBatch = Math.min(4, Math.max(1, Math.floor(remainingSlots / 4)));
-            for (let i = 0; i < spawnBatch && this.state.enemies.length < wave.enemyCount; i++) {
+            for (let i = 0; i < spawnBatch && (wave.spawned ?? 0) < wave.enemyCount; i++) {
               const variant = this.pickDefenseWaveVariant(wave);
               this.spawnEnemy(variant, false);
+              wave.spawned = (wave.spawned ?? 0) + 1;
             }
           }
 
@@ -2070,9 +2076,8 @@ export class GameEngine {
 
           if (
             wave.bossVariant &&
-            this.state.enemies.length > 0 &&
-            this.state.enemies.every((e) => !e.isBoss) &&
-            this.state.enemies.length >= wave.enemyCount * 0.8
+            (wave.spawned ?? 0) >= wave.enemyCount &&
+            this.state.enemies.every((e) => !e.isBoss)
           ) {
             const bossId = wave.bossVariant as import("./types").BossId;
             this.spawnEnemy(bossId as import("./types").EnemyVariant, true);
