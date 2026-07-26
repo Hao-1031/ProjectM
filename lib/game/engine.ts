@@ -38,6 +38,9 @@ import {
   randomPointOnBorder,
   randomPointInBounds,
   randomChoice,
+  randomRangeRng,
+  randomPointOnBorderRng,
+  randomPointInBoundsRng,
   circleCollision,
   circleRectCollision,
   resolveCircleRectCollision,
@@ -77,7 +80,7 @@ import {
   shouldExplodeOnDeath,
   shouldSplitOnDeath,
 } from "./affixes";
-import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId, getBossTemplate } from "./bosses";
+import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId, getRandomBossIdRng, getBossTemplate } from "./bosses";
 import { AlphaScheduler, generateVariantStats } from "./alpha";
 import type { AlphaEnemyStats } from "./alpha/types";
 import { runEnemyAI, runBossAI, resetBossState } from "./ai";
@@ -132,20 +135,21 @@ import {
   getCapturedNodeCount,
 } from "./defense";
 import {
-  createFlagshipState,
-  updateFlagshipChallenges,
-  recordFlagshipKill,
-  recordFlagshipBossKill,
-  recordFlagshipWaveCleared,
-  shouldOfferFlagshipReward,
-  generateFlagshipRewardOptions,
-  applyFlagshipEndRewards,
-  FLAGSHIP_BRANCH_WAVE,
-} from "./flagship";
+  createPeakChallengeState,
+  updatePeakChallengeTasks,
+  recordPeakChallengeKill,
+  recordPeakChallengeBossKill,
+  recordPeakChallengeWaveCleared,
+  shouldOfferPeakChallengeReward,
+  generatePeakChallengeRewardOptions,
+  applyPeakChallengeEndRewards,
+  PEAK_CHALLENGE_BRANCH_WAVE,
+} from "./peak-challenge";
 import {
   createDeathmatchState,
   createDeathmatchMap,
   createBotPlayer,
+  createBotPlayerRng,
   createBotAI,
   updateDeathmatch,
   respawnPlayer,
@@ -246,7 +250,7 @@ export class GameEngine {
   private extremeSurvivalPendingChoice = false;
   private extremeSurvivalLastSnapshot?: PerformanceSnapshot;
   private extremeSurvivalLastKills = 0;
-  private flagshipPendingChoice = false;
+  private peakChallengePendingChoice = false;
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -269,10 +273,10 @@ export class GameEngine {
     const modeConfig = createGameModeConfig(mode, this.seed);
     const theme = this.randomTheme();
     const roguelikeRunState = mode === "roguelike" ? createRoguelikeRun(this.seed) : undefined;
-    const isDefenseLike = mode === "defense" || mode === "extreme-survival" || mode === "flagship";
+    const isDefenseLike = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge";
     const defenseState = isDefenseLike ? createDefenseState(this.seed) : undefined;
     const extremeSurvivalRun = mode === "extreme-survival" ? this.createExtremeSurvivalRun() : undefined;
-    const flagshipState = mode === "flagship" ? createFlagshipState() : undefined;
+    const peakChallengeState = mode === "peak-challenge" ? createPeakChallengeState() : undefined;
     const missions = modeConfig.allowMissions
       ? mode === "roguelike"
         ? roguelikeRunState
@@ -285,7 +289,7 @@ export class GameEngine {
 
     let map: MapConfig;
     let deathmatchState: DeathmatchState | undefined;
-    if (mode === "defense" || mode === "extreme-survival" || mode === "flagship") {
+    if (mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge") {
       map = createDefenseMap(this.seed);
     } else if (mode === "deathmatch") {
       map = createDeathmatchMap(this.seed);
@@ -293,8 +297,8 @@ export class GameEngine {
     } else {
       map = this.createMap(theme);
     }
-    const startX = mode === "defense" || mode === "extreme-survival" || mode === "flagship" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
-    const startY = mode === "defense" || mode === "extreme-survival" || mode === "flagship" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
+    const startX = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
+    const startY = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
 
     const player = this.createPlayer("player", startX, startY);
     const heroId = this.loadout.heroId ?? this.state?.selectedHero;
@@ -318,7 +322,7 @@ export class GameEngine {
       for (let i = 0; i < deathmatchState.botCount; i++) {
         const botId = `bot_${i}`;
         const pos = spawnPoints[i % spawnPoints.length];
-        const bot = createBotPlayer(botId, pos.x, pos.y);
+        const bot = createBotPlayerRng(this.rng, botId, pos.x, pos.y);
         players.push(bot);
         deathmatchState.bots.push(createBotAI(botId));
       }
@@ -372,7 +376,7 @@ export class GameEngine {
       fixedWaveState: undefined,
       deathmatchState,
       extremeSurvivalRun,
-      flagshipState,
+      peakChallengeState,
       selectedHero: heroId ?? this.state?.selectedHero,
       deployables: [],
     };
@@ -398,10 +402,10 @@ export class GameEngine {
       state.defenseState.waves = this.generateExtremeSurvivalWaves(state.defenseState, state.extremeSurvivalRun?.phase ?? "normal");
     }
 
-    if (mode === "flagship" && state.defenseState) {
+    if (mode === "peak-challenge" && state.defenseState) {
       state.defenseState.totalWaves = 999;
-      state.defenseState.waves = this.generateFlagshipWaves(state.defenseState, state.flagshipState?.phase ?? "normal");
-      this.applyFlagshipLoadout(player);
+      state.defenseState.waves = this.generatePeakChallengeWaves(state.defenseState, state.peakChallengeState?.phase ?? "normal");
+      this.applyPeakChallengeLoadout(player);
     }
 
     return state;
@@ -421,7 +425,7 @@ export class GameEngine {
     };
   }
 
-  private applyFlagshipLoadout(player: Player) {
+  private applyPeakChallengeLoadout(player: Player) {
     const chosenHero = this.loadout.heroId ?? "recon";
     applyHeroToPlayer(player, chosenHero);
     player.skinColor = resolvePlayerSkinColor(chosenHero, getEquippedSkin());
@@ -443,7 +447,7 @@ export class GameEngine {
     player.magnetRange *= 1.2;
   }
 
-  private generateFlagshipWaves(ds: DefenseState, phase: "normal" | "overclock"): DefenseWave[] {
+  private generatePeakChallengeWaves(ds: DefenseState, phase: "normal" | "overclock"): DefenseWave[] {
     const waves: DefenseWave[] = [];
     for (let i = 0; i < ds.totalWaves; i++) {
       const waveNumber = i + 1;
@@ -454,7 +458,7 @@ export class GameEngine {
         enemyCount: count,
         enemyVariants: ["walker", "runner", "tank", "spitter", "drone", "sentinel", "crusher", "sniper", "stalker"],
         eliteCount: Math.max(0, Math.round(count * (0.08 + waveNumber * 0.005) * (isOverclock ? 1.5 : 1))),
-        bossVariant: waveNumber % 12 === 0 ? getRandomBossId() : undefined,
+        bossVariant: waveNumber % 12 === 0 ? getRandomBossIdRng(this.rng) : undefined,
         nodeActivator: false,
         duration: 45 + (isOverclock ? 10 : 0),
         enemyHealthMultiplier: 1 + waveNumber * 0.04 * (isOverclock ? 1.3 : 1),
@@ -545,7 +549,7 @@ export class GameEngine {
           "stalker",
         ],
         eliteCount: Math.max(0, Math.round(count * eliteRatio)),
-        bossVariant: waveNumber % bossInterval === 0 ? getRandomBossId() : undefined,
+        bossVariant: waveNumber % bossInterval === 0 ? getRandomBossIdRng(this.rng) : undefined,
         nodeActivator: false,
         duration: mode === "survival" ? DEFAULT_BALANCE.modes.survival.waveDuration : 60,
         enemyHealthMultiplier: 1 + waveNumber * 0.04,
@@ -775,8 +779,8 @@ export class GameEngine {
       };
     }
 
-    if (this.state.mode === "flagship" && this.state.status === "idle") {
-      this.applyFlagshipLoadout(this.state.player);
+    if (this.state.mode === "peak-challenge" && this.state.status === "idle") {
+      this.applyPeakChallengeLoadout(this.state.player);
     }
   }
 
@@ -794,12 +798,12 @@ export class GameEngine {
       run.phase = choice === "overclock" ? "overclock" : "normal";
       this.extremeSurvivalPendingChoice = false;
       ds.waves = this.generateExtremeSurvivalWaves(ds, run.phase);
-    } else if (this.state.mode === "flagship" && this.state.flagshipState) {
-      const fs = this.state.flagshipState;
+    } else if (this.state.mode === "peak-challenge" && this.state.peakChallengeState) {
+      const fs = this.state.peakChallengeState;
       fs.overclockUnlocked = true;
       fs.phase = choice === "overclock" ? "overclock" : "normal";
-      this.flagshipPendingChoice = false;
-      ds.waves = this.generateFlagshipWaves(ds, fs.phase);
+      this.peakChallengePendingChoice = false;
+      ds.waves = this.generatePeakChallengeWaves(ds, fs.phase);
     } else {
       return;
     }
@@ -952,11 +956,11 @@ export class GameEngine {
     if (player.burnDuration > 0) {
       player.burnDuration -= dt;
       player.health -= player.burnDamage * dt;
-      if (Math.random() < dt * 4) {
+      if (this.rng() < dt * 4) {
         this.particlePool.spawnPreset(
           "spark",
-          player.x + randomRange(-10, 10),
-          player.y + randomRange(-10, 10),
+          player.x + randomRangeRng(this.rng, -10, 10),
+          player.y + randomRangeRng(this.rng, -10, 10),
           "#fb923c",
           { intensity: 0.5 }
         );
@@ -1673,11 +1677,11 @@ export class GameEngine {
       if (enemy.burnDuration > 0) {
         enemy.burnDuration -= dt;
         enemy.health -= 5 * dt;
-        if (Math.random() < dt * 6) {
+        if (this.rng() < dt * 6) {
           this.particlePool.spawnPreset(
             "spark",
-            enemy.x + randomRange(-enemy.radius, enemy.radius),
-            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            enemy.x + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
+            enemy.y + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
             "#fb923c",
             { intensity: 0.8 }
           );
@@ -1690,11 +1694,11 @@ export class GameEngine {
           enemy.frostStacks = Math.max(0, enemy.frostStacks - 1);
           enemy.frostTimer = enemy.frostStacks > 0 ? 2 : 0;
         }
-        if (enemy.frostStacks > 0 && Math.random() < dt * 3) {
+        if (enemy.frostStacks > 0 && this.rng() < dt * 3) {
           this.particlePool.spawnPreset(
             "spark",
-            enemy.x + randomRange(-enemy.radius, enemy.radius),
-            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            enemy.x + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
+            enemy.y + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
             "#38bdf8",
             { intensity: 0.5 }
           );
@@ -1724,22 +1728,22 @@ export class GameEngine {
           enemy.health -= dot;
           this.state.stats.damageDealt += dot;
         }
-        if (enemy.venomStacks > 0 && Math.random() < dt * 4) {
+        if (enemy.venomStacks > 0 && this.rng() < dt * 4) {
           this.particlePool.spawnPreset(
             "spark",
-            enemy.x + randomRange(-enemy.radius, enemy.radius),
-            enemy.y + randomRange(-enemy.radius, enemy.radius),
+            enemy.x + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
+            enemy.y + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
             "#84cc16",
             { intensity: 0.5 }
           );
         }
       }
 
-      if (enemy.vulnerabilityStacks > 0 && Math.random() < dt * 2) {
+      if (enemy.vulnerabilityStacks > 0 && this.rng() < dt * 2) {
         this.particlePool.spawnPreset(
           "spark",
-          enemy.x + randomRange(-enemy.radius, enemy.radius),
-          enemy.y + randomRange(-enemy.radius, enemy.radius),
+          enemy.x + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
+          enemy.y + randomRangeRng(this.rng, -enemy.radius, enemy.radius),
           "#a855f7",
           { intensity: 0.4 }
         );
@@ -1856,6 +1860,7 @@ export class GameEngine {
       core,
       nodes,
       alphaSnapshot: this.alphaPlanRef?.snapshot,
+      rng: this.rng,
     };
   }
 
@@ -2246,15 +2251,15 @@ export class GameEngine {
 
   private updateDefenseState(dt: number) {
     const ds = this.state.defenseState;
-    if (!ds || (this.state.mode !== "defense" && this.state.mode !== "extreme-survival" && this.state.mode !== "flagship")) return;
+    if (!ds || (this.state.mode !== "defense" && this.state.mode !== "extreme-survival" && this.state.mode !== "peak-challenge")) return;
 
     const isExtreme = this.state.mode === "extreme-survival";
-    const isFlagship = this.state.mode === "flagship";
+    const isPeakChallenge = this.state.mode === "peak-challenge";
     const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
-    const fs = isFlagship ? this.state.flagshipState : undefined;
+    const fs = isPeakChallenge ? this.state.peakChallengeState : undefined;
 
     // Victory / defeat checks (defense only)
-    if (!isExtreme && !isFlagship) {
+    if (!isExtreme && !isPeakChallenge) {
       if (isDefenseVictory(ds)) {
         const reward = calculateDefenseCompletionRewards(this.state);
         grantMissionReward(this.state, reward);
@@ -2269,7 +2274,7 @@ export class GameEngine {
 
     // Node capture by all players (defense only)
     let previousCaptured = 0;
-    if (!isExtreme && !isFlagship) {
+    if (!isExtreme && !isPeakChallenge) {
       const players = [this.state.player, ...this.state.players];
       for (const player of players) {
         updateNodeCapture(ds, player, dt);
@@ -2286,7 +2291,7 @@ export class GameEngine {
       return;
     }
 
-    if ((isExtreme || isFlagship) && isDefenseDefeat(ds)) {
+    if ((isExtreme || isPeakChallenge) && isDefenseDefeat(ds)) {
       this.endRun(false);
       return;
     }
@@ -2301,7 +2306,7 @@ export class GameEngine {
         if (startingWave) {
           startingWave.spawned = 0;
         }
-        if (!isExtreme && !isFlagship) {
+        if (!isExtreme && !isPeakChallenge) {
           activateNodeForWave(ds, ds.currentWave);
         }
         if (this.alphaScheduler) {
@@ -2420,9 +2425,9 @@ export class GameEngine {
 
   private finalizeDefenseWave(ds: DefenseState) {
     const isExtreme = this.state.mode === "extreme-survival";
-    const isFlagship = this.state.mode === "flagship";
+    const isPeakChallenge = this.state.mode === "peak-challenge";
     const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
-    const fs = isFlagship ? this.state.flagshipState : undefined;
+    const fs = isPeakChallenge ? this.state.peakChallengeState : undefined;
 
     const waveIndex = ds.currentWave;
     const wave = ds.waves[waveIndex];
@@ -2442,14 +2447,14 @@ export class GameEngine {
       this.extremeSurvivalLastKills = this.state.stats.kills;
     }
 
-    if (isFlagship && fs) {
-      recordFlagshipWaveCleared(this.state);
-      updateFlagshipChallenges(this.state, ds);
+    if (isPeakChallenge && fs) {
+      recordPeakChallengeWaveCleared(this.state);
+      updatePeakChallengeTasks(this.state, ds);
     }
 
     ds.waveInProgress = false;
     ds.currentWave += 1;
-    ds.breakTimer = isExtreme || isFlagship ? 5 : 8;
+    ds.breakTimer = isExtreme || isPeakChallenge ? 5 : 8;
     this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
 
     if (isExtreme && run && shouldTriggerBranchChoice(waveIndex + 1, run.phase) && !this.extremeSurvivalPendingChoice) {
@@ -2459,16 +2464,16 @@ export class GameEngine {
       return;
     }
 
-    if (isFlagship && fs && waveIndex + 1 === FLAGSHIP_BRANCH_WAVE && !this.flagshipPendingChoice && fs.phase === "normal") {
+    if (isPeakChallenge && fs && waveIndex + 1 === PEAK_CHALLENGE_BRANCH_WAVE && !this.peakChallengePendingChoice && fs.phase === "normal") {
       fs.rewardBranchOffered = true;
-      this.flagshipPendingChoice = true;
+      this.peakChallengePendingChoice = true;
       this.state.status = "paused";
       this.callbacks.onBranchChoiceRequest?.();
       return;
     }
 
-    if (isFlagship && fs && shouldOfferFlagshipReward(fs, waveIndex + 1)) {
-      const options = generateFlagshipRewardOptions(this.state.player);
+    if (isPeakChallenge && fs && shouldOfferPeakChallengeReward(fs, waveIndex + 1)) {
+      const options = generatePeakChallengeRewardOptions(this.state.player);
       fs.pendingRewards = options;
       this.pendingUpgradeOptions = options;
       this.state.status = "levelup";
@@ -2480,8 +2485,8 @@ export class GameEngine {
       ds.waves = this.generateExtremeSurvivalWaves(ds, run?.phase ?? "normal");
     }
 
-    if (isFlagship && ds.currentWave >= ds.waves.length - 5) {
-      ds.waves = this.generateFlagshipWaves(ds, fs?.phase ?? "normal");
+    if (isPeakChallenge && ds.currentWave >= ds.waves.length - 5) {
+      ds.waves = this.generatePeakChallengeWaves(ds, fs?.phase ?? "normal");
     }
   }
 
@@ -2832,10 +2837,10 @@ export class GameEngine {
     }
 
     this.addKillCombo(enemy.isBoss);
-    if (this.state.mode === "flagship") {
-      recordFlagshipKill(this.state, enemy.isElite || enemy.isBoss);
+    if (this.state.mode === "peak-challenge") {
+      recordPeakChallengeKill(this.state, enemy.isElite || enemy.isBoss);
       if (enemy.isBoss) {
-        recordFlagshipBossKill(this.state);
+        recordPeakChallengeBossKill(this.state);
       }
     }
 
@@ -3025,8 +3030,8 @@ export class GameEngine {
       this.applyExtremeSurvivalRewards();
     }
 
-    if (this.state.mode === "flagship") {
-      this.applyFlagshipRewards();
+    if (this.state.mode === "peak-challenge") {
+      this.applyPeakChallengeRewards();
     }
 
     const result: RunResult = {
@@ -3036,7 +3041,7 @@ export class GameEngine {
       elapsed: this.state.stats.timeSurvived,
       mode: this.state.mode,
       extremeSurvivalPhase: this.state.extremeSurvivalRun?.phase,
-      flagshipPhase: this.state.flagshipState?.phase,
+      peakChallengePhase: this.state.peakChallengeState?.phase,
     };
     if (victory) {
       audio?.play("levelup");
@@ -3065,8 +3070,8 @@ export class GameEngine {
     }
   }
 
-  private applyFlagshipRewards() {
-    const rewards = applyFlagshipEndRewards(this.state);
+  private applyPeakChallengeRewards() {
+    const rewards = applyPeakChallengeEndRewards(this.state);
     this.state.stats.score = rewards.currency;
     if (rewards.currency > 0) {
       addSeasonCurrency(rewards.currency);
@@ -3147,7 +3152,7 @@ export class GameEngine {
       killCombo: this.state.killCombo,
       roguelikeRunState: this.state.roguelikeRunState,
       deathmatchState: this.state.deathmatchState,
-      flagshipState: this.state.flagshipState,
+      peakChallengeState: this.state.peakChallengeState,
       fixedWaveState: this.state.fixedWaveState,
       deployables: this.state.deployables,
     };
@@ -3189,8 +3194,8 @@ export class GameEngine {
     if (serialized.deathmatchState) {
       this.state.deathmatchState = serialized.deathmatchState;
     }
-    if (serialized.flagshipState) {
-      this.state.flagshipState = serialized.flagshipState;
+    if (serialized.peakChallengeState) {
+      this.state.peakChallengeState = serialized.peakChallengeState;
     }
     if (serialized.fixedWaveState) {
       this.state.fixedWaveState = serialized.fixedWaveState;

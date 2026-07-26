@@ -72,9 +72,9 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: true,
   },
-  flagship: {
-    type: "flagship",
-    name: "旗舰模式",
+  "peak-challenge": {
+    type: "peak-challenge",
+    name: "巅峰挑战",
     description: "据点防守 + Roguelike 强化 + 赛季挑战的融合玩法，守护核心并冲击赛季目标",
     allowMissions: false,
     endless: true,
@@ -107,7 +107,7 @@ export function getDefaultMode(): GameModeType {
 
 export function getModeList(): { type: GameModeType; name: string; description: string }[] {
   return [
-    { type: "flagship", name: "旗舰模式", description: MODE_DEFS.flagship.description },
+    { type: "peak-challenge", name: "巅峰挑战", description: MODE_DEFS["peak-challenge"].description },
     { type: "extreme-survival", name: "极限生存", description: MODE_DEFS["extreme-survival"].description },
     { type: "survival", name: "生存模式", description: MODE_DEFS.survival.description },
     { type: "defense", name: "据点防守", description: MODE_DEFS.defense.description },

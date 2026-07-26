@@ -107,7 +107,7 @@ describe("modes", () => {
       expect(list.map((m) => m.type)).toContain("deathmatch");
       expect(list.map((m) => m.type)).toContain("survival");
       expect(list.map((m) => m.type)).toContain("extreme-survival");
-      expect(list.map((m) => m.type)).toContain("flagship");
+      expect(list.map((m) => m.type)).toContain("peak-challenge");
     });
   });
 

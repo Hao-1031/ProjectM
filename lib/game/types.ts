@@ -32,7 +32,7 @@ export type GameModeType =
   | "deathmatch"
   | "survival"
   | "extreme-survival"
-  | "flagship";
+  | "peak-challenge";
 
 export type MissionType =
   | "eliminate"
@@ -670,7 +670,7 @@ export interface GameState {
   fixedWaveState?: FixedWaveState;
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
-  flagshipState?: FlagshipState;
+  peakChallengeState?: PeakChallengeState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }
@@ -695,7 +695,7 @@ export interface RunResult {
   elapsed: number;
   mode: GameModeType;
   extremeSurvivalPhase?: "normal" | "overclock";
-  flagshipPhase?: "normal" | "overclock";
+  peakChallengePhase?: "normal" | "overclock";
 }
 
 // Sprite / animation types
@@ -739,7 +739,7 @@ export interface RenderableEntity {
 
 // Networking types are re-exported from @/lib/network/types
 
-export interface FlagshipChallenge {
+export interface PeakChallengeTask {
   id: string;
   title: string;
   description: string;
@@ -750,10 +750,10 @@ export interface FlagshipChallenge {
   rewardCurrency: number;
 }
 
-export interface FlagshipState {
+export interface PeakChallengeState {
   phase: "normal" | "overclock";
   wave: number;
-  challenges: FlagshipChallenge[];
+  challenges: PeakChallengeTask[];
   pendingRewards: UpgradeOption[] | null;
   rewardBranchOffered: boolean;
   seasonXp: number;
@@ -795,7 +795,7 @@ export interface SerializedGameState {
   fixedWaveState?: FixedWaveState;
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
-  flagshipState?: FlagshipState;
+  peakChallengeState?: PeakChallengeState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }

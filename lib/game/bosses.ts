@@ -484,6 +484,12 @@ export function getRandomBossId(): BossId {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
+/** RNG-aware version for deterministic multiplayer sync. */
+export function getRandomBossIdRng(rng: () => number): BossId {
+  const ids = Object.keys(BOSSES) as BossId[];
+  return ids[Math.floor(rng() * ids.length)];
+}
+
 export function advanceBossPhase(boss: Enemy, engine?: unknown): void {
   if (boss.phase >= boss.phaseThresholds.length) return;
   boss.phase += 1;

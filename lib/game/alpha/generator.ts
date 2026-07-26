@@ -99,6 +99,21 @@ export function eliteCount(
   return guaranteed + (Math.random() < remainder ? 1 : 0);
 }
 
+/** RNG-aware version for deterministic multiplayer sync. */
+export function eliteCountRng(
+  rng: () => number,
+  waveIndex: number,
+  totalWaves: number,
+  difficulty: number,
+  eliteChance: number
+): number {
+  const count = waveEnemyCount(waveIndex, totalWaves, difficulty);
+  const expected = count * eliteChance;
+  const guaranteed = Math.floor(expected);
+  const remainder = expected - guaranteed;
+  return guaranteed + (rng() < remainder ? 1 : 0);
+}
+
 /**
  * 生成单个敌人类型的数值
  */

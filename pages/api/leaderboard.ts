@@ -8,6 +8,8 @@ import {
   type LeaderboardRow,
   type ApiError,
 } from "@/lib/supabase/api";
+import { rateLimiter } from "@/lib/auth/rate-limiter";
+import { applySecurityHeaders } from "@/lib/auth/security";
 
 export interface LeaderboardListResponse {
   data: LeaderboardRow[];
@@ -22,6 +24,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<LeaderboardListResponse | LeaderboardSubmitResponse | ApiError>
 ) {
+  applySecurityHeaders(res);
   if (!isSupabaseConfigured()) {
     return res.status(503).json({ message: "Supabase 未配置，排行榜功能不可用" });
   }
@@ -55,6 +58,11 @@ export default async function handler(
   }
 
   if (req.method === "POST") {
+    const ip = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+    if (rateLimiter(`lb:${ip}`, { maxAttempts: 10, windowMs: 60000 })) {
+      return res.status(429).json({ message: "提交过于频繁，请稍后重试" });
+    }
+
     const validation = validateLeaderboardEntry(req.body);
     if (!validation.valid) {
       return res.status(400).json({ message: validation.error });

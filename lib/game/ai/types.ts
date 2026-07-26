@@ -80,6 +80,8 @@ export interface AIContext {
   nodes?: EnergyNode[];
   /** α 算法难度快照，驱动 AI 侵略性 */
   alphaSnapshot?: AlphaDifficultySnapshot;
+  /** 确定性随机数生成器，用于多人同步 */
+  rng: () => number;
 }
 
 export interface BotContext {

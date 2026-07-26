@@ -32,6 +32,11 @@ export function randomRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
+/** RNG-aware version of randomRange for deterministic multiplayer sync. */
+export function randomRangeRng(rng: () => number, min: number, max: number): number {
+  return rng() * (max - min) + min;
+}
+
 export function randomPointOnBorder(width: number, height: number, margin = 80): Vec2 {
   const side = Math.floor(Math.random() * 4);
   switch (side) {
@@ -43,6 +48,26 @@ export function randomPointOnBorder(width: number, height: number, margin = 80):
       return { x: randomRange(-margin, width + margin), y: height + margin };
     default:
       return { x: -margin, y: randomRange(-margin, height + margin) };
+  }
+}
+
+/** RNG-aware version of randomPointOnBorder for deterministic multiplayer sync. */
+export function randomPointOnBorderRng(
+  rng: () => number,
+  width: number,
+  height: number,
+  margin = 80
+): Vec2 {
+  const side = Math.floor(rng() * 4);
+  switch (side) {
+    case 0:
+      return { x: randomRangeRng(rng, -margin, width + margin), y: -margin };
+    case 1:
+      return { x: width + margin, y: randomRangeRng(rng, -margin, height + margin) };
+    case 2:
+      return { x: randomRangeRng(rng, -margin, width + margin), y: height + margin };
+    default:
+      return { x: -margin, y: randomRangeRng(rng, -margin, height + margin) };
   }
 }
 
@@ -195,13 +220,37 @@ export function randomPointInBounds(width: number, height: number, margin = 100)
   };
 }
 
+/** RNG-aware version of randomPointInBounds for deterministic multiplayer sync. */
+export function randomPointInBoundsRng(rng: () => number, width: number, height: number, margin = 100): Vec2 {
+  return {
+    x: randomRangeRng(rng, margin, width - margin),
+    y: randomRangeRng(rng, margin, height - margin),
+  };
+}
+
 export function randomChoice<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
+}
+
+/** RNG-aware version of randomChoice for deterministic multiplayer sync. */
+export function randomChoiceRng<T>(rng: () => number, items: T[]): T {
+  return items[Math.floor(rng() * items.length)];
 }
 
 export function weightedRandom<T>(items: { item: T; weight: number }[]): T {
   const total = items.reduce((sum, i) => sum + i.weight, 0);
   let roll = Math.random() * total;
+  for (const entry of items) {
+    roll -= entry.weight;
+    if (roll <= 0) return entry.item;
+  }
+  return items[items.length - 1].item;
+}
+
+/** RNG-aware version of weightedRandom for deterministic multiplayer sync. */
+export function weightedRandomRng<T>(rng: () => number, items: { item: T; weight: number }[]): T {
+  const total = items.reduce((sum, i) => sum + i.weight, 0);
+  let roll = rng() * total;
   for (const entry of items) {
     roll -= entry.weight;
     if (roll <= 0) return entry.item;

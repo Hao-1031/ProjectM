@@ -563,7 +563,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     engineRef.current?.chooseOverclockBranch(choice);
     setShowBranchChoice(false);
     if (choice === "overclock") {
-      const isFlagship = engineRef.current?.state.mode === "flagship";
+      const isPeakChallenge = engineRef.current?.state.mode === "peak-challenge";
       addNotification({
         title: "超频极限已启动",
         message: isFlagship
@@ -772,7 +772,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       <RedBreathOverlay
         active={
           engine?.state.extremeSurvivalRun?.phase === "overclock" ||
-          engine?.state.flagshipState?.phase === "overclock"
+          engine?.state.peakChallengeState?.phase === "overclock"
         }
         intensity={1 - (engine?.state.defenseState?.core.health ?? 1) / (engine?.state.defenseState?.core.maxHealth ?? 1)}
       />

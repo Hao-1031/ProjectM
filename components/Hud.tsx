@@ -116,7 +116,7 @@ function MobileHud({
                   {defense.currentWave + 1}/{defense.totalWaves}
                 </span>
               </div>
-              {state.mode === "flagship" && state.flagshipState && (
+              {state.mode === peak-challenge && state.flagshipState && (
                 <>
                   <div className="h-4 w-px bg-border" />
                   <div className="flex items-center gap-1.5">
@@ -351,7 +351,7 @@ function DesktopHud({
                   {defense.currentWave + 1} / {defense.totalWaves}
                 </span>
               </div>
-              {state.mode === "flagship" && state.flagshipState && (
+              {state.mode === peak-challenge && state.flagshipState && (
                 <div className="space-y-1.5 border-t border-border pt-2">
                   <div className="flex items-center justify-between text-[10px] sm:text-xs">
                     <span className="flex items-center gap-1 text-muted">

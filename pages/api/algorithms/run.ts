@@ -14,6 +14,14 @@ import {
   calculateEnemyMovement,
   calculateBotAI,
 } from "@/lib/algorithms";
+import { rateLimiter } from "@/lib/auth/rate-limiter";
+import { applySecurityHeaders } from "@/lib/auth/security";
+
+const VALID_ALGORITHMS = new Set<AlgorithmId>([
+  "dda", "ace", "matchmaking", "map-balance", "content-recommendation",
+  "economy-balance", "reward-recommendation", "spawn-optimizer",
+  "network-prediction", "enemy-movement", "bot-ai",
+]);
 
 export interface AlgorithmRunRequest {
   algorithm: AlgorithmId;
@@ -29,12 +37,32 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<AlgorithmRunResponse | { error: string }>
 ) {
+  applySecurityHeaders(res);
+
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: "仅支持 POST" });
   }
 
-  const { algorithm, input } = req.body as AlgorithmRunRequest;
+  const ip = req.headers["x-forwarded-for"] as string || req.socket.remoteAddress || "unknown";
+  if (rateLimiter(`algo:${ip}`, { maxAttempts: 30, windowMs: 60000 })) {
+    return res.status(429).json({ error: "请求过于频繁，请稍后重试" });
+  }
+
+  const body = req.body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return res.status(400).json({ error: "请求体格式错误" });
+  }
+
+  const { algorithm, input } = body as AlgorithmRunRequest;
+
+  if (typeof algorithm !== "string" || !VALID_ALGORITHMS.has(algorithm as AlgorithmId)) {
+    return res.status(400).json({ error: "无效的算法 ID" });
+  }
+
+  if (input === undefined || input === null) {
+    return res.status(400).json({ error: "缺少 input 参数" });
+  }
 
   try {
     switch (algorithm) {
@@ -128,7 +156,10 @@ export default async function handler(
         return res.status(400).json({ error: "未知算法 ID" });
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : "算法执行失败";
-    return res.status(400).json({ error: message });
+    console.error("算法执行失败:", err instanceof Error ? err.message : err);
+    const message = process.env.NODE_ENV === "development" && err instanceof Error
+      ? err.message
+      : "算法执行失败，请稍后重试";
+    return res.status(500).json({ error: message });
   }
 }

@@ -1,6 +1,29 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { authDisabledResponse } from "@/lib/auth/disabled";
+import { createClient } from "@/lib/supabase/server";
+import { createCookieStore } from "@/lib/auth/cookies";
+import { getSessionFromClient } from "@/lib/auth/session";
+import { applySecurityHeaders } from "@/lib/auth/security";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  return authDisabledResponse(req, res);
+  applySecurityHeaders(res);
+  if (req.method !== "GET") {
+    res.setHeader("Allow", ["GET"]);
+    return res.status(405).json({ error: "方法不允许" });
+  }
+
+  try {
+    const cookieStore = createCookieStore(req.cookies);
+    const supabase = createClient(cookieStore);
+    const payload = await getSessionFromClient(supabase);
+
+    const setCookies = cookieStore.getSetCookieHeaders();
+    if (setCookies.length > 0) {
+      res.setHeader("Set-Cookie", setCookies);
+    }
+
+    return res.status(200).json(payload);
+  } catch (err) {
+    console.error("Session 查询异常:", err);
+    return res.status(200).json({ user: null, isAuthenticated: false });
+  }
 }

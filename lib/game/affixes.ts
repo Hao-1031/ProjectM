@@ -96,6 +96,20 @@ export function getRandomAffixes(count: number, exclude: AffixId[] = []): AffixI
   return result;
 }
 
+/** RNG-aware version for deterministic multiplayer sync. */
+export function getRandomAffixesRng(rng: () => number, count: number, exclude: AffixId[] = []): AffixId[] {
+  const available = Object.keys(AFFIXES).filter(
+    (id) => !exclude.includes(id as AffixId)
+  ) as AffixId[];
+  const result: AffixId[] = [];
+  for (let i = 0; i < count && available.length > 0; i++) {
+    const idx = Math.floor(rng() * available.length);
+    result.push(available[idx]);
+    available.splice(idx, 1);
+  }
+  return result;
+}
+
 export function applyAffixes(enemy: Enemy): void {
   for (const affixId of enemy.affixes) {
     const affix = AFFIXES[affixId];

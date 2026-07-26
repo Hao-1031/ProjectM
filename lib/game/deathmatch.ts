@@ -89,6 +89,27 @@ export function createBotPlayer(id: string, x: number, y: number): Player {
   const weapons: WeaponId[] = ["pulse", "shotgun", "laser"];
   const weaponId = weapons[Math.floor(Math.random() * weapons.length)];
 
+  return buildBotPlayer(id, x, y, cfg, dm, weaponId);
+}
+
+/** RNG-aware version for deterministic multiplayer sync. */
+export function createBotPlayerRng(rng: () => number, id: string, x: number, y: number): Player {
+  const cfg = DEFAULT_BALANCE.player;
+  const dm = DEFAULT_BALANCE.modes.deathmatch;
+  const weapons: WeaponId[] = ["pulse", "shotgun", "laser"];
+  const weaponId = weapons[Math.floor(rng() * weapons.length)];
+
+  return buildBotPlayer(id, x, y, cfg, dm, weaponId);
+}
+
+function buildBotPlayer(
+  id: string,
+  x: number,
+  y: number,
+  cfg: typeof DEFAULT_BALANCE.player,
+  dm: typeof DEFAULT_BALANCE.modes.deathmatch,
+  weaponId: WeaponId
+): Player {
   return {
     id,
     x,

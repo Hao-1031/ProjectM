@@ -133,7 +133,7 @@ export function selectTarget(
   // 据点模式：非精英敌人可能去占领节点
   if (nodes && nodes.length > 0 && !enemy.isElite && !enemy.isBoss) {
     const activeNodes = nodes.filter((n) => n.active && !n.captured);
-    if (activeNodes.length > 0 && Math.random() < 0.25) {
+    if (activeNodes.length > 0 && ctx.rng() < 0.25) {
       const nearest = activeNodes.reduce((best, n) =>
         distance(enemy, n) < distance(enemy, best) ? n : best
       );

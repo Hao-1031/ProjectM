@@ -8,6 +8,8 @@ import {
   type AnnouncementRow,
   type ApiError,
 } from "@/lib/supabase/api";
+import { rateLimiter } from "@/lib/auth/rate-limiter";
+import { applySecurityHeaders } from "@/lib/auth/security";
 
 export interface AnnouncementListResponse {
   data: AnnouncementRow[];
@@ -21,10 +23,15 @@ function isAdmin(req: NextApiRequest): boolean {
   return authHeader.slice(7) === ADMIN_KEY;
 }
 
+function getClientIp(req: NextApiRequest): string {
+  return (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<AnnouncementListResponse | AnnouncementRow | ApiError>
 ) {
+  applySecurityHeaders(res);
   if (!isSupabaseConfigured()) {
     return res.status(503).json({ message: "Supabase 未配置，公告功能不可用" });
   }
@@ -59,6 +66,10 @@ export default async function handler(
     }
     if (!isAdmin(req)) {
       return res.status(401).json({ message: "未授权访问" });
+    }
+    const ip = getClientIp(req);
+    if (rateLimiter(`admin:${ip}`, { maxAttempts: 20, windowMs: 60000 })) {
+      return res.status(429).json({ message: "请求过于频繁，请稍后重试" });
     }
   }
 

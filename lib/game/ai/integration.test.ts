@@ -134,6 +134,7 @@ function makeAIContext(overrides: Partial<AIContext> = {}): AIContext {
     difficulty: 1,
     time: 0,
     obstacles: [],
+    rng: Math.random,
     ...overrides,
   };
 }
