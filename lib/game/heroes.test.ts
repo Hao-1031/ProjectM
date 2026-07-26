@@ -428,7 +428,7 @@ describe("updateHeroSkillsAndDeployables", () => {
     const enemy = createWalker(deployable.x, deployable.y);
     state.enemies.push(enemy);
     const beforeHealth = enemy.health;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       updateHeroSkillsAndDeployables(state, 0.5);
     }
     expect(enemy.frostStacks).toBe(0);

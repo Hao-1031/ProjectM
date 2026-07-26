@@ -31,7 +31,8 @@ export type GameModeType =
   | "defense"
   | "deathmatch"
   | "survival"
-  | "extreme-survival";
+  | "extreme-survival"
+  | "flagship";
 
 export type MissionType =
   | "eliminate"
@@ -130,6 +131,16 @@ export interface DefenseState {
   waves: DefenseWave[];
   deployables: Deployable[];
   selectedHeroes: Record<string, HeroId>;
+}
+
+// Fixed-wave state for non-defense modes (campaign / survival / daily / endless)
+export interface FixedWaveState {
+  waves: DefenseWave[];
+  spawned: number;
+  killed: number;
+  inBreak: boolean;
+  breakTimer: number;
+  spawnTimer: number;
 }
 
 export interface DeathmatchScore {
@@ -656,9 +667,12 @@ export interface GameState {
   killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
+  fixedWaveState?: FixedWaveState;
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
+  flagshipState?: FlagshipState;
   selectedHero?: HeroId;
+  deployables: Deployable[];
 }
 
 export type UpgradeOptionType = "weapon" | "passive" | "stat" | "heroTalent";
@@ -681,6 +695,7 @@ export interface RunResult {
   elapsed: number;
   mode: GameModeType;
   extremeSurvivalPhase?: "normal" | "overclock";
+  flagshipPhase?: "normal" | "overclock";
 }
 
 // Sprite / animation types
@@ -724,6 +739,28 @@ export interface RenderableEntity {
 
 // Networking types are re-exported from @/lib/network/types
 
+export interface FlagshipChallenge {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardXp: number;
+  rewardCurrency: number;
+}
+
+export interface FlagshipState {
+  phase: "normal" | "overclock";
+  wave: number;
+  challenges: FlagshipChallenge[];
+  pendingRewards: UpgradeOption[] | null;
+  rewardBranchOffered: boolean;
+  seasonXp: number;
+  seasonCurrency: number;
+  overclockUnlocked: boolean;
+}
+
 export interface SerializedGameState {
   status: GameStatus;
   mode: GameModeType;
@@ -755,9 +792,12 @@ export interface SerializedGameState {
   killCombo: { count: number; timer: number; best: number };
   roguelikeRunState?: import("./roguelike").RoguelikeRunState;
   defenseState?: DefenseState;
+  fixedWaveState?: FixedWaveState;
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
+  flagshipState?: FlagshipState;
   selectedHero?: HeroId;
+  deployables: Deployable[];
 }
 
 // Season / Battle Pass types for 2.0

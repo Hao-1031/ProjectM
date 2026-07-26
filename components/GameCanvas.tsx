@@ -76,6 +76,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         "deathmatch",
         "survival",
         "extreme-survival",
+        "flagship",
       ].includes(m)
       ? m
       : "campaign";
@@ -331,6 +332,8 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
             aim: input.state.aim,
             fire: input.state.fire,
             pause: input.state.pause,
+            useSkill: input.state.useSkill,
+            useUltimate: input.state.useUltimate,
           },
           timestamp: Date.now(),
           frame: inputFrameRef.current,
@@ -558,9 +561,12 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     engineRef.current?.chooseOverclockBranch(choice);
     setShowBranchChoice(false);
     if (choice === "overclock") {
+      const isFlagship = engineRef.current?.state.mode === "flagship";
       addNotification({
         title: "超频极限已启动",
-        message: "敌人强度陡增，奖励倍率提升至 1.7 倍",
+        message: isFlagship
+          ? "赛季挑战进入超频阶段，敌潮强度与奖励同步提升"
+          : "敌人强度陡增，奖励倍率提升至 1.7 倍",
         variant: "danger",
         icon: "danger",
         durationMs: 4000,
@@ -762,7 +768,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       {showBranchChoice && <OverclockChoiceModal onChoose={handleBranchChoice} />}
 
       <RedBreathOverlay
-        active={engine?.state.extremeSurvivalRun?.phase === "overclock"}
+        active={
+          engine?.state.extremeSurvivalRun?.phase === "overclock" ||
+          engine?.state.flagshipState?.phase === "overclock"
+        }
         intensity={1 - (engine?.state.defenseState?.core.health ?? 1) / (engine?.state.defenseState?.core.maxHealth ?? 1)}
       />
     </div>

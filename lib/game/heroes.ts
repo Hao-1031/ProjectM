@@ -573,7 +573,8 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
 
   const aim = normalize({ x: Math.cos(player.facing), y: Math.sin(player.facing) });
   const ds = state.defenseState;
-  if (!ds) return;
+
+  const deployTarget = ds?.deployables ?? state.deployables;
 
   const durationMul = getDeployableMultiplier(player, "duration");
   const rangeMul = getDeployableMultiplier(player, "range");
@@ -583,7 +584,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
     case "nitrogen": {
       const fxX = player.x + aim.x * 60;
       const fxY = player.y + aim.y * 60;
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: fxX,
         y: fxY,
@@ -615,7 +616,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
     case "twilight": {
       const healX = player.x + aim.x * 40;
       const healY = player.y + aim.y * 40;
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: healX,
         y: healY,
@@ -676,7 +677,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
     case "recon": {
       const droneX = player.x + aim.x * 40;
       const droneY = player.y + aim.y * 40;
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: droneX,
         y: droneY,
@@ -772,7 +773,7 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       const wallHealth = Math.round(2200 * healthMul);
       const wallX = player.x + aim.x * 60;
       const wallY = player.y + aim.y * 60;
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: wallX,
         y: wallY,
@@ -806,6 +807,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
 
   const aim = normalize({ x: Math.cos(player.facing), y: Math.sin(player.facing) });
   const ds = state.defenseState;
+  const deployTarget = ds?.deployables ?? state.deployables;
 
   switch (player.heroId) {
     case "nitrogen": {
@@ -814,12 +816,12 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
       let hitCount = 0;
       for (const enemy of state.enemies) {
         if (distance(enemy, player) <= burstRange + enemy.radius) {
-          enemy.health -= 420;
-          enemy.freezeTimer = Math.max(enemy.freezeTimer, 3.2);
-          enemy.freezeShatterDamage = 260;
+          enemy.health -= 480;
+          enemy.freezeTimer = Math.max(enemy.freezeTimer, 3.5);
+          enemy.freezeShatterDamage = 300;
           enemy.frostStacks = 3;
           enemy.frostTimer = 4;
-          state.stats.damageDealt += 420;
+          state.stats.damageDealt += 480;
           hitCount++;
         }
       }
@@ -836,7 +838,7 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
         const dx = target.x - player.x;
         const dy = target.y - player.y;
         if (dx * dx + dy * dy <= ultimate.range * ultimate.range) {
-          target.health = Math.min(target.maxHealth, target.health + 120);
+          target.health = Math.min(target.maxHealth, target.health + 150);
           target.burnDuration = 0;
           target.twilightCocoonTimer = 4;
         }
@@ -850,10 +852,10 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
     case "leopard": {
       if (!player.leopardFrenzyActive) {
         player.leopardFrenzyActive = true;
-        player.critChance += 0.25;
-        player.speed *= 1.35;
+        player.critChance += 0.30;
+        player.speed *= 1.40;
       }
-      player.leopardFrenzyTimer = 8;
+      player.leopardFrenzyTimer = 10;
       audio?.play("leopardInstinct");
       fx?.addTrauma(0.16);
       fx?.addShake(1.4, 0);
@@ -867,8 +869,8 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
       let hitCount = 0;
       for (const enemy of state.enemies) {
         if (distance(enemy, { x: centerX, y: centerY }) <= ultimate.range + enemy.radius) {
-          enemy.health -= 420;
-          state.stats.damageDealt += 420;
+          enemy.health -= 500;
+          state.stats.damageDealt += 500;
           enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, 4);
           hitCount++;
         }
@@ -881,10 +883,9 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
       break;
     }
     case "viper": {
-      if (!ds) return;
       const rangeMul = getDeployableMultiplier(player, "range");
       const deployDuration = ultimate.duration * getDeployableMultiplier(player, "duration");
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: player.x + aim.x * 60,
         y: player.y + aim.y * 60,
@@ -907,11 +908,10 @@ export function useHeroUltimate(player: Player, state: GameState, fx?: FXSystem)
       break;
     }
     case "falcon": {
-      if (!ds) return;
       const rangeMul = getDeployableMultiplier(player, "range");
       const durationMul = getDeployableMultiplier(player, "duration");
       const deployDuration = ultimate.duration * durationMul;
-      ds.deployables.push({
+      deployTarget.push({
         id: uid("deploy"),
         x: player.x + aim.x * 120,
         y: player.y + aim.y * 120,
@@ -984,14 +984,14 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
       player.leopardFrenzyTimer -= dt;
       if (player.leopardFrenzyTimer <= 0 && player.leopardFrenzyActive) {
         player.leopardFrenzyActive = false;
-        player.critChance -= 0.25;
-        player.speed /= 1.35;
+        player.critChance -= 0.30;
+        player.speed /= 1.40;
       }
     }
     if (player.leopardPounceSpeedTimer > 0) {
       player.leopardPounceSpeedTimer -= dt;
       if (player.leopardPounceSpeedTimer <= 0) {
-        player.speed /= 1.12;
+        player.speed /= 1.15;
       }
     }
     if (player.leopardBloodlustTimer > 0) {
@@ -1006,128 +1006,117 @@ export function updateHeroSkillsAndDeployables(state: GameState, dt: number, fx?
     }
   }
 
-  if (!ds) return;
+  if (ds) {
+    updateDeployableList(state, ds.deployables, players, dt, fx);
+  }
+  updateDeployableList(state, state.deployables, players, dt, fx);
+}
 
-  for (let i = ds.deployables.length - 1; i >= 0; i--) {
-    const d = ds.deployables[i];
+function updateDeployableList(
+  state: GameState,
+  deployables: Deployable[],
+  players: Player[],
+  dt: number,
+  fx?: FXSystem
+): void {
+  for (let i = deployables.length - 1; i >= 0; i--) {
+    const d = deployables[i];
     d.timer -= dt;
-
-    if (d.health <= 0 || d.timer <= 0) {
-      ds.deployables.splice(i, 1);
+    if (d.timer <= 0 || d.health <= 0) {
+      deployables.splice(i, 1);
       continue;
     }
 
-    const owner = players.find((p) => p.id === d.ownerId) ?? state.player;
-
-    if (d.type === "healAura") {
-      const healMul = getDeployableMultiplier(owner, "damage");
-      for (const player of players) {
-        if (distance(player, d) <= d.radius + player.radius) {
-          player.health = Math.min(player.maxHealth, player.health + 30 * dt * healMul);
+    switch (d.type) {
+      case "healAura": {
+        for (const player of players) {
+          if (distance(player, d) <= d.radius + player.radius) {
+            player.health = Math.min(player.maxHealth, player.health + 36 * dt);
+          }
         }
+        break;
       }
-    }
-
-    if (d.type === "freezeField") {
-      d.tickTimer = (d.tickTimer ?? 0.5) - dt;
-      const shouldTick = d.tickTimer <= 0;
-      if (shouldTick) {
-        d.tickTimer = d.tickInterval ?? 0.5;
-      }
-      const maxFrost =
-        owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 7 : 5;
-      const shatterDamage =
-        owner.heroId === "nitrogen" && hasTalent(owner, "nitrogen_supercooled") ? 150 : 120;
-
-      for (const enemy of state.enemies) {
-        if (distance(enemy, d) <= d.radius + enemy.radius) {
-          if (owner.heroId === "nitrogen") {
-            if (shouldTick && enemy.freezeTimer <= 0) {
-              enemy.frostStacks = Math.min(maxFrost, enemy.frostStacks + 1);
-              enemy.frostTimer = 2;
-              if (enemy.frostStacks >= maxFrost) {
-                spawnFrostBurst(state, enemy, shatterDamage, fx);
+      case "freezeField": {
+        d.tickTimer = (d.tickTimer ?? d.tickInterval ?? 0.35) - dt;
+        if (d.tickTimer <= 0) {
+          d.tickTimer = d.tickInterval ?? 0.35;
+          for (const enemy of state.enemies) {
+            if (distance(enemy, d) <= d.radius + enemy.radius) {
+              enemy.slow = Math.max(enemy.slow, 0.5);
+              enemy.slowTimer = Math.max(enemy.slowTimer, 0.5);
+              enemy.frostStacks = Math.min(4, enemy.frostStacks + 1);
+              enemy.frostTimer = 5;
+              if (enemy.frostStacks >= 4) {
+                spawnFrostBurst(state, enemy, 220, fx);
               }
             }
-
-            const slowPerStack = 0.08;
-            enemy.slow = Math.min(0.5, Math.max(enemy.slow, enemy.frostStacks * slowPerStack));
-            enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
-          } else {
-            enemy.slow = Math.max(enemy.slow, 0.4);
-            enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
           }
         }
+        break;
       }
-    }
-
-    if (d.type === "poisonField") {
-      d.tickTimer = (d.tickTimer ?? 1) - dt;
-      const shouldTick = d.tickTimer <= 0;
-      if (shouldTick) {
-        d.tickTimer = d.tickInterval ?? 1;
-      }
-
-      for (const enemy of state.enemies) {
-        if (distance(enemy, d) <= d.radius + enemy.radius) {
-          enemy.slow = Math.max(enemy.slow, 0.3);
-          enemy.slowTimer = Math.max(enemy.slowTimer, d.timer);
-
-          if (shouldTick) {
-            enemy.health -= 70;
-            state.stats.damageDealt += 70;
-            enemy.vulnerabilityStacks = Math.min(5, enemy.vulnerabilityStacks + 1);
+      case "poisonField": {
+        d.tickTimer = (d.tickTimer ?? d.tickInterval ?? 1) - dt;
+        if (d.tickTimer <= 0) {
+          d.tickTimer = d.tickInterval ?? 1;
+          for (const enemy of state.enemies) {
+            if (distance(enemy, d) <= d.radius + enemy.radius) {
+              enemy.health -= 85;
+              state.stats.damageDealt += 85;
+              enemy.slow = Math.max(enemy.slow, 0.35);
+              enemy.slowTimer = Math.max(enemy.slowTimer, 1.1);
+              enemy.vulnerabilityStacks = Math.min(5, enemy.vulnerabilityStacks + 1);
+            }
           }
         }
+        break;
       }
-    }
-
-    if (d.type === "drone") {
-      for (const enemy of state.enemies) {
-        if (distance(enemy, d) <= d.radius + enemy.radius) {
-          enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, d.timer);
-        }
-      }
-    }
-
-    if (d.type === "laserBeam") {
-      d.tickTimer = (d.tickTimer ?? 0.2) - dt;
-      const shouldTick = d.tickTimer <= 0;
-      if (shouldTick) {
-        d.tickTimer = d.tickInterval ?? 0.2;
-      }
-      const damageMul = getDeployableMultiplier(owner, "damage");
-      const perShot = 220 * 0.2 * damageMul;
-      const aim = { x: Math.cos(owner.facing), y: Math.sin(owner.facing) };
-      const length = 240;
-      const width = 50;
-      const perpX = -aim.y;
-      const perpY = aim.x;
-      for (const enemy of state.enemies) {
-        const dx = enemy.x - d.x;
-        const dy = enemy.y - d.y;
-        const forward = dx * aim.x + dy * aim.y;
-        const lateral = Math.abs(dx * perpX + dy * perpY);
-        if (forward >= -length * 0.5 && forward <= length * 0.5 && lateral <= width * 0.5 + enemy.radius) {
-          if (shouldTick) {
-            enemy.health -= perShot;
-            state.stats.damageDealt += perShot;
+      case "drone": {
+        for (const enemy of state.enemies) {
+          if (distance(enemy, d) <= d.radius + enemy.radius) {
+            enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, 0.25);
           }
         }
+        break;
       }
-    }
-
-    if (d.type === "turret") {
-      const fireRateMul = getDeployableMultiplier(owner, "cooldown");
-      const rangeMul = getDeployableMultiplier(owner, "range");
-      const effectiveRange = 420 * rangeMul;
-      d.fireTimer = (d.fireTimer ?? 0) - dt;
-      if (d.fireTimer <= 0) {
-        const target = findNearestEnemy(state, d.x, d.y, effectiveRange);
-        if (target) {
-          fireTurretProjectile(state, d, target, owner);
-          d.fireTimer = (d.fireCooldown ?? 0.45) * fireRateMul;
+      case "laserBeam": {
+        d.tickTimer = (d.tickTimer ?? d.tickInterval ?? 0.2) - dt;
+        if (d.tickTimer <= 0) {
+          d.tickTimer = d.tickInterval ?? 0.2;
+          const tickDamage = 260 * (d.tickInterval ?? 0.2);
+          for (const enemy of state.enemies) {
+            if (distance(enemy, d) <= d.radius + enemy.radius) {
+              enemy.health -= tickDamage;
+              state.stats.damageDealt += tickDamage;
+            }
+          }
         }
+        break;
+      }
+      case "turret": {
+        const owner = players.find((p) => p.id === d.ownerId) ?? players[0];
+        if (owner) {
+          d.fireTimer = (d.fireTimer ?? 0) - dt;
+          if (d.fireTimer <= 0) {
+            const target = findNearestEnemy(state, d.x, d.y, d.radius);
+            if (target) {
+              fireTurretProjectile(state, d, target, owner);
+              d.fireTimer = d.fireCooldown ?? 0.6;
+            }
+          }
+        }
+        break;
+      }
+      case "shield": {
+        break;
+      }
+      case "mine": {
+        break;
+      }
+      case "beacon": {
+        break;
+      }
+      case "wall": {
+        break;
       }
     }
   }
