@@ -603,12 +603,34 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 
 ### 16.7 英雄技能实用性增强
 
-本次更新对所有英雄的主动技能、终极技能、被动与天赋进行了数值上调和效果强化，提升实战存在感。关键改动包括：
+本次更新对所有英雄的主动技能、终极技能、被动与天赋进行了数值上调、效果强化与关键 Bug 修复，提升实战存在感。
 
-- 提高技能基础伤害与持续治疗效果；
-- 缩短主要技能冷却；
-- 扩大控制/治疗范围；
-- 增强被动加成幅度。
+#### 16.7.1 技能使用无效修复（关键 Bug）
+
+**问题**：在非防御模式（无限模式、日常挑战、肉鸽、死亡竞赛、生存、极限生存、旗舰模式）中，英雄技能和终极技能完全无法使用。根因是 `useHeroSkill` 和 `useHeroUltimate` 函数中存在 `if (!ds) return;` 守卫，导致非防御模式下技能调用被直接拦截。
+
+**修复方案**：
+- 移除 `useHeroSkill` 和 `useHeroUltimate` 中的 `defenseState` 强制检查，改为 `const deployTarget = ds?.deployables ?? state.deployables;` 双存储降级策略
+- 在 `GameState` 接口中新增全局 `deployables: Deployable[]` 字段，为非防御模式提供部署物存储
+- 新增 `updateDeployableList` 函数，统一处理所有模式下的部署物效果（治愈光环、冰冻场、毒雾、无人机、激光束等），优先使用 `defenseState.deployables`，回退至 `state.deployables`
+- 在网络输入广播中新增 `useSkill` 和 `useUltimate` 状态，修复多人模式下技能激活无法同步的问题
+- 更新障碍物碰撞检测逻辑，同时检查 `defenseState` 和全局 `deployables` 中的墙体部署物
+
+#### 16.7.2 英雄数值对齐
+
+| 英雄 | 技能 | 修复前 | 修复后 |
+|------|------|--------|--------|
+| 液氮 (Nitrogen) | 绝对零度 伤害 | 420 | 480 |
+| 液氮 (Nitrogen) | 绝对零度 冻结时长 | 3.2s | 3.5s |
+| 液氮 (Nitrogen) | 绝对零度 碎裂伤害 | 260 | 300 |
+| 豹 (Leopard) | 速度倍率重置 | 1.12 | 1.15 |
+| 豹 (Leopard) | 狂乱状态 暴击率 | 25% | 30% |
+| 豹 (Leopard) | 狂乱状态 速度 | 35% | 40% |
+| 豹 (Leopard) | 狂乱状态 时长 | 8s | 10s |
+| 蝰蛇 (Viper) | 毒液 DOT 每层 | 10/s | 12/s |
+| 蝰蛇 (Viper) | 尸体爆发 伤害 | 100 | 130 |
+| 猎鹰 (Recon) | 终极技能 伤害 | 420 | 500 |
+| 暮蝶 (Twilight) | 茧 治疗量 | 120 | 150 |
 
 ### 16.8 近战天赋联动
 
@@ -626,7 +648,7 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 - `lib/game/weapons.test.ts`：新手武器栏、近战武器创建器；
 - `lib/game/balance.test.ts`：武器平衡数值、升级曲线、弹速例外；
 - `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算；
-- `lib/game/heroes.test.ts`：英雄技能数值、天赋应用；
+- `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑；
 - `lib/game/ai.test.ts`：AI 行为适配近战范围（如 spitter 改为横向游斗）。
 
 ---
