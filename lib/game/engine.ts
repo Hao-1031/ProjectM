@@ -1374,6 +1374,10 @@ export class GameEngine {
       return;
     }
 
+    if (this.state.defenseState) {
+      return;
+    }
+
     this.state.spawnTimer -= dt;
 
     if (this.state.activeEvent?.type === "horde") {
@@ -1863,7 +1867,7 @@ export class GameEngine {
     const count = pattern.projectileCount;
 
     if (pattern.attackPattern === "summon") {
-      if (this.state.fixedWaveState) return;
+      if (this.state.fixedWaveState || this.state.defenseState) return;
       for (let i = 0; i < 3; i++) {
         const angle = (Math.PI * 2 * i) / 3;
         const dist = 60;
