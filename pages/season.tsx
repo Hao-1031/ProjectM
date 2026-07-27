@@ -216,7 +216,7 @@ export default function SeasonPage() {
                       />
                     </div>
                     <p className="mt-2 text-xs text-muted">
-                      每局旗舰模式、极限生存和据点防守都会积累赛季 XP。
+                      每局巅峰挑战、极限生存和据点防守都会积累赛季 XP。
                     </p>
                   </motion.div>
                 </motion.div>
@@ -378,12 +378,12 @@ export default function SeasonPage() {
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row md:justify-end">
                     <Link
-                      href="/game?mode=flagship"
+                      href="/game?mode=peak-challenge"
                       className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
                     >
                       <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                       <Crown size={16} weight="fill" />
-                      <span className="whitespace-nowrap">旗舰模式</span>
+                      <span className="whitespace-nowrap">巅峰挑战</span>
                     </Link>
                     <Link
                       href="/game?mode=extreme-survival"

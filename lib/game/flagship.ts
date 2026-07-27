@@ -1,21 +1,22 @@
-import type { FlagshipState, FlagshipChallenge, Player, GameState, DefenseState, UpgradeOption } from "./types";
+import type { FlagshipState, FlagshipChallenge, GameState, DefenseState } from "./types";
 import { uid } from "./math";
-import { generateUpgradeOptions } from "./weapons";
-import { getRoguelikeRewards } from "./balance";
 
-export const FLAGSHIP_BRANCH_WAVE = 25;
-export const FLAGSHIP_REWARD_INTERVAL = 5;
+export const FLAGSHIP_TOTAL_WAVES = 15;
+export const FLAGSHIP_BOSS_WAVE = 10;
 
 export function createFlagshipState(): FlagshipState {
   return {
-    phase: "normal",
-    wave: 1,
+    phase: "prep",
+    wave: 0,
+    totalWaves: FLAGSHIP_TOTAL_WAVES,
     challenges: generateFlagshipChallenges(1),
-    pendingRewards: null,
-    rewardBranchOffered: false,
-    seasonXp: 0,
-    seasonCurrency: 0,
-    overclockUnlocked: false,
+    score: 0,
+    combos: 0,
+    maxCombo: 0,
+    bossKills: 0,
+    eliteKills: 0,
+    coreHealth: 100,
+    coreMaxHealth: 100,
   };
 }
 
@@ -23,40 +24,36 @@ export function generateFlagshipChallenges(startWave: number): FlagshipChallenge
   const tier = Math.floor((startWave - 1) / 5) + 1;
   const base: Omit<FlagshipChallenge, "id">[] = [
     {
-      title: "肃清敌潮",
-      description: `累计击杀 ${20 + tier * 10} 个敌人`,
-      target: 20 + tier * 10,
+      title: "旗舰火力",
+      description: `累计击杀 ${30 + tier * 15} 个敌人`,
+      target: 30 + tier * 15,
       progress: 0,
       completed: false,
-      rewardXp: 15 + tier * 5,
-      rewardCurrency: 5 + tier * 2,
+      rewardScore: 100 + tier * 50,
     },
     {
-      title: "据点坚守",
-      description: `成功防守 ${startWave + 4} 波`,
-      target: startWave + 4,
-      progress: startWave - 1,
-      completed: false,
-      rewardXp: 20 + tier * 5,
-      rewardCurrency: 6 + tier * 2,
-    },
-    {
-      title: "精英猎手",
-      description: `击杀 ${2 + tier} 个精英敌人`,
-      target: 2 + tier,
+      title: "精英清扫",
+      description: `击杀 ${3 + tier} 个精英敌人`,
+      target: 3 + tier,
       progress: 0,
       completed: false,
-      rewardXp: 12 + tier * 4,
-      rewardCurrency: 4 + tier * 2,
+      rewardScore: 80 + tier * 40,
     },
     {
-      title: "核心保全",
-      description: "任意时刻核心耐久保持 60% 以上完成 1 波",
+      title: "核心护卫",
+      description: `核心耐久保持在 70% 以上完成 1 波`,
       target: 1,
       progress: 0,
       completed: false,
-      rewardXp: 18 + tier * 4,
-      rewardCurrency: 5 + tier * 2,
+      rewardScore: 120 + tier * 50,
+    },
+    {
+      title: "连击大师",
+      description: `达成 ${5 + tier * 2} 连击`,
+      target: 5 + tier * 2,
+      progress: 0,
+      completed: false,
+      rewardScore: 90 + tier * 40,
     },
   ];
 
@@ -71,16 +68,13 @@ export function updateFlagshipChallenges(state: GameState, ds: DefenseState): vo
   for (const ch of fs.challenges) {
     if (ch.completed) continue;
 
-    if (ch.title === "据点坚守") {
-      ch.progress = Math.max(ch.progress, ds.currentWave);
-    } else if (ch.title === "核心保全" && corePct >= 0.6 && ds.waveInProgress) {
+    if (ch.title === "核心护卫" && corePct >= 0.7 && ds.waveInProgress) {
       ch.progress = 1;
     }
 
     if (ch.progress >= ch.target) {
       ch.completed = true;
-      fs.seasonXp += ch.rewardXp;
-      fs.seasonCurrency += ch.rewardCurrency;
+      fs.score += ch.rewardScore;
     }
   }
 }
@@ -89,28 +83,35 @@ export function recordFlagshipKill(state: GameState, enemyIsElite: boolean): voi
   const fs = state.flagshipState;
   if (!fs) return;
 
-  fs.seasonXp += 1;
-  fs.seasonCurrency += 1;
+  fs.combos += 1;
+  if (fs.combos > fs.maxCombo) {
+    fs.maxCombo = fs.combos;
+  }
+  fs.score += 10 + fs.combos;
   if (enemyIsElite) {
-    fs.seasonXp += 5;
-    fs.seasonCurrency += 3;
+    fs.eliteKills += 1;
+    fs.score += 50;
   }
 
   for (const ch of fs.challenges) {
     if (ch.completed) continue;
-    if (ch.title === "肃清敌潮") {
+    if (ch.title === "旗舰火力") {
       ch.progress += 1;
       if (ch.progress >= ch.target) {
         ch.completed = true;
-        fs.seasonXp += ch.rewardXp;
-        fs.seasonCurrency += ch.rewardCurrency;
+        fs.score += ch.rewardScore;
       }
-    } else if (ch.title === "精英猎手" && enemyIsElite) {
+    } else if (ch.title === "精英清扫" && enemyIsElite) {
       ch.progress += 1;
       if (ch.progress >= ch.target) {
         ch.completed = true;
-        fs.seasonXp += ch.rewardXp;
-        fs.seasonCurrency += ch.rewardCurrency;
+        fs.score += ch.rewardScore;
+      }
+    } else if (ch.title === "连击大师" && fs.combos >= ch.target) {
+      ch.progress = ch.target;
+      if (ch.progress >= ch.target) {
+        ch.completed = true;
+        fs.score += ch.rewardScore;
       }
     }
   }
@@ -119,16 +120,15 @@ export function recordFlagshipKill(state: GameState, enemyIsElite: boolean): voi
 export function recordFlagshipBossKill(state: GameState): void {
   const fs = state.flagshipState;
   if (!fs) return;
-  fs.seasonXp += 20;
-  fs.seasonCurrency += 10;
+  fs.bossKills += 1;
+  fs.score += 200;
 }
 
 export function recordFlagshipWaveCleared(state: GameState): void {
   const fs = state.flagshipState;
   if (!fs) return;
   fs.wave = Math.max(fs.wave, (state.defenseState?.currentWave ?? 0) + 1);
-  fs.seasonXp += 10;
-  fs.seasonCurrency += 4;
+  fs.score += 50;
 
   const nextChallengeWave = Math.floor((fs.wave - 1) / 5) * 5 + 1;
   if (fs.wave >= nextChallengeWave + 5) {
@@ -139,26 +139,20 @@ export function recordFlagshipWaveCleared(state: GameState): void {
   }
 }
 
-export function shouldOfferFlagshipReward(fs: FlagshipState, clearedWave: number): boolean {
-  if (clearedWave % FLAGSHIP_REWARD_INTERVAL !== 0) return false;
-  if (fs.rewardBranchOffered && clearedWave === FLAGSHIP_BRANCH_WAVE) return false;
-  return true;
-}
-
-export function generateFlagshipRewardOptions(player: Player): UpgradeOption[] {
-  return generateUpgradeOptions(player).slice(0, 3);
-}
-
-export function generateFlagshipRoguelikeRewards(player: Player) {
-  return getRoguelikeRewards(3, player);
-}
-
-export function applyFlagshipEndRewards(state: GameState): { xp: number; currency: number } {
+export function updateFlagshipCoreHealth(state: GameState, ds: DefenseState): void {
   const fs = state.flagshipState;
-  if (!fs) return { xp: 0, currency: 0 };
+  if (!fs) return;
+  fs.coreHealth = ds.core.health;
+  fs.coreMaxHealth = ds.core.maxHealth;
+}
 
-  const waveBonus = fs.wave * 3;
-  const killBonus = Math.floor(state.stats.kills / 10);
-  const finalCurrency = fs.seasonCurrency + waveBonus + killBonus;
-  return { xp: fs.seasonXp, currency: finalCurrency };
+export function applyFlagshipEndRewards(state: GameState): { score: number; waveBonus: number } {
+  const fs = state.flagshipState;
+  if (!fs) return { score: 0, waveBonus: 0 };
+
+  const waveBonus = fs.wave * 30;
+  const bossBonus = fs.bossKills * 100;
+  const comboBonus = fs.maxCombo * 20;
+  const finalScore = fs.score + waveBonus + bossBonus + comboBonus;
+  return { score: finalScore, waveBonus };
 }

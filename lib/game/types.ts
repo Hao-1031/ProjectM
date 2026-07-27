@@ -32,7 +32,8 @@ export type GameModeType =
   | "deathmatch"
   | "survival"
   | "extreme-survival"
-  | "peak-challenge";
+  | "peak-challenge"
+  | "flagship";
 
 export type MissionType =
   | "eliminate"
@@ -42,7 +43,15 @@ export type MissionType =
   | "extract"
   | "defendCore"
   | "captureNodes"
-  | "surviveTimer";
+  | "surviveTimer"
+  | "killStreak"
+  | "comboChain"
+  | "bossSlay"
+  | "eliteHunt"
+  | "noDamage"
+  | "speedClear"
+  | "overclock"
+  | "seasonObjective";
 
 export type HeroId = "nitrogen" | "twilight" | "leopard" | "recon" | "viper" | "falcon" | "bastion";
 
@@ -671,6 +680,7 @@ export interface GameState {
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
+  flagshipState?: FlagshipState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }
@@ -696,6 +706,7 @@ export interface RunResult {
   mode: GameModeType;
   extremeSurvivalPhase?: "normal" | "overclock";
   peakChallengePhase?: "normal" | "overclock";
+  flagshipPhase?: "prep" | "combat" | "boss" | "victory" | "defeat";
 }
 
 // Sprite / animation types
@@ -761,6 +772,30 @@ export interface PeakChallengeState {
   overclockUnlocked: boolean;
 }
 
+export interface FlagshipChallenge {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardScore: number;
+}
+
+export interface FlagshipState {
+  phase: "prep" | "combat" | "boss" | "victory" | "defeat";
+  wave: number;
+  totalWaves: number;
+  challenges: FlagshipChallenge[];
+  score: number;
+  combos: number;
+  maxCombo: number;
+  bossKills: number;
+  eliteKills: number;
+  coreHealth: number;
+  coreMaxHealth: number;
+}
+
 export interface SerializedGameState {
   status: GameStatus;
   mode: GameModeType;
@@ -796,6 +831,7 @@ export interface SerializedGameState {
   deathmatchState?: DeathmatchState;
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
+  flagshipState?: FlagshipState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }

@@ -29,6 +29,8 @@ import type { AnnouncementRow } from "@/lib/supabase/api";
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式" },
+  { value: "peak-challenge", label: "巅峰挑战" },
+  { value: "extreme-survival", label: "极限生存" },
   { value: "survival", label: "生存模式" },
   { value: "defense", label: "据点防守" },
   { value: "deathmatch", label: "个人死斗" },

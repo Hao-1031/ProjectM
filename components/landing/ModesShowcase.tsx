@@ -31,11 +31,11 @@ const MODES = [
   {
     id: "survival",
     title: "极限生存",
-    desc: "旗舰版主打模式。15 分钟限时高压，击杀效率决定敌潮强度，节奏越快，奖励越丰厚。",
+    desc: "巅峰挑战。15 分钟限时高压，击杀效率决定敌潮强度，节奏越快，奖励越丰厚。",
     icon: Skull,
     accent: "accent",
     size: "large",
-    tags: ["旗舰", "限时", "排行榜"],
+    tags: ["巅峰挑战", "限时", "排行榜"],
     image:
       "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20survival%20arena%20in%20radioactive%20wasteland%2C%20lone%20commander%20surrounded%20by%20endless%20mechanical%20enemies%2C%20glowing%20teal%20weapon%20trails%2C%20ash%20and%20embers%2C%20dark%20cinematic%20atmosphere%2C%20muted%20teal%20and%20amber%20lights%2C%20no%20text&image_size=landscape_16_9",
     meta: [

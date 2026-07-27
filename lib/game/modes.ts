@@ -79,6 +79,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: true,
   },
+  "flagship": {
+    type: "flagship",
+    name: "旗舰模式",
+    description: "15 波竞速挑战，核心护卫 + 连击计分 + 排行榜冲刺，适合 1-4 人组队",
+    allowMissions: false,
+    endless: false,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -108,6 +115,7 @@ export function getDefaultMode(): GameModeType {
 export function getModeList(): { type: GameModeType; name: string; description: string }[] {
   return [
     { type: "peak-challenge", name: "巅峰挑战", description: MODE_DEFS["peak-challenge"].description },
+    { type: "flagship", name: "旗舰模式", description: MODE_DEFS["flagship"].description },
     { type: "extreme-survival", name: "极限生存", description: MODE_DEFS["extreme-survival"].description },
     { type: "survival", name: "生存模式", description: MODE_DEFS.survival.description },
     { type: "defense", name: "据点防守", description: MODE_DEFS.defense.description },

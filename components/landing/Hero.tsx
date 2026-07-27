@@ -63,7 +63,7 @@ export default function Hero() {
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-flex h-2 w-2 rounded-full bg-accent" />
-              旗舰极限模式
+              巅峰挑战
             </span>
           </div>
         </motion.div>

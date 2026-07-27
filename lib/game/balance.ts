@@ -270,17 +270,17 @@ export interface RoguelikeRewardBalance {
 
 export const DEFAULT_BALANCE: BalanceConfig = {
   player: {
-    baseHealth: 200,
-    baseSpeed: 260,
-    baseRadius: 14,
-    baseMagnetRange: 120,
-    invincibilityDuration: 0.5,
-    knockbackDecay: 6,
-    regenCap: 20,
+    baseHealth: 280,
+    baseSpeed: 270,
+    baseRadius: 16,
+    baseMagnetRange: 140,
+    invincibilityDuration: 0.6,
+    knockbackDecay: 5,
+    regenCap: 30,
     armorCap: 0.75,
-    critDamageMultiplier: 2,
-    levelXpCurve: 1.18,
-    levelXpMultiplier: 50,
+    critDamageMultiplier: 2.2,
+    levelXpCurve: 1.15,
+    levelXpMultiplier: 45,
   },
 
   weapons: {
@@ -1425,19 +1425,19 @@ export const DEFAULT_BALANCE: BalanceConfig = {
   },
 
   difficulty: {
-    baseInterval: 1.45,
-    intervalDecay: 0.06,
-    minInterval: 0.32,
+    baseInterval: 1.5,
+    intervalDecay: 0.04,
+    minInterval: 0.35,
     baseCount: 1,
-    countGrowth: 0.5,
-    maxCount: 12,
-    difficultyGrowth: 0.022,
+    countGrowth: 0.4,
+    maxCount: 10,
+    difficultyGrowth: 0.015,
     eliteChanceBase: 0,
-    eliteChanceGrowth: 0.012,
-    eliteChanceMax: 0.22,
-    affixCountThresholds: [3, 6, 10, 15],
-    hordeSpawnInterval: 0.22,
-    hordeSpawnCount: 4,
+    eliteChanceGrowth: 0.008,
+    eliteChanceMax: 0.18,
+    affixCountThresholds: [4, 8, 13, 18],
+    hordeSpawnInterval: 0.28,
+    hordeSpawnCount: 3,
   },
 
   progression: {

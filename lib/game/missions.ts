@@ -104,6 +104,239 @@ export function generateEndlessMissions(wave: number): Mission[] {
       completed: false,
       elapsed: 0,
     },
+    {
+      id: "endless_kills",
+      type: "eliminate",
+      title: "收割者",
+      description: `消灭 ${50 + wave * 15} 个感染者`,
+      target: 50 + wave * 15,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "endless_boss",
+      type: "bossSlay",
+      title: "首领猎手",
+      description: `击败 ${Math.max(1, Math.floor(wave / 5))} 个首领`,
+      target: Math.max(1, Math.floor(wave / 5)),
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function generateSurvivalMissions(): Mission[] {
+  return [
+    {
+      id: "surv_elite",
+      type: "eliteHunt",
+      title: "精英清剿",
+      description: "消灭 15 个精英感染者",
+      target: 15,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "surv_combo",
+      type: "comboChain",
+      title: "连击大师",
+      description: "达成 50 连击",
+      target: 50,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "surv_survive",
+      type: "survive",
+      title: "极限生存",
+      description: "存活 600 秒",
+      target: 600,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function generateDailyMissions(seed: number): Mission[] {
+  const rng = seededRandom(seed);
+  const missionPools = [
+    [
+      { type: "eliminate" as MissionType, title: "每日清剿", description: "消灭 50 个感染者", target: 50 },
+      { type: "eliminate" as MissionType, title: "快速收割", description: "消灭 80 个感染者", target: 80 },
+      { type: "eliminate" as MissionType, title: "屠杀盛宴", description: "消灭 120 个感染者", target: 120 },
+    ],
+    [
+      { type: "survive" as MissionType, title: "时间考验", description: "存活 180 秒", target: 180 },
+      { type: "survive" as MissionType, title: "持久战", description: "存活 300 秒", target: 300 },
+      { type: "survive" as MissionType, title: "钢铁意志", description: "存活 480 秒", target: 480 },
+    ],
+    [
+      { type: "eliteHunt" as MissionType, title: "精英猎手", description: "消灭 8 个精英感染者", target: 8 },
+      { type: "bossSlay" as MissionType, title: "首领挑战", description: "击败 2 个首领", target: 2 },
+      { type: "comboChain" as MissionType, title: "连击之星", description: "达成 30 连击", target: 30 },
+    ],
+  ];
+
+  const missions: Mission[] = [];
+  for (const pool of missionPools) {
+    const idx = Math.floor(rng() * pool.length);
+    const template = pool[idx];
+    missions.push({
+      id: `daily_${uid("m")}`,
+      ...template,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    });
+  }
+  return missions;
+}
+
+export function generateDeathmatchMissions(): Mission[] {
+  return [
+    {
+      id: "dm_kills",
+      type: "eliminate",
+      title: "击杀竞赛",
+      description: "率先达到 15 次击杀",
+      target: 15,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "dm_streak",
+      type: "killStreak",
+      title: "连杀之星",
+      description: "达成 5 连杀",
+      target: 5,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "dm_nodamage",
+      type: "noDamage",
+      title: "无伤挑战",
+      description: "在 30 秒内不受伤害并完成 3 次击杀",
+      target: 3,
+      timeLimit: 30,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function generateExtremeSurvivalMissions(): Mission[] {
+  return [
+    {
+      id: "es_overclock",
+      type: "overclock",
+      title: "超频极限",
+      description: "在第 25 波选择超频并存活 10 波",
+      target: 10,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "es_defend",
+      type: "defendCore",
+      title: "核心守护",
+      description: "核心生命值保持在 50% 以上完成第 10 波",
+      target: 10,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "es_elite",
+      type: "eliteHunt",
+      title: "变异清剿",
+      description: "在超频阶段消灭 30 个精英敌人",
+      target: 30,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function generatePeakChallengeMissions(): Mission[] {
+  return [
+    {
+      id: "pc_season",
+      type: "seasonObjective",
+      title: "赛季目标",
+      description: "在巅峰挑战中累计获得 5000 赛季经验",
+      target: 5000,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "pc_boss",
+      type: "bossSlay",
+      title: "巅峰猎杀",
+      description: "在巅峰挑战中击败 5 个首领",
+      target: 5,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "pc_speed",
+      type: "speedClear",
+      title: "极速通关",
+      description: "在 180 秒内完成一波且核心生命不低于 80%",
+      target: 1,
+      timeLimit: 180,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
+export function generateFlagshipMissions(): Mission[] {
+  return [
+    {
+      id: "fs_dominate",
+      type: "eliminate",
+      title: "制霸战场",
+      description: "在旗舰模式中消灭 200 个敌人",
+      target: 200,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fs_boss",
+      type: "bossSlay",
+      title: "旗舰猎手",
+      description: "击败 3 个旗舰首领",
+      target: 3,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fs_survive",
+      type: "surviveTimer",
+      title: "旗舰坚守",
+      description: "在核心存活的前提下坚守 300 秒",
+      target: 300,
+      timeLimit: 360,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
   ];
 }
 
@@ -166,6 +399,22 @@ export function updateMissions(state: GameState, dt: number): GameState {
     updateCaptureNodesMission(state, current);
   }
 
+  if (current.type === "bossSlay") {
+    updateBossSlayMission(state, current);
+  }
+
+  if (current.type === "overclock") {
+    updateOverclockMission(state, current);
+  }
+
+  if (current.type === "speedClear") {
+    updateSpeedClearMission(state, current);
+  }
+
+  if (current.type === "seasonObjective") {
+    updateSeasonObjectiveMission(state, current);
+  }
+
   // Fail if time limit exceeded (only for timed missions)
   if (
     current.timeLimit &&
@@ -208,6 +457,36 @@ function updateCaptureNodesMission(state: GameState, mission: Mission): void {
   if (!ds) return;
   const captured = ds.nodes.filter((n) => n.captured).length;
   mission.progress = clamp(captured, 0, mission.target);
+}
+
+function updateBossSlayMission(state: GameState, mission: Mission): void {
+  mission.progress = clamp(state.stats.bossesKilled, 0, mission.target);
+}
+
+function updateOverclockMission(state: GameState, mission: Mission): void {
+  const run = state.extremeSurvivalRun;
+  if (!run) return;
+  if (run.phase === "overclock") {
+    const ds = state.defenseState;
+    if (ds) {
+      mission.progress = clamp(ds.currentWave - 25, 0, mission.target);
+    }
+  }
+}
+
+function updateSpeedClearMission(state: GameState, mission: Mission): void {
+  const ds = state.defenseState;
+  if (!ds || !ds.waveInProgress) return;
+  const coreRatio = ds.core.health / ds.core.maxHealth;
+  if (ds.waveTimer <= (mission.timeLimit ?? 180) && coreRatio >= 0.8 && ds.waveInProgress) {
+    mission.progress = 1;
+  }
+}
+
+function updateSeasonObjectiveMission(state: GameState, mission: Mission): void {
+  const fs = state.peakChallengeState;
+  if (!fs) return;
+  mission.progress = clamp(fs.seasonXp, 0, mission.target);
 }
 
 // =======================================================================
@@ -256,8 +535,13 @@ export function advanceMission(state: GameState): GameState {
 
 export function addKill(state: GameState, count = 1): GameState {
   const current = getCurrentMission(state);
-  if (current && current.type === "eliminate" && !current.completed) {
-    current.progress = clamp(current.progress + count, 0, current.target);
+  if (current && !current.completed) {
+    if (current.type === "eliminate") {
+      current.progress = clamp(current.progress + count, 0, current.target);
+    }
+    if (current.type === "killStreak" || current.type === "comboChain") {
+      current.progress = Math.max(current.progress, count);
+    }
   }
   state.stats.kills += count;
   return state;
@@ -349,6 +633,56 @@ export function calculateMissionReward(mission: Mission, difficulty: number): Mi
         resources: Math.floor(baseResources * 2),
         energy: 0,
         score: Math.floor(baseScore * 1.5),
+      };
+    case "bossSlay":
+      return {
+        xp: Math.floor(baseXp * 2 * difficultyMul),
+        resources: Math.floor(baseResources * 2),
+        energy: 0,
+        score: Math.floor(baseScore * 2),
+      };
+    case "eliteHunt":
+      return {
+        xp: Math.floor(baseXp * 1.2 * difficultyMul),
+        resources: Math.floor(baseResources * 1.3),
+        energy: 0,
+        score: Math.floor(baseScore * 1.4),
+      };
+    case "comboChain":
+    case "killStreak":
+      return {
+        xp: Math.floor(baseXp * 1.4 * difficultyMul),
+        resources: Math.floor(baseResources * 1.2),
+        energy: 0,
+        score: Math.floor(baseScore * 1.5),
+      };
+    case "noDamage":
+      return {
+        xp: Math.floor(baseXp * 1.8 * difficultyMul),
+        resources: Math.floor(baseResources * 1.5),
+        energy: 0,
+        score: Math.floor(baseScore * 2.2),
+      };
+    case "overclock":
+      return {
+        xp: Math.floor(baseXp * 2.5 * difficultyMul),
+        resources: Math.floor(baseResources * 3),
+        energy: Math.floor(200 * difficultyMul),
+        score: Math.floor(baseScore * 3),
+      };
+    case "speedClear":
+      return {
+        xp: Math.floor(baseXp * 1.6 * difficultyMul),
+        resources: Math.floor(baseResources * 1.5),
+        energy: Math.floor(100 * difficultyMul),
+        score: Math.floor(baseScore * 1.8),
+      };
+    case "seasonObjective":
+      return {
+        xp: Math.floor(baseXp * 3 * difficultyMul),
+        resources: Math.floor(baseResources * 4),
+        energy: Math.floor(300 * difficultyMul),
+        score: Math.floor(baseScore * 3.5),
       };
     default:
       return {

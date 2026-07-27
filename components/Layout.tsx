@@ -34,6 +34,7 @@ const NAV = [
   { href: "/landing", label: "官网", icon: Globe },
   { href: "/world", label: "世界观", icon: Radioactive },
   { href: "/peak-challenge", label: "巅峰挑战", icon: Lightning },
+  { href: "/flagship", label: "旗舰模式", icon: Trophy },
   { href: "/season", label: "赛季", icon: Calendar },
   { href: "/algorithms", label: "算法", icon: Robot },
   { href: "/modes", label: "模式", icon: GameController },

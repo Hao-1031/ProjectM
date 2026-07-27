@@ -533,6 +533,7 @@ function modeName(mode: GameModeType): string {
     survival: "生存模式",
     "extreme-survival": "极限生存",
     "peak-challenge": "巅峰挑战",
+    "flagship": "旗舰模式",
   };
   return names[mode] ?? mode;
 }

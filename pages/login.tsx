@@ -365,7 +365,7 @@ function AuthForm({
             className="pl-9 pr-10"
             autoComplete={mode === "register" ? "new-password" : "current-password"}
             required
-            minLength={6}
+            minLength={mode === "register" ? 6 : undefined}
           />
           <button
             type="button"

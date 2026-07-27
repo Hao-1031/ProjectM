@@ -37,11 +37,13 @@ const modeNames: Record<string, string> = {
   deathmatch: "个人死斗",
   survival: "生存模式",
   "extreme-survival": "极限生存",
-  flagship: "旗舰模式",
+  "peak-challenge": "巅峰挑战",
+  "flagship": "旗舰模式",
 };
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式" },
+  { value: "peak-challenge", label: "巅峰挑战" },
   { value: "flagship", label: "旗舰模式" },
   { value: "extreme-survival", label: "极限生存" },
   { value: "survival", label: "生存模式" },
@@ -159,8 +161,8 @@ export default function LeaderboardPage() {
       setSubmitError("极限生存模式仅记录进入超频极限阶段的 run");
       return;
     }
-    if (best.mode === "flagship" && best.flagshipPhase !== "overclock") {
-      setSubmitError("旗舰模式排行榜仅记录进入超频阶段的 run");
+    if (best.mode === "peak-challenge" && best.peakChallengePhase !== "overclock") {
+      setSubmitError("巅峰挑战排行榜仅记录进入超频阶段的 run");
       return;
     }
     const name = playerName.trim() || "匿名幸存者";
@@ -270,8 +272,8 @@ export default function LeaderboardPage() {
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
                         {modeNames[best.mode] ?? best.mode} · {formatTime(best.elapsed)}
-                        {best.mode === "flagship" && best.flagshipPhase && (
-                          <span className="ml-1.5">· {best.flagshipPhase === "overclock" ? "超频阶段" : "普通阶段"}</span>
+                        {best.mode === "peak-challenge" && best.peakChallengePhase && (
+                          <span className="ml-1.5">· {best.peakChallengePhase === "overclock" ? "超频阶段" : "普通阶段"}</span>
                         )}
                       </p>
                     </>

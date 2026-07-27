@@ -38,14 +38,14 @@ const SEASON_RULES = [
 const HERO_IMAGE =
   "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20cinematic%20extreme%20survival%20arena%2C%20lone%20commander%20surrounded%20by%20massive%20mechanical%20enemy%20horde%2C%20glowing%20teal%20energy%20weapons%2C%20ash%20storm%2C%20embers%20and%20sparks%2C%20hazard%20stripes%20on%20ground%2C%20muted%20teal%20and%20amber%20accent%20lights%2C%20low%20saturation%2C%20no%20text&image_size=landscape_16_9";
 
-export default function FlagshipPage() {
+export default function PeakChallengePage() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <Layout title="旗舰模式">
+    <Layout title="巅峰挑战">
       <Head>
-        <title>Project M 旗舰版 - 极限生存：旗舰模式</title>
-        <meta name="description" content="Project M 旗舰版主打模式：极限生存。满配开局、击杀效率驱动、15 分钟高压、超频极限与赛季排行榜。" />
+        <title>Project M 旗舰版 - 巅峰挑战</title>
+        <meta name="description" content="Project M 旗舰版：巅峰挑战。满配开局、击杀效率驱动、15 分钟高压、超频极限与赛季排行榜。" />
       </Head>
 
       <div className="relative min-h-[100dvh]">
@@ -66,7 +66,7 @@ export default function FlagshipPage() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent">
               <Warning size={12} weight="fill" />
-              旗舰主打模式
+              巅峰挑战
             </span>
             <h1 className="mt-3 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[0.95] tracking-tight">
               极限生存
@@ -88,7 +88,7 @@ export default function FlagshipPage() {
               <div className="relative overflow-hidden rounded-3xl border border-border bg-panel shadow-2xl shadow-black/20">
                 <img
                   src={HERO_IMAGE}
-                  alt="极限生存：旗舰主打模式"
+                  alt="巅峰挑战"
                   className="h-full w-full object-cover"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/40 to-transparent" />

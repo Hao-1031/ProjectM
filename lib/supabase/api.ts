@@ -33,7 +33,7 @@ export function validateLeaderboardEntry(data: unknown): { valid: false; error: 
     return { valid: false, error: "玩家名称长度应为 1-32 个字符" };
   }
 
-  const validModes = ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch", "survival", "extreme-survival"];
+  const validModes = ["campaign", "endless", "daily", "roguelike", "defense", "deathmatch", "survival", "extreme-survival", "peak-challenge", "flagship"];
   if (typeof entry.mode !== "string" || !validModes.includes(entry.mode)) {
     return { valid: false, error: "游戏模式无效" };
   }

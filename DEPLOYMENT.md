@@ -653,4 +653,322 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 
 ---
 
+## 17. 监控与日志
+
+### 17.1 PM2 进程监控
+
+```bash
+pm2 monit                  # 实时监控面板
+pm2 status                 # 进程列表与状态
+pm2 logs project-m --lines 200 --nostream  # 查看最近日志
+pm2 logs project-m --lines 0                 # 实时跟踪日志
+```
+
+### 17.2 日志轮转
+
+PM2 默认日志无限增长，必须配置轮转：
+
+```bash
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 50M
+pm2 set pm2-logrotate:retain 7
+pm2 set pm2-logrotate:compress true
+pm2 set pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss
+pm2 set pm2-logrotate:workerInterval 30
+pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
+pm2 set pm2-logrotate:rotateModule true
+```
+
+### 17.3 系统资源监控
+
+```bash
+# 实时资源
+htop                      # CPU/内存
+df -h                     # 磁盘空间
+sudo ss -tlnp             # 端口监听
+
+# 定时资源检查脚本
+cat > /var/www/project-m/scripts/health-check.sh << 'SCRIPT'
+#!/bin/bash
+echo "=== $(date) ==="
+echo "--- Disk ---"
+df -h / | tail -1
+echo "--- Memory ---"
+free -h | grep Mem
+echo "--- PM2 ---"
+pm2 jlist | grep -E '"status"|"memory"|"cpu"'
+echo "--- Load ---"
+uptime
+SCRIPT
+chmod +x /var/www/project-m/scripts/health-check.sh
+```
+
+### 17.4 应用层健康检查接口
+
+项目提供 `/api/health` 端点用于外部监控：
+
+```bash
+curl http://localhost:3000/api/health
+# 预期返回: {"status":"ok","timestamp":"..."}
+```
+
+可配置阿里云云监控或 UptimeRobot 定时探测此接口。
+
+### 17.5 告警阈值建议
+
+| 指标 | 告警阈值 | 处理方式 |
+|------|----------|----------|
+| CPU 使用率 | > 80% 持续 5 分钟 | 检查进程、考虑升级 |
+| 内存使用率 | > 85% | 检查内存泄漏、重启 |
+| 磁盘使用率 | > 80% | 清理日志、扩容 |
+| PM2 进程重启 | 1 小时内 > 3 次 | 查看日志排查根因 |
+| 健康检查失败 | 连续 2 次 | 自动重启或人工介入 |
+
+---
+
+## 18. 备份与恢复
+
+### 18.1 备份策略
+
+| 备份对象 | 频率 | 方式 | 保留 |
+|----------|------|------|------|
+| Supabase 数据库 | 每日自动 | Supabase 内置备份（Pro 计划） | 7 天 |
+| 数据库手动导出 | 每周 | `pg_dump` 导出 SQL 文件 | 4 周 |
+| 环境变量 | 每次变更 | `.env.local` 备份到安全位置 | 永久 |
+| 日志文件 | 按 PM2 logrotate | 自动轮转压缩 | 7 天 |
+
+### 18.2 数据库手动备份
+
+```bash
+# 安装 PostgreSQL 客户端
+sudo apt install postgresql-client -y
+
+# 导出 Supabase 数据库
+pg_dump "postgresql://postgres:[YOUR_PASSWORD]@[YOUR_HOST]:5432/postgres" \
+  --file="/var/backups/project-m-$(date +%Y%m%d).sql"
+
+# 仅导出 schema（不含数据）
+pg_dump --schema-only \
+  "postgresql://postgres:[YOUR_PASSWORD]@[YOUR_HOST]:5432/postgres" \
+  --file="/var/backups/project-m-schema-$(date +%Y%m%d).sql"
+```
+
+### 18.3 代码备份
+
+```bash
+# GitHub 为主备份源，本地仅为应急
+tar -czf "/var/backups/project-m-code-$(date +%Y%m%d).tar.gz" \
+  --exclude=node_modules --exclude=.next --exclude=.git \
+  /var/www/project-m
+```
+
+### 18.4 恢复流程
+
+```bash
+# 1. 恢复代码
+cd /var/www
+git clone https://github.com/Hao-1031/ProjectM.git project-m
+cd project-m
+git checkout <target-commit>
+
+# 2. 恢复环境变量
+cp /secure/backup/.env.local /var/www/project-m/.env.local
+
+# 3. 恢复数据库（在 Supabase SQL Editor 中执行备份 SQL）
+
+# 4. 构建并启动
+pnpm install --frozen-lockfile
+pnpm build
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+```
+
+---
+
+## 19. 性能优化
+
+### 19.1 Next.js 构建优化
+
+`next.config.mjs` 已配置：
+
+- `output: "standalone"`：独立部署，减少依赖体积
+- `productionBrowserSourceMaps: false`：生产禁用 sourcemap
+- 测试文件排除：`test Match`、`spec Match`、`test` 目录
+
+### 19.2 静态资源优化
+
+- 所有图片使用 Next.js `Image` 组件（自动 WebP 转换、懒加载）
+- 字体使用 `next/font`（自动子集化、无外部请求）
+- 图标使用 Phosphor（按需加载，无全量引入）
+
+### 19.3 Nginx 优化
+
+```nginx
+# 在 server 块中添加
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_types text/plain text/css text/xml text/javascript
+           application/javascript application/json application/xml
+           image/svg+xml;
+
+# 静态资源缓存
+location /_next/static/ {
+  expires 365d;
+  add_header Cache-Control "public, immutable";
+}
+
+# 安全头（已由 applySecurityHeaders 中间件处理）
+```
+
+### 19.4 内存优化
+
+```bash
+# PM2 内存限制（ecosystem.config.cjs）
+max_memory_restart: "800M"   # 超过 800MB 自动重启
+node_args: "--max-old-space-size=512"  # V8 堆上限 512MB
+```
+
+---
+
+## 20. 安全加固
+
+### 20.1 服务器层面
+
+```bash
+# 禁用 root SSH 密码登录
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+sudo systemctl restart sshd
+
+# 安装 fail2ban 防暴力破解
+sudo apt install fail2ban -y
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# 自动安全更新
+sudo apt install unattended-upgrades -y
+sudo dpkg-reconfigure -plow unattended-upgrades
+```
+
+### 20.2 应用层面
+
+- API 路由已集成 `applySecurityHeaders`（CSP、X-Frame-Options、X-Content-Type-Options 等）
+- 算法/公告/排行榜 API 已集成 `rateLimiter` 频率限制
+- 算法路由已添加 `sanitizeInput` 输入验证与错误信息净化
+- `ADMIN_KEY` 用于管理后台认证，生成方式：`openssl rand -base64 32`
+
+### 20.3 定期安全检查
+
+```bash
+# 检查开放端口
+sudo ss -tlnp
+
+# 检查异常登录
+sudo last -20
+
+# 检查失败登录尝试
+sudo grep "Failed password" /var/log/auth.log | tail -20
+
+# 更新系统
+sudo apt update && sudo apt upgrade -y
+```
+
+---
+
+## 21. 灾难恢复
+
+### 21.1 场景与应对
+
+| 场景 | 检测方式 | 恢复步骤 |
+|------|----------|----------|
+| 服务器宕机 | 阿里云监控 / UptimeRobot | 阿里云控制台重启实例，PM2 自动启动 |
+| 应用崩溃 | PM2 自动重启 | PM2 自动重启，检查日志确认根因 |
+| 数据库不可用 | API 返回错误 | 确认 Supabase 状态页，切换本地存档模式 |
+| 域名过期 | 浏览器证书错误 | 续费域名，重新申请 SSL 证书 |
+| 磁盘满 | 健康检查脚本告警 | 清理日志，`pm2 flush`，扩容磁盘 |
+| 安全入侵 | 异常日志/进程 | 隔离服务器，恢复备份，重置密钥 |
+
+### 21.2 快速恢复脚本
+
+```bash
+#!/bin/bash
+# 灾难恢复脚本: /var/www/project-m/scripts/recover.sh
+set -e
+
+echo "=== Project-M 灾难恢复 ==="
+echo "1. 停止旧进程..."
+pm2 stop project-m 2>/dev/null || true
+
+echo "2. 拉取最新代码..."
+cd /var/www/project-m
+git fetch origin
+git reset --hard origin/main
+
+echo "3. 安装依赖..."
+pnpm install --frozen-lockfile
+
+echo "4. 构建..."
+pnpm build
+
+echo "5. 启动服务..."
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+
+echo "6. 验证..."
+sleep 3
+curl -s http://localhost:3000/api/health
+
+echo "=== 恢复完成 ==="
+```
+
+---
+
+## 22. 运维命令速查
+
+```bash
+# 应用管理
+pm2 status                    # 查看进程状态
+pm2 restart project-m         # 重启应用
+pm2 restart project-m --update-env  # 刷新环境变量后重启
+pm2 logs project-m --lines 100      # 查看日志
+pm2 flush                     # 清空日志
+
+# 构建
+cd /var/www/project-m
+git pull origin main
+pnpm install --frozen-lockfile
+pnpm build
+pm2 restart project-m --update-env
+
+# 系统
+htop                          # 进程监控
+df -h                         # 磁盘
+free -h                       # 内存
+sudo systemctl status nginx   # Nginx 状态
+sudo nginx -t                 # Nginx 配置测试
+sudo systemctl reload nginx   # 重载 Nginx
+sudo certbot renew --dry-run  # SSL 续期测试
+
+# 网络
+sudo ss -tlnp                 # 端口监听
+sudo ufw status verbose       # 防火墙状态
+curl -I https://your-domain.com  # HTTP 响应头检查
+```
+
+---
+
+## 23. 运营相关文件
+
+| 文件 | 说明 |
+|------|------|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | 本部署手册 |
+| [docs/OPERATIONS.md](./docs/OPERATIONS.md) | 游戏运营方向完整评估 |
+| [supabase/schema.sql](./supabase/schema.sql) | 数据库建表脚本 |
+| [scripts/deploy-ubuntu.sh](./scripts/deploy-ubuntu.sh) | 一键部署脚本 |
+| [scripts/health-check.sh](./scripts/health-check.sh) | 健康检查脚本（需手动创建） |
+| [scripts/recover.sh](./scripts/recover.sh) | 灾难恢复脚本（需手动创建） |
+
+---
+
 *本手册对应 Project-M L3V100「旗舰版」一次性全部上线部署流程。当前版本注册/登录功能已临时关闭，所有游戏模式、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*

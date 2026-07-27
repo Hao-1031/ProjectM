@@ -76,7 +76,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         "deathmatch",
         "survival",
         "extreme-survival",
-        "flagship",
+        "peak-challenge",
       ].includes(m)
       ? m
       : "campaign";
@@ -566,7 +566,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       const isPeakChallenge = engineRef.current?.state.mode === "peak-challenge";
       addNotification({
         title: "超频极限已启动",
-        message: isFlagship
+        message: isPeakChallenge
           ? "赛季挑战进入超频阶段，敌潮强度与奖励同步提升"
           : "敌人强度陡增，奖励倍率提升至 1.7 倍",
         variant: "danger",

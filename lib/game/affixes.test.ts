@@ -214,17 +214,17 @@ describe("affixes", () => {
     });
 
     it("returns 2 for medium difficulty", () => {
-      expect(getEliteAffixCount(3)).toBe(2);
+      expect(getEliteAffixCount(4)).toBe(2);
       expect(getEliteAffixCount(5)).toBe(2);
     });
 
     it("returns 3 for high difficulty", () => {
-      expect(getEliteAffixCount(6)).toBe(3);
+      expect(getEliteAffixCount(8)).toBe(3);
       expect(getEliteAffixCount(9)).toBe(3);
     });
 
     it("caps at 4 for extreme difficulty", () => {
-      expect(getEliteAffixCount(10)).toBe(4);
+      expect(getEliteAffixCount(13)).toBe(4);
       expect(getEliteAffixCount(20)).toBe(4);
     });
   });

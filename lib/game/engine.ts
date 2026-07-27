@@ -64,6 +64,13 @@ import {
   grantMissionReward,
   grantCurrentMissionReward,
   calculateDefenseCompletionRewards,
+  generateDefenseMissions,
+  generateSurvivalMissions,
+  generateDailyMissions,
+  generateDeathmatchMissions,
+  generateExtremeSurvivalMissions,
+  generatePeakChallengeMissions,
+  generateFlagshipMissions,
 } from "./missions";
 import {
   startGameEvent,
@@ -145,6 +152,17 @@ import {
   applyPeakChallengeEndRewards,
   PEAK_CHALLENGE_BRANCH_WAVE,
 } from "./peak-challenge";
+import {
+  createFlagshipState,
+  updateFlagshipChallenges,
+  recordFlagshipKill,
+  recordFlagshipBossKill,
+  recordFlagshipWaveCleared,
+  updateFlagshipCoreHealth,
+  applyFlagshipEndRewards,
+  FLAGSHIP_TOTAL_WAVES,
+  FLAGSHIP_BOSS_WAVE,
+} from "./flagship";
 import {
   createDeathmatchState,
   createDeathmatchMap,
@@ -273,23 +291,34 @@ export class GameEngine {
     const modeConfig = createGameModeConfig(mode, this.seed);
     const theme = this.randomTheme();
     const roguelikeRunState = mode === "roguelike" ? createRoguelikeRun(this.seed) : undefined;
-    const isDefenseLike = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge";
+    const isDefenseLike = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "flagship";
     const defenseState = isDefenseLike ? createDefenseState(this.seed) : undefined;
     const extremeSurvivalRun = mode === "extreme-survival" ? this.createExtremeSurvivalRun() : undefined;
     const peakChallengeState = mode === "peak-challenge" ? createPeakChallengeState() : undefined;
-    const missions = modeConfig.allowMissions
-      ? mode === "roguelike"
-        ? roguelikeRunState
-          ? [roguelikeRunState.stages[0].mission]
-          : generateCampaignMissions()
-        : generateCampaignMissions()
-      : modeConfig.endless
-        ? generateEndlessMissions(1)
-        : [];
+    const flagshipState = mode === "flagship" ? createFlagshipState() : undefined;
+    const missions = (() => {
+      if (mode === "roguelike") {
+        return roguelikeRunState ? [roguelikeRunState.stages[0].mission] : generateCampaignMissions();
+      }
+      if (mode === "campaign") return generateCampaignMissions();
+      if (mode === "endless") return generateEndlessMissions(1);
+      if (mode === "survival") return generateSurvivalMissions();
+      if (mode === "daily") return generateDailyMissions(this.seed);
+      if (mode === "deathmatch") return generateDeathmatchMissions();
+      if (mode === "defense") return generateDefenseMissions(this.seed);
+      if (mode === "extreme-survival") return generateExtremeSurvivalMissions();
+      if (mode === "peak-challenge") return generatePeakChallengeMissions();
+      if (mode === "flagship") return generateFlagshipMissions();
+      return modeConfig.allowMissions
+        ? generateCampaignMissions()
+        : modeConfig.endless
+          ? generateEndlessMissions(1)
+          : [];
+    })();
 
     let map: MapConfig;
     let deathmatchState: DeathmatchState | undefined;
-    if (mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge") {
+    if (mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "flagship") {
       map = createDefenseMap(this.seed);
     } else if (mode === "deathmatch") {
       map = createDeathmatchMap(this.seed);
@@ -297,8 +326,8 @@ export class GameEngine {
     } else {
       map = this.createMap(theme);
     }
-    const startX = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
-    const startY = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
+    const startX = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "flagship" || mode === "deathmatch" ? map.width / 2 : MAP_WIDTH / 2;
+    const startY = mode === "defense" || mode === "extreme-survival" || mode === "peak-challenge" || mode === "flagship" || mode === "deathmatch" ? map.height / 2 : MAP_HEIGHT / 2;
 
     const player = this.createPlayer("player", startX, startY);
     const heroId = this.loadout.heroId ?? this.state?.selectedHero;
@@ -377,6 +406,7 @@ export class GameEngine {
       deathmatchState,
       extremeSurvivalRun,
       peakChallengeState,
+      flagshipState,
       selectedHero: heroId ?? this.state?.selectedHero,
       deployables: [],
     };
@@ -406,6 +436,13 @@ export class GameEngine {
       state.defenseState.totalWaves = 999;
       state.defenseState.waves = this.generatePeakChallengeWaves(state.defenseState, state.peakChallengeState?.phase ?? "normal");
       this.applyPeakChallengeLoadout(player);
+    }
+
+    if (mode === "flagship" && state.defenseState && state.flagshipState) {
+      state.defenseState.totalWaves = FLAGSHIP_TOTAL_WAVES;
+      state.defenseState.waves = this.generateFlagshipWaves(state.defenseState);
+      state.flagshipState.coreHealth = state.defenseState.core.health;
+      state.flagshipState.coreMaxHealth = state.defenseState.core.maxHealth;
     }
 
     return state;
@@ -466,6 +503,33 @@ export class GameEngine {
         speedMultiplier: 1 + waveNumber * 0.012 * (isOverclock ? 1.2 : 1),
         spawnIntervalMultiplier: 1 / Math.max(0.5, 1 + waveNumber * 0.015),
         specialEventChance: Math.min(0.25, 0.05 + waveNumber * 0.005),
+      });
+    }
+    return waves;
+  }
+
+  private generateFlagshipWaves(ds: DefenseState): DefenseWave[] {
+    const waves: DefenseWave[] = [];
+    const totalWaves = FLAGSHIP_TOTAL_WAVES;
+    for (let i = 0; i < totalWaves; i++) {
+      const waveNumber = i + 1;
+      const isBossWave = waveNumber === FLAGSHIP_BOSS_WAVE || (waveNumber > FLAGSHIP_BOSS_WAVE && waveNumber % 5 === 0);
+      const count = Math.max(8, Math.round(10 + waveNumber * 1.5));
+      waves.push({
+        index: i,
+        enemyCount: count,
+        enemyVariants: isBossWave
+          ? ["walker", "runner", "tank", "spitter", "drone", "sentinel", "crusher", "sniper", "stalker", "shielder", "artillery"]
+          : ["walker", "runner", "tank", "spitter", "drone", "sentinel"],
+        eliteCount: Math.max(1, Math.round(count * (0.1 + waveNumber * 0.008))),
+        bossVariant: isBossWave ? getRandomBossIdRng(this.rng) : undefined,
+        nodeActivator: false,
+        duration: 50 + waveNumber * 2,
+        enemyHealthMultiplier: 1 + waveNumber * 0.05,
+        enemyDamageMultiplier: 1 + waveNumber * 0.03,
+        speedMultiplier: 1 + waveNumber * 0.015,
+        spawnIntervalMultiplier: 1 / Math.max(0.4, 1 + waveNumber * 0.02),
+        specialEventChance: Math.min(0.3, 0.05 + waveNumber * 0.006),
       });
     }
     return waves;
@@ -2251,15 +2315,17 @@ export class GameEngine {
 
   private updateDefenseState(dt: number) {
     const ds = this.state.defenseState;
-    if (!ds || (this.state.mode !== "defense" && this.state.mode !== "extreme-survival" && this.state.mode !== "peak-challenge")) return;
+    if (!ds || (this.state.mode !== "defense" && this.state.mode !== "extreme-survival" && this.state.mode !== "peak-challenge" && this.state.mode !== "flagship")) return;
 
     const isExtreme = this.state.mode === "extreme-survival";
     const isPeakChallenge = this.state.mode === "peak-challenge";
+    const isFlagship = this.state.mode === "flagship";
     const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
     const fs = isPeakChallenge ? this.state.peakChallengeState : undefined;
+    const fgs = isFlagship ? this.state.flagshipState : undefined;
 
     // Victory / defeat checks (defense only)
-    if (!isExtreme && !isPeakChallenge) {
+    if (!isExtreme && !isPeakChallenge && !isFlagship) {
       if (isDefenseVictory(ds)) {
         const reward = calculateDefenseCompletionRewards(this.state);
         grantMissionReward(this.state, reward);
@@ -2274,7 +2340,7 @@ export class GameEngine {
 
     // Node capture by all players (defense only)
     let previousCaptured = 0;
-    if (!isExtreme && !isPeakChallenge) {
+    if (!isExtreme && !isPeakChallenge && !isFlagship) {
       const players = [this.state.player, ...this.state.players];
       for (const player of players) {
         updateNodeCapture(ds, player, dt);
@@ -2291,7 +2357,7 @@ export class GameEngine {
       return;
     }
 
-    if ((isExtreme || isPeakChallenge) && isDefenseDefeat(ds)) {
+    if ((isExtreme || isPeakChallenge || isFlagship) && isDefenseDefeat(ds)) {
       this.endRun(false);
       return;
     }
@@ -2335,7 +2401,6 @@ export class GameEngine {
             for (let i = 0; i < batchSize && this.alphaPlanRef.spawned < wave.enemyCount; i++) {
               const variant = this.pickAlphaVariant(alphaStats.variantWeights);
               this.spawnEnemy(variant, false, alphaStats);
-              this.alphaPlanRef.spawned++;
             }
           }
 
@@ -2426,8 +2491,10 @@ export class GameEngine {
   private finalizeDefenseWave(ds: DefenseState) {
     const isExtreme = this.state.mode === "extreme-survival";
     const isPeakChallenge = this.state.mode === "peak-challenge";
+    const isFlagship = this.state.mode === "flagship";
     const run = isExtreme ? this.state.extremeSurvivalRun : undefined;
     const fs = isPeakChallenge ? this.state.peakChallengeState : undefined;
+    const fgs = isFlagship ? this.state.flagshipState : undefined;
 
     const waveIndex = ds.currentWave;
     const wave = ds.waves[waveIndex];
@@ -2452,9 +2519,15 @@ export class GameEngine {
       updatePeakChallengeTasks(this.state, ds);
     }
 
+    if (isFlagship && fgs) {
+      recordFlagshipWaveCleared(this.state);
+      updateFlagshipChallenges(this.state, ds);
+      updateFlagshipCoreHealth(this.state, ds);
+    }
+
     ds.waveInProgress = false;
     ds.currentWave += 1;
-    ds.breakTimer = isExtreme || isPeakChallenge ? 5 : 8;
+    ds.breakTimer = isExtreme || isPeakChallenge || isFlagship ? 5 : 8;
     this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
 
     if (isExtreme && run && shouldTriggerBranchChoice(waveIndex + 1, run.phase) && !this.extremeSurvivalPendingChoice) {
@@ -2487,6 +2560,17 @@ export class GameEngine {
 
     if (isPeakChallenge && ds.currentWave >= ds.waves.length - 5) {
       ds.waves = this.generatePeakChallengeWaves(ds, fs?.phase ?? "normal");
+    }
+
+    // Flagship victory check
+    if (isFlagship && fgs && ds.currentWave >= ds.totalWaves) {
+      fgs.phase = "victory";
+      this.endRun(true);
+      return;
+    }
+
+    if (isFlagship && fgs && ds.currentWave >= ds.waves.length - 5) {
+      ds.waves = this.generateFlagshipWaves(ds);
     }
   }
 
@@ -2843,6 +2927,12 @@ export class GameEngine {
         recordPeakChallengeBossKill(this.state);
       }
     }
+    if (this.state.mode === "flagship") {
+      recordFlagshipKill(this.state, enemy.isElite || enemy.isBoss);
+      if (enemy.isBoss) {
+        recordFlagshipBossKill(this.state);
+      }
+    }
 
     if (enemy.isElite) {
       this.state.stats.elitesKilled++;
@@ -3034,6 +3124,10 @@ export class GameEngine {
       this.applyPeakChallengeRewards();
     }
 
+    if (this.state.mode === "flagship") {
+      this.applyFlagshipRewards();
+    }
+
     const result: RunResult = {
       victory,
       stats: { ...this.state.stats },
@@ -3042,6 +3136,7 @@ export class GameEngine {
       mode: this.state.mode,
       extremeSurvivalPhase: this.state.extremeSurvivalRun?.phase,
       peakChallengePhase: this.state.peakChallengeState?.phase,
+      flagshipPhase: this.state.flagshipState?.phase,
     };
     if (victory) {
       audio?.play("levelup");
@@ -3079,6 +3174,11 @@ export class GameEngine {
     if (rewards.xp > 0) {
       addSeasonXp(rewards.xp);
     }
+  }
+
+  private applyFlagshipRewards() {
+    const rewards = applyFlagshipEndRewards(this.state);
+    this.state.stats.score = rewards.score;
   }
 
   private spawnExplosion(x: number, y: number, color: string, count = 8) {
@@ -3153,6 +3253,7 @@ export class GameEngine {
       roguelikeRunState: this.state.roguelikeRunState,
       deathmatchState: this.state.deathmatchState,
       peakChallengeState: this.state.peakChallengeState,
+      flagshipState: this.state.flagshipState,
       fixedWaveState: this.state.fixedWaveState,
       deployables: this.state.deployables,
     };
@@ -3196,6 +3297,9 @@ export class GameEngine {
     }
     if (serialized.peakChallengeState) {
       this.state.peakChallengeState = serialized.peakChallengeState;
+    }
+    if (serialized.flagshipState) {
+      this.state.flagshipState = serialized.flagshipState;
     }
     if (serialized.fixedWaveState) {
       this.state.fixedWaveState = serialized.fixedWaveState;
@@ -3243,6 +3347,7 @@ export class GameEngine {
     this.drawBackground(ctx);
     this.drawHazards(ctx);
     this.drawObstacles(ctx);
+    this.drawCore(ctx);
     this.drawNodes(ctx);
     this.drawExtraction(ctx);
     this.drawPickups(ctx);
@@ -3380,6 +3485,104 @@ export class GameEngine {
 
       ctx.restore();
     }
+  }
+
+  private drawCore(ctx: CanvasRenderingContext2D) {
+    const ds = this.state.defenseState;
+    if (!ds) return;
+
+    const core = ds.core;
+    const time = this.state.time;
+    const healthRatio = core.health / core.maxHealth;
+    const isCritical = healthRatio <= 0.25;
+    const isLow = healthRatio <= 0.5;
+
+    ctx.save();
+    ctx.translate(core.x, core.y);
+
+    const pulse = 1 + Math.sin(time * 3) * 0.04;
+    const criticalPulse = isCritical ? 1 + Math.sin(time * 8) * 0.08 : 1;
+
+    const outerRadius = core.radius * pulse * criticalPulse;
+    const innerRadius = core.radius * 0.65;
+
+    const baseColor = isCritical ? "#ef4444" : isLow ? "#f59e0b" : core.color;
+    const glowColor = isCritical ? "#ef4444" : isLow ? "#f59e0b" : "#22d3ee";
+
+    if (isCritical) {
+      ctx.beginPath();
+      ctx.arc(0, 0, outerRadius + 12, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(0, 0, outerRadius, 0, 0, outerRadius + 14);
+      grad.addColorStop(0, `${glowColor}44`);
+      grad.addColorStop(1, `${glowColor}00`);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(0, 0, outerRadius + 6, 0, Math.PI * 2);
+    ctx.strokeStyle = `${glowColor}55`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const outerGrad = ctx.createRadialGradient(0, 0, innerRadius, 0, 0, outerRadius);
+    outerGrad.addColorStop(0, `${baseColor}99`);
+    outerGrad.addColorStop(0.7, `${baseColor}44`);
+    outerGrad.addColorStop(1, `${baseColor}11`);
+    ctx.beginPath();
+    ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+    ctx.fillStyle = outerGrad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = `${baseColor}aa`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    const innerGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, innerRadius);
+    innerGrad.addColorStop(0, `${baseColor}dd`);
+    innerGrad.addColorStop(0.5, `${baseColor}66`);
+    innerGrad.addColorStop(1, `${baseColor}22`);
+    ctx.beginPath();
+    ctx.arc(0, 0, innerRadius, 0, Math.PI * 2);
+    ctx.fillStyle = innerGrad;
+    ctx.fill();
+
+    const healthAngle = -Math.PI / 2;
+    const healthSweep = Math.PI * 2 * healthRatio;
+    ctx.beginPath();
+    ctx.arc(0, 0, core.radius * 0.85, healthAngle, healthAngle + healthSweep);
+    ctx.strokeStyle = isCritical ? "#ef4444" : isLow ? "#f59e0b" : "#22d3ee";
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.stroke();
+    ctx.lineCap = "butt";
+
+    if (healthRatio < 1) {
+      ctx.beginPath();
+      ctx.arc(0, 0, core.radius * 0.85, healthAngle + healthSweep, healthAngle + Math.PI * 2);
+      ctx.strokeStyle = `${baseColor}33`;
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.lineCap = "butt";
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px var(--font-geist-sans), sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("核心", 0, 0);
+
+    const labelY = outerRadius + 16;
+    ctx.fillStyle = `${baseColor}cc`;
+    ctx.font = "bold 11px var(--font-geist-sans), monospace";
+    ctx.fillText(`${Math.ceil(core.health)} / ${core.maxHealth}`, 0, labelY);
+
+    ctx.restore();
   }
 
   private drawHazards(ctx: CanvasRenderingContext2D) {
