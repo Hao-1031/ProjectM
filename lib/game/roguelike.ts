@@ -5,6 +5,13 @@ import {
   getRoguelikeRewards,
   applyRoguelikeReward,
 } from "./balance";
+import {
+  createCurseBlessingState,
+  generateCurseBlessingPairs,
+  applyCurseBlessingPair,
+  type CurseBlessingState,
+  type CurseBlessingPair,
+} from "./curseBlessing";
 
 export interface RoguelikeRunState {
   seed: number;
@@ -14,6 +21,7 @@ export interface RoguelikeRunState {
   pendingRewards: RoguelikeRewardBalance[] | null;
   completed: boolean;
   victory: boolean;
+  curseBlessing: CurseBlessingState;
 }
 
 export function createRoguelikeRun(seed: number): RoguelikeRunState {
@@ -25,6 +33,7 @@ export function createRoguelikeRun(seed: number): RoguelikeRunState {
     pendingRewards: null,
     completed: false,
     victory: false,
+    curseBlessing: createCurseBlessingState(),
   };
 }
 
@@ -71,6 +80,35 @@ export function advanceStage(state: RoguelikeRunState): boolean {
   return true;
 }
 
+export function shouldOfferCurseBlessing(state: RoguelikeRunState): boolean {
+  const stage = getCurrentStage(state);
+  if (!stage) return false;
+  return (
+    (stage.type === "combat" || stage.type === "elite" || stage.type === "boss") &&
+    isStageComplete(stage) &&
+    state.curseBlessing.pendingPairs === null
+  );
+}
+
+export function generateCurseBlessingOptions(state: RoguelikeRunState): CurseBlessingPair[] {
+  if (state.curseBlessing.pendingPairs) return state.curseBlessing.pendingPairs;
+  const pairs = generateCurseBlessingPairs(state.currentIndex, state.seed);
+  state.curseBlessing.pendingPairs = pairs;
+  return pairs;
+}
+
+export function applyCurseBlessingChoice(
+  state: RoguelikeRunState,
+  pairIndex: number,
+  player: Player
+): boolean {
+  if (!state.curseBlessing.pendingPairs) return false;
+  if (pairIndex < 0 || pairIndex >= state.curseBlessing.pendingPairs.length) return false;
+  const pair = state.curseBlessing.pendingPairs[pairIndex];
+  applyCurseBlessingPair(state.curseBlessing, pair, player);
+  return true;
+}
+
 export function generateRewardOptions(
   state: RoguelikeRunState,
   player: Player,
@@ -110,4 +148,5 @@ export function resetRoguelikeRun(state: RoguelikeRunState, seed: number): void 
   state.pendingRewards = null;
   state.completed = false;
   state.victory = false;
+  state.curseBlessing = createCurseBlessingState();
 }

@@ -1,4 +1,4 @@
-import type { FlagshipState, FlagshipChallenge, GameState, DefenseState } from "./types";
+import type { FlagshipState, FlagshipChallenge, GameState, DefenseState, FlagshipSpeedRank } from "./types";
 import { uid } from "./math";
 
 export const FLAGSHIP_TOTAL_WAVES = 15;
@@ -17,6 +17,12 @@ export function createFlagshipState(): FlagshipState {
     eliteKills: 0,
     coreHealth: 100,
     coreMaxHealth: 100,
+    timeAttackScore: 0,
+    perfectWaves: 0,
+    teamComboMultiplier: 1,
+    speedRank: "none",
+    waveClearTimes: [],
+    comboBreakerCount: 0,
   };
 }
 
@@ -55,6 +61,22 @@ export function generateFlagshipChallenges(startWave: number): FlagshipChallenge
       completed: false,
       rewardScore: 90 + tier * 40,
     },
+    {
+      title: "极速通关",
+      description: `在 ${60 - tier * 3} 秒内完成一波`,
+      target: 1,
+      progress: 0,
+      completed: false,
+      rewardScore: 150 + tier * 50,
+    },
+    {
+      title: "完美防线",
+      description: "核心不受任何伤害完成一波",
+      target: 1,
+      progress: 0,
+      completed: false,
+      rewardScore: 200 + tier * 60,
+    },
   ];
 
   return base.map((b) => ({ ...b, id: uid("fs-ch") }));
@@ -65,10 +87,17 @@ export function updateFlagshipChallenges(state: GameState, ds: DefenseState): vo
   if (!fs) return;
 
   const corePct = ds.core.health / ds.core.maxHealth;
+  const waveClearTime = ds.waveTimer;
   for (const ch of fs.challenges) {
     if (ch.completed) continue;
 
     if (ch.title === "核心护卫" && corePct >= 0.7 && ds.waveInProgress) {
+      ch.progress = 1;
+    }
+    if (ch.title === "极速通关" && waveClearTime <= 60 - (Math.floor((fs.wave - 1) / 5) + 1) * 3 && ds.waveInProgress) {
+      ch.progress = 1;
+    }
+    if (ch.title === "完美防线" && corePct >= 1 && ds.waveInProgress) {
       ch.progress = 1;
     }
 
@@ -130,6 +159,21 @@ export function recordFlagshipWaveCleared(state: GameState): void {
   fs.wave = Math.max(fs.wave, (state.defenseState?.currentWave ?? 0) + 1);
   fs.score += 50;
 
+  const ds = state.defenseState;
+  const waveClearTime = ds?.waveTimer ?? 60;
+  fs.waveClearTimes.push(waveClearTime);
+
+  const timeBonus = Math.max(0, Math.round((60 - waveClearTime) * 2));
+  fs.timeAttackScore += timeBonus;
+  fs.score += timeBonus;
+
+  if (ds && ds.core.health >= ds.core.maxHealth) {
+    fs.perfectWaves += 1;
+    fs.score += 200;
+  }
+
+  fs.speedRank = calculateFlagshipSpeedRank(fs.timeAttackScore, fs.wave);
+
   const nextChallengeWave = Math.floor((fs.wave - 1) / 5) * 5 + 1;
   if (fs.wave >= nextChallengeWave + 5) {
     const allCompleted = fs.challenges.every((c) => c.completed);
@@ -153,6 +197,46 @@ export function applyFlagshipEndRewards(state: GameState): { score: number; wave
   const waveBonus = fs.wave * 30;
   const bossBonus = fs.bossKills * 100;
   const comboBonus = fs.maxCombo * 20;
-  const finalScore = fs.score + waveBonus + bossBonus + comboBonus;
+  const perfectBonus = fs.perfectWaves * 200;
+  const speedMultiplier = getFlagshipSpeedRankMultiplier(fs.speedRank);
+  const finalScore = Math.round((fs.score + waveBonus + bossBonus + comboBonus + perfectBonus) * speedMultiplier);
   return { score: finalScore, waveBonus };
+}
+
+export function calculateFlagshipSpeedRank(
+  timeAttackScore: number,
+  wave: number
+): FlagshipSpeedRank {
+  if (wave < 1) return "none";
+  const avgScore = timeAttackScore / wave;
+  if (avgScore >= 100) return "diamond";
+  if (avgScore >= 75) return "platinum";
+  if (avgScore >= 50) return "gold";
+  if (avgScore >= 30) return "silver";
+  if (avgScore >= 15) return "bronze";
+  return "none";
+}
+
+export function getFlagshipSpeedRankName(rank: FlagshipSpeedRank): string {
+  const names: Record<FlagshipSpeedRank, string> = {
+    none: "未评级",
+    bronze: "青铜",
+    silver: "白银",
+    gold: "黄金",
+    platinum: "铂金",
+    diamond: "钻石",
+  };
+  return names[rank];
+}
+
+export function getFlagshipSpeedRankMultiplier(rank: FlagshipSpeedRank): number {
+  const multipliers: Record<FlagshipSpeedRank, number> = {
+    none: 1,
+    bronze: 1.1,
+    silver: 1.2,
+    gold: 1.35,
+    platinum: 1.5,
+    diamond: 1.75,
+  };
+  return multipliers[rank];
 }

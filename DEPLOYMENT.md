@@ -3,7 +3,7 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：注册/登录功能已启用，支持 GitHub OAuth；官网升级为史诗叙事风格并新增世界观 `/world`、旗舰模式 `/flagship`、赛季 `/season`、英雄档案 `/heroes` 等专题页；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
+> 当前版本特性：注册/登录功能已启用，支持 GitHub OAuth 与邮箱验证码登录；官网升级为 Awwwards 级旗舰设计；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；三人称引擎架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）与诅咒祝福双选系统；多人联机基础设施（网络预测、状态插值、Delta 同步、连接质量监控、匹配队列）；HUD 旗舰重设计（核工业美学、击杀推送、武器面板、状态效果栏）；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
 
 ---
 
@@ -24,11 +24,16 @@
 | 算法 API | `pages/api/algorithms/run.ts` | 在线运行任意已注册算法 |
 | 管理后台 | `pages/admin.tsx`, `pages/api/announcements.ts` | 公告管理，需 `ADMIN_KEY` |
 | 排行榜 API | `pages/api/leaderboard.ts` | 全球战绩提交与查询 |
-| 登录入口 | `pages/login.tsx`, `middleware.ts` | 已启用，支持 GitHub OAuth；登录后访问 `/game` 等受保护页面 |
+| 登录入口 | `pages/login.tsx`, `middleware.ts` | 已启用，支持 GitHub OAuth 与邮箱验证码登录 |
 | 旗舰模式核心 | `lib/game/flagship.ts`, `lib/game/engine.ts`, `lib/game/types.ts` | 赛季挑战、奖励分支、超频阶段、赛季 XP/货币 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
+| 动态天气系统 | `lib/game/weather.ts` | 辐射风暴、酸雨、沙尘暴实时影响战场 |
+| 诅咒祝福双选 | `lib/game/curseBlessing.ts` | Roguelike 模式诅咒与祝福二选一配对系统 |
+| 三引擎算法架构 | `lib/engine/alpha.ts`, `lib/engine/beta.ts`, `lib/engine/infra.ts` | α 玩家端 / β 敌方端 / 基础设施三引擎合并 |
+| 多人联机基础设施 | `lib/network/` | 网络预测、状态插值、Delta 同步、Jitter 缓冲、连接质量监控、匹配队列 |
 | 近战武器系统 | `lib/game/balance.ts`, `lib/game/engine.ts`, `lib/game/weapons.ts`, `lib/game/types.ts` | 4 基础近战 + 1 进阶能量刃，扇形/突刺双机制 |
 | 英雄技能增强 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果上调，新增近战天赋联动与部署物更新 |
+| HUD 旗舰重设计 | `components/Hud.tsx`, `components/game/HudDesktop.tsx`, `components/game/HudMobile.tsx`, `components/game/KillFeed.tsx` | 核工业美学、击杀推送、武器面板、状态效果栏 |
 | Supabase 后端 | `lib/supabase/`, `supabase/schema.sql` | Postgres 数据库与类型契约 |
 | 进程管理 | `ecosystem.config.cjs` | PM2 跨平台配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
@@ -544,6 +549,11 @@ pm2 restart project-m --update-env
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
 - [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
 - [ ] 游戏内新手武器栏包含 2 远程 + 1 近战共 3 把武器
+- [ ] 游戏内天气系统效果可见（辐射风暴、酸雨、沙尘暴）
+- [ ] Roguelike 模式中诅咒祝福双选弹窗正常显示
+- [ ] 多人联机模式下网络预测与状态同步正常
+- [ ] 游戏 HUD 显示武器面板、击杀推送、状态效果栏
+- [ ] 算法页面显示三引擎架构（α / β / 基础设施）
 
 ---
 
@@ -559,6 +569,10 @@ pm2 restart project-m --update-env
 | `nginx/project-m.conf` | Nginx 反向代理配置模板 |
 | `supabase/schema.sql` | 数据库建表、RLS、触发器 |
 | `lib/algorithms/` | 六大核心算法实现与注册表 |
+| `lib/engine/` | 三引擎架构（α 玩家端 / β 敌方端 / 基础设施） |
+| `lib/network/` | 多人联机基础设施（预测、插值、Delta、Jitter、匹配） |
+| `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
+| `lib/game/curseBlessing.ts` | 诅咒祝福双选系统 |
 | `pages/world.tsx` | 世界观叙事页 |
 | `pages/flagship.tsx` | 旗舰模式专题页 |
 | `pages/season.tsx` | 赛季进度与奖励页 |
@@ -566,6 +580,10 @@ pm2 restart project-m --update-env
 | `pages/leaderboard.tsx` | 战绩与全球排行榜页 |
 | `pages/algorithms.tsx` | 算法公开演示页面 |
 | `pages/api/algorithms/run.ts` | 算法在线运行 API |
+| `components/Hud.tsx` | HUD 主入口（桌面/移动端路由） |
+| `components/game/HudDesktop.tsx` | 旗舰桌面 HUD（核工业美学、武器面板、击杀推送） |
+| `components/game/HudMobile.tsx` | 旗舰移动端 HUD |
+| `components/game/KillFeed.tsx` | 实时击杀滚动通知 |
 | `lib/game/flagship.ts` | 旗舰模式挑战、奖励与状态管理 |
 | `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
 | `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
@@ -687,6 +705,75 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 - `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算；
 - `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑；
 - `lib/game/ai.test.ts`：AI 行为适配近战范围（如 spitter 改为横向游斗）。
+
+### 16.10 三引擎算法架构
+
+L3V100 旗舰版将 11 个独立算法合并为三个内聚引擎：
+
+| 引擎 | 定位 | 包含算法 | 文件 |
+|------|------|----------|------|
+| α 引擎 | 玩家端 | DDA 动态难度、经济平衡、匹配系统、奖励推荐、内容推荐、反作弊 | `lib/engine/alpha.ts` |
+| β 引擎 | 敌方端 | Bot AI、生成优化、敌人移动 | `lib/engine/beta.ts` |
+| 基础设施引擎 | 共享 | 地图平衡、网络预测 | `lib/engine/infra.ts` |
+
+每个引擎提供统一输入输出接口，支持独立测试与替换。引擎间通过 `lib/algorithms/registry.ts` 统一注册，算法页面 `/algorithms` 展示所有引擎的实时演示。
+
+### 16.11 动态天气系统
+
+`lib/game/weather.ts` 实现三种天气类型，在防守模式中随机切换：
+
+| 天气 | 视觉效果 | 玩家影响 | 敌人影响 |
+|------|----------|----------|----------|
+| 辐射风暴 | 绿色粒子、屏幕闪烁 | 移速 -15%、持续伤害 2/s | 移速 +10% |
+| 酸雨 | 蓝色下落粒子、屏幕腐蚀 | 护甲 -30%、移速 -10% | 生命回复 +5/s |
+| 沙尘暴 | 棕色粒子、视野缩小 | 视野 -40%、移速 -20% | 无影响 |
+
+天气持续 30-60 秒，切换间隔 45-90 秒。天气效果通过 `WeatherState` 注入 `GameState`，引擎每帧应用天气修正。
+
+### 16.12 诅咒祝福双选系统
+
+`lib/game/curseBlessing.ts` 为 Roguelike 模式提供每次升级时的二选一机制：
+
+- **诅咒（Curse）**：负面效果 + 高额奖励（如 "移速 -15%，但经验获取 +40%"）
+- **祝福（Blessing）**：纯正面增益（如 "攻击力 +15%"）
+
+配对规则确保每次选择都有意义：诅咒提供更高奖励倍率以平衡风险，祝福提供稳定但较低的增益。系统通过 `CurseBlessingState` 注入 `GameState`，UI 通过 `RoguelikeRewardModal` 展示。
+
+### 16.13 多人联机基础设施
+
+`lib/network/` 提供完整的多人联机底层支持：
+
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| 网络预测 | `prediction.ts` | 客户端输入预测 + 服务端状态校正 |
+| Jitter 缓冲 | `jitter.ts` | 输入缓冲、重放、乱序处理 |
+| Delta 同步 | `delta.ts` | 增量状态编码/解码，减少带宽 |
+| 连接质量 | `quality.ts` | 延迟、丢包率、带宽实时监控 |
+| 匹配队列 | `matchmaking.ts` | 基于技能分 + 延迟的匹配算法 |
+| 房间管理 | `room.ts` | 多人房间生命周期、心跳、广播 |
+| 信令服务 | `signaling.ts` | WebRTC 信令交换 |
+| 点对点连接 | `peer.ts` | WebRTC DataChannel 封装 |
+
+所有模块通过 `lib/network/index.ts` 统一导出，`room.ts` 中集成所有子模块实现自适应网络质量调整。
+
+### 16.14 HUD 旗舰重设计
+
+战斗内 HUD 完成旗舰级重设计，核工业美学风格匹配首页：
+
+| 组件 | 文件 | 功能 |
+|------|------|------|
+| HUD 主入口 | `components/Hud.tsx` | 桌面/移动端自动路由、HUD 缩放 |
+| 桌面 HUD | `components/game/HudDesktop.tsx` | 玩家状态面板、武器面板、技能按钮、击杀推送、统计行 |
+| 移动 HUD | `components/game/HudMobile.tsx` | 紧凑状态栏、触控优化技能按钮、防守模式指示器 |
+| 击杀推送 | `components/game/KillFeed.tsx` | 实时滚动击杀通知（AnimatePresence + 自动过期） |
+
+新增特性：
+- **武器面板**：显示所有武器冷却环（SVG 圆环进度），就绪/冷却状态区分
+- **状态效果栏**：护甲、暴击、回复、范围等被动效果可视化标签
+- **渐变血条**：绿/黄/红三色渐变，低血量脉冲动画
+- **击杀推送**：滚动显示击杀者、武器、受害者，自动消失
+- **连杀指示器**：底部进度条显示连杀窗口剩余时间
+- **核工业美学**：玻璃拟态面板、渐变边框、战术字体、扫描线效果
 
 ---
 

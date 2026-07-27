@@ -13,6 +13,12 @@ export interface ExtremeSurvivalRun {
   overclockBranchChosen: boolean;
   coreHealthPercent: number;
   elapsedTime: number;
+  scoreMultiplier: number;
+  totalScore: number;
+  overclockWavesSurvived: number;
+  bossKills: number;
+  eliteKills: number;
+  perfectWaves: number;
 }
 
 export interface WaveEnemyConfig {
@@ -25,8 +31,10 @@ export interface WaveEnemyConfig {
   specialChance: number;
 }
 
+export type PulseEventType = "eliteSurge" | "fog" | "coreOverload" | "resourceStorm" | "redBreath" | "entropyStorm" | "gravityWell" | "timeWarp" | "doubleTrouble" | "lastStand";
+
 export interface PulseEvent {
-  type: "eliteSurge" | "fog" | "coreOverload" | "resourceStorm" | "redBreath";
+  type: PulseEventType;
   title: string;
   description: string;
   durationSec: number;

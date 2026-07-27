@@ -1,4 +1,5 @@
 import type { SerializedGameState, InputState, GameModeType, GameEvent } from "@/lib/game/types";
+import type { DeltaMessage } from "./delta";
 
 export type NetworkRole = "host" | "client";
 
@@ -26,6 +27,7 @@ export interface StateBatchMessage {
   frameStart: number;
   frameEnd: number;
   timestamp: number;
+  deltaMsg?: DeltaMessage;
 }
 
 export interface HostMigrationMessage {

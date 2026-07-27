@@ -1,8 +1,11 @@
 import type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom } from "@/lib/network/types";
 import type { ExtremeSurvivalRun } from "@/lib/extreme-survival/types";
+import type { WeatherState } from "./weather";
+import type { CurseBlessingState } from "./curseBlessing";
 
 export type { NetworkRole, NetworkMessage, NetworkPlayer, GameRoom };
 export type { ExtremeSurvivalRun };
+export type { CurseBlessingState };
 
 export interface Vec2 {
   x: number;
@@ -21,7 +24,7 @@ export interface Circle {
 }
 
 export type GameStatus =
-  "idle" | "running" | "paused" | "levelup" | "reward" | "victory" | "defeat";
+  "idle" | "running" | "paused" | "levelup" | "reward" | "curseBlessing" | "victory" | "defeat";
 
 export type GameModeType =
   | "campaign"
@@ -157,9 +160,14 @@ export interface DeathmatchScore {
   kills: number;
   deaths: number;
   damageDealt: number;
+  streak: number;
+  bestStreak: number;
+  multiKillCount: number;
 }
 
 export type DeathmatchBotState = "idle" | "chase" | "strafe" | "flee" | "respawn";
+
+export type DeathmatchBotTier = "rookie" | "veteran" | "elite" | "predator";
 
 export interface DeathmatchBot {
   id: string;
@@ -170,6 +178,32 @@ export interface DeathmatchBot {
   aimX: number;
   aimY: number;
   fireTimer: number;
+  tier: DeathmatchBotTier;
+  powerUpTimer: number;
+  powerUpType: DeathmatchPowerUpType | null;
+}
+
+export type DeathmatchPowerUpType = "damage_boost" | "speed_boost" | "shield" | "invisibility" | "armor_boost";
+
+export interface DeathmatchPowerUp {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  type: DeathmatchPowerUpType;
+  duration: number;
+  color: string;
+}
+
+export interface DeathmatchHazard {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  damage: number;
+  duration: number;
+  timer: number;
+  color: string;
 }
 
 export interface DeathmatchState {
@@ -182,6 +216,15 @@ export interface DeathmatchState {
   matchEnded: boolean;
   winnerId: string | null;
   pickupTimer?: number;
+  powerUps: DeathmatchPowerUp[];
+  powerUpTimer: number;
+  hazards: DeathmatchHazard[];
+  hazardTimer: number;
+  killStreakTimer: number;
+  streakAnnouncements: string[];
+  comboMultiplier: number;
+  phase: "early" | "mid" | "late" | "sudden_death";
+  suddenDeathTimer: number;
 }
 
 export interface Mission {
@@ -273,6 +316,7 @@ export interface Player {
   speed: number;
   maxHealth: number;
   health: number;
+  damage: number;
   level: number;
   xp: number;
   xpToNext: number;
@@ -308,6 +352,23 @@ export interface Player {
   knockbackY: number;
   burnDuration: number;
   burnDamage: number;
+  // Curse/Blessing derived stats
+  attackSpeed: number;
+  lifesteal: number;
+  skillDamageMul: number;
+  critMultiplier: number;
+  dashCooldown: number;
+  explosionOnKill: number;
+  thorns: number;
+  multishotChance: number;
+  periodicShield: number;
+  healingReceivedMul: number;
+  bloodPactDrain: number;
+  rangeMul: number;
+  missChance: number;
+  luckPenalty: number;
+  maxDashes: number;
+  threatRadiusMul: number;
   // Animation / visual state
   facing: number;
   animation: SpriteAnimationState;
@@ -692,6 +753,8 @@ export interface GameState {
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
   flagshipState?: FlagshipState;
+  weatherState?: WeatherState;
+  curseBlessingState?: CurseBlessingState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }
@@ -781,7 +844,14 @@ export interface PeakChallengeState {
   seasonXp: number;
   seasonCurrency: number;
   overclockUnlocked: boolean;
+  seasonRank: PeakSeasonRank;
+  bossRushWave: boolean;
+  challengeStreak: number;
+  perfectWaves: number;
+  totalScore: number;
 }
+
+export type PeakSeasonRank = "bronze" | "silver" | "gold" | "platinum" | "diamond" | "master" | "grandmaster";
 
 export interface FlagshipChallenge {
   id: string;
@@ -805,7 +875,15 @@ export interface FlagshipState {
   eliteKills: number;
   coreHealth: number;
   coreMaxHealth: number;
+  timeAttackScore: number;
+  perfectWaves: number;
+  teamComboMultiplier: number;
+  speedRank: FlagshipSpeedRank;
+  waveClearTimes: number[];
+  comboBreakerCount: number;
 }
+
+export type FlagshipSpeedRank = "none" | "bronze" | "silver" | "gold" | "platinum" | "diamond";
 
 export interface SerializedGameState {
   status: GameStatus;
@@ -843,6 +921,8 @@ export interface SerializedGameState {
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
   flagshipState?: FlagshipState;
+  weatherState?: WeatherState;
+  curseBlessingState?: CurseBlessingState;
   selectedHero?: HeroId;
   deployables: Deployable[];
 }

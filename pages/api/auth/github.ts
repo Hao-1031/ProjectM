@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { createCookieStore } from "@/lib/auth/cookies";
 import { applySecurityHeaders } from "@/lib/auth/security";
+import { getRequestBaseUrl } from "@/lib/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   applySecurityHeaders(res);
@@ -13,8 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const cookieStore = createCookieStore(req.cookies);
     const supabase = createClient(cookieStore);
-    const protocol = req.headers["x-forwarded-proto"] || (req.connection?.encrypted ? "https" : "http");
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${req.headers.host}`;
+    const baseUrl = getRequestBaseUrl(req);
     const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
     const callbackUrl = new URL("/api/auth/callback", baseUrl);
     callbackUrl.searchParams.set("next", nextPath);

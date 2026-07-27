@@ -1,6 +1,6 @@
 export type SfxWaveform = "sine" | "square" | "sawtooth" | "triangle" | "noise";
 
-export type SfxCategory = "weapons" | "enemies" | "heroes" | "ui" | "environment" | "legacy";
+export type SfxCategory = "weapons" | "enemies" | "heroes" | "ui" | "environment" | "legacy" | "killstreak" | "weather";
 
 export interface SfxConfig {
   category: SfxCategory;
@@ -76,7 +76,19 @@ export type SfxKey =
   | "industrialHum"
   | "frozenWind"
   | "biohazardBubble"
-  | "coreOverload";
+  | "coreOverload"
+  // Kill streaks
+  | "killStreak3"
+  | "killStreak5"
+  | "killStreak10"
+  | "killStreak15"
+  | "killStreakRampage"
+  // Weather
+  | "rainAmbient"
+  | "snowAmbient"
+  | "ashAmbient"
+  | "thunderClap"
+  | "lowHealthBeat";
 
 const SAMPLE_RATE = 44100;
 
@@ -649,5 +661,93 @@ export const SFX_BANK: Record<SfxKey, SfxConfig> = {
     volume: 0.12,
     slide: 40,
     pitchVariation: 0.03,
+  },
+  // Kill streaks
+  killStreak3: {
+    category: "killstreak",
+    frequency: 880,
+    duration: 0.4,
+    type: "sine",
+    volume: 0.16,
+    slide: 300,
+    pitchVariation: 0.02,
+  },
+  killStreak5: {
+    category: "killstreak",
+    frequency: 1100,
+    duration: 0.5,
+    type: "square",
+    volume: 0.18,
+    slide: 400,
+    pitchVariation: 0.03,
+  },
+  killStreak10: {
+    category: "killstreak",
+    frequency: 1320,
+    duration: 0.6,
+    type: "square",
+    volume: 0.2,
+    slide: 500,
+    pitchVariation: 0.03,
+  },
+  killStreak15: {
+    category: "killstreak",
+    frequency: 1760,
+    duration: 0.7,
+    type: "sawtooth",
+    volume: 0.22,
+    slide: 600,
+    pitchVariation: 0.04,
+  },
+  killStreakRampage: {
+    category: "killstreak",
+    frequency: 2200,
+    duration: 0.9,
+    type: "sawtooth",
+    volume: 0.25,
+    slide: 800,
+    pitchVariation: 0.05,
+  },
+  // Weather
+  rainAmbient: {
+    category: "weather",
+    frequency: 400,
+    duration: 2.0,
+    type: "noise",
+    volume: 0.08,
+    pitchVariation: 0.1,
+  },
+  snowAmbient: {
+    category: "weather",
+    frequency: 200,
+    duration: 2.0,
+    type: "noise",
+    volume: 0.05,
+    pitchVariation: 0.08,
+  },
+  ashAmbient: {
+    category: "weather",
+    frequency: 150,
+    duration: 2.0,
+    type: "noise",
+    volume: 0.06,
+    pitchVariation: 0.1,
+  },
+  thunderClap: {
+    category: "weather",
+    frequency: 60,
+    duration: 0.8,
+    type: "noise",
+    volume: 0.25,
+    slide: -80,
+    pitchVariation: 0.04,
+  },
+  lowHealthBeat: {
+    category: "weather",
+    frequency: 120,
+    duration: 0.15,
+    type: "square",
+    volume: 0.14,
+    pitchVariation: 0.02,
   },
 };

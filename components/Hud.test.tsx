@@ -16,7 +16,7 @@ describe("Hud", () => {
     const state = new GameEngine().state;
     renderHud(state);
     expect(screen.getByText(Math.ceil(state.player.health).toString())).toBeInTheDocument();
-    expect(screen.getByText(state.stats.kills.toString())).toBeInTheDocument();
+    expect(screen.getAllByText(state.stats.kills.toString()).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByLabelText("暂停")).toBeInTheDocument();
   });
 

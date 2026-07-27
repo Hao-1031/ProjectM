@@ -24,6 +24,7 @@ import type {
   WeaponId,
   DefenseState,
   DeathmatchState,
+  DeathmatchBotTier,
   BossId,
   Vec2,
   DefenseWave,
@@ -123,7 +124,11 @@ import {
   generateRewardOptions,
   applyReward,
   shouldOfferReward,
+  shouldOfferCurseBlessing,
+  generateCurseBlessingOptions,
+  applyCurseBlessingChoice,
 } from "./roguelike";
+import type { CurseBlessingPair } from "./curseBlessing";
 import {
   DEFAULT_BALANCE,
   getSpawnInterval,
@@ -177,6 +182,8 @@ import {
   recordKill,
   recordDamage,
   getDeathmatchLeaderId,
+  applyDeathmatchHazardDamage,
+  getBotTierName,
 } from "./deathmatch";
 import {
   applyHeroToPlayer,
@@ -203,6 +210,8 @@ import {
   getTodayClaimed,
   addTodayClaimed,
 } from "@/lib/extreme-survival/rewards";
+import { updateWeather, getWeatherEffect, createWeatherState } from "./weather";
+import type { WeatherState } from "./weather";
 
 const MAP_WIDTH = 2400;
 const MAP_HEIGHT = 1800;
@@ -237,6 +246,7 @@ export interface GameCallbacks {
   onEventStart?: (event: GameEvent) => void;
   onBossPhaseChange?: (boss: Enemy, phase: number) => void;
   onRoguelikeRewardOffer?: (options: RoguelikeRewardBalance[]) => void;
+  onCurseBlessingOffer?: (pairs: CurseBlessingPair[]) => void;
   onKillStreak?: (count: number) => void;
   onBranchChoiceRequest?: () => void;
 }
@@ -353,12 +363,18 @@ export class GameEngine {
         { x: map.width * 0.2, y: map.height * 0.8 },
         { x: map.width * 0.8, y: map.height * 0.8 },
       ];
+      const tierFromSkin: Record<string, DeathmatchBotTier> = {
+        "#3b82f6": "rookie",
+        "#f59e0b": "elite",
+        "#ef4444": "predator",
+      };
       for (let i = 0; i < deathmatchState.botCount; i++) {
         const botId = `bot_${i}`;
         const pos = spawnPoints[i % spawnPoints.length];
         const bot = createBotPlayerRng(this.rng, botId, pos.x, pos.y);
         players.push(bot);
-        deathmatchState.bots.push(createBotAI(botId));
+        const tier = tierFromSkin[bot.skinColor ?? ""] ?? "veteran";
+        deathmatchState.bots.push(createBotAI(botId, tier));
       }
     }
 
@@ -432,6 +448,11 @@ export class GameEngine {
       this.initAlphaScheduler(state);
     }
 
+    // Initialize weather system for defense-like modes
+    if (isDefenseLike) {
+      state.weatherState = createWeatherState();
+    }
+
     if (mode === "extreme-survival" && state.defenseState) {
       state.defenseState.totalWaves = 999;
       state.defenseState.waves = this.generateExtremeSurvivalWaves(state.defenseState, state.extremeSurvivalRun?.phase ?? "normal");
@@ -464,6 +485,12 @@ export class GameEngine {
       overclockBranchChosen: false,
       coreHealthPercent: 1,
       elapsedTime: 0,
+      scoreMultiplier: 1,
+      totalScore: 0,
+      overclockWavesSurvived: 0,
+      bossKills: 0,
+      eliteKills: 0,
+      perfectWaves: 0,
     };
   }
 
@@ -680,6 +707,7 @@ export class GameEngine {
       speed: cfg.baseSpeed,
       maxHealth: cfg.baseHealth,
       health: cfg.baseHealth,
+      damage: 10,
       level: 1,
       xp: 0,
       xpToNext: cfg.levelXpMultiplier,
@@ -714,6 +742,22 @@ export class GameEngine {
       knockbackY: 0,
       burnDuration: 0,
       burnDamage: 0,
+      attackSpeed: 1,
+      lifesteal: 0,
+      skillDamageMul: 1,
+      critMultiplier: 1.5,
+      dashCooldown: 3,
+      explosionOnKill: 0,
+      thorns: 0,
+      multishotChance: 0,
+      periodicShield: 0,
+      healingReceivedMul: 1,
+      bloodPactDrain: 0,
+      rangeMul: 1,
+      missChance: 0,
+      luckPenalty: 0,
+      maxDashes: 2,
+      threatRadiusMul: 1,
       facing: 0,
       animation: "idle",
       animationTimer: 0,
@@ -1070,6 +1114,16 @@ export class GameEngine {
     this.updateKillCombo(dt);
     this.handleCollisions();
     this.updateCamera();
+    this.updateWeather(dt);
+
+    if (isDeathmatch) {
+      applyDeathmatchHazardDamage(this.state, this.state.player);
+      for (const p of this.state.players) {
+        if (p.health > 0) {
+          applyDeathmatchHazardDamage(this.state, p);
+        }
+      }
+    }
 
     this.fx.update(dt);
   }
@@ -1078,15 +1132,22 @@ export class GameEngine {
     const player = this.state.player;
     const move = normalize(input.move);
 
+    const weatherEffect = this.state.weatherState
+      ? getWeatherEffect(this.state.weatherState.type)
+      : getWeatherEffect("clear");
+    const weatherSpeedMul = weatherEffect.playerSpeedMul;
+
     const accel = 1800;
     player.knockbackX *= Math.max(0, 1 - dt * 6);
     player.knockbackY *= Math.max(0, 1 - dt * 6);
 
+    const effectiveSpeed = player.speed * weatherSpeedMul;
+
     if (move.x !== 0 || move.y !== 0) {
       player.knockbackX +=
-        (move.x * player.speed - player.knockbackX) * Math.min(1, (accel * dt) / player.speed);
+        (move.x * effectiveSpeed - player.knockbackX) * Math.min(1, (accel * dt) / effectiveSpeed);
       player.knockbackY +=
-        (move.y * player.speed - player.knockbackY) * Math.min(1, (accel * dt) / player.speed);
+        (move.y * effectiveSpeed - player.knockbackY) * Math.min(1, (accel * dt) / effectiveSpeed);
       transitionAnimation(player, "move");
     } else {
       transitionAnimation(player, "idle");
@@ -1974,6 +2035,10 @@ export class GameEngine {
       } else if (enemy.slow > 0) {
         speedMul *= Math.max(0.1, 1 - enemy.slow);
       }
+      const weatherEnemyMul = this.state.weatherState
+        ? getWeatherEffect(this.state.weatherState.type).enemySpeedMul
+        : 1;
+      speedMul *= weatherEnemyMul;
       const moveX = steering.vx * enemy.speed * speedMul * dt;
       const moveY = steering.vy * enemy.speed * speedMul * dt;
 
@@ -2220,6 +2285,14 @@ export class GameEngine {
         const options = generateRewardOptions(run, this.state.player);
         this.state.status = "reward";
         this.callbacks.onRoguelikeRewardOffer?.(options);
+        return;
+      }
+
+      if (shouldOfferCurseBlessing(run)) {
+        const pairs = generateCurseBlessingOptions(run);
+        this.state.status = "curseBlessing";
+        this.state.curseBlessingState = run.curseBlessing;
+        this.callbacks.onCurseBlessingOffer?.(pairs);
         return;
       }
 
@@ -2636,6 +2709,15 @@ export class GameEngine {
       run.coreHealthPercent = snapshot.coreHealthPercent;
       run.elapsedTime = this.state.stats.timeSurvived;
       run.performanceScore = calculatePerformanceScore(snapshot);
+      run.scoreMultiplier = 1 + (run.phase === "overclock" ? run.overclockWavesSurvived * 0.1 : 0);
+      run.totalScore += Math.round(snapshot.killsLastWave * 10 * run.scoreMultiplier);
+      if (run.phase === "overclock") {
+        run.overclockWavesSurvived += 1;
+      }
+      if (snapshot.coreHealthPercent >= 0.95) {
+        run.perfectWaves += 1;
+        run.totalScore += 100;
+      }
       this.extremeSurvivalLastSnapshot = snapshot;
       this.extremeSurvivalLastKills = this.state.stats.kills;
     }
@@ -3057,6 +3139,17 @@ export class GameEngine {
         recordFlagshipBossKill(this.state);
       }
     }
+    if (this.state.mode === "extreme-survival" && this.state.extremeSurvivalRun) {
+      const run = this.state.extremeSurvivalRun;
+      if (enemy.isBoss) {
+        run.bossKills += 1;
+        run.totalScore += 500;
+      }
+      if (enemy.isElite) {
+        run.eliteKills += 1;
+        run.totalScore += 50;
+      }
+    }
 
     if (enemy.isElite) {
       this.state.stats.elitesKilled++;
@@ -3218,6 +3311,20 @@ export class GameEngine {
     if (this.state.status !== "reward" || !this.state.roguelikeRunState) return;
     const success = applyReward(this.state.roguelikeRunState, this.state.player, rewardId);
     if (!success) return;
+    this.state.status = "running";
+    this.state.lastTime = performance.now();
+    this.advanceRoguelikeStage();
+  }
+
+  selectCurseBlessing(pairIndex: number) {
+    if (this.state.status !== "curseBlessing" || !this.state.roguelikeRunState) return;
+    const success = applyCurseBlessingChoice(
+      this.state.roguelikeRunState,
+      pairIndex,
+      this.state.player
+    );
+    if (!success) return;
+    this.state.curseBlessingState = this.state.roguelikeRunState.curseBlessing;
     this.state.status = "running";
     this.state.lastTime = performance.now();
     this.advanceRoguelikeStage();
@@ -3409,6 +3516,9 @@ export class GameEngine {
       flagshipState: this.state.flagshipState,
       fixedWaveState: this.state.fixedWaveState,
       deployables: this.state.deployables,
+      weatherState: this.state.weatherState,
+      curseBlessingState: this.state.curseBlessingState,
+      selectedHero: this.state.selectedHero,
     };
   }
 
@@ -3459,6 +3569,15 @@ export class GameEngine {
     }
     if (serialized.deployables) {
       this.state.deployables = serialized.deployables;
+    }
+    if (serialized.weatherState) {
+      this.state.weatherState = serialized.weatherState;
+    }
+    if (serialized.curseBlessingState) {
+      this.state.curseBlessingState = serialized.curseBlessingState;
+    }
+    if (serialized.selectedHero) {
+      this.state.selectedHero = serialized.selectedHero;
     }
   }
 
@@ -4741,6 +4860,63 @@ export class GameEngine {
 
   get formatTimeSurvived() {
     return formatTime(this.state.stats.timeSurvived);
+  }
+
+  private updateWeather(dt: number) {
+    const ws = this.state.weatherState;
+    if (!ws) return;
+
+    const updated = updateWeather(ws, dt);
+    this.state.weatherState = updated;
+
+    if (updated.transitionProgress > 0) return;
+    const effect = getWeatherEffect(updated.type);
+    if (!effect) return;
+
+    // Apply DOT damage to player
+    if (effect.dotDamagePerSec > 0) {
+      this.state.player.health -= effect.dotDamagePerSec * dt;
+      if (this.state.player.health <= 0) {
+        this.state.player.health = 0;
+        this.endRun(false);
+        return;
+      }
+    }
+
+    // Apply DOT damage to enemies
+    if (effect.dotDamagePerSec > 0) {
+      for (let i = this.state.enemies.length - 1; i >= 0; i--) {
+        const enemy = this.state.enemies[i];
+        if (enemy.health <= 0) continue;
+        enemy.health -= effect.dotDamagePerSec * dt;
+        if (enemy.health <= 0) {
+          enemy.health = 0;
+          this.killEnemy(enemy, i);
+        }
+      }
+    }
+
+    // Lightning strikes on enemies
+    if (effect.lightningChancePerSec > 0 && this.state.enemies.length > 0) {
+      for (let i = this.state.enemies.length - 1; i >= 0; i--) {
+        const enemy = this.state.enemies[i];
+        if (enemy.health <= 0) continue;
+        if (Math.random() < effect.lightningChancePerSec * dt) {
+          enemy.health -= effect.lightningDamage;
+          this.particlePool.spawnPreset(
+            "spark",
+            enemy.x,
+            enemy.y,
+            "#6366f1",
+            { intensity: 0.9 }
+          );
+          if (enemy.health <= 0) {
+            enemy.health = 0;
+            this.killEnemy(enemy, i);
+          }
+        }
+      }
+    }
   }
 }
 

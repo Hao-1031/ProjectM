@@ -8,6 +8,7 @@ import type {
   GameState,
   RoguelikeStage,
   AffixId,
+  DeathmatchBotTier,
 } from "./types";
 
 // ========================================================================
@@ -212,6 +213,15 @@ export interface DeathmatchBalance {
   arenaHeight: number;
   pickupSpawnInterval: number;
   pickupHealValue: number;
+  powerUpSpawnInterval: number;
+  powerUpDuration: number;
+  hazardSpawnInterval: number;
+  hazardDamage: number;
+  hazardDuration: number;
+  streakBonusDamage: number;
+  comboScoreMultiplier: number;
+  botTierWeights: Record<DeathmatchBotTier, number>;
+  suddenDeathTriggerTime: number;
 }
 
 export interface DefenseCompletionRewardBalance {
@@ -1621,6 +1631,15 @@ export const DEFAULT_BALANCE: BalanceConfig = {
       arenaHeight: 1200,
       pickupSpawnInterval: 12,
       pickupHealValue: 60,
+      powerUpSpawnInterval: 20,
+      powerUpDuration: 8,
+      hazardSpawnInterval: 25,
+      hazardDamage: 15,
+      hazardDuration: 10,
+      streakBonusDamage: 0.08,
+      comboScoreMultiplier: 0.15,
+      botTierWeights: { rookie: 0.4, veteran: 0.35, elite: 0.2, predator: 0.05 },
+      suddenDeathTriggerTime: 150,
     },
     roguelikeRewards: [
       {
@@ -2121,3 +2140,95 @@ export const PASSIVE_BALANCE_DEFS: PassiveBalanceDef[] = [
     },
   },
 ];
+
+// ========================================================================
+// 平衡调优工具 (Balance Tuner)
+// ========================================================================
+
+export interface BalanceTuningPoint {
+  stageIndex: number;
+  healthMultiplier: number;
+  damageMultiplier: number;
+  speedMultiplier: number;
+  spawnRateMultiplier: number;
+  affixChance: number;
+}
+
+export function getDifficultyCurve(mode: string): BalanceTuningPoint[] {
+  const curves: Record<string, BalanceTuningPoint[]> = {
+    campaign: [
+      { stageIndex: 0, healthMultiplier: 1.0, damageMultiplier: 1.0, speedMultiplier: 1.0, spawnRateMultiplier: 1.0, affixChance: 0 },
+      { stageIndex: 5, healthMultiplier: 1.3, damageMultiplier: 1.15, speedMultiplier: 1.05, spawnRateMultiplier: 1.1, affixChance: 0.1 },
+      { stageIndex: 10, healthMultiplier: 1.8, damageMultiplier: 1.35, speedMultiplier: 1.12, spawnRateMultiplier: 1.25, affixChance: 0.25 },
+      { stageIndex: 15, healthMultiplier: 2.5, damageMultiplier: 1.6, speedMultiplier: 1.2, spawnRateMultiplier: 1.4, affixChance: 0.4 },
+    ],
+    "extreme-survival": [
+      { stageIndex: 0, healthMultiplier: 1.5, damageMultiplier: 1.3, speedMultiplier: 1.1, spawnRateMultiplier: 1.2, affixChance: 0.2 },
+      { stageIndex: 3, healthMultiplier: 2.2, damageMultiplier: 1.7, speedMultiplier: 1.2, spawnRateMultiplier: 1.5, affixChance: 0.4 },
+      { stageIndex: 6, healthMultiplier: 3.5, damageMultiplier: 2.2, speedMultiplier: 1.35, spawnRateMultiplier: 2.0, affixChance: 0.6 },
+      { stageIndex: 10, healthMultiplier: 5.5, damageMultiplier: 3.0, speedMultiplier: 1.5, spawnRateMultiplier: 2.5, affixChance: 0.8 },
+    ],
+    "peak-challenge": [
+      { stageIndex: 0, healthMultiplier: 1.8, damageMultiplier: 1.5, speedMultiplier: 1.15, spawnRateMultiplier: 1.3, affixChance: 0.3 },
+      { stageIndex: 3, healthMultiplier: 3.0, damageMultiplier: 2.2, speedMultiplier: 1.3, spawnRateMultiplier: 1.8, affixChance: 0.5 },
+      { stageIndex: 6, healthMultiplier: 5.0, damageMultiplier: 3.0, speedMultiplier: 1.45, spawnRateMultiplier: 2.5, affixChance: 0.7 },
+      { stageIndex: 10, healthMultiplier: 8.0, damageMultiplier: 4.5, speedMultiplier: 1.6, spawnRateMultiplier: 3.5, affixChance: 0.9 },
+    ],
+    flagship: [
+      { stageIndex: 0, healthMultiplier: 2.0, damageMultiplier: 1.7, speedMultiplier: 1.2, spawnRateMultiplier: 1.5, affixChance: 0.35 },
+      { stageIndex: 3, healthMultiplier: 3.5, damageMultiplier: 2.5, speedMultiplier: 1.35, spawnRateMultiplier: 2.0, affixChance: 0.55 },
+      { stageIndex: 6, healthMultiplier: 6.0, damageMultiplier: 3.5, speedMultiplier: 1.5, spawnRateMultiplier: 3.0, affixChance: 0.75 },
+      { stageIndex: 10, healthMultiplier: 10.0, damageMultiplier: 5.5, speedMultiplier: 1.7, spawnRateMultiplier: 4.0, affixChance: 0.95 },
+    ],
+  };
+  return curves[mode] ?? curves.campaign;
+}
+
+export function interpolateDifficulty(
+  curve: BalanceTuningPoint[],
+  stageIndex: number
+): BalanceTuningPoint {
+  if (curve.length === 0) {
+    return { stageIndex, healthMultiplier: 1, damageMultiplier: 1, speedMultiplier: 1, spawnRateMultiplier: 1, affixChance: 0 };
+  }
+  if (stageIndex <= curve[0].stageIndex) return curve[0];
+  for (let i = 0; i < curve.length - 1; i++) {
+    const a = curve[i];
+    const b = curve[i + 1];
+    if (stageIndex >= a.stageIndex && stageIndex <= b.stageIndex) {
+      const t = (stageIndex - a.stageIndex) / (b.stageIndex - a.stageIndex);
+      return {
+        stageIndex,
+        healthMultiplier: a.healthMultiplier + (b.healthMultiplier - a.healthMultiplier) * t,
+        damageMultiplier: a.damageMultiplier + (b.damageMultiplier - a.damageMultiplier) * t,
+        speedMultiplier: a.speedMultiplier + (b.speedMultiplier - a.speedMultiplier) * t,
+        spawnRateMultiplier: a.spawnRateMultiplier + (b.spawnRateMultiplier - a.spawnRateMultiplier) * t,
+        affixChance: a.affixChance + (b.affixChance - a.affixChance) * t,
+      };
+    }
+  }
+  return curve[curve.length - 1];
+}
+
+export function applyDifficultyToEnemy(
+  enemy: { health: number; maxHealth: number; speed: number; damage?: number },
+  tuning: BalanceTuningPoint
+): void {
+  enemy.health *= tuning.healthMultiplier;
+  enemy.maxHealth *= tuning.healthMultiplier;
+  enemy.speed *= tuning.speedMultiplier;
+  if (enemy.damage !== undefined) {
+    enemy.damage *= tuning.damageMultiplier;
+  }
+}
+
+export function validateScore(score: number, kills: number, waves: number, duration: number, mode: string): boolean {
+  if (score <= 0 || kills < 0 || waves < 0 || duration <= 0) return false;
+  const maxKills = duration * 10;
+  if (kills > maxKills) return false;
+  const maxScore = kills * 100 + waves * 500 + duration * 50;
+  if (score > maxScore) return false;
+  if (mode === "extreme-survival" && duration < 60 && score > 10000) return false;
+  if (mode === "peak-challenge" && duration < 30 && score > 5000) return false;
+  return true;
+}

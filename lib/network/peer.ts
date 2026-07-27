@@ -7,6 +7,8 @@ export interface PeerOptions {
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (error: Error) => void;
+  onBytesSent?: (bytes: number) => void;
+  onBytesReceived?: (bytes: number) => void;
 }
 
 export class PeerConnection {
@@ -18,6 +20,8 @@ export class PeerConnection {
   private onOpen?: () => void;
   private onClose?: () => void;
   onError?: (error: Error) => void;
+  private onBytesSent?: (bytes: number) => void;
+  private onBytesReceived?: (bytes: number) => void;
   private iceCandidates: RTCIceCandidateInit[] = [];
   private messageQueue: NetworkMessage[] = [];
   connected = false;
@@ -29,6 +33,8 @@ export class PeerConnection {
     this.onOpen = options.onOpen;
     this.onClose = options.onClose;
     this.onError = options.onError;
+    this.onBytesSent = options.onBytesSent;
+    this.onBytesReceived = options.onBytesReceived;
   }
 
   createConnection() {
@@ -92,6 +98,10 @@ export class PeerConnection {
       try {
         const text =
           typeof event.data === "string" ? event.data : new TextDecoder().decode(event.data);
+        const byteSize = typeof event.data === "string"
+          ? new TextEncoder().encode(event.data).length
+          : (event.data as ArrayBuffer).byteLength;
+        this.onBytesReceived?.(byteSize);
         const message = JSON.parse(text) as NetworkMessage;
         this.onMessage?.(message);
       } catch (err) {
@@ -174,7 +184,9 @@ export class PeerConnection {
       return;
     }
     const text = JSON.stringify(message);
+    const bytes = new TextEncoder().encode(text).length;
     this.dc.send(text);
+    this.onBytesSent?.(bytes);
   }
 
   private flushMessageQueue(): void {

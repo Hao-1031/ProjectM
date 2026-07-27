@@ -1,7 +1,11 @@
-import type { GameModeType, SerializedGameState } from "@/lib/game/types";
+import type { GameModeType, SerializedGameState, InputState } from "@/lib/game/types";
 import type { ConnectionQuality, NetworkMessage, NetworkPlayer, NetworkRole } from "./types";
 import { PeerConnection } from "./peer";
 import { SignalingChannel } from "./signaling";
+import { ConnectionMonitor, AdaptiveSync } from "./quality";
+import { DeltaEncoder, DeltaDecoder, type DeltaMessage } from "./delta";
+import { NetworkPrediction, StateInterpolation, type ReconciliationResult, type InterpolatedSnapshot } from "./prediction";
+import { JitterBuffer, InputReplay } from "./jitter";
 
 export interface RoomOptions {
   playerName: string;
@@ -62,6 +66,17 @@ export class GameRoomManager {
   private stateBatchQueue: SerializedGameState[] = [];
   private stateBatchFrames: number[] = [];
   private batchInterval: number;
+  private connectionMonitor = new ConnectionMonitor();
+  private adaptiveSync = new AdaptiveSync();
+  private deltaEncoder = new DeltaEncoder();
+  private deltaDecoder = new DeltaDecoder();
+  private prediction = new NetworkPrediction();
+  private interpolation = new StateInterpolation();
+  private jitterBuffer = new JitterBuffer();
+  private inputReplay = new InputReplay();
+  private frameSequence = 0;
+  private bytesSentTotal = 0;
+  private bytesReceivedTotal = 0;
   private onDiscoveryResponse?: (roomCode: string, hostId: string, playerName: string) => void;
 
   private onPeerConnect?: (peerId: string) => void;
@@ -269,6 +284,7 @@ export class GameRoomManager {
 
   private handleMessage(peerId: string, message: NetworkMessage): void {
     this.lastSeen.set(peerId, Date.now());
+    this.connectionMonitor.recordReceived(this.frameSequence++, 0, Date.now());
 
     switch (message.type) {
       case "hello":
@@ -387,6 +403,9 @@ export class GameRoomManager {
       const now = Date.now();
       this.broadcast({ type: "heartbeat", peerId: this.localPeerId, timestamp: now });
 
+      this.connectionMonitor.updateBandwidth();
+      this.adjustBatchInterval();
+
       if (this.role === "host") {
         for (const [peerId, lastSeen] of this.lastSeen.entries()) {
           if (now - lastSeen > HEARTBEAT_TIMEOUT) {
@@ -427,12 +446,14 @@ export class GameRoomManager {
       player.latency = latency;
     }
 
-    const score: ConnectionQuality["score"] = rtt < 100 ? "good" : rtt < 250 ? "fair" : "poor";
+    this.connectionMonitor.recordRtt(rtt);
+
+    const metrics = this.connectionMonitor.getMetrics();
     const quality: ConnectionQuality = {
-      rtt,
-      packetLoss: 0,
-      jitter: 0,
-      score,
+      rtt: metrics.rtt,
+      packetLoss: metrics.packetLoss,
+      jitter: metrics.jitter,
+      score: metrics.score,
     };
     this.connectionQuality.set(peerId, quality);
     this.onConnectionQualityChange?.(peerId, quality);
@@ -447,6 +468,106 @@ export class GameRoomManager {
         score: "unknown",
       }
     );
+  }
+
+  getGlobalConnectionMetrics(): {
+    rtt: number;
+    packetLoss: number;
+    jitter: number;
+    bandwidthEstimate: number;
+    score: string;
+    bytesSent: number;
+    bytesReceived: number;
+  } {
+    const metrics = this.connectionMonitor.getMetrics();
+    return {
+      rtt: metrics.rtt,
+      packetLoss: metrics.packetLoss,
+      jitter: metrics.jitter,
+      bandwidthEstimate: metrics.bandwidthEstimate,
+      score: metrics.score,
+      bytesSent: this.bytesSentTotal,
+      bytesReceived: this.bytesReceivedTotal,
+    };
+  }
+
+  sendDeltaState(state: SerializedGameState): DeltaMessage {
+    const delta = this.deltaEncoder.encode(state);
+    const msg: NetworkMessage = {
+      type: "state_batch",
+      states: [state],
+      frameStart: delta.frame,
+      frameEnd: delta.frame,
+      timestamp: delta.timestamp,
+      deltaMsg: delta,
+    };
+    this.broadcast(msg);
+    return delta;
+  }
+
+  applyDeltaState(deltaMsg: DeltaMessage): SerializedGameState | null {
+    return this.deltaDecoder.apply(deltaMsg);
+  }
+
+  addPredictionInput(frame: number, input: InputState): void {
+    this.prediction.addInput(frame, input);
+  }
+
+  recordPrediction(frame: number, state: SerializedGameState, input: InputState): void {
+    this.prediction.recordPrediction(frame, state, input);
+  }
+
+  reconcile(serverFrame: number, serverState: SerializedGameState): ReconciliationResult {
+    return this.prediction.reconcile(serverFrame, serverState);
+  }
+
+  getUnacknowledgedInputs() {
+    return this.prediction.getUnacknowledgedInputs();
+  }
+
+  getPredictionLead(): number {
+    return this.prediction.getPredictionLead();
+  }
+
+  addServerState(frame: number, state: SerializedGameState, timestamp: number): void {
+    this.interpolation.addServerState(frame, state, timestamp);
+  }
+
+  getInterpolatedState(now: number): InterpolatedSnapshot | null {
+    return this.interpolation.getInterpolatedState(now);
+  }
+
+  getInterpolationBufferFill(): number {
+    return this.interpolation.getBufferFill();
+  }
+
+  bufferJitterInput(frame: number, input: InputState): void {
+    this.jitterBuffer.push(frame, input, Date.now());
+  }
+
+  popJitterInput(now: number) {
+    return this.jitterBuffer.pop(now);
+  }
+
+  getJitterStats() {
+    return this.jitterBuffer.getStats();
+  }
+
+  getJitterInputForFrame(frame: number) {
+    return this.jitterBuffer.getFrameInput(frame);
+  }
+
+  adjustBatchInterval(): void {
+    const metrics = this.connectionMonitor.getMetrics();
+    const newInterval = this.adaptiveSync.adjustInterval(metrics);
+    if (Math.abs(newInterval - this.batchInterval) > 5) {
+      this.batchInterval = newInterval;
+      if (this.batchTimer) {
+        clearInterval(this.batchTimer);
+        this.batchTimer = null;
+      }
+      this.startBatchTimer();
+    }
   }
 
   private startBatchTimer(): void {
@@ -561,12 +682,22 @@ export class GameRoomManager {
   }
 
   broadcast(message: NetworkMessage): void {
+    this.connectionMonitor.recordSent();
+    const text = JSON.stringify(message);
+    const bytes = new TextEncoder().encode(text).length;
+    this.bytesSentTotal += bytes;
+    this.connectionMonitor.recordBytesSent(bytes);
     for (const peer of this.peers.values()) {
       peer.send(message);
     }
   }
 
   sendTo(peerId: string, message: NetworkMessage): void {
+    this.connectionMonitor.recordSent();
+    const text = JSON.stringify(message);
+    const bytes = new TextEncoder().encode(text).length;
+    this.bytesSentTotal += bytes;
+    this.connectionMonitor.recordBytesSent(bytes);
     this.peers.get(peerId)?.send(message);
   }
 
@@ -644,6 +775,16 @@ export class GameRoomManager {
     this.reconnectStates.clear();
     this.pendingPings.clear();
     this.connectionQuality.clear();
+    this.connectionMonitor.reset();
+    this.adaptiveSync.reset();
+    this.deltaEncoder.reset();
+    this.deltaDecoder.reset();
+    this.prediction.reset();
+    this.interpolation.reset();
+    this.jitterBuffer.reset();
+    this.inputReplay.reset();
+    this.bytesSentTotal = 0;
+    this.bytesReceivedTotal = 0;
     this.peers.forEach((peer) => peer.close());
     this.peers.clear();
     this.players = [];
