@@ -3,7 +3,7 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：注册/登录功能已临时关闭，所有页面公开访问；官网升级为史诗叙事风格并新增世界观 `/world`、旗舰模式 `/flagship`、赛季 `/season`、英雄档案 `/heroes` 等专题页；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
+> 当前版本特性：注册/登录功能已启用，支持 GitHub OAuth；官网升级为史诗叙事风格并新增世界观 `/world`、旗舰模式 `/flagship`、赛季 `/season`、英雄档案 `/heroes` 等专题页；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
 
 ---
 
@@ -24,7 +24,7 @@
 | 算法 API | `pages/api/algorithms/run.ts` | 在线运行任意已注册算法 |
 | 管理后台 | `pages/admin.tsx`, `pages/api/announcements.ts` | 公告管理，需 `ADMIN_KEY` |
 | 排行榜 API | `pages/api/leaderboard.ts` | 全球战绩提交与查询 |
-| 登录入口 | `pages/login.tsx`, `middleware.ts` | 已临时关闭，显示维护提示 |
+| 登录入口 | `pages/login.tsx`, `middleware.ts` | 已启用，支持 GitHub OAuth；登录后访问 `/game` 等受保护页面 |
 | 旗舰模式核心 | `lib/game/flagship.ts`, `lib/game/engine.ts`, `lib/game/types.ts` | 赛季挑战、奖励分支、超频阶段、赛季 XP/货币 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
 | 近战武器系统 | `lib/game/balance.ts`, `lib/game/engine.ts`, `lib/game/weapons.ts`, `lib/game/types.ts` | 4 基础近战 + 1 进阶能量刃，扇形/突刺双机制 |
@@ -120,7 +120,7 @@ nano .env.local
 | `NODE_ENV` | 手动 | 是 | 固定填 `production` |
 | `PORT` | 手动 | 是 | 应用监听端口，默认 `3000` |
 | `HOSTNAME` | 手动 | 是 | 填 `0.0.0.0` |
-| `NEXT_PUBLIC_SITE_URL` | 手动 | 是 | 生产域名，如 `https://your-domain.com` |
+| `NEXT_PUBLIC_SITE_URL` | 手动 | 是 | 生产环境完整 URL，如 `http://121.40.218.245:3000` 或 `https://your-domain.com`；**必须与 GitHub OAuth App 的回调地址一致** |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard | 是 | Supabase 项目 URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard | 是 | 公开 anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard | 是 | 服务端 service role key，切勿暴露 |
@@ -151,10 +151,36 @@ openssl rand -base64 32
 3. 粘贴 [`supabase/schema.sql`](./supabase/schema.sql) 全部内容并运行。
 4. 如需测试数据，再运行 [`supabase/seed.sql`](./supabase/seed.sql)。
 5. 在 Authentication > URL Configuration 中配置：
-   - Site URL: `https://your-domain.com`
-   - Redirect URL: `https://your-domain.com/api/auth/callback`
+   - Site URL: `http://121.40.218.245:3000`（或你的域名）
+   - Redirect URL: `http://121.40.218.245:3000/api/auth/callback`（或你的域名）
 
-> 当前版本登录功能已临时关闭，但数据库与 OAuth 回调地址仍需正确配置，以便功能恢复时直接启用。
+> **关键配置**：GitHub OAuth App 的 Authorization callback URL 必须与 `NEXT_PUBLIC_SITE_URL + /api/auth/callback` 完全一致，否则会出现 redirect_uri 不匹配错误。
+
+---
+
+## 5.5 GitHub OAuth 配置
+
+### 5.5.1 创建 GitHub OAuth App
+
+1. 登录 [GitHub Developer Settings](https://github.com/settings/developers)。
+2. 进入 OAuth Apps > New OAuth App。
+3. 填写：
+   - Application name: `Project-M`
+   - Homepage URL: `http://121.40.218.245:3000`（或你的域名）
+   - Authorization callback URL: `http://121.40.218.245:3000/api/auth/callback`（或你的域名）
+4. 点击 Register application。
+
+### 5.5.2 配置 Supabase GitHub Provider
+
+1. 在 Supabase Dashboard 中进入 Authentication > Providers。
+2. 找到 GitHub，启用并填入：
+   - Client ID（从 GitHub OAuth App 获取）
+   - Client Secret（从 GitHub OAuth App 生成并复制）
+3. 保存。
+
+### 5.5.3 验证
+
+访问 `http://121.40.218.245:3000/login`，点击「GitHub 登录」，应能正常跳转、授权并回到首页。
 
 ---
 
@@ -455,12 +481,27 @@ pm2 restart project-m --update-env
 - 在 Actions 日志中查看 SSH 连接错误信息。
 - 确认服务器防火墙允许 GitHub Actions runner IP 访问 SSH（如需白名单，建议使用固定 IP 的 self-hosted runner）。
 
-### 13.8 `pm2 env` 显示环境变量不一致
+### 13.8 GitHub OAuth redirect_uri 不匹配
+
+症状：点击「GitHub 登录」后跳转到 GitHub 报错页面，提示 "The redirect_uri is not associated with this application"。
+
+原因：`NEXT_PUBLIC_SITE_URL` 配置的地址与 GitHub OAuth App 的 Authorization callback URL 不一致。
+
+修复：
+
+1. 确认 `.env.local` 中 `NEXT_PUBLIC_SITE_URL` 值（如 `http://121.40.218.245:3000`）。
+2. 在 GitHub OAuth App 设置中，确保 Authorization callback URL 为 `http://121.40.218.245:3000/api/auth/callback`。
+3. 在 Supabase Authentication > URL Configuration 中，确保 Redirect URL 包含 `http://121.40.218.245:3000/api/auth/callback`。
+4. 使用 `pm2 restart project-m --update-env` 重启应用刷新环境变量。
+
+> 注意：协议（http/https）、域名、端口必须完全一致，不能有任何差异。
+
+### 13.9 `pm2 env` 显示环境变量不一致
 
 - 确认修改后执行 `pm2 restart project-m --update-env`。
 - 通过 `pm2 env project-m` 检查实际读取值。
 
-### 13.9 Windows 本地 `pnpm test:run` 出现 worker timeout
+### 13.10 Windows 本地 `pnpm test:run` 出现 worker timeout
 
 症状：全部测试逻辑通过，但报告 `Worker exited unexpectedly` 或 `Timeout waiting for worker to respond`。
 
@@ -497,7 +538,7 @@ pm2 restart project-m --update-env
 - [ ] `/heroes` 页面显示英雄、皮肤、表情、徽章收藏
 - [ ] `/leaderboard` 页面可查看本地最佳与全球榜单
 - [ ] `/algorithms` 页面可正常访问并演示算法
-- [ ] `/login` 页面显示「登录入口临时关闭」提示
+- [ ] `/login` 页面可正常访问，GitHub 登录按钮可跳转授权页面
 - [ ] `/armory` 页面显示近战武器（短刃/长枪/重剑/拳套/等离子刃·改）
 - [ ] 游戏内可选择「旗舰模式」，完成挑战并进入超频阶段
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
@@ -967,4 +1008,16 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应 Project-M L3V100「旗舰版」一次性全部上线部署流程。当前版本注册/登录功能已临时关闭，所有游戏模式、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*
+*本手册对应 Project-M L3V100「旗舰版」一次性全部上线部署流程。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*
+
+---
+
+## 24. OAuth 配置速查表
+
+| 配置项 | 生产环境值（IP 方式） | 生产环境值（域名方式） |
+|--------|---------------------|---------------------|
+| `NEXT_PUBLIC_SITE_URL` | `http://121.40.218.245:3000` | `https://your-domain.com` |
+| GitHub OAuth Homepage URL | `http://121.40.218.245:3000` | `https://your-domain.com` |
+| GitHub OAuth Authorization callback URL | `http://121.40.218.245:3000/api/auth/callback` | `https://your-domain.com/api/auth/callback` |
+| Supabase Site URL | `http://121.40.218.245:3000` | `https://your-domain.com` |
+| Supabase Redirect URL | `http://121.40.218.245:3000/api/auth/callback` | `https://your-domain.com/api/auth/callback` |
