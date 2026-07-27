@@ -13,7 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const cookieStore = createCookieStore(req.cookies);
     const supabase = createClient(cookieStore);
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.host}`;
+    const protocol = req.headers["x-forwarded-proto"] || (req.connection?.encrypted ? "https" : "http");
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${req.headers.host}`;
     const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
     const callbackUrl = new URL("/api/auth/callback", baseUrl);
     callbackUrl.searchParams.set("next", nextPath);

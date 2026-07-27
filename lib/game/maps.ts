@@ -1,4 +1,4 @@
-import type { MapConfig, MapTheme, Obstacle, Hazard } from "./types";
+import type { MapConfig, MapTheme, Obstacle, Hazard, Decor } from "./types";
 
 export type MapId = "industrial-ruins" | "abandoned-refinery" | "frozen-orbit" | "biohazard-lab";
 
@@ -98,6 +98,7 @@ function createIndustrialRuinsMap(): MapConfig {
     theme: "industrial" as MapTheme,
     obstacles,
     hazards: [] as Hazard[],
+    decors: [] as Decor[],
   };
 }
 
@@ -179,6 +180,7 @@ function createAbandonedRefineryMap(): MapConfig {
     theme: "wasteland" as MapTheme,
     obstacles,
     hazards,
+    decors: [] as Decor[],
   };
 }
 
@@ -237,6 +239,7 @@ function createFrozenOrbitMap(): MapConfig {
     theme: "frozen" as MapTheme,
     obstacles,
     hazards,
+    decors: [] as Decor[],
   };
 }
 
@@ -281,5 +284,6 @@ function createBiohazardLabMap(): MapConfig {
     theme: "biohazard" as MapTheme,
     obstacles,
     hazards,
+    decors: [] as Decor[],
   };
 }

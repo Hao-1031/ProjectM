@@ -13,7 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const cookieStore = createCookieStore(req.cookies);
     const supabase = createClient(cookieStore);
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.host}`;
+    const protocol = req.headers["x-forwarded-proto"] || (req.connection?.encrypted ? "https" : "http");
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${req.headers.host}`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "discord",

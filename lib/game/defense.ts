@@ -63,6 +63,7 @@ export function createDefenseMap(seed: number, mapId: MapId = DEFAULT_DEFENSE_MA
     theme: "industrial",
     obstacles,
     hazards: [],
+    decors: [],
   };
 }
 

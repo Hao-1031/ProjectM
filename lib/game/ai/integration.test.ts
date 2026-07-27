@@ -325,7 +325,7 @@ describe("Bot AI comprehensive", () => {
     const state = {
       player: human,
       players: [player],
-      map: { width: 1000, height: 1000, theme: "industrial", obstacles: [], hazards: [] },
+      map: { width: 1000, height: 1000, theme: "industrial", obstacles: [], hazards: [], decors: [] },
       time: 0,
     } as unknown as GameState;
 

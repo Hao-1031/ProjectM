@@ -80,6 +80,7 @@ export function createDeathmatchMap(seed: number): MapConfig {
     theme: "industrial",
     obstacles,
     hazards: [],
+    decors: [],
   };
 }
 

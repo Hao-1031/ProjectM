@@ -2107,7 +2107,7 @@ export const PASSIVE_BALANCE_DEFS: PassiveBalanceDef[] = [
     color: "#a855f7",
     maxLevel: 5,
     apply: (p) => {
-      p.cooldownReduction += 0.05;
+      p.cooldownReduction = Math.min(0.75, p.cooldownReduction + 0.05);
     },
   },
   {

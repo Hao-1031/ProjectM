@@ -140,6 +140,7 @@ export interface DefenseState {
   waves: DefenseWave[];
   deployables: Deployable[];
   selectedHeroes: Record<string, HeroId>;
+  _coreDamageAccum?: number;
 }
 
 // Fixed-wave state for non-defense modes (campaign / survival / daily / endless)
@@ -553,6 +554,16 @@ export interface MapConfig {
   theme: MapTheme;
   obstacles: Obstacle[];
   hazards: Hazard[];
+  decors: Decor[];
+}
+
+export interface Decor {
+  x: number;
+  y: number;
+  type: "rock" | "grass" | "debris" | "crystal" | "vent" | "crate";
+  radius: number;
+  color: string;
+  rotation: number;
 }
 
 export type GameEventType =

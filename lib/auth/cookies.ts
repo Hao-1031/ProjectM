@@ -17,6 +17,7 @@ const DEFAULT_OPTIONS: CookieOptions = {
 
 export function createCookieStore(reqCookies: Partial<Record<string, string>>): SerializableCookieStore {
   const setCookies: string[] = [];
+  const cookieValues = new Map<string, string>();
 
   function serializeCookie(name: string, value: string, options: CookieOptions = DEFAULT_OPTIONS): string {
     let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
@@ -31,11 +32,16 @@ export function createCookieStore(reqCookies: Partial<Record<string, string>>): 
 
   return {
     get: (name: string) => {
+      const internalValue = cookieValues.get(name);
+      if (internalValue !== undefined) {
+        return { value: internalValue };
+      }
       const value = reqCookies[name];
       return value ? { value } : undefined;
     },
     set: (name, value, options) => {
       const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+      cookieValues.set(name, value);
       setCookies.push(serializeCookie(name, value, mergedOptions));
     },
     getSetCookieHeaders: () => setCookies,
@@ -49,7 +55,7 @@ export function createClearCookieHeader(name: string): string {
 }
 
 export function clearAuthCookiesHeaders(): string[] {
-  return [AUTH_COOKIE_NAMES.accessToken, AUTH_COOKIE_NAMES.refreshToken, AUTH_COOKIE_NAMES.larkState].map(
+  return [AUTH_COOKIE_NAMES.accessToken, AUTH_COOKIE_NAMES.refreshToken].map(
     createClearCookieHeader
   );
 }

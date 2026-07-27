@@ -149,6 +149,12 @@ describe("GameEngine", () => {
       burnDamage: 0,
     });
     engine.update(idleInput, 16);
+    // Death animation delay: 0.6s, need ~40 frames at 16ms each
+    // Use performance.now() based timestamps to match start() behavior
+    const baseTime = performance.now();
+    for (let i = 0; i < 45; i++) {
+      engine.update(idleInput, baseTime + (i + 1) * 16);
+    }
     expect(engine.state.status).toBe("defeat");
   });
 

@@ -551,7 +551,7 @@ export function applyHeroToPlayer(player: Player, heroId: HeroId): Player {
   if (def.passive.critAdd) player.critChance += def.passive.critAdd;
   if (def.passive.regenAdd) player.regen += def.passive.regenAdd;
   if (def.passive.cooldownReductionAdd)
-    player.cooldownReduction += def.passive.cooldownReductionAdd;
+    player.cooldownReduction = Math.min(0.75, player.cooldownReduction + def.passive.cooldownReductionAdd);
   if (def.passive.areaMul) player.areaMultiplier *= def.passive.areaMul;
   if (def.passive.rangeMul) {
     for (const weapon of player.weapons) {
@@ -662,6 +662,9 @@ export function useHeroSkill(player: Player, state: GameState, fx?: FXSystem): v
       player.x = clamp(endX, player.radius, state.map.width - player.radius);
       player.y = clamp(endY, player.radius, state.map.height - player.radius);
       if (hitCount > 0) {
+        if (player.leopardPounceSpeedTimer > 0) {
+          player.speed /= 1.15;
+        }
         player.leopardPounceSpeedTimer = 3;
         player.speed *= 1.15;
       }

@@ -13,6 +13,7 @@ import type {
   MapConfig,
   Obstacle,
   Hazard,
+  Decor,
   EnemyProjectile,
   GameEvent,
   MapTheme,
@@ -27,6 +28,7 @@ import type {
   Vec2,
   DefenseWave,
   FixedWaveState,
+  Deployable,
 } from "./types";
 import {
   uid,
@@ -106,6 +108,7 @@ import {
   transitionAnimation,
   updateAnimation,
   triggerRecoil,
+  returnToMoveAfterRecoil,
 } from "./animation";
 import { FXSystem } from "./fx";
 import { ParticlePool } from "./particles";
@@ -217,7 +220,7 @@ function resolvePlayerSkinColor(heroId?: HeroId | null, skinId?: string | null):
   return DEFAULT_PLAYER_COLOR;
 }
 
-const THEMES: Record<MapTheme, { bg: string; grid: string; border: string; accent: string }> = {
+const THEMES: Record<MapTheme, { bg: string; grid: string; border: string; accent: string; gridAlt?: string }> = {
   industrial: { bg: "#03040a", grid: "#11152a", border: "#1c2033", accent: "#22d3ee" },
   frozen: { bg: "#050a12", grid: "#0f2438", border: "#1a3a52", accent: "#38bdf8" },
   biohazard: { bg: "#0a0805", grid: "#1a2410", border: "#2a3a18", accent: "#84cc16" },
@@ -269,6 +272,8 @@ export class GameEngine {
   private extremeSurvivalLastSnapshot?: PerformanceSnapshot;
   private extremeSurvivalLastKills = 0;
   private peakChallengePendingChoice = false;
+  private _deathDelay = 0;
+  private _deathAnimating = false;
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -724,6 +729,7 @@ export class GameEngine {
   private createMap(theme: MapTheme): MapConfig {
     const obstacles: Obstacle[] = [];
     const hazards: Hazard[] = [];
+    const decors: Decor[] = [];
 
     const obstacleCount =
       theme === "industrial"
@@ -786,7 +792,100 @@ export class GameEngine {
       });
     }
 
-    return { width: MAP_WIDTH, height: MAP_HEIGHT, theme, obstacles, hazards };
+    decors.push(...this.generateDecors(theme, MAP_WIDTH, MAP_HEIGHT, spawnClearance, obstacles));
+
+    return { width: MAP_WIDTH, height: MAP_HEIGHT, theme, obstacles, hazards, decors };
+  }
+
+  private generateDecors(
+    theme: MapTheme,
+    mapW: number,
+    mapH: number,
+    spawnClearance: number,
+    obstacles: Obstacle[]
+  ): Decor[] {
+    const decors: Decor[] = [];
+    const centerX = mapW / 2;
+    const centerY = mapH / 2;
+
+    const decorConfig: Record<MapTheme, { types: Decor["type"][]; count: number; colors: string[] }> = {
+      industrial: { types: ["rock", "debris", "crate", "vent"], count: 45, colors: ["#2a3050", "#3b4256", "#1e2538", "#4a5568"] },
+      frozen: { types: ["rock", "crystal", "debris"], count: 38, colors: ["#1a3a52", "#2d4a6e", "#0f2438", "#3b82f6"] },
+      biohazard: { types: ["grass", "debris", "vent", "rock"], count: 50, colors: ["#1a2410", "#2a3a18", "#1c3020", "#4ade80"] },
+      wasteland: { types: ["rock", "debris", "crate", "grass"], count: 42, colors: ["#2a2318", "#3d3528", "#1c1812", "#d97706"] },
+      orbital: { types: ["crystal", "rock", "debris"], count: 35, colors: ["#1e293b", "#312e81", "#1e1b4b", "#818cf8"] },
+    };
+
+    const config = decorConfig[theme];
+    const typeWeights: Record<Decor["type"], number> = {
+      rock: 0.35,
+      debris: 0.25,
+      grass: 0.15,
+      crystal: 0.1,
+      vent: 0.08,
+      crate: 0.07,
+    };
+
+    const isNearObstacle = (x: number, y: number, r: number): boolean => {
+      return obstacles.some((o) =>
+        x + r > o.x - o.width / 2 - 10 &&
+        x - r < o.x + o.width / 2 + 10 &&
+        y + r > o.y - o.height / 2 - 10 &&
+        y - r < o.y + o.height / 2 + 10
+      );
+    };
+
+    const isTooClose = (x: number, y: number, r: number): boolean => {
+      return decors.some((d) => distance({ x, y }, d) < (r + d.radius + 8));
+    };
+
+    const pickType = (): Decor["type"] => {
+      const available = config.types;
+      const roll = this.rng();
+      let cumulative = 0;
+      for (const t of available) {
+        cumulative += typeWeights[t];
+        if (roll < cumulative) return t;
+      }
+      return available[available.length - 1];
+    };
+
+    for (let i = 0; i < config.count; i++) {
+      const type = pickType();
+      const radius = type === "rock" ? randomRange(8, 18) :
+        type === "crate" ? randomRange(10, 16) :
+        type === "crystal" ? randomRange(6, 14) :
+        type === "vent" ? randomRange(12, 20) :
+        type === "grass" ? randomRange(10, 22) :
+        randomRange(6, 12); // debris
+
+      let x: number, y: number;
+      let attempts = 0;
+      do {
+        x = randomRange(30, mapW - 30);
+        y = randomRange(30, mapH - 30);
+        attempts++;
+      } while (
+        attempts < 30 &&
+        (distance({ x, y }, { x: centerX, y: centerY }) < spawnClearance ||
+          isNearObstacle(x, y, radius) ||
+          isTooClose(x, y, radius))
+      );
+
+      if (attempts >= 30) continue;
+
+      const colorIdx = Math.floor(this.rng() * config.colors.length);
+      decors.push({
+        x,
+        y,
+        type,
+        radius,
+        color: config.colors[colorIdx],
+        rotation: this.rng() * Math.PI * 2,
+      });
+    }
+
+    return decors;
   }
 
   resize(width: number, height: number) {
@@ -921,10 +1020,19 @@ export class GameEngine {
   }
 
   update(input: InputState, now: number) {
-    if (this.state.status !== "running") return;
-
     const dt = Math.min((now - this.state.lastTime) / 1000, 0.05);
     this.state.lastTime = now;
+
+    if (this._deathDelay > 0) {
+      this._deathDelay -= dt;
+      if (this._deathDelay <= 0) {
+        this.endRun(false);
+      }
+      return;
+    }
+
+    if (this.state.status !== "running") return;
+
     this.state.time += dt;
     this.state.stats.timeSurvived += dt;
 
@@ -987,10 +1095,12 @@ export class GameEngine {
     player.x += player.knockbackX * dt;
     player.y += player.knockbackY * dt;
 
-    this.resolveObstacleCollisions(player);
-
+    // BUG 10+14: clamp to map boundary first, then resolve obstacle/wall collisions.
+    // This prevents the clamp from pushing the player back into a wall after collision resolution.
     player.x = clamp(player.x, player.radius, this.state.map.width - player.radius);
     player.y = clamp(player.y, player.radius, this.state.map.height - player.radius);
+
+    this.resolveObstacleCollisions(player);
 
     if (input.aim.x !== 0 || input.aim.y !== 0) {
       setFacing(player, player.x + input.aim.x, player.y + input.aim.y);
@@ -999,6 +1109,7 @@ export class GameEngine {
     }
 
     updateAnimation(player, dt, getPlayerSprite(player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17"));
+    returnToMoveAfterRecoil(player, getPlayerSprite(player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17"));
 
     if (player.invincible > 0) {
       player.invincible -= dt;
@@ -1051,6 +1162,28 @@ export class GameEngine {
     }
   }
 
+  private resolveWallCollision(
+    entity: { x: number; y: number; radius: number; id?: string },
+    deployables: { x: number; y: number; radius: number; type: string; health: number }[],
+    isEnemy: boolean
+  ): boolean {
+    let resolved = true;
+    for (const d of deployables) {
+      if (d.type !== "wall" || d.health <= 0) continue;
+      const wallBox = { x: d.x - d.radius, y: d.y - d.radius, width: d.radius * 2, height: d.radius * 2 };
+      const displacement = resolveCircleRectCollision(entity, wallBox);
+      if (displacement) {
+        entity.x += displacement.x;
+        entity.y += displacement.y;
+        if (isEnemy) {
+          d.health -= 18;
+        }
+        resolved = false;
+      }
+    }
+    return resolved;
+  }
+
   private resolveObstacleCollisions(
     entity: { x: number; y: number; radius: number; id?: string },
     isEnemy = false
@@ -1070,33 +1203,13 @@ export class GameEngine {
 
       const ds = this.state.defenseState;
       if (ds) {
-        for (const d of ds.deployables) {
-          if (d.type !== "wall" || d.health <= 0) continue;
-          const wallBox = { x: d.x - d.radius, y: d.y - d.radius, width: d.radius * 2, height: d.radius * 2 };
-          const displacement = resolveCircleRectCollision(entity, wallBox);
-          if (displacement) {
-            entity.x += displacement.x;
-            entity.y += displacement.y;
-            if (isEnemy) {
-              d.health -= 18;
-            }
-            resolved = false;
-          }
+        if (!this.resolveWallCollision(entity, ds.deployables, isEnemy)) {
+          resolved = false;
         }
       }
 
-      for (const d of this.state.deployables) {
-        if (d.type !== "wall" || d.health <= 0) continue;
-        const wallBox = { x: d.x - d.radius, y: d.y - d.radius, width: d.radius * 2, height: d.radius * 2 };
-        const displacement = resolveCircleRectCollision(entity, wallBox);
-        if (displacement) {
-          entity.x += displacement.x;
-          entity.y += displacement.y;
-          if (isEnemy) {
-            d.health -= 18;
-          }
-          resolved = false;
-        }
+      if (!this.resolveWallCollision(entity, this.state.deployables, isEnemy)) {
+        resolved = false;
       }
 
       if (resolved) break;
@@ -1106,28 +1219,30 @@ export class GameEngine {
   private updateWeapons(dt: number) {
     const player = this.state.player;
     for (const weapon of player.weapons) {
-      const effectiveCooldown = weapon.cooldown * (1 - player.cooldownReduction);
+      const effectiveCooldown = weapon.cooldown * (1 - Math.min(0.75, player.cooldownReduction));
       weapon.timer -= dt;
       if (weapon.timer <= 0) {
-        this.fireWeapon(weapon);
-        weapon.timer = Math.max(0.04, effectiveCooldown);
+        const fired = this.fireWeapon(weapon);
+        if (fired) {
+          weapon.timer = Math.max(0.04, effectiveCooldown);
+        }
       }
     }
   }
 
-  private fireWeapon(weapon: (typeof this.state.player.weapons)[number]) {
+  private fireWeapon(weapon: (typeof this.state.player.weapons)[number]): boolean {
     const player = this.state.player;
     transitionAnimation(player, "attack");
     triggerRecoil(player);
 
     if (weapon.id === "drone") {
       this.fireDrone(weapon);
-      return;
+      return true;
     }
 
     if (weapon.id === "flame") {
       this.fireFlame(weapon);
-      return;
+      return true;
     }
 
     if (weapon.isMelee) {
@@ -1136,11 +1251,11 @@ export class GameEngine {
       } else {
         this.fireMeleeThrust(weapon);
       }
-      return;
+      return true;
     }
 
     const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
-    if (!nearest) return;
+    if (!nearest) return false;
 
     const angle = angleBetween(player, nearest);
     const halfSpread = weapon.spread / 2;
@@ -1171,6 +1286,7 @@ export class GameEngine {
       this.state.projectiles.push(projectile);
     }
     audio?.play("shoot");
+    return true;
   }
 
   private fireDrone(weapon: (typeof this.state.player.weapons)[number]) {
@@ -1402,14 +1518,16 @@ export class GameEngine {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
-      if (
-        p.life <= 0 ||
-        p.x < -50 ||
-        p.x > this.state.map.width + 50 ||
-        p.y < -50 ||
-        p.y > this.state.map.height + 50
-      ) {
-        if (p.isExplosive) {
+
+      // BUG 11: 投射物边界清除 - 所有飞出地图或超出生命周期的投射物必须清理
+      const outOfBounds =
+        p.x < -200 || p.x > this.state.map.width + 200 ||
+        p.y < -200 || p.y > this.state.map.height + 200;
+      const lifeExpired = p.life <= 0;
+      const isNaNPosition = !isFinite(p.x) || !isFinite(p.y);
+
+      if (lifeExpired || outOfBounds || isNaNPosition) {
+        if (p.isExplosive && outOfBounds) {
           this.explodeProjectile(p);
         }
         projectiles.splice(i, 1);
@@ -1424,13 +1542,14 @@ export class GameEngine {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
-      if (
-        p.life <= 0 ||
-        p.x < -50 ||
-        p.x > this.state.map.width + 50 ||
-        p.y < -50 ||
-        p.y > this.state.map.height + 50
-      ) {
+
+      const outOfBounds =
+        p.x < -200 || p.x > this.state.map.width + 200 ||
+        p.y < -200 || p.y > this.state.map.height + 200;
+      const lifeExpired = p.life <= 0;
+      const isNaNPosition = !isFinite(p.x) || !isFinite(p.y);
+
+      if (lifeExpired || outOfBounds || isNaNPosition) {
         projectiles.splice(i, 1);
       }
     }
@@ -1740,7 +1859,7 @@ export class GameEngine {
     for (const enemy of this.state.enemies) {
       if (enemy.burnDuration > 0) {
         enemy.burnDuration -= dt;
-        enemy.health -= 5 * dt;
+        enemy.health -= (enemy.burnDamage || 5) * dt;
         if (this.rng() < dt * 6) {
           this.particlePool.spawnPreset(
             "spark",
@@ -1869,7 +1988,7 @@ export class GameEngine {
       enemy.y += moveY;
 
       // 远程 / Boss 攻击
-      if ((enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) && enemy.attackCooldown > 0) {
+      if ((enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) && typeof enemy.attackCooldown === "number" && enemy.attackCooldown >= 0) {
         enemy.attackTimer -= dt;
         if (steering.shouldAttack && enemy.attackTimer <= 0) {
           this.fireEnemyProjectile(enemy);
@@ -1892,10 +2011,11 @@ export class GameEngine {
       enemy.x += enemy.knockbackX * dt;
       enemy.y += enemy.knockbackY * dt;
 
-      this.resolveObstacleCollisions(enemy, true);
-
+      // BUG 10+14: clamp to map boundary first, then resolve collisions
       enemy.x = clamp(enemy.x, enemy.radius, this.state.map.width - enemy.radius);
       enemy.y = clamp(enemy.y, enemy.radius, this.state.map.height - enemy.radius);
+
+      this.resolveObstacleCollisions(enemy, true);
 
       updateAnimation(
         enemy,
@@ -2215,7 +2335,7 @@ export class GameEngine {
 
     const allRegularSpawned = fws.spawned >= wave.enemyCount;
     const bossAlive = this.state.enemies.some((e) => e.isBoss);
-    const waveCleared = allRegularSpawned && !bossAlive && this.state.enemies.length === 0;
+    const waveCleared = allRegularSpawned && !bossAlive && this.state.enemies.length === 0 && fws.killed >= fws.spawned;
 
     if (!waveCleared) {
       this.state.waveTimer += dt;
@@ -2467,12 +2587,18 @@ export class GameEngine {
 
     // Core damage from enemies that reach it
     if (ds.core.health > 0) {
+      ds._coreDamageAccum = ds._coreDamageAccum || 0;
+      const FIXED_CORE_DAMAGE_STEP = 1;
       for (const enemy of this.state.enemies) {
         const dist = Math.hypot(enemy.x - ds.core.x, enemy.y - ds.core.y);
         if (dist <= ds.core.radius + enemy.radius) {
-          damageCore(ds, enemy.damage * dt * 2);
+          ds._coreDamageAccum += enemy.damage * 2 * dt;
           enemy.health -= 20 * dt;
         }
+      }
+      while (ds._coreDamageAccum >= FIXED_CORE_DAMAGE_STEP) {
+        damageCore(ds, FIXED_CORE_DAMAGE_STEP);
+        ds._coreDamageAccum -= FIXED_CORE_DAMAGE_STEP;
       }
     }
 
@@ -2677,9 +2803,6 @@ export class GameEngine {
           }
         }
       }
-      if (hit && p.pierce < 0) {
-        continue;
-      }
     }
   }
 
@@ -2772,6 +2895,7 @@ export class GameEngine {
     this.fx.addShake(1, 0);
     this.fx.addTrauma(0.15);
     audio?.play("hurt");
+    transitionAnimation(player, "hit");
     this.spawnDamageNumber(player.x, player.y, reduced, "#f43f5e");
 
     if (source) {
@@ -3066,7 +3190,8 @@ export class GameEngine {
 
   private checkLevelUp() {
     const player = this.state.player;
-    while (player.xp >= player.xpToNext) {
+    if (this.state.status === "levelup") return;
+    if (player.xp >= player.xpToNext) {
       player.xp -= player.xpToNext;
       player.level += 1;
       player.xpToNext = Math.floor(player.xpToNext * 1.25 + 20);
@@ -3114,6 +3239,16 @@ export class GameEngine {
   }
 
   private endRun(victory: boolean) {
+    if (!victory && !this._deathAnimating) {
+      this._deathAnimating = true;
+      this._deathDelay = 0.6;
+      transitionAnimation(this.state.player, "death");
+      this.fx.addTrauma(0.3);
+      this.fx.addShake(2, 0.3);
+      return;
+    }
+    this._deathAnimating = false;
+    this._deathDelay = 0;
     this.state.status = victory ? "victory" : "defeat";
 
     if (this.state.mode === "extreme-survival") {
@@ -3217,6 +3352,24 @@ export class GameEngine {
     const targetY = player.y;
     this.state.camera.x += (targetX - this.state.camera.x) * 0.12;
     this.state.camera.y += (targetY - this.state.camera.y) * 0.12;
+
+    const halfW = (this.canvasWidth / 2) / this.state.camera.scale;
+    const halfH = (this.canvasHeight / 2) / this.state.camera.scale;
+    const minX = halfW;
+    const minY = halfH;
+    const maxX = this.state.map.width - halfW;
+    const maxY = this.state.map.height - halfH;
+    // BUG 8: 当视口大于地图时，摄像机锁定在地图中心，防止显示地图外区域
+    if (maxX > minX) {
+      this.state.camera.x = clamp(this.state.camera.x, minX, maxX);
+    } else {
+      this.state.camera.x = this.state.map.width / 2;
+    }
+    if (maxY > minY) {
+      this.state.camera.y = clamp(this.state.camera.y, minY, maxY);
+    } else {
+      this.state.camera.y = this.state.map.height / 2;
+    }
   }
 
   // Networking
@@ -3338,26 +3491,50 @@ export class GameEngine {
     const { camera } = this.state;
     const shake = this.fx.getDetailedShakeOffset();
 
+    // BUG 9: 在变换前填充整个画布背景色，确保视口溢出时不会出现透明区域
+    const theme = THEMES[this.state.map.theme];
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
     ctx.save();
     ctx.translate(this.canvasWidth / 2 + shake.x, this.canvasHeight / 2 + shake.y);
     ctx.rotate(shake.rotation);
     ctx.scale(camera.scale, camera.scale);
     ctx.translate(-camera.x, -camera.y);
 
+    // Layer 1: 地面纹理
     this.drawBackground(ctx);
+    // Layer 2: 地面装饰物
+    this.drawDecors(ctx);
+    // Layer 3: 危险区域
     this.drawHazards(ctx);
+    // Layer 4: 障碍物 (Y轴排序)
     this.drawObstacles(ctx);
+    // Layer 5: 据点核心
     this.drawCore(ctx);
+    // Layer 6: 能量节点
     this.drawNodes(ctx);
+    // Layer 7: 撤离点
     this.drawExtraction(ctx);
+    // Layer 8: 掉落物
     this.drawPickups(ctx);
-    this.drawParticles(ctx);
+    // Layer 9: 部署物 (Y轴排序)
+    this.drawDeployables(ctx);
+    // Layer 10: 敌人投射物
     this.drawEnemyProjectiles(ctx);
-    this.drawEnemies(ctx);
-    this.drawRemotePlayers(ctx);
-    this.drawPlayer(ctx);
+    // Layer 11: 实体 (enemies + players, Y轴排序)
+    this.drawEntitiesDepthSorted(ctx);
+    // Layer 12: 状态效果叠加 (burn/freeze/slow/shield)
+    this.drawStatusEffects(ctx);
+    // Layer 13: 粒子特效
+    this.drawParticles(ctx);
+    // Layer 14: 玩家投射物
     this.drawProjectiles(ctx);
+    // Layer 15: 伤害数字
     this.drawDamageNumbers(ctx);
+    // Layer 16: 血条
+    this.drawHealthBars(ctx);
+    // Layer 17: 事件特效
     this.drawEvent(ctx);
 
     ctx.restore();
@@ -3371,10 +3548,20 @@ export class GameEngine {
     const { camera } = this.state;
 
     ctx.fillStyle = theme.bg;
+    // Fill the entire viewport-extended area to prevent empty space when camera is at map edges
+    const viewLeft = camera.x - (this.canvasWidth / 2) / camera.scale - 100;
+    const viewTop = camera.y - (this.canvasHeight / 2) / camera.scale - 100;
+    const viewRight = camera.x + (this.canvasWidth / 2) / camera.scale + 100;
+    const viewBottom = camera.y + (this.canvasHeight / 2) / camera.scale + 100;
+    ctx.fillRect(viewLeft, viewTop, viewRight - viewLeft, viewBottom - viewTop);
+
+    ctx.fillStyle = theme.gridAlt ?? "#1a1f33";
     ctx.fillRect(0, 0, map.width, map.height);
 
+    // BUG 19: 地面纹理层 - 程序化tile pattern
+    this.drawGroundTexture(ctx, map.width, map.height, theme);
+
     // Viewport culling: only draw grid lines that can be seen.
-    // Add one cell of padding so small camera rotations / shake do not expose empty edges.
     const halfW = (this.canvasWidth / 2) / camera.scale;
     const halfH = (this.canvasHeight / 2) / camera.scale;
     const gridSize = 80;
@@ -3398,12 +3585,224 @@ export class GameEngine {
 
     ctx.strokeStyle = theme.border;
     ctx.lineWidth = 4;
-    ctx.strokeRect(0, 0, map.width, map.height);
+    ctx.strokeRect(2, 2, map.width - 4, map.height - 4);
+  }
+
+  // BUG 19: 程序化地面纹理 - 视口裁剪的tile pattern
+  private drawGroundTexture(
+    ctx: CanvasRenderingContext2D,
+    mapW: number,
+    mapH: number,
+    theme: { bg: string; grid: string; border: string; accent: string; gridAlt?: string }
+  ) {
+    const { camera } = this.state;
+    const halfW = (this.canvasWidth / 2) / camera.scale;
+    const halfH = (this.canvasHeight / 2) / camera.scale;
+    const tileSize = 40;
+    const startX = Math.max(0, Math.floor((camera.x - halfW) / tileSize) * tileSize);
+    const endX = Math.min(mapW, Math.ceil((camera.x + halfW) / tileSize) * tileSize);
+    const startY = Math.max(0, Math.floor((camera.y - halfH) / tileSize) * tileSize);
+    const endY = Math.min(mapH, Math.ceil((camera.y + halfH) / tileSize) * tileSize);
+
+    const dotColor = `${theme.grid}44`;
+    const crossColor = `${theme.grid}22`;
+
+    ctx.fillStyle = dotColor;
+    for (let x = startX; x < endX; x += tileSize) {
+      for (let y = startY; y < endY; y += tileSize) {
+        // 中心微点
+        ctx.fillRect(x + tileSize / 2 - 1, y + tileSize / 2 - 1, 2, 2);
+
+        // 对角微点
+        ctx.fillRect(x + tileSize - 4, y + 4, 1, 1);
+        ctx.fillRect(x + 4, y + tileSize - 4, 1, 1);
+      }
+    }
+
+    // 网格交叉点标记
+    ctx.strokeStyle = crossColor;
+    ctx.lineWidth = 1;
+    const crossSize = 3;
+    const crossStep = tileSize * 2;
+    const crossStartX = Math.max(0, Math.floor((camera.x - halfW) / crossStep) * crossStep);
+    const crossEndX = Math.min(mapW, Math.ceil((camera.x + halfW) / crossStep) * crossStep);
+    const crossStartY = Math.max(0, Math.floor((camera.y - halfH) / crossStep) * crossStep);
+    const crossEndY = Math.min(mapH, Math.ceil((camera.y + halfH) / crossStep) * crossStep);
+
+    ctx.beginPath();
+    for (let x = crossStartX; x < crossEndX; x += crossStep) {
+      for (let y = crossStartY; y < crossEndY; y += crossStep) {
+        ctx.moveTo(x - crossSize, y);
+        ctx.lineTo(x + crossSize, y);
+        ctx.moveTo(x, y - crossSize);
+        ctx.lineTo(x, y + crossSize);
+      }
+    }
+    ctx.stroke();
+  }
+
+  // Layer 2: 地面装饰物 (placeholder - extensibility point for future decor system)
+  private drawDecors(ctx: CanvasRenderingContext2D) {
+    const decors = this.state.map.decors;
+    if (!decors || decors.length === 0) return;
+
+    const { camera } = this.state;
+    const halfW = (this.canvasWidth / 2) / camera.scale + 40;
+    const halfH = (this.canvasHeight / 2) / camera.scale + 40;
+    const viewLeft = camera.x - halfW;
+    const viewRight = camera.x + halfW;
+    const viewTop = camera.y - halfH;
+    const viewBottom = camera.y + halfH;
+
+    const time = this.state.time;
+
+    for (const decor of decors) {
+      if (decor.x + decor.radius < viewLeft || decor.x - decor.radius > viewRight ||
+          decor.y + decor.radius < viewTop || decor.y - decor.radius > viewBottom) {
+        continue;
+      }
+
+      ctx.save();
+      ctx.translate(decor.x, decor.y);
+      ctx.rotate(decor.rotation);
+
+      switch (decor.type) {
+        case "rock": {
+          ctx.fillStyle = decor.color;
+          ctx.beginPath();
+          ctx.moveTo(-decor.radius * 0.8, decor.radius * 0.6);
+          ctx.lineTo(-decor.radius * 0.3, -decor.radius * 0.9);
+          ctx.lineTo(decor.radius * 0.7, -decor.radius * 0.4);
+          ctx.lineTo(decor.radius * 0.9, decor.radius * 0.5);
+          ctx.lineTo(0, decor.radius * 0.8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = `${decor.color}88`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          break;
+        }
+        case "debris": {
+          ctx.fillStyle = decor.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, decor.radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `${decor.color}66`;
+          ctx.beginPath();
+          ctx.arc(decor.radius * 0.3, -decor.radius * 0.2, decor.radius * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(-decor.radius * 0.25, decor.radius * 0.25, decor.radius * 0.25, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        case "grass": {
+          ctx.fillStyle = `${decor.color}55`;
+          ctx.beginPath();
+          ctx.arc(0, 0, decor.radius, 0, Math.PI * 2);
+          ctx.fill();
+          const bladeCount = 5;
+          for (let b = 0; b < bladeCount; b++) {
+            const angle = (b / bladeCount) * Math.PI * 2 + decor.rotation * 0.3;
+            const bx = Math.cos(angle) * decor.radius * 0.5;
+            const by = Math.sin(angle) * decor.radius * 0.5;
+            ctx.strokeStyle = `${decor.color}aa`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.quadraticCurveTo(
+              bx + Math.cos(angle + 0.3) * decor.radius * 0.6,
+              by + Math.sin(angle + 0.3) * decor.radius * 0.6,
+              bx + Math.cos(angle) * decor.radius * 0.9,
+              by + Math.sin(angle) * decor.radius * 0.9
+            );
+            ctx.stroke();
+          }
+          break;
+        }
+        case "crystal": {
+          const crystalPulse = 1 + Math.sin(time * 2 + decor.x * 0.01) * 0.15;
+          ctx.fillStyle = decor.color;
+          ctx.globalAlpha = 0.5 + Math.sin(time * 3 + decor.y * 0.01) * 0.2;
+          ctx.beginPath();
+          ctx.moveTo(0, -decor.radius * crystalPulse);
+          ctx.lineTo(decor.radius * 0.5 * crystalPulse, 0);
+          ctx.lineTo(0, decor.radius * 0.6 * crystalPulse);
+          ctx.lineTo(-decor.radius * 0.5 * crystalPulse, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = `${decor.color}cc`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          break;
+        }
+        case "vent": {
+          ctx.fillStyle = `${decor.color}33`;
+          ctx.beginPath();
+          ctx.arc(0, 0, decor.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = decor.color;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          const ventPulse = 1 + Math.sin(time * 3) * 0.2;
+          ctx.fillStyle = `${decor.color}88`;
+          ctx.beginPath();
+          ctx.arc(0, 0, decor.radius * 0.35 * ventPulse, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        case "crate": {
+          const s = decor.radius;
+          ctx.fillStyle = decor.color;
+          ctx.fillRect(-s, -s, s * 2, s * 2);
+          ctx.strokeStyle = `${decor.color}aa`;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-s, -s, s * 2, s * 2);
+          ctx.beginPath();
+          ctx.moveTo(-s, -s);
+          ctx.lineTo(s, s);
+          ctx.moveTo(s, -s);
+          ctx.lineTo(-s, s);
+          ctx.strokeStyle = `${decor.color}44`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          break;
+        }
+      }
+
+      ctx.restore();
+    }
   }
 
   private drawObstacles(ctx: CanvasRenderingContext2D) {
+    const { camera } = this.state;
+    const halfW = (this.canvasWidth / 2) / camera.scale + 60;
+    const halfH = (this.canvasHeight / 2) / camera.scale + 60;
+    const viewLeft = camera.x - halfW;
+    const viewRight = camera.x + halfW;
+    const viewTop = camera.y - halfH;
+    const viewBottom = camera.y + halfH;
+
+    // Layer 4: Y轴排序 - 收集视口内可见障碍物，按Y排序
+    const visible: Obstacle[] = [];
     for (const obs of this.state.map.obstacles) {
       if (obs.health <= 0) continue;
+      if (
+        obs.x + obs.width / 2 < viewLeft ||
+        obs.x - obs.width / 2 > viewRight ||
+        obs.y + obs.height / 2 < viewTop ||
+        obs.y - obs.height / 2 > viewBottom
+      ) {
+        continue;
+      }
+      visible.push(obs);
+    }
+    visible.sort((a, b) => a.y - b.y);
+
+    for (const obs of visible) {
       ctx.save();
       ctx.translate(obs.x, obs.y);
       ctx.fillStyle = obs.color;
@@ -3640,20 +4039,49 @@ export class GameEngine {
     ctx.restore();
   }
 
-  private drawPlayer(ctx: CanvasRenderingContext2D) {
-    this.drawEntity(ctx, this.state.player, this.state.player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17");
-  }
+  // Layer 11: 实体绘制 (仅绘制精灵，不含状态效果和血条)
+  private drawEntitiesDepthSorted(ctx: CanvasRenderingContext2D) {
+    interface DrawableEntity {
+      y: number;
+      draw: () => void;
+    }
+    const drawables: DrawableEntity[] = [];
 
-  private drawRemotePlayers(ctx: CanvasRenderingContext2D) {
+    for (const enemy of this.state.enemies) {
+      drawables.push({
+        y: enemy.y,
+        draw: () => this.drawEnemySprite(ctx, enemy),
+      });
+    }
+
     for (const player of this.state.players) {
       if (player.id !== this.state.player.id) {
-        const remoteColor = player.skinColor || REMOTE_PLAYER_COLOR;
-        this.drawEntity(ctx, player, remoteColor, "#0b0d17");
+        drawables.push({
+          y: player.y,
+          draw: () => {
+            const remoteColor = player.skinColor || REMOTE_PLAYER_COLOR;
+            this.drawEntitySprite(ctx, player, remoteColor, "#0b0d17");
+          },
+        });
       }
+    }
+
+    drawables.push({
+      y: this.state.player.y,
+      draw: () => {
+        this.drawEntitySprite(ctx, this.state.player, this.state.player.skinColor ?? DEFAULT_PLAYER_COLOR, "#0b0d17");
+      },
+    });
+
+    drawables.sort((a, b) => a.y - b.y);
+
+    for (const d of drawables) {
+      d.draw();
     }
   }
 
-  private drawEntity(
+  // 仅绘制实体精灵（不含状态效果和血条）
+  private drawEntitySprite(
     ctx: CanvasRenderingContext2D,
     entity: Player,
     primaryColor: string,
@@ -3692,72 +4120,290 @@ export class GameEngine {
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.fillStyle = primaryColor;
-      ctx.fillRect(entity.radius * 0.5, -3, entity.radius, 6);
+      ctx.beginPath();
+      ctx.moveTo(entity.radius * 0.3, 0);
+      ctx.lineTo(entity.radius * 1.1, -entity.radius * 0.35);
+      ctx.lineTo(entity.radius * 1.1, entity.radius * 0.35);
+      ctx.closePath();
+      ctx.fill();
     }
 
     ctx.restore();
     ctx.globalAlpha = 1;
   }
 
-  private drawEnemies(ctx: CanvasRenderingContext2D) {
+  // 仅绘制敌人精灵（不含状态效果和血条）
+  private drawEnemySprite(ctx: CanvasRenderingContext2D, enemy: Enemy) {
+    ctx.save();
+    ctx.translate(enemy.x, enemy.y);
+
+    if (enemy.isElite || enemy.isBoss) {
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius + 5, 0, Math.PI * 2);
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.rotate(enemy.facing);
+
+    const secondaryColor = enemy.burnDuration > 0 ? "#fb923c" : "#000000";
+    const sheet = getEnemySprite(enemy.variant, enemy.color, secondaryColor);
+    const frameIndex = getCurrentFrameIndex(enemy, sheet);
+    const frames = sheet.animations[enemy.animation] ?? sheet.animations.move;
+    const frame = frames[frameIndex] ?? frames[0];
+
+    if (sheet.image && sheet.image.complete && frame) {
+      ctx.drawImage(
+        sheet.image,
+        frame.x,
+        frame.y,
+        frame.width,
+        frame.height,
+        -enemy.radius,
+        -enemy.radius,
+        enemy.radius * 2,
+        enemy.radius * 2
+      );
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
+      ctx.fillStyle = enemy.color;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = enemy.isBoss ? "#ffffff" : "#000000";
+      ctx.lineWidth = enemy.isBoss ? 2 : 1;
+      ctx.stroke();
+      ctx.fillStyle = enemy.isBoss ? "#ffffff" : enemy.color;
+      ctx.beginPath();
+      ctx.moveTo(enemy.radius * 0.3, 0);
+      ctx.lineTo(enemy.radius * 1.1, -enemy.radius * 0.35);
+      ctx.lineTo(enemy.radius * 1.1, enemy.radius * 0.35);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  // Layer 12: 状态效果叠加 (burn/freeze/slow/shield/berserk/regen)
+  private drawStatusEffects(ctx: CanvasRenderingContext2D) {
+    const time = this.state.time;
+
+    // 玩家状态效果
+    const player = this.state.player;
+    this.drawPlayerStatusEffects(ctx, player, time);
+
+    // 远程玩家状态效果
+    for (const p of this.state.players) {
+      if (p.id !== player.id) {
+        this.drawPlayerStatusEffects(ctx, p, time);
+      }
+    }
+
+    // 敌人状态效果
     for (const enemy of this.state.enemies) {
+      this.drawEnemyStatusEffects(ctx, enemy, time);
+    }
+  }
+
+  private drawPlayerStatusEffects(ctx: CanvasRenderingContext2D, entity: Player, time: number) {
+    // 护盾效果
+    if (entity.invincible > 0) {
+      ctx.save();
+      ctx.translate(entity.x, entity.y);
+      const shieldPulse = 1 + Math.sin(time * 6) * 0.08;
+      ctx.beginPath();
+      ctx.arc(0, 0, entity.radius * 1.4 * shieldPulse, 0, Math.PI * 2);
+      const shieldGrad = ctx.createRadialGradient(0, 0, entity.radius * 1.1, 0, 0, entity.radius * 1.5);
+      shieldGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
+      shieldGrad.addColorStop(0.5, "rgba(56, 189, 248, 0.35)");
+      shieldGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+      ctx.fillStyle = shieldGrad;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 狂暴效果
+    if (entity.leopardFrenzyActive) {
+      ctx.save();
+      ctx.translate(entity.x, entity.y);
+      const frenzyPulse = 1 + Math.sin(time * 10) * 0.15;
+      ctx.beginPath();
+      ctx.arc(0, 0, entity.radius * 1.25 * frenzyPulse, 0, Math.PI * 2);
+      const frenzyGrad = ctx.createRadialGradient(0, 0, entity.radius * 0.8, 0, 0, entity.radius * 1.3);
+      frenzyGrad.addColorStop(0, "rgba(249, 115, 22, 0)");
+      frenzyGrad.addColorStop(0.6, "rgba(249, 115, 22, 0.2)");
+      frenzyGrad.addColorStop(1, "rgba(249, 115, 22, 0)");
+      ctx.fillStyle = frenzyGrad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 再生效果
+    if (entity.regen > 0) {
+      ctx.save();
+      ctx.translate(entity.x, entity.y);
+      const regenPulse = 1 + Math.sin(time * 4) * 0.1;
+      ctx.beginPath();
+      ctx.arc(0, 0, entity.radius * 1.2 * regenPulse, 0, Math.PI * 2);
+      const regenGrad = ctx.createRadialGradient(0, 0, entity.radius * 0.9, 0, 0, entity.radius * 1.25);
+      regenGrad.addColorStop(0, "rgba(52, 211, 153, 0)");
+      regenGrad.addColorStop(0.5, "rgba(52, 211, 153, 0.15)");
+      regenGrad.addColorStop(1, "rgba(52, 211, 153, 0)");
+      ctx.fillStyle = regenGrad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 燃烧效果
+    if (entity.burnDuration > 0) {
+      this.drawBurnEffect(ctx, entity.x, entity.y, entity.radius, entity.burnDuration, time);
+    }
+  }
+
+  private drawEnemyStatusEffects(ctx: CanvasRenderingContext2D, enemy: Enemy, time: number) {
+    // 护盾敌人
+    if (enemy.affixes.includes("shielded")) {
       ctx.save();
       ctx.translate(enemy.x, enemy.y);
-      ctx.rotate(enemy.facing);
-
-      if (enemy.isElite || enemy.isBoss) {
-        ctx.beginPath();
-        ctx.arc(0, 0, enemy.radius + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = "#f59e0b";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 4]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-
-      const secondaryColor = enemy.burnDuration > 0 ? "#fb923c" : "#000000";
-      const sheet = getEnemySprite(enemy.variant, enemy.color, secondaryColor);
-      const frameIndex = getCurrentFrameIndex(enemy, sheet);
-      const frames = sheet.animations[enemy.animation] ?? sheet.animations.move;
-      const frame = frames[frameIndex] ?? frames[0];
-
-      if (sheet.image && sheet.image.complete && frame) {
-        ctx.drawImage(
-          sheet.image,
-          frame.x,
-          frame.y,
-          frame.width,
-          frame.height,
-          -enemy.radius,
-          -enemy.radius,
-          enemy.radius * 2,
-          enemy.radius * 2
-        );
-      } else {
-        ctx.beginPath();
-        ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
-        ctx.fillStyle = enemy.color;
-        ctx.globalAlpha = 0.9;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = enemy.isBoss ? "#ffffff" : "#000000";
-        ctx.lineWidth = enemy.isBoss ? 2 : 1;
-        ctx.stroke();
-      }
-
+      const shieldPulse = 1 + Math.sin(time * 5) * 0.08;
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 1.25 * shieldPulse, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
       ctx.restore();
-
-      const healthPct = enemy.health / enemy.maxHealth;
-      ctx.fillStyle = "#1c2033";
-      ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 8, enemy.radius * 2, 4);
-      ctx.fillStyle = healthPct > 0.5 ? "#34d399" : "#f43f5e";
-      ctx.fillRect(
-        enemy.x - enemy.radius,
-        enemy.y - enemy.radius - 8,
-        enemy.radius * 2 * healthPct,
-        4
-      );
     }
+
+    // 再生敌人
+    if (enemy.affixes.includes("regenerating")) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 1.15, 0, Math.PI * 2);
+      const regenGrad = ctx.createRadialGradient(0, 0, enemy.radius * 0.8, 0, 0, enemy.radius * 1.2);
+      regenGrad.addColorStop(0, "rgba(52, 211, 153, 0)");
+      regenGrad.addColorStop(0.5, "rgba(52, 211, 153, 0.12)");
+      regenGrad.addColorStop(1, "rgba(52, 211, 153, 0)");
+      ctx.fillStyle = regenGrad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 冻结/减速
+    if (enemy.freezeTimer > 0) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 1.2, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(125, 211, 252, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([2, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // 减速效果
+    if (enemy.slow > 0 && enemy.slowTimer > 0) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 1.1, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 2]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // 燃烧效果
+    if (enemy.burnDuration > 0) {
+      this.drawBurnEffect(ctx, enemy.x, enemy.y, enemy.radius, enemy.burnDuration, time);
+    }
+  }
+
+  private drawBurnEffect(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, burnDuration: number, time: number) {
+    ctx.save();
+    const burnIntensity = Math.min(1, burnDuration / 3);
+    const flameCount = Math.floor(4 * burnIntensity);
+    for (let i = 0; i < flameCount; i++) {
+      const angle = (Math.PI * 2 * i) / flameCount + time * 3;
+      const dist = radius * 1.1 + Math.sin(time * 8 + i) * 3;
+      const fx = x + Math.cos(angle) * dist;
+      const fy = y + Math.sin(angle) * dist;
+      const flameSize = 2 + Math.random() * 3 * burnIntensity;
+      ctx.beginPath();
+      ctx.arc(fx, fy, flameSize, 0, Math.PI * 2);
+      const flameGrad = ctx.createRadialGradient(fx, fy, 0, fx, fy, flameSize);
+      flameGrad.addColorStop(0, "rgba(251, 146, 60, 0.8)");
+      flameGrad.addColorStop(0.5, "rgba(249, 115, 22, 0.5)");
+      flameGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
+      ctx.fillStyle = flameGrad;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Layer 16: 血条 (所有实体的血条统一绘制)
+  private drawHealthBars(ctx: CanvasRenderingContext2D) {
+    const player = this.state.player;
+
+    // 玩家血条 + 等级
+    this.drawHealthBar(ctx, player.x, player.y - player.radius - 14, player.radius * 2, 6, player.health, player.maxHealth, player.skinColor ?? DEFAULT_PLAYER_COLOR);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 9px var(--font-geist-sans), monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`Lv.${player.level}`, player.x, player.y + player.radius + 14);
+
+    // 远程玩家血条 + 名称
+    for (const p of this.state.players) {
+      if (p.id !== player.id) {
+        const remoteColor = p.skinColor || REMOTE_PLAYER_COLOR;
+        this.drawHealthBar(ctx, p.x, p.y - p.radius - 14, p.radius * 2, 5, p.health, p.maxHealth, remoteColor);
+        ctx.fillStyle = "#ffffffcc";
+        ctx.font = "bold 9px var(--font-geist-sans), sans-serif";
+        ctx.textAlign = "center";
+        const shortName = p.id.length > 8 ? p.id.slice(0, 7) + "…" : p.id;
+        ctx.fillText(shortName, p.x, p.y - p.radius - 18);
+      }
+    }
+
+    // 敌人血条
+    for (const enemy of this.state.enemies) {
+      this.drawHealthBar(ctx, enemy.x, enemy.y - enemy.radius - 10, enemy.radius * 2, 4, enemy.health, enemy.maxHealth, enemy.color);
+    }
+  }
+
+  // 通用血条绘制
+  private drawHealthBar(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    health: number,
+    maxHealth: number,
+    accentColor: string
+  ) {
+    const pct = health / maxHealth;
+    ctx.fillStyle = "#1c2033cc";
+    ctx.fillRect(x - width / 2, y, width, height);
+    ctx.fillStyle = pct > 0.5 ? "#34d399" : pct > 0.25 ? "#f59e0b" : "#f43f5e";
+    ctx.fillRect(x - width / 2, y, width * pct, height);
+    ctx.strokeStyle = `${accentColor}44`;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - width / 2, y, width, height);
   }
 
   private drawProjectiles(ctx: CanvasRenderingContext2D) {
@@ -3854,6 +4500,188 @@ export class GameEngine {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(-2, -5, 4, 10);
       }
+      ctx.restore();
+    }
+  }
+
+  // Layer 9: 部署物 (Y轴排序)
+  private drawDeployables(ctx: CanvasRenderingContext2D) {
+    const allDeployables: Deployable[] = [
+      ...this.state.deployables,
+    ];
+    const ds = this.state.defenseState;
+    if (ds) {
+      allDeployables.push(...ds.deployables);
+    }
+    if (allDeployables.length === 0) return;
+
+    // Y轴排序
+    allDeployables.sort((a, b) => a.y - b.y);
+
+    const time = this.state.time;
+
+    for (const d of allDeployables) {
+      if (d.health <= 0) continue;
+      ctx.save();
+      ctx.translate(d.x, d.y);
+
+      switch (d.type) {
+        case "wall": {
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-d.radius, -d.radius, d.radius * 2, d.radius * 2);
+          ctx.strokeStyle = "#475569";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-d.radius, -d.radius, d.radius * 2, d.radius * 2);
+          const wallHp = d.health / d.maxHealth;
+          ctx.fillStyle = wallHp > 0.5 ? "#34d399" : "#f43f5e";
+          ctx.fillRect(-d.radius, -d.radius - 6, d.radius * 2 * wallHp, 3);
+          break;
+        }
+        case "turret": {
+          const pulse = 1 + Math.sin(time * 4) * 0.1;
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = `${d.color}33`;
+          ctx.fill();
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = d.color;
+          ctx.fillRect(-3, -8, 6, 16);
+          ctx.fillRect(-8, -3, 16, 6);
+          break;
+        }
+        case "shield": {
+          const pulse = 1 + Math.sin(time * 3) * 0.08;
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * pulse, 0, Math.PI * 2);
+          const shieldGrad = ctx.createRadialGradient(0, 0, d.radius * 0.5, 0, 0, d.radius);
+          shieldGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
+          shieldGrad.addColorStop(1, "rgba(56, 189, 248, 0.05)");
+          ctx.fillStyle = shieldGrad;
+          ctx.fill();
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          break;
+        }
+        case "mine": {
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `${d.color}44`;
+          ctx.fill();
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          const blink = Math.sin(time * 6) > 0;
+          if (blink) {
+            ctx.beginPath();
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
+            ctx.fillStyle = "#ef4444";
+            ctx.fill();
+          }
+          break;
+        }
+        case "beacon": {
+          const pulse = 1 + Math.sin(time * 3) * 0.12;
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = `${d.color}66`;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * 0.4, 0, Math.PI * 2);
+          ctx.fillStyle = d.color;
+          ctx.fill();
+          break;
+        }
+        case "healAura": {
+          const pulse = 1 + Math.sin(time * 3) * 0.1;
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * pulse, 0, Math.PI * 2);
+          const healGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, d.radius);
+          healGrad.addColorStop(0, "rgba(52, 211, 153, 0.2)");
+          healGrad.addColorStop(1, "rgba(52, 211, 153, 0.02)");
+          ctx.fillStyle = healGrad;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, 0, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#34d399";
+          ctx.fill();
+          break;
+        }
+        case "freezeField": {
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius, 0, Math.PI * 2);
+          const freezeGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, d.radius);
+          freezeGrad.addColorStop(0, "rgba(125, 211, 252, 0.2)");
+          freezeGrad.addColorStop(1, "rgba(125, 211, 252, 0.02)");
+          ctx.fillStyle = freezeGrad;
+          ctx.fill();
+          ctx.strokeStyle = "rgba(125, 211, 252, 0.4)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([3, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          break;
+        }
+        case "poisonField": {
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius, 0, Math.PI * 2);
+          const poisonGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, d.radius);
+          poisonGrad.addColorStop(0, "rgba(132, 204, 22, 0.2)");
+          poisonGrad.addColorStop(1, "rgba(132, 204, 22, 0.02)");
+          ctx.fillStyle = poisonGrad;
+          ctx.fill();
+          break;
+        }
+        case "drone": {
+          const hover = Math.sin(time * 5) * 3;
+          ctx.translate(0, hover);
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `${d.color}55`;
+          ctx.fill();
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = d.color;
+          ctx.fillRect(-4, -1, 8, 2);
+          break;
+        }
+        case "laserBeam": {
+          if (d.targetId) {
+            const target = this.state.enemies.find((e) => e.id === d.targetId);
+            if (target) {
+              const dx = target.x - d.x;
+              const dy = target.y - d.y;
+              const len = Math.hypot(dx, dy);
+              const angle = Math.atan2(dy, dx);
+              ctx.rotate(angle);
+              const beamAlpha = 0.3 + Math.sin(time * 10) * 0.15;
+              ctx.strokeStyle = `rgba(239, 68, 68, ${beamAlpha})`;
+              ctx.lineWidth = 3;
+              ctx.shadowColor = "#ef4444";
+              ctx.shadowBlur = 8;
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(len, 0);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+            }
+          }
+          ctx.beginPath();
+          ctx.arc(0, 0, d.radius * 0.6, 0, Math.PI * 2);
+          ctx.fillStyle = d.color;
+          ctx.fill();
+          break;
+        }
+      }
+
       ctx.restore();
     }
   }

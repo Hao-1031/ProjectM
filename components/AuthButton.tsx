@@ -5,18 +5,6 @@ import { GithubLogo, User, SignOut, Spinner, Check } from "@phosphor-icons/react
 import { useAuth } from "@/hooks/useAuth";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
-import { cn } from "@/lib/utils";
-
-function LarkIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={cn("h-5 w-5", className)}>
-      <path d="M21.362 5.354H11.69a.38.38 0 0 0-.38.38v.574c0 .21.17.38.38.38h9.673a.38.38 0 0 0 .38-.38v-.574a.38.38 0 0 0-.38-.38zM18.64 8.97H9.005a.38.38 0 0 0-.38.38v.574c0 .21.17.38.38.38H18.64a.38.38 0 0 0 .38-.38v-.574a.38.38 0 0 0-.38-.38z" />
-      <path d="M21.362 12.585h-6.34a.38.38 0 0 0-.38.38v.574c0 .21.17.38.38.38h6.34a.38.38 0 0 0 .38-.38v-.574a.38.38 0 0 0-.38-.38z" />
-      <path d="M21.362 16.2H2.638a.38.38 0 0 0-.38.38v.574c0 .21.17.38.38.38h18.724a.38.38 0 0 0 .38-.38v-.574a.38.38 0 0 0-.38-.38z" />
-      <path d="M5.36 8.97H2.638a.38.38 0 0 0-.38.38v.574c0 .21.17.38.38.38H5.36a.38.38 0 0 0 .38-.38v-.574a.38.38 0 0 0-.38-.38z" />
-    </svg>
-  );
-}
 
 function Avatar({ url }: { url: string | null }) {
   if (url) {
@@ -35,7 +23,6 @@ function Avatar({ url }: { url: string | null }) {
 }
 
 function providerLabel(provider: string): string {
-  if (provider === "lark") return "飞书";
   if (provider === "github") return "GitHub";
   if (provider === "email") return "邮箱";
   return provider;

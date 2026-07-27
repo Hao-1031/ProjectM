@@ -305,7 +305,7 @@ export default function HomePage() {
                       {isAuthenticated ? "认证指挥官" : "匿名幸存者"}
                     </h2>
                     <p className="mt-1 text-xs text-muted">
-                      {isAuthenticated && user ? `${user.provider === "lark" ? "飞书" : user.provider === "github" ? "GitHub" : "邮箱"} 账号` : "本地存档"}
+                      {isAuthenticated && user ? `${user.provider === "github" ? "GitHub" : "邮箱"} 账号` : "本地存档"}
                     </p>
                     <div className="mt-2">
                       <RankBadge runs={save?.totalRuns ?? 0} />

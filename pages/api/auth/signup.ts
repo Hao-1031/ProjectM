@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: error.message });
     }
 
-    if (!data.session) {
+    if (!data?.session) {
       return res.status(403).json({
         error: "当前 Supabase 项目开启了邮箱验证，请关闭 Confirm email 后重试",
       });

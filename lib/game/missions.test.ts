@@ -20,7 +20,7 @@ function createMockState(): GameState {
     status: "running",
     lastTime: 0,
     time: 0,
-    map: { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [] },
+    map: { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [], decors: [] },
     camera: { x: 1200, y: 900, scale: 1 },
     player: {
       id: "player",
@@ -249,6 +249,7 @@ describe("missions", () => {
         theme: "industrial",
         obstacles: [],
         hazards: [],
+        decors: [],
       });
       expect(point.x).toBeGreaterThan(0);
       expect(point.x).toBeLessThan(2400);
@@ -260,7 +261,7 @@ describe("missions", () => {
 
     it("keeps point away from player when requested", () => {
       const point = createExtractionPoint(
-        { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [] },
+        { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [], decors: [] },
         { x: 1200, y: 900 }
       );
       expect(Math.hypot(point.x - 1200, point.y - 900)).toBeGreaterThanOrEqual(400);

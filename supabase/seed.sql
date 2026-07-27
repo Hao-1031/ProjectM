@@ -45,4 +45,3 @@ ON CONFLICT DO NOTHING;
 --
 -- 测试用 OAuth 账号：
 -- - GitHub：创建 OAuth App 时使用 http://localhost:3000/api/auth/callback
--- - 飞书：创建企业自建应用时使用 http://localhost:3000/api/auth/lark/callback

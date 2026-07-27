@@ -17,7 +17,7 @@ function createMockState(mode: GameState["mode"] = "campaign", hasDefense = fals
     status: "running",
     lastTime: 0,
     time: 0,
-    map: { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [] },
+    map: { width: 2400, height: 1800, theme: "industrial", obstacles: [], hazards: [], decors: [] },
     camera: { x: 1200, y: 900, scale: 1 },
     player: {
       id: "player",

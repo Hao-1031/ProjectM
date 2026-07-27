@@ -125,9 +125,6 @@ nano .env.local
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard | 是 | 公开 anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard | 是 | 服务端 service role key，切勿暴露 |
 | `ADMIN_KEY` | 手动生成 | 是 | `/admin` 公告管理接口 Bearer Token |
-| `LARK_APP_ID` | 飞书开放平台 | 否 | 飞书自建应用 App ID |
-| `LARK_APP_SECRET` | 飞书开放平台 | 否 | 飞书自建应用 App Secret |
-| `LARK_OAUTH_SECRET` | 手动生成 | 否 | 飞书 OAuth state HMAC 密钥 |
 | `SENTRY_ORG` | Sentry | 否 | Sentry 组织名 |
 | `SENTRY_PROJECT` | Sentry | 否 | Sentry 项目名 |
 | `SENTRY_AUTH_TOKEN` | Sentry | 否 | 未配置时构建自动跳过 sourcemap 上传 |
@@ -229,7 +226,7 @@ pm2 delete project-m
 pm2 restart project-m --update-env
 ```
 
-> 常见坑：仅执行 `pm2 restart project-m` 不会刷新 `.env.local` 中的变量，可能导致飞书登录等接口读取到旧值。
+> 常见坑：仅执行 `pm2 restart project-m` 不会刷新 `.env.local` 中的变量，可能导致 OAuth 登录等接口读取到旧值。
 
 ---
 
@@ -458,11 +455,10 @@ pm2 restart project-m --update-env
 - 在 Actions 日志中查看 SSH 连接错误信息。
 - 确认服务器防火墙允许 GitHub Actions runner IP 访问 SSH（如需白名单，建议使用固定 IP 的 self-hosted runner）。
 
-### 13.8 飞书登录返回「飞书登录未配置」
+### 13.8 `pm2 env` 显示环境变量不一致
 
-- 确认 `.env.local` 中 `LARK_APP_ID`、`LARK_APP_SECRET`、`LARK_OAUTH_SECRET` 已正确填写。
 - 确认修改后执行 `pm2 restart project-m --update-env`。
-- 通过 `/api/auth/debug-env`（如存在）或 `pm2 env project-m` 检查实际读取值。
+- 通过 `pm2 env project-m` 检查实际读取值。
 
 ### 13.9 Windows 本地 `pnpm test:run` 出现 worker timeout
 
