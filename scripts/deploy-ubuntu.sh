@@ -74,6 +74,20 @@ mkdir -p "${APP_DIR}/logs"
 log "检查环境变量..."
 if [ ! -f "${APP_DIR}/.env.local" ]; then
   cat > "${APP_DIR}/.env.local" <<EOF
+# Project-M 生产环境配置
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000
+
+# Supabase 后端（排行榜、公告）
+# NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# 管理员后台密钥
+# ADMIN_KEY=your-admin-key
+
 # Sentry 配置（可选）
 # 未配置 SENTRY_AUTH_TOKEN 时构建会自动跳过 sourcemap 上传
 # SENTRY_ORG=your-org
@@ -81,6 +95,17 @@ if [ ! -f "${APP_DIR}/.env.local" ]; then
 # SENTRY_AUTH_TOKEN=your-token
 # NEXT_PUBLIC_SENTRY_DSN=https://xxx@yyy.ingest.sentry.io/zzz
 EOF
+fi
+
+if [ -z "${SKIP_ENV_UPDATE:-}" ]; then
+  if ! grep -q "NEXT_PUBLIC_SITE_URL" "${APP_DIR}/.env.local"; then
+    echo "" >> "${APP_DIR}/.env.local"
+    echo "NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000" >> "${APP_DIR}/.env.local"
+    log "已添加 NEXT_PUBLIC_SITE_URL 配置"
+  else
+    sed -i 's|^NEXT_PUBLIC_SITE_URL=.*|NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000|' "${APP_DIR}/.env.local"
+    log "已更新 NEXT_PUBLIC_SITE_URL 配置"
+  fi
 fi
 
 # 9. 构建

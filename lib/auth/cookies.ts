@@ -7,10 +7,12 @@ export interface SerializableCookieStore {
   getSetCookieHeaders: () => string[];
 }
 
+const isHttps = process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ?? false;
+
 const DEFAULT_OPTIONS: CookieOptions = {
   path: "/",
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: isHttps,
   sameSite: "lax",
   maxAge: 60 * 60 * 24 * 7,
 };
