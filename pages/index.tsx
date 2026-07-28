@@ -57,6 +57,16 @@ const MODES: {
   span: string;
 }[] = [
   {
+    type: "flagship-peak",
+    label: "旗舰巅峰",
+    subtitle: "终极维度",
+    icon: Rocket,
+    accent: "primary",
+    desc: "三阶段25波终极挑战",
+    featured: true,
+    span: "lg:col-span-3 lg:row-span-2",
+  },
+  {
     type: "defense",
     label: "据点防守",
     subtitle: "锚点维度",
@@ -64,7 +74,7 @@ const MODES: {
     accent: "success",
     desc: "2-4人合作守护核心锚点",
     featured: true,
-    span: "lg:col-span-3 lg:row-span-2",
+    span: "lg:col-span-3",
   },
   {
     type: "extreme-survival",
@@ -940,7 +950,9 @@ export default function HomePage() {
                     ? "/game?mode=deathmatch"
                     : mode.type === "peak-challenge"
                       ? "/game?mode=peak-challenge"
-                      : `/game?mode=${mode.type}`;
+                      : mode.type === "flagship-peak"
+                        ? "/game?mode=flagship-peak"
+                        : `/game?mode=${mode.type}`;
 
             return (
               <Link

@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import Head from "next/head";
 import { useEffect } from "react";
 import { VERSION_META_GENERATOR } from "@/lib/version";
+import Providers from "@/components/Providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -46,7 +47,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-icon" href="/icon.svg" />
       </Head>
       <div className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
-        <Component {...pageProps} />
+        <Providers>
+          <Component {...pageProps} />
+        </Providers>
       </div>
     </>
   );

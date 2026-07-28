@@ -4,7 +4,7 @@ import { Spinner } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "outline";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "outline" | "success";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   leftIcon?: ReactNode;
@@ -22,6 +22,7 @@ const variants = {
   ghost:
     "text-foreground hover:bg-panel-raised/50 active:bg-panel-raised/30 focus-visible:ring-primary",
   danger: "bg-danger text-white hover:bg-danger/90 active:bg-danger/80 focus-visible:ring-danger",
+  success: "bg-success text-white hover:bg-success/90 active:bg-success/80 focus-visible:ring-success",
 };
 
 const sizes = {

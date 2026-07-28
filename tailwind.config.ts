@@ -113,8 +113,8 @@ const config: Config = {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         bridgePulse: {
-          "0%, 100%": { opacity: "0.4", boxShadow: "0 0 20px rgba(196,77,255,0.15)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 40px rgba(196,77,255,0.3)" },
+          "0%, 100%": { opacity: "0.4", boxShadow: "0 0 20px rgba(139,156,247,0.15)" },
+          "50%": { opacity: "0.8", boxShadow: "0 0 40px rgba(139,156,247,0.3)" },
         },
         riftOpen: {
           "0%": { opacity: "0", transform: "scaleX(0)" },

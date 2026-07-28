@@ -26,11 +26,13 @@ import LoadoutModal from "./game/LoadoutModal";
 import OverclockChoiceModal from "./extreme-survival/OverclockChoiceModal";
 import RedBreathOverlay from "./extreme-survival/RedBreathOverlay";
 import SupplyWindow from "./game/SupplyWindow";
-import type { HeroId, WeaponId } from "@/lib/game/types";
+import WeatherStatusIndicator from "./game/WeatherStatusIndicator";
+import type { HeroId, WeaponId, DifficultyPreset } from "@/lib/game/types";
 
 interface GameCanvasProps {
   onExit?: () => void;
   multiplayer?: boolean;
+  difficultyPreset?: DifficultyPreset;
 }
 
 interface DiscoveredRoom {
@@ -39,7 +41,7 @@ interface DiscoveredRoom {
   playerName: string;
 }
 
-export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasProps) {
+export default function GameCanvas({ onExit, multiplayer = false, difficultyPreset }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -101,6 +103,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   // Capture initial values to avoid recreating the engine when these change.
   const initialModeRef = useRef(selectedMode);
   const initialLoadoutRef = useRef(loadoutSnapshot);
+  const initialDifficultyRef = useRef(difficultyPreset);
   const qualityRef = useRef(settings.graphicsQuality);
   const vibrationEnabledRef = useRef(settings.vibrationEnabled);
 
@@ -204,7 +207,8 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
       },
       initialModeRef.current,
       undefined,
-      initialLoadoutRef.current
+      initialLoadoutRef.current,
+      initialDifficultyRef.current
     );
     engineRef.current = engine;
 
@@ -628,7 +632,10 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   }, []);
 
   const handleSkipBreak = useCallback(() => {
-    engineRef.current?.skipBreak();
+    const skipped = engineRef.current?.skipBreak();
+    if (skipped) {
+      setShopOpen(false);
+    }
   }, []);
 
   const handleToggleShop = useCallback(() => {
@@ -689,6 +696,12 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
           onSkipBreak={handleSkipBreak}
         />
       )}
+
+      <WeatherStatusIndicator
+        weatherState={engine?.state.weatherState}
+        playerHealth={engine?.state.player.health ?? 0}
+        playerMaxHealth={engine?.state.player.maxHealth ?? 100}
+      />
 
       {multiplayer && (
         <button

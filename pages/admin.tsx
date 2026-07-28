@@ -29,6 +29,7 @@ import type { AnnouncementRow } from "@/lib/supabase/api";
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式" },
+  { value: "flagship-peak", label: "旗舰巅峰" },
   { value: "peak-challenge", label: "巅峰挑战" },
   { value: "extreme-survival", label: "极限生存" },
   { value: "survival", label: "生存模式" },

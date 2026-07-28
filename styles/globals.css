@@ -4,68 +4,68 @@
 
 :root {
   /* ── Multiverse Bridge Command Deck ── */
-  /* Dark Matter Purple-Black + Holographic Magenta + Anchor Gold */
+  /* Deep Gray + Soft Blue-Purple + Warm Gray — Professional & Gentle */
 
-  /* Base: deep void with purple undertone */
-  --background: #0c0a14;
-  --foreground: #e8e4f0;
+  /* Base: warm deep gray */
+  --background: #17161a;
+  --foreground: #e8e6e4;
 
-  /* Primary: Holographic Magenta - bridge projection energy */
-  --primary: #c44dff;
-  --primary-muted: #4a1a6e;
-  --primary-subtle: #1a0a28;
+  /* Primary: Soft Blue-Purple — gentle projection energy */
+  --primary: #8b9cf7;
+  --primary-muted: #3a3d5c;
+  --primary-subtle: #1a1c2e;
 
-  /* Accent: Anchor Gold - core anchor point */
-  --accent: #c8a45c;
-  --accent-muted: #5c4a28;
-  --accent-subtle: #261e0f;
+  /* Accent: Warm Amber — anchor point */
+  --accent: #c4a574;
+  --accent-muted: #5c4a32;
+  --accent-subtle: #261e12;
 
-  /* Secondary: Void Violet - deep dimension echo */
-  --secondary: #6e4d8a;
-  --secondary-muted: #2a1a3a;
-  --secondary-subtle: #120a1a;
+  /* Secondary: Muted Steel Blue */
+  --secondary: #6b7894;
+  --secondary-muted: #2a2e3a;
+  --secondary-subtle: #12141a;
 
-  /* Surfaces - layered bridge deck panels */
-  --panel: #110f1a;
-  --panel-raised: #181524;
-  --border: #1e1a2e;
+  /* Surfaces — layered bridge deck panels */
+  --panel: #1c1a1e;
+  --panel-raised: #242226;
+  --border: #2a2830;
 
-  /* Quantum - cyan-blue for data streams */
-  --quantum: #5b9cf5;
-  --quantum-muted: #1e3a5f;
-  --quantum-subtle: #0a1624;
+  /* Quantum — gentle blue for data streams */
+  --quantum: #6b9cf5;
+  --quantum-muted: #1e345a;
+  --quantum-subtle: #0a1424;
 
-  /* Anchor - golden anchor energy */
-  --anchor: #c8a45c;
-  --anchor-muted: #5c4a28;
-  --anchor-subtle: #261e0f;
+  /* Anchor — warm amber energy */
+  --anchor: #c4a574;
+  --anchor-muted: #5c4a32;
+  --anchor-subtle: #261e12;
 
-  /* Entropy - crimson warning */
-  --entropy: #c84a4a;
-  --entropy-muted: #5c1e1e;
-  --entropy-subtle: #240a0a;
+  /* Entropy — warm rose warning */
+  --entropy: #c47a6a;
+  --entropy-muted: #5c2e24;
+  --entropy-subtle: #24100a;
 
-  /* Void - pure absence */
-  --void: #08060e;
-  --void-muted: #0c0a14;
+  /* Void — pure absence */
+  --void: #0e0c0a;
+  --void-muted: #17161a;
 
   /* Semantic */
-  --danger: #c84a4a;
-  --success: #4a9a6e;
-  --warning: #c8a45c;
-  --muted: #6b6478;
+  --danger: #c47a6a;
+  --success: #5a9a6e;
+  --warning: #c4a574;
+  --muted: #6b6662;
 
-  /* Neutral scale - purple-tinted gray */
-  --neutral-50: #f5f4f7;
-  --neutral-100: #e8e4f0;
-  --neutral-200: #c4bed0;
-  --neutral-300: #9a90aa;
-  --neutral-400: #6b6478;
-  --neutral-500: #4a4454;
-  --neutral-600: #302a3a;
-  --neutral-700: #1e1a2e;
-  --neutral-800: #14101e;
-  --neutral-900: #0c0a14;
+  /* Neutral scale — warm gray */
+  --neutral-50: #f5f4f2;
+  --neutral-100: #e8e6e4;
+  --neutral-200: #c4c0bc;
+  --neutral-300: #9a9690;
+  --neutral-400: #6b6662;
+  --neutral-500: #4a4542;
+  --neutral-600: #302c2a;
+  --neutral-700: #1e1c1a;
+  --neutral-800: #141210;
+  --neutral-900: #0c0a08;
 
   /* Typography */
   --font-cabinet: "Cabinet Grotesk", system-ui, sans-serif;
@@ -92,9 +92,9 @@ body {
   overscroll-behavior: none;
 }
 
-/* Selection with holographic magenta tint */
+/* Selection with soft blue-purple tint */
 ::selection {
-  background: rgba(196, 77, 255, 0.18);
+  background: rgba(139, 156, 247, 0.18);
 }
 
 /* Subtle scrollbar */
@@ -123,7 +123,7 @@ body {
 
   /* Holographic gradient text */
   .text-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, #a855f7 40%, var(--anchor) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, #7b8cd6 40%, var(--accent) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -131,7 +131,7 @@ body {
 
   /* Anchor gradient */
   .text-gradient-anchor {
-    background: linear-gradient(135deg, var(--anchor) 0%, #e8c84a 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, #d4b87a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -194,8 +194,8 @@ body {
 /* Bridge deck grid - larger scale */
 .bridge-grid {
   background-image:
-    linear-gradient(rgba(196, 77, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196, 77, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(139, 156, 247, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 156, 247, 0.025) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
@@ -203,25 +203,25 @@ body {
 .hazard-stripes {
   background: repeating-linear-gradient(
     45deg,
-    rgba(200, 164, 92, 0.06),
-    rgba(200, 164, 92, 0.06) 8px,
-    rgba(200, 164, 92, 0.015) 8px,
-    rgba(200, 164, 92, 0.015) 16px
+    rgba(196, 165, 116, 0.06),
+    rgba(196, 165, 116, 0.06) 8px,
+    rgba(196, 165, 116, 0.015) 8px,
+    rgba(196, 165, 116, 0.015) 16px
   );
 }
 
 /* Bridge holographic glow */
 .bridge-glow {
   box-shadow:
-    0 0 40px rgba(196, 77, 255, 0.08),
-    0 0 80px rgba(196, 77, 255, 0.04),
-    inset 0 0 40px rgba(196, 77, 255, 0.02);
+    0 0 40px rgba(139, 156, 247, 0.08),
+    0 0 80px rgba(139, 156, 247, 0.04),
+    inset 0 0 40px rgba(139, 156, 247, 0.02);
 }
 
 /* Anchor pulse border */
 .anchor-border {
-  border-color: rgba(200, 164, 92, 0.2);
-  box-shadow: 0 0 20px rgba(200, 164, 92, 0.05);
+  border-color: rgba(196, 165, 116, 0.2);
+  box-shadow: 0 0 20px rgba(196, 165, 116, 0.05);
 }
 
 /* Rift divider */
@@ -231,7 +231,7 @@ body {
     90deg,
     transparent 0%,
     var(--primary) 20%,
-    #a855f7 50%,
+    #7b8cd6 50%,
     var(--primary) 80%,
     transparent 100%
   );
@@ -250,7 +250,7 @@ body {
   inset: 0;
   background: linear-gradient(
     transparent 0%,
-    rgba(196, 77, 255, 0.015) 50%,
+    rgba(139, 156, 247, 0.015) 50%,
     transparent 100%
   );
   animation: holoScan 4s linear infinite;
@@ -264,7 +264,7 @@ body {
 
 /* Bridge command deck panel */
 .bridge-panel {
-  border: 1px solid rgba(196, 77, 255, 0.1);
+  border: 1px solid rgba(139, 156, 247, 0.1);
   background: var(--panel);
   border-radius: 1rem;
   position: relative;
@@ -277,9 +277,9 @@ body {
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(196, 77, 255, 0.03) 0%,
+    rgba(139, 156, 247, 0.03) 0%,
     transparent 50%,
-    rgba(200, 164, 92, 0.02) 100%
+    rgba(196, 165, 116, 0.02) 100%
   );
   pointer-events: none;
 }
@@ -287,7 +287,7 @@ body {
 /* Bridge panel header with corner accents */
 .bridge-panel-header {
   position: relative;
-  border-bottom: 1px solid rgba(196, 77, 255, 0.08);
+  border-bottom: 1px solid rgba(139, 156, 247, 0.08);
   padding: 0.75rem 1rem;
 }
 
@@ -317,10 +317,10 @@ body {
 /* Holographic projection ring */
 .holo-ring {
   border-radius: 50%;
-  border: 1px solid rgba(196, 77, 255, 0.15);
+  border: 1px solid rgba(139, 156, 247, 0.15);
   box-shadow:
-    0 0 20px rgba(196, 77, 255, 0.06),
-    inset 0 0 20px rgba(196, 77, 255, 0.03);
+    0 0 20px rgba(139, 156, 247, 0.06),
+    inset 0 0 20px rgba(139, 156, 247, 0.03);
 }
 
 /* Particle field background */
@@ -343,8 +343,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(196, 77, 255, 0.02) 2px,
-    rgba(196, 77, 255, 0.02) 4px
+    rgba(139, 156, 247, 0.02) 2px,
+    rgba(139, 156, 247, 0.02) 4px
   );
   background-size: 100% 4px;
   animation: dataStream 1s linear infinite;

@@ -52,7 +52,7 @@ export function createCookieStore(reqCookies: Partial<Record<string, string>>): 
 
 export function createClearCookieHeader(name: string): string {
   return `${encodeURIComponent(name)}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
-    process.env.NODE_ENV === "production" ? "; Secure" : ""
+    isHttps ? "; Secure" : ""
   }`;
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Timer,
@@ -9,6 +9,12 @@ import {
   Coins,
   Broom,
   FastForward,
+  Heart,
+  Shield,
+  Sword,
+  Fire,
+  FirstAid,
+  Plus,
 } from "@phosphor-icons/react";
 
 export interface SupplyWindowProps {
@@ -30,6 +36,63 @@ export interface SupplyWindowProps {
   onSkipBreak: () => void;
 }
 
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  icon: typeof Heart;
+  maxPurchases?: number;
+}
+
+const SHOP_ITEMS: ShopItem[] = [
+  {
+    id: "health_pack",
+    name: "急救包",
+    description: "恢复 30% 最大生命值",
+    cost: 25,
+    icon: FirstAid,
+  },
+  {
+    id: "armor_plate",
+    name: "护甲板",
+    description: "获得临时护盾，吸收 50 点伤害",
+    cost: 30,
+    icon: Shield,
+  },
+  {
+    id: "damage_boost",
+    name: "过载弹头",
+    description: "下波次伤害 +25%，持续 60 秒",
+    cost: 40,
+    icon: Sword,
+    maxPurchases: 2,
+  },
+  {
+    id: "speed_boost",
+    name: "加速剂",
+    description: "下波次移动速度 +30%，持续 60 秒",
+    cost: 20,
+    icon: Lightning,
+    maxPurchases: 2,
+  },
+  {
+    id: "core_repair",
+    name: "核心修复",
+    description: "修复据点核心 15% 耐久",
+    cost: 50,
+    icon: Fire,
+  },
+  {
+    id: "heal_aura",
+    name: "治疗立场",
+    description: "部署治疗光环，每秒恢复 2% 生命，持续 30 秒",
+    cost: 60,
+    icon: Heart,
+    maxPurchases: 1,
+  },
+];
+
 export default function SupplyWindow({
   inBreak,
   breakTimer,
@@ -40,6 +103,8 @@ export default function SupplyWindow({
   onToggleShop,
   onSkipBreak,
 }: SupplyWindowProps) {
+  const [purchased, setPurchased] = useState<Record<string, number>>({});
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "b" || e.key === "B") {
@@ -60,6 +125,13 @@ export default function SupplyWindow({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  // Reset purchases when new break starts
+  useEffect(() => {
+    if (inBreak) {
+      setPurchased({});
+    }
+  }, [inBreak]);
 
   return (
     <AnimatePresence>
@@ -158,12 +230,60 @@ export default function SupplyWindow({
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-primary/10 bg-background/40 p-6 text-center">
-                  <ShoppingCart size={32} className="text-muted/40" />
-                  <p className="text-xs text-muted">
-                    补给商店将在后续版本中开放物品购买。
-                    <br />
-                    当前版本可在波次间收集资源，为未来补给做准备。
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {SHOP_ITEMS.map((item) => {
+                    const count = purchased[item.id] ?? 0;
+                    const maxed = item.maxPurchases !== undefined && count >= item.maxPurchases;
+                    const canAfford = resources >= item.cost;
+                    const disabled = maxed || !canAfford;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => {
+                          if (!disabled) {
+                            setPurchased((prev) => ({
+                              ...prev,
+                              [item.id]: (prev[item.id] ?? 0) + 1,
+                            }));
+                          }
+                        }}
+                        className="flex items-start gap-3 rounded-xl border border-border bg-panel-raised p-3 text-left transition-all hover:border-primary/40 hover:bg-panel focus-ring disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98]"
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <item.icon size={18} weight="bold" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-bold">{item.name}</span>
+                            <span className="flex shrink-0 items-center gap-0.5 font-mono text-[10px] font-bold tabular-nums text-accent">
+                              <Coins size={10} weight="bold" />
+                              {item.cost}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
+                            {item.description}
+                          </p>
+                          {maxed && (
+                            <span className="mt-1 inline-flex items-center gap-0.5 rounded-full border border-success/30 bg-success/10 px-1.5 py-0.5 text-[8px] font-bold text-success">
+                              已购满
+                            </span>
+                          )}
+                          {count > 0 && !maxed && (
+                            <span className="mt-1 inline-flex items-center gap-0.5 text-[10px] text-muted">
+                              已购 {count}/{item.maxPurchases ?? "∞"}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                  <p className="text-[10px] text-muted">
+                    购买后即刻生效，资源在波次间收集
                   </p>
                   <button
                     type="button"

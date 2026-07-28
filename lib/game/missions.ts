@@ -420,6 +420,72 @@ export function generateFlagshipMissions(): Mission[] {
   ];
 }
 
+export function generateFlagShipPeakMissions(): Mission[] {
+  return [
+    {
+      id: "fp_eliminate",
+      type: "eliminate",
+      title: "终极制霸",
+      description: "在旗舰巅峰中消灭 300 个敌人",
+      target: 300,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fp_boss",
+      type: "bossSlay",
+      title: "巅峰猎手",
+      description: "击败 5 个旗舰巅峰首领",
+      target: 5,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fp_survive",
+      type: "surviveTimer",
+      title: "巅峰坚守",
+      description: "在核心存活的前提下坚守 600 秒",
+      target: 600,
+      timeLimit: 720,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fp_speed",
+      type: "speedClear",
+      title: "巅峰速度",
+      description: "获得钻石速度评级",
+      target: 1,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fp_season",
+      type: "seasonObjective",
+      title: "宗师之路",
+      description: "赛季段位达到大师及以上",
+      target: 50000,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+    {
+      id: "fp_perfect",
+      type: "noDamage",
+      title: "完美巅峰",
+      description: "完成 5 波完美防线",
+      target: 5,
+      progress: 0,
+      completed: false,
+      elapsed: 0,
+    },
+  ];
+}
+
 export function createMission(
   type: MissionType,
   title: string,

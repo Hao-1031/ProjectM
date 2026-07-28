@@ -65,14 +65,14 @@ export default function Dialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-4 top-4 rounded-lg p-1 text-muted transition-colors hover:bg-panel-raised hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="absolute right-4 top-4 rounded-lg p-1 text-muted transition-colors hover:bg-panel-raised active:bg-panel-raised/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="关闭"
               >
                 <X size={18} weight="bold" />
               </button>
             )}
             {title && (
-              <h2 id="dialog-title" className="pr-6 text-lg font-bold text-foreground">
+              <h2 id="dialog-title" className="pr-6 font-display text-lg font-bold text-foreground">
                 {title}
               </h2>
             )}

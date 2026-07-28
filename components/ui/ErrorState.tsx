@@ -40,7 +40,7 @@ export default function ErrorState({
       <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-danger/30 bg-danger/10 text-danger">
         {icon ?? <Warning size={24} weight="bold" />}
       </div>
-      <h3 className="mt-4 text-sm font-bold text-foreground">{title}</h3>
+      <h3 className="mt-4 font-display text-sm font-bold text-foreground">{title}</h3>
       <p className="mt-1 max-w-xs text-xs text-muted">{description}</p>
       {error && (
         <p className="mt-2 max-w-xs break-words font-mono text-[10px] text-danger/80">

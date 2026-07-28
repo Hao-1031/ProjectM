@@ -86,6 +86,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: false,
     endless: false,
   },
+  "flagship-peak": {
+    type: "flagship-peak",
+    name: "旗舰巅峰",
+    description: "三阶段25波终极挑战：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)，双轨挑战+双维度评级+统一积分制",
+    allowMissions: true,
+    endless: false,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -114,6 +121,7 @@ export function getDefaultMode(): GameModeType {
 
 export function getModeList(): { type: GameModeType; name: string; description: string }[] {
   return [
+    { type: "flagship-peak", name: "旗舰巅峰", description: MODE_DEFS["flagship-peak"].description },
     { type: "peak-challenge", name: "巅峰挑战", description: MODE_DEFS["peak-challenge"].description },
     { type: "flagship", name: "旗舰模式", description: MODE_DEFS["flagship"].description },
     { type: "extreme-survival", name: "极限生存", description: MODE_DEFS["extreme-survival"].description },

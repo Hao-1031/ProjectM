@@ -20,7 +20,7 @@ export default function Skeleton({ className, circle, width, height, count = 1 }
         <div
           key={index}
           className={cn(
-            "animate-pulse bg-border/70",
+            "bg-shimmer",
             circle ? "rounded-full" : "rounded-lg",
             className
           )}

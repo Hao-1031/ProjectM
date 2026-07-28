@@ -57,8 +57,9 @@ export function generateCsrfToken(): string {
 }
 
 export function setCsrfCookie(res: NextApiResponse, token: string): void {
+  const isHttps = process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ?? false;
   const cookieValue = `${encodeURIComponent("csrf-token")}=${encodeURIComponent(token)}; Path=/; SameSite=Strict; HttpOnly${
-    process.env.NODE_ENV === "production" ? "; Secure" : ""
+    isHttps ? "; Secure" : ""
   }; Max-Age=${60 * 60 * 24}`;
   res.setHeader("Set-Cookie", cookieValue);
 }

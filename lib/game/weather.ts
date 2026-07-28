@@ -61,7 +61,7 @@ const WEATHER_EFFECTS: Record<WeatherType, WeatherEffect> = {
     dotDamagePerSec: 0,
     lightningChancePerSec: 0,
     lightningDamage: 0,
-    overlayColor: "#000000",
+    overlayColor: "#141210",
     overlayOpacity: 0,
     particleDensity: 0,
   },
@@ -110,7 +110,7 @@ const WEATHER_EFFECTS: Record<WeatherType, WeatherEffect> = {
     damageMul: 1.1,
     healingMul: 0.3,
     visionRange: 600,
-    dotDamagePerSec: 8,
+    dotDamagePerSec: 5,
     lightningChancePerSec: 0,
     lightningDamage: 0,
     overlayColor: "#3a5a1a",
@@ -123,7 +123,7 @@ const WEATHER_EFFECTS: Record<WeatherType, WeatherEffect> = {
     damageMul: 0.8,
     healingMul: 0.6,
     visionRange: 450,
-    dotDamagePerSec: 4,
+    dotDamagePerSec: 3,
     lightningChancePerSec: 0,
     lightningDamage: 0,
     overlayColor: "#aaccff",
@@ -258,8 +258,8 @@ export function getWeatherDescription(type: WeatherType): string {
     case "sandstorm": return "敌我移速降低，每秒受到微量伤害，视野受限";
     case "thunderstorm": return "所有伤害提升25%，随机落雷打击敌人";
     case "fog": return "视野大幅受限，敌人移速提升，伤害降低";
-    case "acidRain": return "每秒受到酸蚀伤害，治疗效果大幅降低";
-    case "blizzard": return "敌我移速大幅降低，每秒受到冰冻伤害，视野受限";
+    case "acidRain": return "每秒受到酸蚀伤害(5点)，治疗效果大幅降低";
+    case "blizzard": return "敌我移速大幅降低，每秒受到冰冻伤害(3点)，视野受限";
   }
 }
 

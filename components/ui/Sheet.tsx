@@ -105,7 +105,7 @@ export default function Sheet({
               >
                 <div className="pr-6">
                   {title && (
-                    <h2 id="sheet-title" className="text-lg font-bold text-foreground">
+                    <h2 id="sheet-title" className="text-lg font-display font-bold text-foreground">
                       {title}
                     </h2>
                   )}
@@ -119,7 +119,7 @@ export default function Sheet({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-lg p-1 text-muted transition-colors hover:bg-panel-raised hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="rounded-lg p-1 text-muted transition-colors hover:bg-panel-raised active:bg-panel-raised/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     aria-label="关闭"
                   >
                     <X size={18} weight="bold" />

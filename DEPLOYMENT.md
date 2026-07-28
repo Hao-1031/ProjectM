@@ -3,15 +3,15 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 30 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与邮箱验证码登录；剧情战役 + BossRush 玩法系统；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强
+> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与邮箱验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰模式（三阶段25波终极挑战）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为「奇迹」版本一次性全部上线，包含全站 30 个页面的舰桥风格重设计及全部玩法系统。
+本次部署为「奇迹」版本一次性全部上线，包含全站 31 个页面的舰桥风格重设计及全部玩法系统。
 
-### 1.1 全站页面清单（30 页）
+### 1.1 全站页面清单（31 页）
 
 | 页面 | 路径 | 说明 |
 |------|------|------|
@@ -23,6 +23,7 @@
 | 模式选择 | `pages/modes.tsx` | 全部游戏模式概览 |
 | 剧情战役 | `pages/campaign.tsx` | 章节节点进度管理，全息地图风格 |
 | BossRush | `pages/boss-rush.tsx` | 首领连战模式，关卡与奖励 |
+| 旗舰巅峰 | `pages/flagship-peak.tsx` | 三阶段25波终极挑战，双轨挑战+双维度评级+统一积分制 |
 | 顶峰挑战 | `pages/peak-challenge.tsx` | 高难度挑战内容 |
 | 极限生存 | `pages/extreme-survival/index.tsx` | 极限生存模式入口 |
 | 赛季 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
@@ -54,6 +55,7 @@
 | 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
 | BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
 | 顶峰挑战 | `lib/game/peak-challenge.ts` | 高难度挑战逻辑 |
+| 旗舰巅峰 | `lib/game/flagship-peak.ts` | 三阶段25波、双轨挑战、双维度评级、统一积分制 |
 | 成就系统 | `lib/game/achievements.ts` | 成就定义、进度、奖励 |
 | 编年史 | `lib/game/chronicles.ts` | 世界观数据 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
@@ -582,6 +584,7 @@ pm2 restart project-m --update-env
 - [ ] `/campaign` 剧情战役页可正常访问，章节节点显示正常
 - [ ] `/boss-rush` BossRush 页可正常访问，关卡与首领信息正常
 - [ ] `/peak-challenge` 顶峰挑战页可正常访问
+- [ ] `/flagship-peak` 旗舰巅峰页可正常访问，三阶段递进、双轨挑战、双维度评级展示正常
 - [ ] `/extreme-survival` 极限生存页可正常访问
 - [ ] `/season` 赛季页可正常访问并领取奖励
 
@@ -607,6 +610,7 @@ pm2 restart project-m --update-env
 - [ ] `/404` 自定义 404 页面正常
 
 ### 游戏功能
+- [ ] 游戏内可选择「旗舰巅峰」，完成三阶段25波挑战
 - [ ] 游戏内可选择「旗舰模式」，完成挑战并进入超频阶段
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
 - [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
@@ -677,6 +681,7 @@ pm2 restart project-m --update-env
 | `lib/game/campaign.ts` | 剧情战役：章节、节点、进度管理 |
 | `lib/game/boss-rush.ts` | BossRush：关卡、首领、奖励机制 |
 | `lib/game/peak-challenge.ts` | 顶峰挑战：高难度挑战逻辑 |
+| `lib/game/flagship-peak.ts` | 旗舰巅峰：三阶段25波、双轨挑战、双维度评级、统一积分制 |
 | `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
 | `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
 | `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
@@ -716,6 +721,7 @@ pm2 restart project-m --update-env
 | `pages/campaign.tsx` | 剧情战役 |
 | `pages/boss-rush.tsx` | BossRush |
 | `pages/peak-challenge.tsx` | 顶峰挑战 |
+| `pages/flagship-peak.tsx` | 旗舰巅峰（三阶段25波终极挑战） |
 | `pages/extreme-survival/index.tsx` | 极限生存 |
 | `pages/season.tsx` | 赛季进度与奖励 |
 | `pages/hero-archive.tsx` | 英雄档案 |
@@ -828,6 +834,20 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 
 - 高难度挑战模式，含特殊规则与限制
 - 独立的挑战进度与奖励系统
+
+#### 旗舰巅峰 (Flagship Peak)
+
+`lib/game/flagship-peak.ts` + `pages/flagship-peak.tsx`
+
+- 旗舰与巅峰模式融合升级，11 种游戏模式中的终极防守体验
+- **三阶段25波递进**：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)
+- **双轨挑战系统**：固定挑战（每5波6个）+ 动态任务（超频/地狱阶段专属）
+- **双维度评级**：速度评级（青铜→钻石，1.0-1.75倍积分）+ 赛季段位（青铜→宗师）
+- **统一积分制**：击杀(10+连击)、精英(+50)、首领(+200)、波次(+50)、完美(+200)、时间奖励
+- **三阶段视觉**：舰桥蓝紫→红色警报→黑色虚空，HUD 主题动态切换
+- **首领战**：第10波 Overlord、第23波 Annihilator、第25波 Dreadnought
+- 难度系数：标准 1.0x → 超频 1.5x → 地狱 2.0x
+- 测试覆盖：55 个单元测试（`lib/game/flagship-peak.test.ts`）
 
 ### 16.4 归属感系统
 
@@ -1305,4 +1325,4 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 30 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*
+*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰三阶段25波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*

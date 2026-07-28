@@ -68,7 +68,7 @@ const MODE_NAMES: Record<string, string> = {
   campaign: "战役模式", endless: "无尽生存", daily: "每日挑战",
   roguelike: "冒险模式", defense: "据点防守", deathmatch: "个人死斗",
   survival: "生存模式", "extreme-survival": "极限生存",
-  "peak-challenge": "巅峰挑战", flagship: "旗舰模式",
+  "peak-challenge": "巅峰挑战", flagship: "旗舰模式", "flagship-peak": "旗舰巅峰",
 };
 
 function ResourceBar({ coins, seasonCurrency }: { coins: number; seasonCurrency: number }) {

@@ -25,6 +25,7 @@ import {
 } from "@phosphor-icons/react";
 import AuthButton from "@/components/AuthButton";
 import BrandLogo from "@/components/BrandLogo";
+import BrandFooter from "@/components/BrandFooter";
 import DimensionBackground from "@/components/effects/DimensionBackground";
 import { VERSION_WATERMARK } from "@/lib/version";
 
@@ -146,28 +147,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
       <div className="version-watermark">{VERSION_WATERMARK}</div>
 
       {showNav && !isIndex && (
-        <footer className="relative z-10 border-t border-primary/10 bg-background/60 py-3 text-center text-[10px] text-muted">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 md:flex-row">
-            <div className="flex items-center gap-2">
-              <BrandLogo size={14} variant="icon" className="text-muted" />
-              <p>多重宇宙 · 奇迹 · 公平竞技 · 无付费加成</p>
-            </div>
-            <div className="flex gap-4">
-              <Link href="/" className="transition-colors hover:text-primary focus-ring rounded">
-                首页
-              </Link>
-              <Link href="/about" className="transition-colors hover:text-primary focus-ring rounded">
-                关于
-              </Link>
-              <Link href="/settings" className="transition-colors hover:text-primary focus-ring rounded">
-                设置
-              </Link>
-              <Link href="/help" className="transition-colors hover:text-primary focus-ring rounded">
-                指南
-              </Link>
-            </div>
-          </div>
-        </footer>
+        <BrandFooter />
       )}
 
       {showNav && !isIndex && (

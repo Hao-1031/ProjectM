@@ -36,7 +36,72 @@ export type GameModeType =
   | "survival"
   | "extreme-survival"
   | "peak-challenge"
-  | "flagship";
+  | "flagship"
+  | "flagship-peak";
+
+/** 对局开始前自主选择的难度预设 */
+export type DifficultyPreset = "easy" | "hell";
+
+export interface DifficultyPresetConfig {
+  preset: DifficultyPreset;
+  /** 显示名称 */
+  label: string;
+  /** 威胁等级标签 */
+  threatLabel: string;
+  /** 难度系数倍率（相对于标准难度 1.0） */
+  difficultyMultiplier: number;
+  /** 敌人血量倍率 */
+  enemyHealthMultiplier: number;
+  /** 敌人伤害倍率 */
+  enemyDamageMultiplier: number;
+  /** 经验倍率 */
+  xpMultiplier: number;
+  /** 掉落倍率 */
+  dropRateMultiplier: number;
+  /** 刷怪间隔倍率（越小越快） */
+  spawnIntervalMultiplier: number;
+  /** 精英出现概率倍率 */
+  eliteChanceMultiplier: number;
+  /** 补给窗口时间(秒) */
+  breakDuration: number;
+  /** 简短描述 */
+  description: string;
+  /** 视觉强调色 */
+  accentColor: string;
+}
+
+export const DIFFICULTY_PRESETS: Record<DifficultyPreset, DifficultyPresetConfig> = {
+  easy: {
+    preset: "easy",
+    label: "标准巡航",
+    threatLabel: "低",
+    difficultyMultiplier: 0.6,
+    enemyHealthMultiplier: 0.7,
+    enemyDamageMultiplier: 0.65,
+    xpMultiplier: 0.8,
+    dropRateMultiplier: 0.85,
+    spawnIntervalMultiplier: 1.4,
+    eliteChanceMultiplier: 0.5,
+    breakDuration: 30,
+    description: "降低敌人强度与密度，适合熟悉操作与地图探索。",
+    accentColor: "var(--success, #22c55e)",
+  },
+  hell: {
+    preset: "hell",
+    label: "地狱突入",
+    threatLabel: "极高",
+    difficultyMultiplier: 2.2,
+    enemyHealthMultiplier: 2.0,
+    enemyDamageMultiplier: 1.8,
+    xpMultiplier: 2.5,
+    dropRateMultiplier: 2.0,
+    spawnIntervalMultiplier: 0.55,
+    eliteChanceMultiplier: 2.5,
+    breakDuration: 12,
+    description: "敌人密度翻倍、伤害大幅提升、补给窗口缩短。仅推荐资深玩家。",
+    accentColor: "var(--danger, #ef4444)",
+  },
+};
 
 export type MissionType =
   | "eliminate"
@@ -761,6 +826,7 @@ export interface GameState {
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
   flagshipState?: FlagshipState;
+  flagshipPeakState?: FlagshipPeakState;
   weatherState?: WeatherState;
   curseBlessingState?: CurseBlessingState;
   selectedHero?: HeroId;
@@ -893,6 +959,69 @@ export interface FlagshipState {
 
 export type FlagshipSpeedRank = "none" | "bronze" | "silver" | "gold" | "platinum" | "diamond";
 
+// ========================================================================
+// 旗舰巅峰统一模式 (Flagship Peak)
+// 三阶段25波：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)
+// 双轨挑战 + 双维度评级 + 统一积分制
+// ========================================================================
+
+export type FlagshipPeakPhase = "standard" | "overclock" | "hell" | "victory" | "defeat";
+
+export interface FlagshipPeakChallenge {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardScore: number;
+  category: "fixed" | "dynamic";
+}
+
+export interface FlagshipPeakTask {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardScore: number;
+  /** 仅在指定阶段生效 */
+  phase?: FlagshipPeakPhase;
+}
+
+export interface FlagshipPeakState {
+  phase: FlagshipPeakPhase;
+  wave: number;
+  totalWaves: number;
+  /** 固定挑战（每5波刷新） */
+  challenges: FlagshipPeakChallenge[];
+  /** 动态任务（超频阶段追加） */
+  tasks: FlagshipPeakTask[];
+  /** 统一积分 */
+  score: number;
+  combos: number;
+  maxCombo: number;
+  bossKills: number;
+  eliteKills: number;
+  coreHealth: number;
+  coreMaxHealth: number;
+  /** 速度评级分数 */
+  timeAttackScore: number;
+  perfectWaves: number;
+  /** 速度评级（每波结算） */
+  speedRank: FlagshipSpeedRank;
+  /** 赛季段位（累计积分） */
+  seasonRank: PeakSeasonRank;
+  seasonXp: number;
+  waveClearTimes: number[];
+  comboBreakerCount: number;
+  /** 挑战连胜 */
+  challengeStreak: number;
+  /** 赛季货币 */
+  seasonCurrency: number;
+}
+
 export interface SerializedGameState {
   status: GameStatus;
   mode: GameModeType;
@@ -929,6 +1058,7 @@ export interface SerializedGameState {
   extremeSurvivalRun?: ExtremeSurvivalRun;
   peakChallengeState?: PeakChallengeState;
   flagshipState?: FlagshipState;
+  flagshipPeakState?: FlagshipPeakState;
   weatherState?: WeatherState;
   curseBlessingState?: CurseBlessingState;
   selectedHero?: HeroId;

@@ -40,6 +40,11 @@ import {
   predictEntityState,
   calculateEnemyMovement,
   calculateBotAI,
+  calculateProgressionCurve,
+  findPath,
+  assignTeamRoles,
+  coordinateTargets,
+  generateAdaptiveSpawnCurve,
   type AlgorithmId,
 } from "@/lib/algorithms";
 import { VERSION_DISPLAY } from "@/lib/version";
@@ -52,7 +57,7 @@ const ENGINE_GROUPS = {
     description: "适配玩家能力 · 优化成长体验 · 守护公平竞技",
     color: "var(--primary)",
     bgColor: "var(--primary)",
-    algorithmIds: ["dda", "ace", "matchmaking", "content-recommendation", "economy-balance", "reward-recommendation"] as AlgorithmId[],
+    algorithmIds: ["dda", "ace", "matchmaking", "content-recommendation", "economy-balance", "reward-recommendation", "progression"] as AlgorithmId[],
   },
   beta: {
     id: "beta",
@@ -61,7 +66,7 @@ const ENGINE_GROUPS = {
     description: "动态敌潮调度 · 智能走位决策 · 战术行为模拟",
     color: "var(--entropy)",
     bgColor: "var(--entropy)",
-    algorithmIds: ["spawn-optimizer", "enemy-movement", "bot-ai"] as AlgorithmId[],
+    algorithmIds: ["spawn-optimizer", "enemy-movement", "bot-ai", "pathfinding", "team-coordination", "adaptive-spawn"] as AlgorithmId[],
   },
   gamma: {
     id: "gamma",
@@ -86,6 +91,10 @@ const ENGINE_ICONS: Record<AlgorithmId, typeof Robot> = {
   "network-prediction": WifiHigh,
   "enemy-movement": Crosshair,
   "bot-ai": Target,
+  progression: Gauge,
+  pathfinding: Globe,
+  "team-coordination": Users,
+  "adaptive-spawn": Atom,
 };
 
 const DEMO_RUNNERS: Record<AlgorithmId, { label: string; run: () => unknown }> = {
@@ -182,6 +191,72 @@ const DEMO_RUNNERS: Record<AlgorithmId, { label: string; run: () => unknown }> =
       config: { difficulty: { aggression: 0.7, botAccuracy: 0.82, botReactionDelay: 0.14 } },
     }),
   },
+  progression: {
+    label: "模拟渐进曲线",
+    run: () => calculateProgressionCurve({
+      totalWaves: 12,
+      startDifficulty: 0.15,
+      peakDifficulty: 0.85,
+      curveType: "sigmoid",
+      bossWaveInterval: 4,
+      specialEventWaves: [3, 7],
+      playerSkillScore: 0.65,
+      teamSize: 2,
+    }),
+  },
+  pathfinding: {
+    label: "模拟寻路",
+    run: () => findPath(
+      { x: 50, y: 50 },
+      { x: 700, y: 500 },
+      { width: 800, height: 600 },
+      [{ x: 300, y: 200, width: 80, height: 80 }, { x: 500, y: 350, width: 60, height: 120 }],
+      16,
+      { allowDiagonal: true, smoothPath: true }
+    ),
+  },
+  "team-coordination": {
+    label: "模拟团队协同",
+    run: () => {
+      const members = assignTeamRoles([
+        { id: "bot_1", health: 100, maxHealth: 120, skillScore: 0.85 },
+        { id: "bot_2", health: 60, maxHealth: 100, skillScore: 0.72 },
+        { id: "bot_3", health: 90, maxHealth: 100, skillScore: 0.65 },
+      ]);
+      return coordinateTargets(
+        members.map((m) => ({
+          id: m.memberId, x: 400 + Math.random() * 100, y: 300 + Math.random() * 100,
+          health: m.memberId === "bot_2" ? 60 : 90,
+          maxHealth: 100, role: m.role, targetId: null, skillScore: 0.7,
+        })),
+        [
+          { id: "enemy_1", x: 600, y: 320, health: 80, maxHealth: 100, threatScore: 0.7, isHighValue: true, lockedByCount: 0 },
+          { id: "enemy_2", x: 580, y: 280, health: 30, maxHealth: 100, threatScore: 0.5, isHighValue: false, lockedByCount: 0 },
+          { id: "enemy_3", x: 620, y: 350, health: 100, maxHealth: 100, threatScore: 0.3, isHighValue: false, lockedByCount: 0 },
+        ]
+      );
+    },
+  },
+  "adaptive-spawn": {
+    label: "模拟自适应曲线",
+    run: () => {
+      const waves = calculateProgressionCurve({
+        totalWaves: 8, startDifficulty: 0.1, peakDifficulty: 0.8,
+        curveType: "exponential", bossWaveInterval: 4, specialEventWaves: [2, 5],
+        playerSkillScore: 0.6, teamSize: 1,
+      });
+      return generateAdaptiveSpawnCurve(
+        waves.waves,
+        waves.waves.map((_, i) => i === 0 ? null : ({
+          dps: 80 + i * 15, damageTakenPerSec: 5 + i * 3,
+          skillAccuracy: 0.7, healthPercent: Math.max(0.2, 1 - i * 0.08),
+          killRate: 0.3 + i * 0.05, mobilityScore: 0.5 + i * 0.04,
+        })),
+        { playerHealthPercent: 0.6, coreHealthPercent: 0.8, activeEnemyCount: 15, maxEnemyCount: 40, elapsedWaveSec: 10, waveDurationSec: 45, recentDamageTaken: 50 },
+        { phaseStrategy: "balanced", stickiness: 0.7 }
+      );
+    },
+  },
 };
 
 export default function AlgorithmsPage() {
@@ -229,7 +304,7 @@ export default function AlgorithmsPage() {
               三引擎<br /><span className="text-gradient">维度架构</span>
             </h1>
             <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-              11 个核心算法分布于 α 玩家引擎、β 敌对引擎与 γ 基础设施引擎。
+              15 个核心算法分布于 α 玩家引擎、β 敌对引擎与 γ 基础设施引擎。
               所有算法逻辑、输入输出与实时演示均在此公开，信奉可验证、可审计、可迭代的数据驱动设计。
             </p>
           </motion.div>
@@ -298,7 +373,7 @@ export default function AlgorithmsPage() {
                       style={{ backgroundColor: engineGroup.color }}
                     />
                     <span className="ml-1 font-mono text-[10px] uppercase tracking-wider text-muted">
-                      {engineGroup.id === "alpha" ? "实时运行" : engineGroup.id === "beta" ? "待命中" : "监控中"}
+                      {engineGroup.id === "alpha" ? "实时运行" : engineGroup.id === "beta" ? "实时运行" : "监控中"}
                     </span>
                   </div>
 

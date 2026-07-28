@@ -48,10 +48,12 @@ const modeNames: Record<string, string> = {
   "extreme-survival": "极限生存",
   "peak-challenge": "巅峰挑战",
   "flagship": "旗舰模式",
+  "flagship-peak": "旗舰巅峰",
 };
 
 const MODE_OPTIONS = [
   { value: "", label: "全部模式", icon: Globe },
+  { value: "flagship-peak", label: "旗舰巅峰", icon: Rocket },
   { value: "peak-challenge", label: "巅峰挑战", icon: Crown },
   { value: "flagship", label: "旗舰模式", icon: Rocket },
   { value: "extreme-survival", label: "极限生存", icon: Fire },

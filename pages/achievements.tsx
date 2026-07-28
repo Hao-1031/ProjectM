@@ -66,8 +66,7 @@ import {
 } from "@/lib/game/achievements";
 import { formatTime } from "@/lib/game/math";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ICON_MAP: Record<string, React.ComponentType<any>> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; weight?: "thin" | "light" | "regular" | "bold" | "fill" | "duotone"; className?: string; style?: React.CSSProperties }>> = {
   Crosshair, Sword, Skull, Fire, Bomb, Medal, ShieldCheck, Lightning, Crown,
   UsersThree, Users, Knife, Target, PaintBrush, Star,
   Compass, Globe, Atom, Door, Trophy, GameController,

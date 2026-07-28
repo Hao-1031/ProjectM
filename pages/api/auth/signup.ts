@@ -57,6 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const payload = await getSessionFromClient(supabase);
+
+    if (!payload.user || !payload.isAuthenticated) {
+      return res.status(500).json({ error: "注册后会话创建失败，请重试" });
+    }
+
     const setCookies = cookieStore.getSetCookieHeaders();
     if (setCookies.length > 0) {
       res.setHeader("Set-Cookie", setCookies);

@@ -4,6 +4,19 @@ import { createCookieStore } from "@/lib/auth/cookies";
 import { applySecurityHeaders } from "@/lib/auth/security";
 import { getRequestBaseUrl } from "@/lib/utils";
 
+function sanitizeRedirectPath(raw: string): string {
+  if (!raw || raw === "/") return "/";
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (decoded.startsWith("//") || decoded.startsWith("\\\\")) return "/";
+    if (/^https?:/i.test(decoded)) return "/";
+    if (!decoded.startsWith("/")) return "/";
+    return decoded;
+  } catch {
+    return "/";
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   applySecurityHeaders(res);
   if (req.method !== "GET" && req.method !== "POST") {
@@ -15,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cookieStore = createCookieStore(req.cookies);
     const supabase = createClient(cookieStore);
     const baseUrl = getRequestBaseUrl(req);
-    const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
+    const nextPath = sanitizeRedirectPath(typeof req.query.next === "string" ? req.query.next : "/");
     const callbackUrl = new URL("/api/auth/callback", baseUrl);
     callbackUrl.searchParams.set("next", nextPath);
 

@@ -3,6 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 import { createCookieStore } from "@/lib/auth/cookies";
 import { applySecurityHeaders } from "@/lib/auth/security";
 
+function sanitizeRedirectPath(raw: string): string {
+  if (!raw || raw === "/") return "/";
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (decoded.startsWith("//") || decoded.startsWith("\\\\")) return "/";
+    if (/^https?:/i.test(decoded)) return "/";
+    if (!decoded.startsWith("/")) return "/";
+    return decoded;
+  } catch {
+    return "/";
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   applySecurityHeaders(res);
   if (req.method !== "GET") {
@@ -11,10 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { code } = req.query;
-  const next = typeof req.query.next === "string" ? req.query.next : "/";
+  const next = sanitizeRedirectPath(typeof req.query.next === "string" ? req.query.next : "/");
 
   if (typeof code !== "string") {
-    return res.status(400).json({ error: "缺少授权码" });
+    return res.redirect(302, `/login?auth_error=${encodeURIComponent("缺少授权码")}`);
   }
 
   try {
@@ -24,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.error("Supabase OAuth 回调处理失败:", error);
-      return res.redirect(302, `/?auth_error=${encodeURIComponent("登录失败，请重试")}`);
+      return res.redirect(302, `/login?auth_error=${encodeURIComponent("登录失败，请重试")}`);
     }
 
     const setCookies = cookieStore.getSetCookieHeaders();
@@ -32,9 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Set-Cookie", setCookies);
     }
 
+    res.setHeader("Cache-Control", "no-store, max-age=0");
     return res.redirect(302, next);
   } catch (err) {
     console.error("OAuth 回调异常:", err);
-    return res.redirect(302, `/?auth_error=${encodeURIComponent("登录失败，请重试")}`);
+    return res.redirect(302, `/login?auth_error=${encodeURIComponent("服务器内部错误，请重试")}`);
   }
 }

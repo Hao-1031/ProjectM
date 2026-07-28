@@ -2163,10 +2163,10 @@ export function getDifficultyCurve(mode: string): BalanceTuningPoint[] {
       { stageIndex: 15, healthMultiplier: 2.5, damageMultiplier: 1.6, speedMultiplier: 1.2, spawnRateMultiplier: 1.4, affixChance: 0.4 },
     ],
     "extreme-survival": [
-      { stageIndex: 0, healthMultiplier: 1.5, damageMultiplier: 1.3, speedMultiplier: 1.1, spawnRateMultiplier: 1.2, affixChance: 0.2 },
-      { stageIndex: 3, healthMultiplier: 2.2, damageMultiplier: 1.7, speedMultiplier: 1.2, spawnRateMultiplier: 1.5, affixChance: 0.4 },
-      { stageIndex: 6, healthMultiplier: 3.5, damageMultiplier: 2.2, speedMultiplier: 1.35, spawnRateMultiplier: 2.0, affixChance: 0.6 },
-      { stageIndex: 10, healthMultiplier: 5.5, damageMultiplier: 3.0, speedMultiplier: 1.5, spawnRateMultiplier: 2.5, affixChance: 0.8 },
+      { stageIndex: 0, healthMultiplier: 1.4, damageMultiplier: 1.25, speedMultiplier: 1.08, spawnRateMultiplier: 1.15, affixChance: 0.18 },
+      { stageIndex: 3, healthMultiplier: 2.0, damageMultiplier: 1.6, speedMultiplier: 1.18, spawnRateMultiplier: 1.45, affixChance: 0.38 },
+      { stageIndex: 6, healthMultiplier: 3.2, damageMultiplier: 2.1, speedMultiplier: 1.3, spawnRateMultiplier: 1.9, affixChance: 0.55 },
+      { stageIndex: 10, healthMultiplier: 4.8, damageMultiplier: 2.8, speedMultiplier: 1.45, spawnRateMultiplier: 2.4, affixChance: 0.75 },
     ],
     "peak-challenge": [
       { stageIndex: 0, healthMultiplier: 1.8, damageMultiplier: 1.5, speedMultiplier: 1.15, spawnRateMultiplier: 1.3, affixChance: 0.3 },

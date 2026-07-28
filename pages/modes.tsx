@@ -29,6 +29,7 @@ import {
   Star,
   Hexagon,
   Pulse,
+  Rocket,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { getModeList, getDailyModifiers } from "@/lib/game/modes";
@@ -54,6 +55,7 @@ const MODE_META: Record<string, ModeMetaEntry> = {
   deathmatch: { icon: Crosshair, accent: "text-danger", accentBg: "bg-danger/10", bullets: ["PVP 自由混战 + Bot", "率先达到击杀目标获胜", "限时最高击杀决胜", "动态阶段与连杀系统"], threat: "中", isFeatured: false },
   "peak-challenge": { icon: Crown, accent: "text-warning", accentBg: "bg-warning/10", bullets: ["赛季排名与段位系统", "5波挑战任务轮换", "完美波次额外奖励", "挑战连胜额外加分"], threat: "高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20an%20elite%20challenge%20arena%2C%20golden%20ranking%20icons%2C%20mechanical%20bosses%20circling%2C%20dark%20industrial%2C%20low%20saturation%2C%20epic%2C%20no%20text&image_size=landscape_16_9" },
   flagship: { icon: Trophy, accent: "text-primary", accentBg: "bg-primary/10", bullets: ["速通排名与时间挑战", "连击倍数得分系统", "完美波次大幅加分", "旗舰级综合挑战"], threat: "极高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20a%20flagship%20command%20center%2C%20holographic%20displays%2C%20tactical%20map%2C%20dark%20industrial%2C%20low%20saturation%2C%20epic%2C%20no%20text&image_size=landscape_16_9" },
+  "flagship-peak": { icon: Rocket, accent: "text-primary", accentBg: "bg-primary/10", bullets: ["三阶段25波终极挑战", "标准巡航→超频增压→地狱终局", "双轨挑战+双维度评级", "统一积分制+赛季段位"], threat: "极高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20a%20spaceship%20bridge%20command%20center%2C%20three%20phase%20transformation%20from%20blue%20to%20red%20to%20void%20black%2C%20holographic%20tactical%20displays%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9" },
   "extreme-survival": { icon: Lightning, accent: "text-danger", accentBg: "bg-danger/10", bullets: ["熵增事件随机触发", "过载阶段极限挑战", "表现评分系统", "Boss击杀与精英击杀统计"], threat: "极高", isFeatured: false },
 };
 

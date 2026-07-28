@@ -9,7 +9,11 @@ export type AlgorithmId =
   | "spawn-optimizer"
   | "network-prediction"
   | "enemy-movement"
-  | "bot-ai";
+  | "bot-ai"
+  | "progression"
+  | "pathfinding"
+  | "team-coordination"
+  | "adaptive-spawn";
 
 export interface AlgorithmMeta {
   id: AlgorithmId;

@@ -35,7 +35,7 @@ export default function EmptyState({
       <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-panel-raised text-muted">
         {icon ?? <Info size={24} weight="bold" />}
       </div>
-      <h3 className="mt-4 text-sm font-bold text-foreground">{title}</h3>
+      <h3 className="mt-4 font-display text-sm font-bold text-foreground">{title}</h3>
       <p className="mt-1 max-w-xs text-xs text-muted">{description}</p>
       {action && <div className="mt-5">{action}</div>}
     </motion.div>

@@ -42,6 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const payload = await getSessionFromClient(supabase);
+
+    if (!payload.user || !payload.isAuthenticated) {
+      return res.status(401).json({ error: "邮箱或密码错误" });
+    }
+
     const setCookies = cookieStore.getSetCookieHeaders();
     if (setCookies.length > 0) {
       res.setHeader("Set-Cookie", setCookies);

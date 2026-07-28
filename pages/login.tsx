@@ -36,10 +36,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   useEffect(() => {
-    if (router.query.auth_error) {
-      setError(typeof router.query.auth_error === "string" ? router.query.auth_error : "登录失败");
+    setOauthLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const authError = router.query.auth_error;
+    if (authError && typeof authError === "string") {
+      setError(authError);
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("auth_error");
+      window.history.replaceState({}, "", cleanUrl.toString());
     }
   }, [router.query.auth_error]);
 
@@ -250,9 +259,14 @@ export default function LoginPage() {
               <div className="mt-4 grid gap-3">
                 <a
                   href={`/api/auth/github?next=${oauthNext}`}
+                  onClick={() => setOauthLoading(true)}
                   className="flex items-center justify-center gap-2 rounded-xl border border-primary/10 bg-background px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
                 >
-                  <GithubLogo size={18} weight="fill" />
+                  {oauthLoading ? (
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                  ) : (
+                    <GithubLogo size={18} weight="fill" />
+                  )}
                   GitHub
                 </a>
               </div>

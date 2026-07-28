@@ -7,7 +7,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Skeleton from "@/components/ui/Skeleton";
 import BrandLogo from "@/components/BrandLogo";
 import DimensionBackground from "@/components/effects/DimensionBackground";
-import type { GameModeType } from "@/lib/game/types";
+import DifficultySelector from "@/components/game/DifficultySelector";
+import type { GameModeType, DifficultyPreset } from "@/lib/game/types";
 
 const GameCanvas = lazy(() => import("@/components/GameCanvas"));
 
@@ -22,6 +23,7 @@ const MODE_META: Record<string, { name: string; threat: string; accent: string; 
   "extreme-survival": { name: "极限生存", threat: "极高", accent: "var(--entropy)", desc: "极境脉冲，过载护盾" },
   "peak-challenge": { name: "巅峰挑战", threat: "极高", accent: "var(--accent)", desc: "旗舰级极限挑战" },
   flagship: { name: "旗舰模式", threat: "极高", accent: "var(--anchor)", desc: "旗舰版综合体验" },
+  "flagship-peak": { name: "旗舰巅峰", threat: "极高", accent: "var(--primary)", desc: "三阶段25波终极挑战" },
 };
 
 function WarpLoading({ mode }: { mode: string }) {
@@ -117,14 +119,22 @@ export default function GamePage() {
   const router = useRouter();
   const reducedMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
+  const [showDifficulty, setShowDifficulty] = useState(true);
+  const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset | null>(null);
   const multiplayer = router.query.multiplayer === "1" || router.query.room !== undefined;
 
   const mode = (router.query.mode as GameModeType) || "campaign";
 
+  const handleDifficultySelect = useCallback((preset: DifficultyPreset) => {
+    setDifficultyPreset(preset);
+    setShowDifficulty(false);
+  }, []);
+
   useEffect(() => {
+    if (showDifficulty) return;
     const timer = setTimeout(() => setReady(true), 1800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showDifficulty]);
 
   const handleExit = useCallback(() => {
     if (router.pathname === "/") return;
@@ -142,35 +152,43 @@ export default function GamePage() {
         <meta name="theme-color" content="#0c0a14" />
       </Head>
 
-      <ErrorBoundary>
-        <AnimatePresence mode="wait">
-          {!ready ? (
-            <motion.div
-              key="warp"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="min-h-[100dvh] w-screen"
-            >
-              <WarpLoading mode={mode} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="game"
-              initial={reducedMotion ? undefined : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="min-h-[100dvh] w-screen overflow-hidden bg-background"
-            >
-              <Suspense fallback={<WarpLoading mode={mode} />}>
-                <GameCanvas onExit={handleExit} multiplayer={multiplayer} />
-              </Suspense>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </ErrorBoundary>
+      <DifficultySelector
+        open={showDifficulty}
+        onSelect={handleDifficultySelect}
+        modeName={meta.name}
+      />
+
+      {!showDifficulty && (
+        <ErrorBoundary>
+          <AnimatePresence mode="wait">
+            {!ready ? (
+              <motion.div
+                key="warp"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="min-h-[100dvh] w-screen"
+              >
+                <WarpLoading mode={mode} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="game"
+                initial={reducedMotion ? undefined : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="min-h-[100dvh] w-screen overflow-hidden bg-background"
+              >
+                <Suspense fallback={<WarpLoading mode={mode} />}>
+                  <GameCanvas onExit={handleExit} multiplayer={multiplayer} difficultyPreset={difficultyPreset ?? undefined} />
+                </Suspense>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </ErrorBoundary>
+      )}
     </>
   );
 }

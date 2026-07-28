@@ -1,6 +1,6 @@
 // Algorithm library — re-organized into three engines
-// Alpha Engine: Player-side (DDA, economy, matchmaking, reward, content, anti-cheat)
-// Beta Engine: Enemy-side (Bot AI, spawn optimization, enemy movement)
+// Alpha Engine: Player-side (DDA, economy, matchmaking, reward, content, anti-cheat, progression)
+// Beta Engine: Enemy-side (Bot AI, spawn optimization, enemy movement, pathfinding, team coordination, adaptive spawn curve)
 // Infra Engine: Infrastructure (map balance, network prediction)
 
 export * from "./types";
@@ -62,6 +62,19 @@ export {
   findCoverDirection,
   optimizeSpawns,
   calculateEnemyMovement,
+  findPath,
+  batchFindPath,
+  assignTeamRoles,
+  generateFormation,
+  coordinateTargets,
+  evaluateCoordinationEfficiency,
+  generateAdaptiveSpawnCurve,
+  evaluatePerformance,
+  calculatePerformanceDeviation,
+  adjustVariantMix,
+  determinePhase,
+  calculateAdaptiveInterval,
+  quickAdaptiveDecision,
 } from "@/lib/engine/beta";
 export type {
   BetaEngineInput,
@@ -94,6 +107,21 @@ export type {
   MovementRequest,
   MovementForceDebug,
   EnemyMovementOutput,
+  PathNode,
+  PathObstacle,
+  PathfindingConfig,
+  PathfindingResult,
+  TeamRole,
+  TeamMember,
+  TeamTarget,
+  TeamFormation,
+  CoordinationConfig,
+  CoordinationResult,
+  AdaptivePhase,
+  AdaptiveSpawnConfig,
+  PlayerPerformance,
+  AdaptiveWavePlan,
+  AdaptiveSpawnReport,
 } from "@/lib/engine/beta";
 
 // Infra Engine (infrastructure)
@@ -120,3 +148,7 @@ export * from "./spawnOptimizer";
 export * from "./networkPrediction";
 export * from "./enemyMovement";
 export * from "./botAI";
+export * from "./progression";
+export * from "./pathfinding";
+export * from "./teamCoordination";
+export * from "./adaptiveSpawnCurve";
