@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Crosshair,
   Trophy,
@@ -9,7 +9,8 @@ import {
   ArrowRight,
   CaretRight,
 } from "@phosphor-icons/react";
-import NuclearBackground from "@/components/effects/NuclearBackground";
+import DimensionBackground from "@/components/effects/DimensionBackground";
+import BrandLogo from "@/components/BrandLogo";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import Skeleton from "@/components/ui/Skeleton";
 import ErrorState from "@/components/ui/ErrorState";
@@ -22,8 +23,8 @@ import FooterCTA from "@/components/landing/FooterCTA";
 
 const FAQS = [
   {
-    q: "Project M 2.0 是什么类型游戏？",
-    a: "一款核污染废土背景的横屏动作射击 Web 游戏。主打生存割草、据点合作与英雄技能构建，浏览器打开即玩。",
+    q: "Project M 是什么类型游戏？",
+    a: "一款多元宇宙背景的横屏动作射击 Web 游戏。主打据点防守、极限生存与英雄技能构建，浏览器打开即玩。",
   },
   {
     q: "需要下载客户端吗？",
@@ -47,11 +48,11 @@ function LeaderboardPreview() {
   const { entries, loading, error, refetch } = useLeaderboard({ limit: 5 });
 
   return (
-    <div className="rounded-3xl border border-border bg-panel p-3 shadow-2xl shadow-black/20 md:p-4">
+    <div className="rounded-3xl border border-primary/10 bg-panel p-3 shadow-2xl shadow-black/20 md:p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-bold">
-          <Trophy size={16} weight="bold" className="text-warning" />
-          全球榜前十
+          <Trophy size={16} weight="bold" className="text-anchor" />
+          维度行者榜
         </h3>
         <Link href="/leaderboard" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
           查看全部 <ArrowRight size={11} />
@@ -60,20 +61,20 @@ function LeaderboardPreview() {
       {loading && <Skeleton count={5} className="h-8" />}
       {error && <ErrorState error={error} onRetry={refetch} className="py-3" />}
       {!loading && !error && entries.length === 0 && (
-        <EmptyState title="榜单待启" description="2.0 上线后首批幸存者将在这里留名" className="py-3" />
+        <EmptyState title="维度待启" description="奇迹版本上线后首批维度行者将在这里留名" className="py-3" />
       )}
       {!loading && !error && entries.length > 0 && (
         <div className="space-y-1">
           {entries.map((entry, i) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between rounded-xl border border-border bg-background/50 px-2.5 py-1.5"
+              className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/50 px-2.5 py-1.5"
             >
               <div className="flex items-center gap-2">
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                     i === 0
-                      ? "bg-warning/15 text-warning"
+                      ? "bg-anchor/15 text-anchor"
                       : i === 1
                         ? "bg-muted/15 text-muted"
                         : i === 2
@@ -101,7 +102,7 @@ function FAQSection() {
     <section className="mx-auto max-w-6xl px-4 py-6 md:py-8">
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-4">
-          <h2 className="text-xl font-bold tracking-tight md:text-2xl">常见问题</h2>
+          <h2 className="font-display text-xl font-bold tracking-tight md:text-2xl">常见问题</h2>
           <p className="mt-2 text-xs leading-relaxed text-muted">
             如果还有其他疑问，欢迎通过关于页面或游戏内反馈联系我们。
           </p>
@@ -112,7 +113,7 @@ function FAQSection() {
             return (
               <div
                 key={i}
-                className={`rounded-2xl border transition-colors ${open ? "border-primary/30 bg-panel" : "border-border bg-panel/50"}`}
+                className={`rounded-2xl border transition-colors bridge-panel holo-scan ${open ? "border-primary/30 bg-panel" : "border-primary/10 bg-panel/50"}`}
               >
                 <button
                   type="button"
@@ -138,33 +139,21 @@ function FAQSection() {
 
 export default function LandingPage() {
   const reducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const heroY = useTransform(scrollYProgress, [0, 0.5], ["0%", "20%"]);
 
   return (
     <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
-        <title>Project M L3V100 旗舰版 - 守住最后一座人类据点</title>
-        <meta name="description" content="Project M L3V100 旗舰版是核污染废土背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
+        <title>多重宇宙 · 奇迹 - 多元宇宙在此交汇</title>
+        <meta name="description" content="多重宇宙是多元宇宙背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
       </Head>
 
-      <NuclearBackground />
+      <DimensionBackground intensity="medium" />
       <div className="noise-overlay" />
-
-      <motion.div
-        style={{ y: reducedMotion ? 0 : heroY }}
-        className="pointer-events-none fixed inset-0 z-0"
-      >
-        <div className="absolute -right-[10%] -top-[10%] h-[60vh] w-[60vh] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -left-[10%] h-[50vh] w-[50vh] rounded-full bg-accent/5 blur-[100px]" />
-      </motion.div>
 
       <header className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <Link href="/" className="group flex items-center gap-2 focus-ring rounded-lg">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-            <Crosshair size={18} weight="bold" />
-          </span>
-          <span className="font-mono text-sm font-bold uppercase tracking-widest">Project M</span>
+          <BrandLogo size={32} variant="icon" className="text-primary" />
+          <BrandLogo size={32} variant="wordmark" />
         </Link>
         <nav className="flex items-center gap-1">
           <Link
@@ -186,25 +175,24 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         <Hero />
-
         <FeatureBento />
         <RhythmSection />
         <ModesShowcase />
 
-        <section className="border-y border-border bg-panel/30">
+        <section className="border-y border-primary/10 bg-panel/30">
           <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
             <div className="grid items-center gap-4 lg:grid-cols-12">
               <div className="lg:col-span-5">
                 <LeaderboardPreview />
               </div>
               <div className="lg:col-span-6 lg:col-start-7">
-                <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-                  全球排行榜
+                <h2 className="font-display text-xl font-bold tracking-tight md:text-2xl">
+                  维度行者榜
                   <br />
-                  <span className="text-primary">记录每一次撤离</span>
+                  <span className="text-gradient">记录每一次锚定</span>
                 </h2>
                 <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-                  生存模式、据点防守、个人死斗的成绩都会进入全球榜单。每一局结束后自动提交最高分，与所有幸存者一较高下。
+                  所有维度的成绩都会进入全球榜单。每一局结束后自动提交最高分，与所有维度行者一较高下。
                 </p>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <Link
@@ -215,10 +203,10 @@ export default function LandingPage() {
                     查看榜单
                   </Link>
                   <Link
-                    href="/game?mode=survival"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-panel px-5 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
+                    href="/game?mode=defense"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/10 bg-panel px-5 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
                   >
-                    挑战生存模式
+                    挑战据点防守
                     <ArrowRight size={14} />
                   </Link>
                 </div>
@@ -228,7 +216,6 @@ export default function LandingPage() {
         </section>
 
         <FAQSection />
-
         <FooterCTA />
       </main>
     </div>

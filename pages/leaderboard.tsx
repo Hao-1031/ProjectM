@@ -97,14 +97,13 @@ const RANK_ICONS: Record<number, typeof NumberCircleOne> = {
 function PodiumCard({
   entry,
   rank,
-  isCompact,
 }: {
   entry: { player_name: string; mode: string; score: number; kills: number; waves: number; duration: number };
   rank: number;
   isCompact?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
-  const colors = PODIUM_COLORS[rank] ?? { bg: "bg-panel", border: "border-border", text: "text-foreground", glow: "bg-primary/5", icon: Trophy };
+  const colors = PODIUM_COLORS[rank] ?? { bg: "bg-panel/60", border: "border-primary/10", text: "text-foreground", glow: "bg-primary/5", icon: Trophy };
   const RankIcon = RANK_ICONS[rank];
 
   return (
@@ -112,7 +111,7 @@ function PodiumCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: rank * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-2xl border ${colors.border} ${colors.bg} p-3 md:p-4`}
+      className={`group bridge-panel holo-scan p-3 md:p-4 ${colors.border}`}
     >
       <div className={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full ${colors.glow} blur-3xl transition-opacity duration-700 group-hover:opacity-80`} />
       <div className="relative flex items-start gap-3">
@@ -120,7 +119,7 @@ function PodiumCard({
           {RankIcon ? (
             <RankIcon size={28} weight="fill" className={colors.text} />
           ) : (
-            <span className={`text-lg font-bold ${colors.text}`}>{rank + 1}</span>
+            <span className={`font-mono tabular-nums text-lg font-bold ${colors.text}`}>{rank + 1}</span>
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -134,20 +133,20 @@ function PodiumCard({
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1 text-muted">
               <Skull size={11} weight="bold" className="text-danger/70" />
-              <span className="font-mono">{entry.kills}</span>
+              <span className="font-mono tabular-nums">{entry.kills}</span>
             </span>
             <span className="flex items-center gap-1 text-muted">
               <WaveSquare size={11} weight="bold" className="text-primary/70" />
-              <span className="font-mono">{entry.waves}</span>
+              <span className="font-mono tabular-nums">{entry.waves}</span>
             </span>
             <span className="flex items-center gap-1 text-muted">
               <Timer size={11} weight="bold" />
-              <span className="font-mono">{entry.duration}s</span>
+              <span className="font-mono tabular-nums">{entry.duration}s</span>
             </span>
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <p className={`font-mono text-lg font-bold md:text-xl ${colors.text}`}>
+          <p className={`font-mono tabular-nums text-lg font-bold md:text-xl ${colors.text}`}>
             {entry.score.toLocaleString()}
           </p>
           <p className="text-[10px] uppercase tracking-wider text-muted">分数</p>
@@ -181,7 +180,7 @@ function RankBadge({ rank }: { rank: number }) {
   }
   return (
     <span className="flex h-6 w-6 items-center justify-center rounded-md bg-border/30">
-      <span className="text-[10px] font-bold text-muted">{rank + 1}</span>
+      <span className="font-mono tabular-nums text-[10px] font-bold text-muted">{rank + 1}</span>
     </span>
   );
 }
@@ -240,7 +239,7 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
           </div>
 
           {rest.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-border">
+            <div className="bridge-panel holo-scan overflow-hidden">
               <div className="max-h-[420px] overflow-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="sticky top-0 z-10 bg-panel-raised/95 backdrop-blur-sm">
@@ -265,7 +264,7 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0 }}
                             transition={{ delay: i * 0.03, duration: 0.3 }}
-                            className="group bg-panel transition-colors hover:bg-panel-raised/50"
+                            className="group bg-panel/60 transition-colors hover:bg-panel/50"
                           >
                             <td className="px-3 py-2.5">
                               <RankBadge rank={rank} />
@@ -281,18 +280,18 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
                             <td className="hidden px-3 py-2.5 text-[11px] text-muted sm:table-cell">
                               {modeNames[entry.mode] ?? entry.mode}
                             </td>
-                            <td className="hidden px-3 py-2.5 text-right font-mono text-[11px] md:table-cell">
+                            <td className="hidden px-3 py-2.5 text-right font-mono tabular-nums text-[11px] md:table-cell">
                               {entry.kills}
                             </td>
-                            <td className="hidden px-3 py-2.5 text-right font-mono text-[11px] md:table-cell">
+                            <td className="hidden px-3 py-2.5 text-right font-mono tabular-nums text-[11px] md:table-cell">
                               {entry.waves}
                             </td>
                             <td className="px-3 py-2.5 text-right">
-                              <span className="font-mono text-sm font-bold text-primary">
+                              <span className="font-mono tabular-nums text-sm font-bold text-primary">
                                 {entry.score.toLocaleString()}
                               </span>
                             </td>
-                            <td className="hidden px-3 py-2.5 text-right font-mono text-[10px] text-muted sm:table-cell">
+                            <td className="hidden px-3 py-2.5 text-right font-mono tabular-nums text-[10px] text-muted sm:table-cell">
                               {entry.duration}s
                             </td>
                           </motion.tr>
@@ -340,7 +339,7 @@ function SeasonTier({ xp }: { xp: number }) {
   const Icon = current.icon;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-3">
+    <div className="bridge-panel holo-scan p-3">
       <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: current.color }} />
       <div className="relative flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${current.color}18`, border: `1px solid ${current.color}30` }}>
@@ -359,7 +358,7 @@ function SeasonTier({ xp }: { xp: number }) {
                 style={{ backgroundColor: current.color }}
               />
             </div>
-            <span className="text-[10px] font-mono text-muted">
+            <span className="font-mono tabular-nums text-[10px] text-muted">
               {xp.toLocaleString()} / {next.min.toLocaleString()}
             </span>
           </div>
@@ -388,56 +387,56 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
+            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity group-hover:opacity-60" />
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">总出战</p>
               <Target size={16} weight="bold" className="text-muted transition-colors group-hover:text-foreground" />
             </div>
-            <p className="relative mt-1 text-xl font-bold">{save?.totalRuns ?? 0}</p>
+            <p className="relative mt-1 font-mono tabular-nums text-xl font-bold">{save?.totalRuns ?? 0}</p>
           </motion.div>
 
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
+            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
           >
             <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-danger/5 blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">累计击杀</p>
               <Skull size={16} weight="bold" className="text-muted transition-colors group-hover:text-danger/70" />
             </div>
-            <p className="relative mt-1 text-xl font-bold">{save?.totalKills ?? 0}</p>
+            <p className="relative mt-1 font-mono tabular-nums text-xl font-bold">{save?.totalKills ?? 0}</p>
           </motion.div>
 
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
+            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
           >
             <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-warning/5 blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">最佳击杀</p>
               <Trophy size={16} weight="bold" className="text-muted transition-colors group-hover:text-warning" />
             </div>
-            <p className="relative mt-1 text-xl font-bold">{best?.stats.kills ?? 0}</p>
+            <p className="relative mt-1 font-mono tabular-nums text-xl font-bold">{best?.stats.kills ?? 0}</p>
           </motion.div>
 
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-colors hover:bg-panel-raised"
+            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
           >
             <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-success/5 blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">赛季 XP</p>
               <Star size={16} weight="bold" className="text-muted transition-colors group-hover:text-success" />
             </div>
-            <p className="relative mt-1 text-xl font-bold">{(save?.seasonXp ?? 0).toLocaleString()}</p>
+            <p className="relative mt-1 font-mono tabular-nums text-xl font-bold">{(save?.seasonXp ?? 0).toLocaleString()}</p>
           </motion.div>
         </div>
       </motion.div>
@@ -447,12 +446,17 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
           initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="relative overflow-hidden rounded-2xl border border-border bg-panel p-3"
+          className="bridge-panel holo-scan p-3"
         >
+          <div className="bridge-panel-header -mx-3 -mt-3 mb-3 px-3">
+            <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+              <Clock size={12} weight="bold" />
+              最近最佳
+            </span>
+          </div>
           <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
           <div className="relative flex items-start justify-between">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">最近最佳</p>
               <p className="mt-1 text-lg font-bold">
                 {best.victory ? "撤离成功" : "任务失败"}
               </p>
@@ -478,29 +482,29 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
           </div>
 
           <dl className="relative mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-xl border border-border bg-background/60 p-2">
+            <div className="rounded-xl border border-primary/10 bg-background/60 p-2">
               <dt className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-muted">
                 <Skull size={10} weight="bold" /> 击杀
               </dt>
-              <dd className="mt-0.5 font-mono text-sm font-bold">{best.stats.kills}</dd>
+              <dd className="mt-0.5 font-mono tabular-nums text-sm font-bold">{best.stats.kills}</dd>
             </div>
-            <div className="rounded-xl border border-border bg-background/60 p-2">
+            <div className="rounded-xl border border-primary/10 bg-background/60 p-2">
               <dt className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-muted">
                 <Sword size={10} weight="bold" /> 伤害
               </dt>
-              <dd className="mt-0.5 font-mono text-sm font-bold">{Math.floor(best.stats.damageDealt).toLocaleString()}</dd>
+              <dd className="mt-0.5 font-mono tabular-nums text-sm font-bold">{Math.floor(best.stats.damageDealt).toLocaleString()}</dd>
             </div>
-            <div className="rounded-xl border border-border bg-background/60 p-2">
+            <div className="rounded-xl border border-primary/10 bg-background/60 p-2">
               <dt className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-muted">
                 <Clock size={10} weight="bold" /> 存活
               </dt>
-              <dd className="mt-0.5 font-mono text-sm font-bold">{formatTime(best.elapsed)}</dd>
+              <dd className="mt-0.5 font-mono tabular-nums text-sm font-bold">{formatTime(best.elapsed)}</dd>
             </div>
-            <div className="rounded-xl border border-border bg-background/60 p-2">
+            <div className="rounded-xl border border-primary/10 bg-background/60 p-2">
               <dt className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-muted">
                 <Target size={10} weight="bold" /> 任务
               </dt>
-              <dd className="mt-0.5 font-mono text-sm font-bold">{best.completedMissions}</dd>
+              <dd className="mt-0.5 font-mono tabular-nums text-sm font-bold">{best.completedMissions}</dd>
             </div>
           </dl>
         </motion.div>
@@ -533,8 +537,14 @@ function SubmitPanel({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="relative overflow-hidden rounded-2xl border border-border bg-panel p-3"
+      className="bridge-panel holo-scan p-3"
     >
+      <div className="bridge-panel-header -mx-3 -mt-3 mb-3 px-3">
+        <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+          <Globe size={12} weight="bold" />
+          提交成绩
+        </span>
+      </div>
       <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
       <div className="relative">
         <div className="flex items-center gap-2">
@@ -655,7 +665,7 @@ export default function LeaderboardPage() {
               </Link>
               <Link
                 href="/base"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel px-4 py-2 text-sm font-medium transition-all hover:border-primary/40 hover:bg-panel-raised focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl border border-primary/10 bg-panel/60 px-4 py-2 text-sm font-medium transition-all hover:border-primary/40 hover:bg-panel focus-ring active:scale-95"
               >
                 <Crosshair size={16} />
                 <span className="whitespace-nowrap">查看基地</span>
@@ -685,7 +695,7 @@ export default function LeaderboardPage() {
                         className={`flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all ${
                           isActive
                             ? "border-primary/30 bg-primary/10 text-primary"
-                            : "border-border bg-panel text-muted hover:border-primary/20 hover:bg-panel-raised hover:text-foreground"
+                            : "border-primary/10 bg-panel/60 text-muted hover:border-primary/20 hover:bg-panel hover:text-foreground"
                         }`}
                       >
                         <OptIcon size={12} weight={isActive ? "fill" : "bold"} />

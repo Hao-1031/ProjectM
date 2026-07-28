@@ -118,7 +118,7 @@ function ThreatBadge({ threat }: { threat: string }) {
 
 function StatMini({ label, value, icon: Icon, color }: { label: string; value: string; icon: typeof Shield; color: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background/50 px-2 py-1.5">
+    <div className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-background/50 px-2 py-1.5">
       <Icon size={12} weight="bold" style={{ color }} />
       <div><p className="text-[9px] uppercase tracking-wider text-muted">{label}</p><p className="text-[11px] font-bold tabular-nums">{value}</p></div>
     </div>
@@ -197,7 +197,7 @@ export default function EnemiesPage() {
               return (
                 <button key={tab.id} type="button" role="tab" aria-selected={active}
                   onClick={() => setActiveSection(tab.id)}
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-danger bg-danger/10 text-danger" : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-danger bg-danger/10 text-danger" : "border-primary/10 bg-panel/60 text-muted hover:border-muted/60 hover:text-foreground"}`}>
                   <Icon size={14} weight={active ? "bold" : "regular"} />{tab.label}
                 </button>
               );
@@ -221,7 +221,7 @@ export default function EnemiesPage() {
                     return (
                       <button key={cat.id} type="button" role="tab" aria-selected={active}
                         onClick={() => setActiveCategory(cat.id)}
-                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-primary/10 bg-panel/60 text-muted hover:border-muted/60 hover:text-foreground"}`}>
                         <Icon size={13} weight={active ? "bold" : "regular"} />
                         {cat.label}
                         <span className="ml-0.5 rounded-md bg-border/50 px-1 py-0.5 text-[10px] font-mono">{count}</span>
@@ -240,7 +240,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-danger/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-45" style={{ backgroundColor: stats?.color ?? "#6e7870" }} />
                         <div className="relative p-2.5 md:p-3">
                           {isLarge && ENEMY_IMAGES[enemy.id] && (
@@ -274,7 +274,7 @@ export default function EnemiesPage() {
                           )}
                           <p className="text-[11px] leading-relaxed text-muted">{enemy.description}</p>
 
-                          <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-border bg-panel-raised p-1.5">
+                          <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-primary/10 bg-panel-raised holo-scan p-1.5">
                             <CaretRight size={11} className="mt-0.5 shrink-0 text-primary" />
                             <p className="text-[10px] leading-relaxed text-muted">{enemy.tactic}</p>
                           </div>
@@ -303,7 +303,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-danger/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: boss.color }} />
                         <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: boss.color }} />
                         <div className="relative p-2.5 md:p-3">
@@ -344,13 +344,13 @@ export default function EnemiesPage() {
                             <StatMini label="移速" value={boss.speed.toString()} icon={Gauge} color={boss.color} />
                           </div>
 
-                          <div className="mt-2 border-t border-border pt-1.5">
+                          <div className="mt-2 border-t border-primary/10 pt-1.5">
                             <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
                               <ArrowUp size={10} />首领阶段
                             </p>
                             <div className="flex flex-wrap gap-1.5">
                               {boss.phases.map((phase, phaseIndex) => (
-                                <div key={phaseIndex} className="flex items-center gap-1.5 rounded-lg border border-border bg-panel-raised px-2 py-1.5 transition-colors hover:border-danger/20">
+                                <div key={phaseIndex} className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-panel-raised px-2 py-1.5 transition-colors hover:border-danger/20">
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold" style={{ backgroundColor: `${boss.color}20`, color: boss.color }}>
                                     {phaseIndex + 1}
                                   </span>
@@ -379,7 +379,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.35), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl border border-border bg-panel p-2.5 transition-all hover:border-danger/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan p-2.5 transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full blur-2xl opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: threatColor }} />
                         <div className="relative">
                           <div className="flex items-start justify-between">

@@ -1,269 +1,114 @@
-import { useRef } from "react";
-import { motion, useReducedMotion, useInView } from "framer-motion";
+"use client";
+
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Shield,
-  Skull,
-  Crosshair,
-  Calendar,
   Lightning,
-  Users,
-  Clock,
-  Target,
+  Brain,
+  Trophy,
   CaretRight,
+  ArrowRight,
 } from "@phosphor-icons/react";
+import GSAPScrollReveal from "@/components/effects/GSAPScrollReveal";
 
-const MODES = [
+const SHOWCASE_MODES = [
   {
     id: "defense",
     title: "据点防守",
-    desc: "2-4 人守护能量核心，波次越往后敌人越狡猾。α 节律会读取团队表现，实时生成压迫感。",
+    tagline: "锚定维度核心",
+    desc: "2-4人合作，分工明确。前线承伤、远程输出、治疗支援，Boss战需要精确配合。每一波都是对团队协作的考验。",
     icon: Shield,
-    accent: "primary",
-    size: "large",
-    tags: ["合作", "PVE", "核心守卫"],
-    image:
-      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20cinematic%20stronghold%20defense%20battlefield%2C%20massive%20mechanical%20horde%20approaching%20a%20glowing%20teal%20energy%20core%2C%20stormy%20ash%20sky%2C%20fortified%20outpost%20silhouettes%2C%20embers%20and%20dust%2C%20muted%20teal%20and%20amber%20accent%20lights%2C%20low%20saturation%2C%20no%20text&image_size=landscape_16_9",
-    meta: [
-      { Icon: Users, label: "1-4 人" },
-      { Icon: Clock, label: "12 波" },
-    ],
+    accent: "var(--success)",
+    href: "/game?mode=defense&multiplayer=1",
   },
   {
-    id: "survival",
+    id: "extreme",
     title: "极限生存",
-    desc: "巅峰挑战。15 分钟限时高压，击杀效率决定敌潮强度，节奏越快，奖励越丰厚。",
-    icon: Skull,
-    accent: "accent",
-    size: "large",
-    tags: ["巅峰挑战", "限时", "排行榜"],
-    image:
-      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20survival%20arena%20in%20radioactive%20wasteland%2C%20lone%20commander%20surrounded%20by%20endless%20mechanical%20enemies%2C%20glowing%20teal%20weapon%20trails%2C%20ash%20and%20embers%2C%20dark%20cinematic%20atmosphere%2C%20muted%20teal%20and%20amber%20lights%2C%20no%20text&image_size=landscape_16_9",
-    meta: [
-      { Icon: Clock, label: "15 分钟" },
-      { Icon: Target, label: "全球榜" },
-    ],
-  },
-  {
-    id: "deathmatch",
-    title: "个人死斗",
-    desc: "PVP 或 PVP Bot，β AI 会模仿真人走位与集火。",
-    icon: Crosshair,
-    accent: "danger",
-    size: "small",
-    tags: ["PVP", "Bot"],
-  },
-  {
-    id: "daily",
-    title: "每日挑战",
-    desc: "同一套随机种子，公平竞技，凭实力上榜。",
-    icon: Calendar,
-    accent: "success",
-    size: "small",
-    tags: ["每日", "固定种子"],
+    tagline: "突破人类极限",
+    desc: "满配开局，超频武器火力全开。面对5倍密度敌潮，只有最强者能撑过10分钟的维度风暴。",
+    icon: Lightning,
+    accent: "var(--entropy)",
+    href: "/game?mode=extreme-survival",
   },
   {
     id: "roguelike",
-    title: "肉鸽构建",
-    desc: "旗舰版融合要素。分支关卡、随机强化与最终首领，每局 build 都不相同。",
-    icon: Lightning,
-    accent: "warning",
-    size: "small",
-    tags: ["Build", "随机奖励"],
+    title: "肉鸽构筑",
+    tagline: "混沌中的秩序",
+    desc: "诅咒与祝福双选，每次升级都是关键抉择。构建你的专属流派，探索无限可能的Build组合。",
+    icon: Brain,
+    accent: "var(--quantum)",
+    href: "/game?mode=survival",
   },
 ];
 
-const BUILD_HIGHLIGHTS = [
-  "自动攻击 + 走位",
-  "武器分支升级",
-  "被动叠加",
-  "英雄天赋",
-];
-
-function ModeCard({
-  mode,
-  index,
-}: {
-  mode: (typeof MODES)[number];
-  index: number;
-}) {
-  const reducedMotion = useReducedMotion();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const Icon = mode.icon;
-  const isLarge = mode.size === "large";
-
-  const accentClass =
-    mode.accent === "primary"
-      ? "text-primary bg-primary/10 border-primary/20"
-      : mode.accent === "accent"
-        ? "text-accent bg-accent/10 border-accent/20"
-        : mode.accent === "danger"
-          ? "text-danger bg-danger/10 border-danger/20"
-          : mode.accent === "success"
-            ? "text-success bg-success/10 border-success/20"
-            : "text-warning bg-warning/10 border-warning/20";
-
-  const sizeClass = isLarge
-    ? "md:col-span-2 md:row-span-2 min-h-[200px] md:min-h-[260px]"
-    : "md:col-span-1 md:row-span-1";
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
-      animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-2xl border border-border bg-panel transition-all hover:border-primary/20 hover:bg-panel-raised ${sizeClass}`}
-    >
-      {mode.image && (
-        <>
-          <img
-            src={mode.image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-panel via-panel/80 to-panel/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-panel/60 via-transparent to-transparent" />
-        </>
-      )}
-
-      <div className="relative flex h-full flex-col p-3 md:p-4">
-        <div
-          className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border ${accentClass}`}
-        >
-          <Icon size={16} weight="bold" />
-        </div>
-
-        <div className="mt-2 flex flex-wrap gap-1">
-          {mode.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-border bg-background/60 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted backdrop-blur-sm"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <h3 className="mt-2 text-sm font-bold tracking-tight md:text-base">
-          {mode.title}
-        </h3>
-        <p className="mt-1 flex-1 text-xs leading-relaxed text-muted">
-          {mode.desc}
-        </p>
-
-        {mode.meta && (
-          <div className="mt-2 flex items-center gap-3 text-[11px] text-muted">
-            {mode.meta.map((m) => (
-              <span key={m.label} className="flex items-center gap-1">
-                <m.Icon size={12} />
-                {m.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-          进入模式 <CaretRight size={12} />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function BuildCard({ index }: { index: number }) {
-  const reducedMotion = useReducedMotion();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
-      animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-primary/20 hover:bg-panel-raised md:col-span-2"
-    >
-      <div className="dot-grid absolute inset-0 opacity-20" />
-      <div className="relative flex h-full flex-col md:flex-row md:items-center md:gap-5">
-        <div className="flex-1">
-          <div className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-warning/20 bg-warning/10 text-warning">
-            <Lightning size={16} weight="bold" />
-          </div>
-          <h3 className="mt-2 text-sm font-bold tracking-tight">流派构建</h3>
-          <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted">
-            每局通过升级与奖励搭建独特 build。没有固定最优解，只有更适合当前节奏的打法。
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {BUILD_HIGHLIGHTS.map((h) => (
-              <span
-                key={h}
-                className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[11px] text-muted"
-              >
-                {h}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="mt-3 flex-1 md:mt-0">
-          <div className="space-y-1.5 rounded-2xl border border-border bg-background/50 p-2.5">
-            <div className="flex items-center justify-between text-xs text-muted">
-              <span>武器分支</span>
-              <span className="font-mono text-foreground">Lv.7</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-border">
-              <div className="h-full w-3/4 rounded-full bg-primary" />
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted">
-              <span>被动叠加</span>
-              <span className="font-mono text-foreground">9</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-border">
-              <div className="h-full w-2/3 rounded-full bg-accent" />
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted">
-              <span>天赋选择</span>
-              <span className="font-mono text-foreground">3 / 5</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-border">
-              <div className="h-full w-1/2 rounded-full bg-warning" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function ModesShowcase() {
   const reducedMotion = useReducedMotion();
-  const headerRef = useRef(null);
-  const headerInView = useInView(headerRef, { once: true, margin: "-80px" });
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-      <motion.div
-        ref={headerRef}
-        initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
-        animate={headerInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-3 max-w-2xl md:mb-4"
-      >
-        <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-          据点防守、极限生存、赛季挑战
-          <br />
-          <span className="text-gradient">旗舰版多模式融合</span>
-        </h2>
-        <p className="mt-1.5 text-xs leading-relaxed text-muted">
-          每个模式都有独立的节律曲线与 AI 策略，并在赛季框架下持续演化。
-        </p>
-      </motion.div>
+    <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-16">
+      <GSAPScrollReveal direction="up">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
+              维度<span className="text-gradient">档案</span>
+            </h2>
+            <p className="mt-2 max-w-xl text-sm text-muted">
+              深入了解每个维度的核心玩法、特色机制与策略深度。
+            </p>
+          </div>
+          <Link
+            href="/modes"
+            className="hidden items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80 sm:inline-flex focus-ring rounded"
+          >
+            全部维度 <ArrowRight size={12} />
+          </Link>
+        </div>
+      </GSAPScrollReveal>
 
-      <div className="grid grid-flow-dense grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {MODES.map((mode, i) => (
-          <ModeCard key={mode.id} mode={mode} index={i} />
-        ))}
-        <BuildCard index={MODES.length} />
+      <div className="space-y-4">
+        {SHOWCASE_MODES.map((mode, i) => {
+          const Icon = mode.icon;
+          const isEven = i % 2 === 0;
+          return (
+            <motion.div
+              key={mode.id}
+              initial={reducedMotion ? undefined : { opacity: 0, x: isEven ? -24 : 24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Link
+                href={mode.href}
+                className="group flex flex-col gap-4 rounded-2xl border border-border bg-panel/50 p-5 transition-all holo-scan hover:border-primary/20 hover:bg-panel hover:shadow-lg hover:shadow-primary/5 focus-ring sm:flex-row sm:items-center"
+              >
+                <div className="flex items-start gap-4 sm:w-64 sm:shrink-0">
+                  <span
+                    className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${mode.accent}15`, color: mode.accent }}
+                  >
+                    <Icon size={24} weight="bold" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted">
+                      {mode.tagline}
+                    </p>
+                    <h3 className="font-display text-lg font-bold tracking-tight">
+                      {mode.title}
+                    </h3>
+                  </div>
+                </div>
+                <p className="flex-1 text-sm leading-relaxed text-muted">
+                  {mode.desc}
+                </p>
+                <div className="flex shrink-0 items-center gap-2 text-xs font-semibold text-primary">
+                  进入维度
+                  <CaretRight size={14} weight="bold" className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

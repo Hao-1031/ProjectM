@@ -1,103 +1,99 @@
+"use client";
+
 import Link from "next/link";
-import { useRef } from "react";
-import { motion, useReducedMotion, useInView } from "framer-motion";
-import { Play, GameController, Trophy, Crosshair } from "@phosphor-icons/react";
-
-const FOOTER_LINKS = [
-  { label: "游戏首页", href: "/" },
-  { label: "战绩榜", href: "/leaderboard" },
-  { label: "关于", href: "/about" },
-];
-
-const FOOTER_IMAGE =
-  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Epic%20cinematic%20footer%20call%20to%20action%2C%20glowing%20teal%20crosshair%20symbol%20floating%20over%20ash%20wasteland%2C%20distant%20fortified%20outpost%2C%20embers%20and%20dust%20particles%2C%20deep%20charcoal%20and%20muted%20teal%20ambient%20light%2C%20minimalist%20composition%2C%20no%20text&image_size=landscape_16_9";
+import { motion, useReducedMotion } from "framer-motion";
+import { Play, Anchor, Info, CaretRight } from "@phosphor-icons/react";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function FooterCTA() {
   const reducedMotion = useReducedMotion();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <footer className="relative mx-auto max-w-7xl px-4 pb-4 pt-4 md:pb-5 md:pt-5">
+    <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-20">
       <motion.div
-        ref={ref}
-        initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
-        animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden rounded-[2rem] border border-border bg-panel"
+        initial={reducedMotion ? undefined : { opacity: 0, y: 32 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="relative overflow-hidden bridge-panel holo-scan bridge-glow p-8 shadow-2xl shadow-black/30 md:p-14"
       >
-        <img
-          src={FOOTER_IMAGE}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-panel via-panel/90 to-panel/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-panel/80 via-transparent to-panel/40" />
-        <div className="absolute inset-0 hazard-stripes opacity-20" />
+        {/* Background effects */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-anchor/4 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
+          <svg width="100%" height="100%">
+            <defs>
+              <pattern id="footerGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--primary)" strokeWidth="0.3" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#footerGrid)" />
+          </svg>
+        </div>
 
-        <div className="relative flex min-h-[200px] flex-col items-start justify-between p-4 md:p-5 lg:flex-row lg:items-end">
-          <div className="max-w-xl">
-            <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-              下一座据点
-              <br />
-              <span className="text-gradient">由你守护</span>
-            </h2>
-            <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-              L3V100 旗舰版已上线。无需下载，浏览器即玩。公平竞技，只拼操作与策略。
-            </p>
-          </div>
+        <div className="relative flex flex-col items-center text-center">
+          {/* Brand */}
+          <BrandLogo size={40} variant="icon" className="text-primary" />
 
-          <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row lg:mt-0 lg:w-auto">
+          {/* Eyebrow */}
+          <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            <Anchor size={12} weight="bold" />
+            绑定锚点
+          </span>
+
+          {/* Title */}
+          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight md:text-4xl">
+            绑定你的<span className="text-gradient">维度锚点</span>
+          </h2>
+
+          {/* Description */}
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted">
+            公平竞技，无付费加成。浏览器打开即玩，你的战绩与解锁进度将通过锚点同步至多元宇宙网络。
+          </p>
+
+          {/* CTA */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/game?mode=defense"
-              className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-5 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+              href="/game?mode=defense&multiplayer=1"
+              className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-[0.97]"
             >
-              <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
-              <Play size={16} weight="fill" />
-              <span className="whitespace-nowrap">立即开战</span>
+              <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/12 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+              <Play size={20} weight="fill" />
+              <span className="whitespace-nowrap">穿越维度</span>
+              <CaretRight size={16} weight="bold" />
             </Link>
             <Link
-              href="/modes"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-background/80 px-4 text-xs font-semibold backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-background focus-ring active:scale-95"
+              href="/about"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-border bg-panel/80 px-6 text-sm font-semibold backdrop-blur-sm transition-all hover:border-primary/30 hover:bg-panel focus-ring active:scale-[0.97]"
             >
-              <GameController size={14} />
-              <span className="whitespace-nowrap">全部模式</span>
+              <Info size={18} />
+              <span className="whitespace-nowrap">了解更多</span>
             </Link>
           </div>
         </div>
       </motion.div>
 
-      <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted sm:flex-row">
+      {/* Footer */}
+      <footer className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-border pt-5 text-xs text-muted sm:flex-row">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Crosshair size={12} weight="bold" />
-          </span>
-          <span className="font-mono font-bold uppercase tracking-widest text-foreground">
-            Project M
-          </span>
+          <BrandLogo size={16} variant="icon" />
+          <span>公平竞技 · 无付费加成 · 多重宇宙 · 奇迹</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          {FOOTER_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="transition-colors hover:text-foreground focus-ring rounded"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Link
-            href="/leaderboard"
-            className="inline-flex items-center gap-1 transition-colors hover:text-foreground focus-ring rounded"
-          >
-            <Trophy size={12} />
+        <div className="flex gap-4">
+          <Link href="/about" className="transition-colors hover:text-foreground focus-ring rounded">
+            关于
+          </Link>
+          <Link href="/settings" className="transition-colors hover:text-foreground focus-ring rounded">
+            设置
+          </Link>
+          <Link href="/help" className="transition-colors hover:text-foreground focus-ring rounded">
+            指南
+          </Link>
+          <Link href="/leaderboard" className="transition-colors hover:text-foreground focus-ring rounded">
             排行榜
           </Link>
         </div>
-        <p className="text-center sm:text-right">
-          公平竞技 · 无付费加成
-        </p>
-      </div>
-    </footer>
+      </footer>
+    </section>
   );
 }

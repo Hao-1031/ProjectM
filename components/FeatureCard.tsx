@@ -26,7 +26,7 @@ const variantStyles: Record<ColorVariant, string> = {
   danger:
     "border-danger/20 bg-danger/5 hover:border-danger/50 hover:bg-danger/[0.08] focus-visible:ring-danger/40",
   muted:
-    "border-border bg-panel hover:border-muted/60 hover:bg-panel-raised focus-visible:ring-muted/40",
+    "border-border bg-panel/60 hover:border-primary/30 hover:bg-panel focus-visible:ring-muted/40",
 };
 
 const glowStyles: Record<ColorVariant, string> = {
@@ -70,7 +70,7 @@ export default function FeatureCard({
     </>
   );
 
-  const classes = `group relative overflow-hidden rounded-2xl border p-2.5 text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-3 ${variantStyles[variant]} ${className}`;
+  const classes = `group relative overflow-hidden rounded-2xl border p-2.5 text-left transition-all duration-300 holo-scan focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-3 ${variantStyles[variant]} ${className}`;
 
   if (as === "link" && href) {
     return (

@@ -16,7 +16,7 @@ import {
   Spinner,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
-import NuclearBackground from "@/components/effects/NuclearBackground";
+import DimensionBackground from "@/components/effects/DimensionBackground";
 import Skeleton from "@/components/ui/Skeleton";
 import { loadSave, claimSeasonReward } from "@/lib/game/save";
 import type { SaveData } from "@/lib/game/save";
@@ -122,13 +122,9 @@ export default function SeasonPage() {
       </Head>
 
       <div className="relative min-h-[100dvh]">
-        <NuclearBackground />
+        <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
-
-        <div className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute -right-[15%] top-[5%] h-[55vh] w-[55vh] rounded-full bg-primary/5 blur-[120px]" />
-          <div className="absolute -left-[10%] bottom-[10%] h-[45vh] w-[45vh] rounded-full bg-accent/5 blur-[100px]" />
-        </div>
+        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
@@ -141,7 +137,7 @@ export default function SeasonPage() {
               <Calendar weight="duotone" size={14} />
               当前赛季
             </span>
-            <h1 className="mt-2 text-xl font-bold tracking-tight md:text-3xl">
+            <h1 className="mt-2 font-display text-xl font-bold tracking-tight md:text-3xl">
               第一赛季：{season?.name ?? "据点黎明"}
             </h1>
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted">
@@ -170,7 +166,7 @@ export default function SeasonPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                   className="lg:col-span-7"
                 >
-                  <div className="relative overflow-hidden rounded-3xl border border-border bg-panel shadow-2xl shadow-black/20">
+                  <div className="bridge-panel holo-scan bridge-glow overflow-hidden">
                     <img
                       src={HERO_IMAGE}
                       alt="第一赛季：据点黎明"
@@ -183,7 +179,7 @@ export default function SeasonPage() {
                           {formatDate(season.startTime)} - {formatDate(season.endTime)}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-                          剩余 {daysLeft(season.endTime)} 天
+                          剩余 <span className="font-mono tabular-nums">{daysLeft(season.endTime)}</span> 天
                         </span>
                       </div>
                     </div>
@@ -193,16 +189,18 @@ export default function SeasonPage() {
                     initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mt-3 rounded-2xl border border-border bg-panel p-4"
+                    className="mt-3 bridge-panel holo-scan p-4"
                   >
+                    <div className="bridge-panel-header -mx-4 -mt-4 mb-4">
+                      <p className="font-mono text-xs uppercase tracking-widest text-muted">当前战阶</p>
+                    </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-mono text-xs uppercase tracking-widest text-muted">当前战阶</p>
-                        <p className="mt-1 text-2xl font-bold">Lv.{currentLevel}</p>
+                        <p className="font-mono text-2xl font-bold tabular-nums text-anchor">Lv.{currentLevel}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-mono text-xs uppercase tracking-widest text-muted">赛季 XP</p>
-                        <p className="mt-1 text-2xl font-bold text-warning">
+                        <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-warning">
                           {currentXp} / {xpToNext}
                         </p>
                       </div>
@@ -227,9 +225,11 @@ export default function SeasonPage() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="space-y-2 lg:col-span-5"
                 >
-                  <div className="rounded-2xl border border-border bg-panel p-3">
-                    <h2 className="text-sm font-bold tracking-tight">赛季挑战</h2>
-                    <div className="mt-2 space-y-3">
+                  <div className="bridge-panel holo-scan p-3">
+                    <div className="bridge-panel-header -mx-3 -mt-3 mb-3">
+                      <h2 className="text-sm font-bold tracking-tight">赛季挑战</h2>
+                    </div>
+                    <div className="space-y-3">
                       {(
                         [
                           ["每日", missionsByCategory.daily],
@@ -249,7 +249,7 @@ export default function SeasonPage() {
                                     mission.completed ? "bg-success" : "bg-primary"
                                   }`}
                                 />
-                                {mission.title} · {mission.progress}/{mission.target}
+                                {mission.title} <span className="font-mono tabular-nums">· {mission.progress}/{mission.target}</span>
                               </li>
                             ))}
                           </ul>
@@ -258,14 +258,16 @@ export default function SeasonPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border bg-panel p-3">
-                    <h2 className="text-sm font-bold tracking-tight">赛季货币</h2>
-                    <div className="mt-2 flex items-center gap-3">
+                  <div className="bridge-panel holo-scan p-3">
+                    <div className="bridge-panel-header -mx-3 -mt-3 mb-3">
+                      <h2 className="text-sm font-bold tracking-tight">赛季货币</h2>
+                    </div>
+                    <div className="flex items-center gap-3">
                       <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                         <Star size={20} weight="bold" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold">{save?.seasonCurrency ?? 0}</p>
+                        <p className="font-mono text-lg font-bold tabular-nums">{save?.seasonCurrency ?? 0}</p>
                         <p className="text-[10px] text-muted">可用于赛季商店兑换外观</p>
                       </div>
                     </div>
@@ -278,15 +280,17 @@ export default function SeasonPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6 }}
-                className="mt-4 rounded-2xl border border-border bg-panel p-4"
+                className="mt-4 bridge-panel holo-scan p-4"
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-bold tracking-tight">战阶奖励</h2>
-                  {claimMessage && (
-                    <span className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-medium text-success">
-                      {claimMessage}
-                    </span>
-                  )}
+                <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold tracking-tight">战阶奖励</h2>
+                    {claimMessage && (
+                      <span className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-medium text-success">
+                        {claimMessage}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {rewardsByLevel.map(([level, { free, premium }]) => {
@@ -294,12 +298,12 @@ export default function SeasonPage() {
                     return (
                       <div
                         key={level}
-                        className={`rounded-xl border p-2 ${
-                          level <= currentLevel ? "border-border bg-background/50" : "border-border/50 bg-panel/50"
+                        className={`bridge-panel p-2 ${
+                          level <= currentLevel ? "" : "opacity-50"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[10px] text-muted">Lv.{level}</span>
+                          <span className="font-mono text-[10px] tabular-nums text-muted">Lv.{level}</span>
                           {level <= currentLevel && (
                             <span className="rounded bg-success/10 px-1 py-0.5 text-[10px] text-success">
                               已解锁
@@ -314,12 +318,12 @@ export default function SeasonPage() {
                             return (
                               <div
                                 key={reward.id}
-                                className={`flex items-center gap-2 rounded-lg border p-1.5 ${
+                                className={`bridge-panel flex items-center gap-2 p-1.5 ${
                                   reward.claimed
-                                    ? "border-success/20 bg-success/5"
+                                    ? "border-success/20"
                                     : reward.unlocked && !isPremiumLocked
-                                      ? "border-primary/20 bg-primary/5"
-                                      : "border-border bg-panel/30"
+                                      ? "border-primary/20"
+                                      : ""
                                 }`}
                               >
                                 <span
@@ -366,12 +370,11 @@ export default function SeasonPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-panel p-4"
+                className="relative mt-4 bridge-panel holo-scan bridge-glow p-4"
               >
-                <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
                 <div className="relative grid items-center gap-4 md:grid-cols-2">
                   <div>
-                    <h2 className="text-lg font-bold tracking-tight">开始你的赛季征程</h2>
+                    <h2 className="font-display text-lg font-bold tracking-tight">开始你的赛季征程</h2>
                     <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
                       每一局战斗都会积累赛季进度。完成挑战、冲击排行榜，把限定奖励收入囊中。
                     </p>
@@ -387,14 +390,14 @@ export default function SeasonPage() {
                     </Link>
                     <Link
                       href="/game?mode=extreme-survival"
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel-raised focus-ring active:scale-95"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-primary/10 bg-panel/60 px-5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel focus-ring active:scale-95"
                     >
                       <Lightning size={16} weight="fill" />
                       <span className="whitespace-nowrap">极限生存</span>
                     </Link>
                     <Link
                       href="/leaderboard"
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel-raised focus-ring active:scale-95"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-primary/10 bg-panel/60 px-5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel focus-ring active:scale-95"
                     >
                       <Trophy size={16} />
                       排行榜

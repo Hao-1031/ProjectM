@@ -1,266 +1,214 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, useReducedMotion, useInView } from "framer-motion";
-import {
-  Clock,
-  Crosshair,
-  Users,
-  ShieldCheck,
-  GameController,
-  Lightning,
-  CaretRight,
-  Command,
-  Pulse,
-  ArrowsClockwise,
-  Wrench,
-  Trophy,
-} from "@phosphor-icons/react";
+"use client";
 
-const FEATURES = [
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  Shield,
+  Lightning,
+  Skull,
+  Trophy,
+  Sword,
+  Target,
+  Sparkle,
+  CaretRight,
+  Globe,
+  Atom,
+  Brain,
+  Cloud,
+  Heartbeat,
+  Anchor,
+} from "@phosphor-icons/react";
+import GSAPScrollReveal from "@/components/effects/GSAPScrollReveal";
+
+const DIMENSIONS = [
   {
-    id: "rhythm",
-    title: "α 动态节律",
-    desc: "Sigmoid 难度曲线 + 实时击杀效率修正，Boss 波次自带呼吸节奏。",
-    accent: "primary",
-    icon: Pulse,
-    size: "large",
-  },
-  {
-    id: "behavior",
-    title: "β 智能行为",
-    desc: "流场寻路、群体行为、Boss 分层状态机、PVP Bot 战术 AI。",
-    accent: "accent",
-    icon: Crosshair,
-    size: "medium",
-  },
-  {
-    id: "coop",
-    title: "据点合作",
-    desc: "2-4 人守护能量核心，英雄技能配合决定胜负。",
-    accent: "primary",
-    icon: Users,
-    size: "medium",
-  },
-  {
-    id: "build",
-    title: "流派构建",
-    desc: "武器升级、被动叠加、天赋树，每局 build 都不相同。",
-    accent: "accent",
-    icon: Lightning,
-    size: "small",
-  },
-  {
-    id: "fair",
-    title: "无付费加成",
-    desc: "皮肤与便利道具可购，战力永远只靠操作与策略。",
+    id: "defense",
+    title: "据点防守",
+    subtitle: "锚点维度",
+    desc: "2-4人合作守卫核心锚点。分工明确的团队协作，每波敌人强度递增，Boss战需要精确配合。",
+    icon: Shield,
     accent: "success",
-    icon: ShieldCheck,
-    size: "small",
+    size: "lg:col-span-4 lg:row-span-2",
+    href: "/game?mode=defense&multiplayer=1",
+    featured: true,
+  },
+  {
+    id: "extreme",
+    title: "极限生存",
+    subtitle: "压力维度",
+    desc: "满配超频，火力全开。面对5倍密度敌潮，每一秒都是生存考验。",
+    icon: Lightning,
+    accent: "entropy",
+    size: "lg:col-span-2",
+    href: "/game?mode=extreme-survival",
+    featured: true,
+  },
+  {
+    id: "roguelike",
+    title: "肉鸽构筑",
+    subtitle: "混沌维度",
+    desc: "诅咒与祝福双选，每次升级都是关键抉择。",
+    icon: Brain,
+    accent: "quantum",
+    size: "lg:col-span-2",
+    href: "/game?mode=survival",
+    featured: false,
+  },
+  {
+    id: "peak",
+    title: "巅峰挑战",
+    subtitle: "竞技维度",
+    desc: "全球排行榜竞速，与所有维度行者一较高下。",
+    icon: Trophy,
+    accent: "anchor",
+    size: "lg:col-span-2",
+    href: "/game?mode=peak-challenge",
+    featured: false,
+  },
+  {
+    id: "campaign",
+    title: "战役模式",
+    subtitle: "叙事维度",
+    desc: "连续任务推进，解锁维度档案。",
+    icon: Target,
+    accent: "accent",
+    size: "lg:col-span-2",
+    href: "/game?mode=campaign",
+    featured: false,
+  },
+  {
+    id: "deathmatch",
+    title: "个人死斗",
+    subtitle: "冲突维度",
+    desc: "PvP竞技对抗，维度行者之间的较量。",
+    icon: Sword,
+    accent: "danger",
+    size: "lg:col-span-2",
+    href: "/game?mode=deathmatch",
+    featured: false,
+  },
+  {
+    id: "weather",
+    title: "动态天气",
+    subtitle: "环境维度",
+    desc: "辐射风暴、酸雨、沙尘暴实时影响战场。",
+    icon: Cloud,
+    accent: "secondary",
+    size: "lg:col-span-2",
+    href: "/about",
+    featured: false,
+  },
+  {
+    id: "anchor",
+    title: "锚点科技",
+    subtitle: "升级维度",
+    desc: "跨局永久升级，维度科技树解锁新能力。",
+    icon: Anchor,
+    accent: "primary",
+    size: "lg:col-span-2",
+    href: "/base",
+    featured: false,
   },
 ];
 
-function SmartSortList() {
-  const [items, setItems] = useState([
-    { label: "击杀效率", value: 1.12 },
-    { label: "承伤比率", value: 0.84 },
-    { label: "资源收集", value: 0.97 },
-    { label: "节点控制", value: 1.05 },
-  ]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setItems((prev) => {
-        const next = prev.map((i) => ({ ...i, value: Math.max(0.5, Math.min(1.5, i.value + (Math.random() - 0.5) * 0.1)) }));
-        return [...next].sort((a, b) => b.value - a.value);
-      });
-    }, 1800);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="space-y-1">
-      {items.map((item, i) => (
-        <div key={item.label} className="flex items-center justify-between rounded-lg bg-background/50 px-2 py-1 text-[11px]">
-          <span className="flex items-center gap-1.5 text-foreground">
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded bg-panel-raised font-mono text-[9px] text-muted">
-              {i + 1}
-            </span>
-            {item.label}
-          </span>
-          <span className={`font-mono font-bold ${item.value >= 1 ? "text-primary" : "text-muted"}`}>
-            {item.value.toFixed(2)}x
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CommandTyping() {
-  const text = "/difficulty adapt";
-  const [display, setDisplay] = useState("");
-  useEffect(() => {
-    let i = 0;
-    const timer = setInterval(() => {
-      setDisplay(text.slice(0, i));
-      i = (i + 1) % (text.length + 1);
-    }, 140);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-[11px]">
-      <span className="text-primary">{display}</span>
-      <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-primary" />
-    </div>
-  );
-}
-
-function BreathingIndicator() {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-primary-subtle">
-        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-        <Pulse size={14} weight="bold" className="relative text-primary" />
-      </div>
-      <div className="flex-1">
-        <div className="flex justify-between text-[11px] text-muted">
-          <span>节律同步</span>
-          <span>正常</span>
-        </div>
-        <div className="mt-1 h-1 overflow-hidden rounded-full bg-border">
-          <div className="h-full w-2/3 rounded-full bg-primary animate-pulseSlow" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DataCarousel() {
-  const stats = [
-    { label: "击杀", value: "12,847" },
-    { label: "波次", value: "12/12" },
-    { label: "难度", value: "0.97" },
-    { label: "效率", value: "1.12x" },
-  ];
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % stats.length), 1600);
-    return () => clearInterval(timer);
-  }, [stats.length]);
-
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-2.5 py-1.5">
-      <div>
-        <p className="text-[10px] uppercase tracking-widest text-muted">{stats[index].label}</p>
-        <p className="font-mono text-base font-bold text-foreground">{stats[index].value}</p>
-      </div>
-      <ArrowsClockwise size={14} className="text-muted" />
-    </div>
-  );
-}
-
-function FloatingToolbar() {
-  return (
-    <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-background/80 p-1 backdrop-blur-sm">
-      {[Command, Crosshair, Wrench, Trophy].map((Icon, i) => (
-        <button
-          key={i}
-          type="button"
-          className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-colors hover:bg-panel-raised hover:text-foreground focus-ring"
-        >
-          <Icon size={12} weight="bold" />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function BentoCard({
-  feature,
-  index,
-}: {
-  feature: (typeof FEATURES)[number];
-  index: number;
-}) {
-  const reducedMotion = useReducedMotion();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const Icon = feature.icon;
-
-  const accentClass =
-    feature.accent === "primary"
-      ? "text-primary bg-primary/10 border-primary/20"
-      : feature.accent === "accent"
-        ? "text-accent bg-accent/10 border-accent/20"
-        : "text-success bg-success/10 border-success/20";
-
-  const sizeClass =
-    feature.size === "large"
-      ? "md:col-span-2 md:row-span-2"
-      : feature.size === "medium"
-        ? "md:col-span-1 md:row-span-2"
-        : "";
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
-      animate={isInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-2xl border border-border bg-panel p-2.5 transition-all hover:border-primary/20 hover:bg-panel-raised ${sizeClass}`}
-    >
-      <div className="dot-grid absolute inset-0 opacity-30" />
-      <div className="relative flex h-full flex-col">
-        <div className={`inline-flex h-6 w-6 items-center justify-center rounded-lg border ${accentClass}`}>
-          <Icon size={14} weight="bold" />
-        </div>
-        <h3 className="mt-1.5 text-sm font-bold tracking-tight">{feature.title}</h3>
-        <p className="mt-0.5 flex-1 text-[11px] leading-relaxed text-muted">{feature.desc}</p>
-
-        <div className="mt-1.5">
-          {feature.id === "rhythm" && <SmartSortList />}
-          {feature.id === "behavior" && <CommandTyping />}
-          {feature.id === "coop" && <BreathingIndicator />}
-          {feature.id === "build" && <DataCarousel />}
-          {feature.id === "fair" && <FloatingToolbar />}
-        </div>
-
-        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-          了解详情 <CaretRight size={12} />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function FeatureBento() {
   const reducedMotion = useReducedMotion();
-  const headerRef = useRef(null);
-  const headerInView = useInView(headerRef, { once: true, margin: "-80px" });
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-3 md:py-4">
-      <motion.div
-        ref={headerRef}
-        initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
-        animate={headerInView || reducedMotion ? { opacity: 1, y: 0 } : undefined}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-3 max-w-2xl md:mb-4"
-      >
-        <h2 className="text-lg font-bold tracking-tight md:text-xl">
-          旗舰版由算法驱动
-          <br />
-          <span className="text-gradient">每一局都是史诗</span>
-        </h2>
-        <p className="mt-1.5 text-xs leading-relaxed text-muted">
-          不是随机刷怪，不是固定数值。α 节律、β AI 与赛季挑战让你的每一次防守都独一无二。
-        </p>
-      </motion.div>
+    <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:py-16">
+      <GSAPScrollReveal direction="up">
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+              <Globe size={12} weight="bold" />
+              维度网络
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          </div>
+          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            七大维度，<span className="text-gradient">无限可能</span>
+          </h2>
+          <p className="mt-2 max-w-xl text-sm text-muted">
+            每个维度拥有独特的规则、敌人和奖励。选择你的维度，穿越锚点，开始战斗。
+          </p>
+        </div>
+      </GSAPScrollReveal>
 
-      <div className="grid grid-flow-dense grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {FEATURES.map((feature, i) => (
-          <BentoCard key={feature.id} feature={feature} index={i} />
-        ))}
+      <div className="grid grid-flow-dense grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        {DIMENSIONS.map((dim, i) => {
+          const Icon = dim.icon;
+          return (
+            <motion.div
+              key={dim.id}
+              initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+              className={dim.size}
+            >
+              <Link
+                href={dim.href}
+                className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-panel/60 p-5 transition-all holo-scan hover:border-primary/30 hover:bg-panel hover:shadow-xl hover:shadow-primary/5 focus-ring ${
+                  dim.featured ? "border-primary/15 quantum-glow" : "border-border"
+                }`}
+              >
+                {/* Accent glow */}
+                <div
+                  className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-30"
+                  style={{ backgroundColor: `var(--${dim.accent})` }}
+                />
+
+                {/* Featured badge */}
+                {dim.featured && (
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.8),transparent_70%)]" />
+                )}
+
+                <div className="relative">
+                  <div className="flex items-start justify-between">
+                    <span
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                      style={{
+                        backgroundColor: `var(--${dim.accent})15`,
+                        color: `var(--${dim.accent})`,
+                      }}
+                    >
+                      <Icon size={20} weight="bold" />
+                    </span>
+                    {dim.featured && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        <Sparkle size={10} weight="fill" />
+                        主打
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted">
+                      {dim.subtitle}
+                    </p>
+                    <h3 className="mt-1 font-display text-lg font-bold tracking-tight">
+                      {dim.title}
+                    </h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted">{dim.desc}</p>
+                  </div>
+                </div>
+
+                <div className="relative mt-4 flex items-center gap-2 text-xs text-muted">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-panel-raised">
+                    <CaretRight
+                      size={10}
+                      weight="bold"
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </span>
+                  <span className="opacity-0 transition-opacity group-hover:opacity-100">
+                    穿越维度
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

@@ -20,8 +20,13 @@ import {
   Radioactive,
   Lightning,
   Calendar,
+  CastleTurret,
+  Atom,
 } from "@phosphor-icons/react";
 import AuthButton from "@/components/AuthButton";
+import BrandLogo from "@/components/BrandLogo";
+import DimensionBackground from "@/components/effects/DimensionBackground";
+import { VERSION_WATERMARK } from "@/lib/version";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,10 +38,10 @@ const NAV = [
   { href: "/", label: "指挥终端", icon: House },
   { href: "/landing", label: "官网", icon: Globe },
   { href: "/world", label: "世界观", icon: Radioactive },
+  { href: "/guild", label: "公会", icon: CastleTurret },
   { href: "/peak-challenge", label: "巅峰挑战", icon: Lightning },
-  { href: "/flagship", label: "旗舰模式", icon: Trophy },
   { href: "/season", label: "赛季", icon: Calendar },
-  { href: "/algorithms", label: "算法", icon: Robot },
+  { href: "/algorithms", label: "算法", icon: Atom },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/armory", label: "军械库", icon: Sword },
@@ -50,11 +55,10 @@ const NAV = [
 
 const MOBILE_NAV = [
   { href: "/", label: "首页", icon: House },
-  { href: "/algorithms", label: "算法", icon: Robot },
+  { href: "/game", label: "战场", icon: Crosshair },
   { href: "/modes", label: "模式", icon: GameController },
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/leaderboard", label: "战绩", icon: Trophy },
-  { href: "/settings", label: "设置", icon: Gear },
 ];
 
 export default function Layout({ children, title, showNav = true }: LayoutProps) {
@@ -64,32 +68,36 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background text-foreground">
+    <div className="relative min-h-[100dvh] flex flex-col bg-background text-foreground">
+      <DimensionBackground intensity="subtle" />
+      <div className="noise-overlay pointer-events-none fixed inset-0 z-0" />
+
       {showNav && !isIndex && (
         <motion.header
           initial={reducedMotion ? undefined : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md"
+          className="sticky top-0 z-50 border-b border-primary/10 bg-background/80 backdrop-blur-xl"
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
             <Link
               href="/"
-              className="group flex items-center gap-2 text-primary transition-colors hover:text-foreground focus-ring rounded"
+              className="group flex items-center gap-2 transition-opacity hover:opacity-80 focus-ring rounded-lg"
             >
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                <Users size={16} weight="bold" />
-              </span>
-              <span className="font-mono text-sm uppercase tracking-widest">Project M</span>
+              <BrandLogo size={28} variant="icon" className="text-primary" />
+              <BrandLogo size={28} variant="wordmark" />
             </Link>
 
             {title && (
-              <h1 className="hidden font-mono text-sm uppercase tracking-widest text-muted md:block">
-                {title}
-              </h1>
+              <div className="hidden items-center gap-2 md:flex">
+                <span className="h-4 w-px bg-primary/20" />
+                <h1 className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
+                  {title}
+                </h1>
+              </div>
             )}
 
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-0.5 lg:flex">
               {NAV.map((item) => {
                 const active = router.pathname === item.href;
                 const Icon = item.icon;
@@ -97,7 +105,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all focus-ring ${
+                    className={`group relative flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-medium transition-all focus-ring ${
                       active
                         ? "bg-primary/10 text-primary"
                         : "text-muted hover:bg-panel-raised hover:text-foreground"
@@ -105,12 +113,12 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
                     aria-current={active ? "page" : undefined}
                   >
                     <Icon size={14} weight={active ? "bold" : "regular"} />
-                    <span>{item.label}</span>
+                    <span className="hidden xl:inline">{item.label}</span>
                     {active && (
                       <motion.span
                         layoutId="nav-active"
-                        className="absolute inset-x-2 -bottom-1 h-px bg-primary/60"
-                        transition={{ duration: 0.25 }}
+                        className="absolute inset-x-2 -bottom-0.5 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                       />
                     )}
                   </Link>
@@ -123,7 +131,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-primary/40 hover:text-foreground focus-ring md:hidden"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-muted transition-colors hover:border-primary/30 hover:text-foreground focus-ring lg:hidden"
                 aria-label="打开菜单"
               >
                 <List size={20} weight="bold" />
@@ -133,21 +141,29 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
         </motion.header>
       )}
 
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
+      <main className="relative z-10 flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
+
+      <div className="version-watermark">{VERSION_WATERMARK}</div>
 
       {showNav && !isIndex && (
-        <footer className="border-t border-border py-2 text-center text-xs text-muted md:py-3">
+        <footer className="relative z-10 border-t border-primary/10 bg-background/60 py-3 text-center text-[10px] text-muted">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 md:flex-row">
-            <p>Project M · 公平竞技 · 无付费加成</p>
+            <div className="flex items-center gap-2">
+              <BrandLogo size={14} variant="icon" className="text-muted" />
+              <p>多重宇宙 · 奇迹 · 公平竞技 · 无付费加成</p>
+            </div>
             <div className="flex gap-4">
-              <Link href="/" className="hover:text-foreground focus-ring rounded">
+              <Link href="/" className="transition-colors hover:text-primary focus-ring rounded">
                 首页
               </Link>
-              <Link href="/about" className="hover:text-foreground focus-ring rounded">
+              <Link href="/about" className="transition-colors hover:text-primary focus-ring rounded">
                 关于
               </Link>
-              <Link href="/settings" className="hover:text-foreground focus-ring rounded">
+              <Link href="/settings" className="transition-colors hover:text-primary focus-ring rounded">
                 设置
+              </Link>
+              <Link href="/help" className="transition-colors hover:text-primary focus-ring rounded">
+                指南
               </Link>
             </div>
           </div>
@@ -155,7 +171,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
       )}
 
       {showNav && !isIndex && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 backdrop-blur-md md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-primary/10 bg-background/85 backdrop-blur-xl md:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
             {MOBILE_NAV.map((item) => {
               const active = router.pathname === item.href;
@@ -164,7 +180,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors focus-ring ${
+                  className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors focus-ring ${
                     active ? "text-primary" : "text-muted"
                   }`}
                   aria-current={active ? "page" : undefined}
@@ -185,21 +201,28 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-md md:hidden"
+            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-xl lg:hidden"
           >
             <div className="flex h-full flex-col p-4">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-sm uppercase tracking-widest text-primary">Project M</span>
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2"
+                >
+                  <BrandLogo size={24} variant="icon" className="text-primary" />
+                  <BrandLogo size={24} variant="wordmark" />
+                </Link>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-primary/40 hover:text-foreground focus-ring"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-muted transition-colors hover:border-primary/30 hover:text-foreground focus-ring"
                   aria-label="关闭菜单"
                 >
                   <X size={20} weight="bold" />
                 </button>
               </div>
-              <nav className="mt-8 grid gap-2">
+              <nav className="mt-8 grid gap-1.5">
                 {NAV.map((item) => {
                   const active = router.pathname === item.href;
                   const Icon = item.icon;
@@ -208,7 +231,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                         active
                           ? "bg-primary/10 text-primary"
                           : "text-foreground hover:bg-panel-raised"
@@ -220,6 +243,14 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
                   );
                 })}
               </nav>
+              <div className="mt-auto pb-4">
+                <div className="rounded-2xl border border-primary/10 bg-panel/60 p-4">
+                  <p className="text-xs font-medium text-primary">多重宇宙 · 奇迹</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                    多元宇宙在此交汇。据点防守、极限生存、肉鸽构筑与赛季挑战。
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Lightning, Trophy, Clock, Target, Skull, ArrowRight, Warning } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
-import NuclearBackground from "@/components/effects/NuclearBackground";
+import DimensionBackground from "@/components/effects/DimensionBackground";
 
 const FEATURES = [
   {
@@ -49,13 +49,9 @@ export default function PeakChallengePage() {
       </Head>
 
       <div className="relative min-h-[100dvh]">
-        <NuclearBackground />
+        <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
-
-        <div className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute -right-[15%] top-[5%] h-[55vh] w-[55vh] rounded-full bg-accent/5 blur-[120px]" />
-          <div className="absolute -left-[10%] bottom-[10%] h-[45vh] w-[45vh] rounded-full bg-secondary/5 blur-[100px]" />
-        </div>
+        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
@@ -68,13 +64,13 @@ export default function PeakChallengePage() {
               <Warning size={12} weight="fill" />
               巅峰挑战
             </span>
-            <h1 className="mt-3 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[0.95] tracking-tight">
+            <h1 className="mt-3 text-[clamp(2rem,5vw,3.5rem)] font-display font-bold leading-[0.95] tracking-tight">
               极限生存
               <br />
               <span className="text-gradient">挑战人类反应极限</span>
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-              L3V100 旗舰版核心模式。满配开局、15 分钟限时、击杀效率驱动敌潮强度，第 25 波后可进入超频极限冲击排行榜。
+              奇迹版本核心模式。满配开局、15 分钟限时、击杀效率驱动敌潮强度，第 25 波后可进入超频极限冲击排行榜。
             </p>
           </motion.div>
 
@@ -85,7 +81,7 @@ export default function PeakChallengePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="lg:col-span-7"
             >
-              <div className="relative overflow-hidden rounded-3xl border border-border bg-panel shadow-2xl shadow-black/20">
+              <div className="bridge-panel holo-scan bridge-glow overflow-hidden">
                 <img
                   src={HERO_IMAGE}
                   alt="巅峰挑战"
@@ -118,10 +114,10 @@ export default function PeakChallengePage() {
                 return (
                   <div
                     key={feature.title}
-                    className="group relative overflow-hidden rounded-2xl border border-border bg-panel p-3 transition-all hover:border-accent/20 hover:bg-panel-raised"
+                    className="bridge-panel holo-scan p-3 transition-all hover:border-accent/20"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent/15">
+                      <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
                         <Icon size={16} weight="bold" />
                       </div>
                       <div>
@@ -140,12 +136,11 @@ export default function PeakChallengePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-panel p-4"
+            className="relative mt-4 bridge-panel holo-scan bridge-glow p-4"
           >
-            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-accent/5 blur-3xl" />
             <div className="relative grid gap-4 lg:grid-cols-2">
               <div>
-                <h2 className="text-lg font-bold tracking-tight">赛季规则</h2>
+                <h2 className="text-lg font-display font-bold tracking-tight">赛季规则</h2>
                 <ul className="mt-2 space-y-1.5">
                   {SEASON_RULES.map((rule) => (
                     <li key={rule} className="flex items-start gap-2 text-xs text-muted">
@@ -166,7 +161,7 @@ export default function PeakChallengePage() {
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-panel px-5 text-sm font-semibold transition-all hover:border-accent/30 hover:bg-panel-raised focus-ring active:scale-95"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-primary/10 bg-panel/60 px-5 text-sm font-semibold transition-all hover:border-accent/30 hover:bg-panel focus-ring active:scale-95"
                 >
                   <Trophy size={16} />
                   查看排行榜

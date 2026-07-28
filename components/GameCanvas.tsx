@@ -25,6 +25,7 @@ import WaveAnnouncement, { type WavePhase } from "./game/WaveAnnouncement";
 import LoadoutModal from "./game/LoadoutModal";
 import OverclockChoiceModal from "./extreme-survival/OverclockChoiceModal";
 import RedBreathOverlay from "./extreme-survival/RedBreathOverlay";
+import SupplyWindow from "./game/SupplyWindow";
 import type { HeroId, WeaponId } from "@/lib/game/types";
 
 interface GameCanvasProps {
@@ -84,6 +85,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
   const [notifications, setNotifications] = useState<GameNotification[]>([]);
   const [showLoadout, setShowLoadout] = useState(true);
   const [showBranchChoice, setShowBranchChoice] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [loadoutSnapshot, setLoadoutSnapshot] = useState(() => getLoadout());
   const [waveAnnouncement, setWaveAnnouncement] = useState<{
     visible: boolean;
@@ -257,6 +259,7 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         const corePct = ds.core.health / ds.core.maxHealth;
 
         if (waveChanged && ds.waveInProgress) {
+          setShopOpen(false);
           const isBossWave = ds.currentWave === ds.totalWaves - 1;
           setWaveAnnouncement({
             visible: true,
@@ -624,6 +627,14 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
     }
   }, []);
 
+  const handleSkipBreak = useCallback(() => {
+    engineRef.current?.skipBreak();
+  }, []);
+
+  const handleToggleShop = useCallback(() => {
+    setShopOpen((prev) => !prev);
+  }, []);
+
   const engine = engineRef.current;
   const status = engine?.state.status ?? "idle";
   const paused = status === "paused";
@@ -665,6 +676,19 @@ export default function GameCanvas({ onExit, multiplayer = false }: GameCanvasPr
         visible={waveAnnouncement.visible}
         onComplete={() => setWaveAnnouncement((prev) => ({ ...prev, visible: false }))}
       />
+
+      {ds && (
+        <SupplyWindow
+          inBreak={!ds.waveInProgress}
+          breakTimer={ds.breakTimer}
+          currentWave={ds.currentWave}
+          totalWaves={ds.totalWaves}
+          resources={engine?.state.stats.resourcesCollected ?? 0}
+          shopOpen={shopOpen}
+          onToggleShop={handleToggleShop}
+          onSkipBreak={handleSkipBreak}
+        />
+      )}
 
       {multiplayer && (
         <button

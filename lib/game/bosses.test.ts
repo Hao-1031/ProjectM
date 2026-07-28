@@ -54,8 +54,8 @@ function createBossFromTemplate(id: BossId, overrides: Partial<Enemy> = {}): Ene
 
 describe("bosses", () => {
   describe("BOSS registry", () => {
-    it("contains ten bosses", () => {
-      expect(Object.keys(BOSSES)).toHaveLength(10);
+    it("contains eighteen bosses", () => {
+      expect(Object.keys(BOSSES)).toHaveLength(18);
     });
 
     it("every boss has required fields", () => {

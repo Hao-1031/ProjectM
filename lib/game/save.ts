@@ -9,6 +9,8 @@ import {
   getSeasonCurrencyReward,
   type SeasonPurchaseResult,
 } from "./season";
+import { DEFAULT_CAMPAIGN_PROGRESS, type CampaignProgress } from "./campaign";
+import { DEFAULT_BOSS_RUSH_PROGRESS, type BossRushProgress } from "./boss-rush";
 
 export interface RunHistoryEntry {
   timestamp: number;
@@ -37,6 +39,8 @@ export interface SaveData {
   ownedEmotes: string[];
   ownedBadges: string[];
   runHistory: RunHistoryEntry[];
+  campaignProgress: CampaignProgress;
+  bossRushProgress: BossRushProgress;
   settings: {
     audioEnabled: boolean;
     volume: number;
@@ -82,6 +86,8 @@ function createFallback(): SaveData {
     ownedEmotes: [],
     ownedBadges: [],
     runHistory: [],
+    campaignProgress: { ...DEFAULT_CAMPAIGN_PROGRESS },
+    bossRushProgress: { ...DEFAULT_BOSS_RUSH_PROGRESS },
     settings: {
       audioEnabled: true,
       volume: 0.8,
@@ -183,6 +189,12 @@ function migrateLegacy(parsed: Partial<SaveData>): SaveData {
     ownedEmotes,
     ownedBadges,
     runHistory,
+    campaignProgress: parsed.campaignProgress && typeof parsed.campaignProgress === "object"
+      ? { ...DEFAULT_CAMPAIGN_PROGRESS, ...parsed.campaignProgress }
+      : { ...DEFAULT_CAMPAIGN_PROGRESS },
+    bossRushProgress: parsed.bossRushProgress && typeof parsed.bossRushProgress === "object"
+      ? { ...DEFAULT_BOSS_RUSH_PROGRESS, ...parsed.bossRushProgress }
+      : { ...DEFAULT_BOSS_RUSH_PROGRESS },
     settings: { ...fallback.settings, ...parsed.settings },
   };
 }

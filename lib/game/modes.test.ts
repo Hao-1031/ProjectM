@@ -96,9 +96,9 @@ describe("modes", () => {
   });
 
   describe("getModeList", () => {
-    it("lists all nine modes", () => {
+    it("lists all ten modes", () => {
       const list = getModeList();
-      expect(list).toHaveLength(9);
+      expect(list).toHaveLength(10);
       expect(list.map((m) => m.type)).toContain("campaign");
       expect(list.map((m) => m.type)).toContain("endless");
       expect(list.map((m) => m.type)).toContain("daily");

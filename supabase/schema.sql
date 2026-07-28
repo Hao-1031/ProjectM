@@ -1,4 +1,4 @@
--- Project-M L3V100 "旗舰版" 数据库结构
+-- 多重宇宙「奇迹」数据库结构
 -- 目标：Supabase Postgres 15+
 -- 执行方式：登录 Supabase Dashboard > SQL Editor > New query，粘贴后点击 Run
 

@@ -1046,6 +1046,24 @@ export class GameEngine {
     triggerHeroUltimate(this.state.player, this.state, this.fx);
   }
 
+  /** 跳过波次间补给窗口，立即开始下一波 */
+  skipBreak() {
+    const ds = this.state.defenseState;
+    if (!ds || ds.waveInProgress) return false;
+    if (ds.currentWave >= ds.totalWaves) return false;
+    ds.breakTimer = 0;
+    return true;
+  }
+
+  /** 强制进入补给窗口（暂停波次计时） */
+  forceBreak() {
+    const ds = this.state.defenseState;
+    if (!ds || !ds.waveInProgress) return false;
+    ds.waveInProgress = false;
+    ds.breakTimer = 8;
+    return true;
+  }
+
   restart(mode: GameModeType = this.state.mode, seed?: number) {
     if (seed !== undefined) {
       this.seed = seed;

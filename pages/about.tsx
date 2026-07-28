@@ -87,7 +87,7 @@ export default function AboutPage() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="md:col-span-5"
             >
-              <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-3">
+              <div className="bridge-panel holo-scan p-3">
                 <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
                 <p className="relative font-mono text-xs uppercase tracking-widest text-muted">
                   设计信条
@@ -133,7 +133,7 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="md:col-span-7">
-              <div className="grid grid-flow-dense grid-cols-2 overflow-hidden rounded-3xl border border-border bg-panel">
+              <div className="grid grid-flow-dense grid-cols-2 overflow-hidden bridge-panel holo-scan">
                 {techStack.map((tech, index) => {
                   const Icon = tech.icon;
                   const isWide = index === 0 || index === 5;
@@ -144,7 +144,7 @@ export default function AboutPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.4, delay: index * 0.05 }}
-                      className={`border-b border-r border-border/50 p-2.5 transition-colors hover:bg-panel-raised ${
+                      className={`border-b border-r border-primary/10/50 p-2.5 transition-colors hover:bg-panel/60 ${
                         isWide ? "col-span-2" : ""
                       }`}
                     >
@@ -160,7 +160,7 @@ export default function AboutPage() {
         </section>
 
         <section className="relative mx-auto max-w-7xl px-4 py-3 md:pb-4">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-panel p-3 md:p-4">
+          <div className="relative overflow-hidden bridge-panel holo-scan p-3 md:p-4">
             <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
             <div className="relative grid gap-3 md:grid-cols-2 md:items-center">
               <div>
@@ -177,7 +177,7 @@ export default function AboutPage() {
                   <Shield size={14} weight="bold" />
                   无属性售卖
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-3 py-1.5 text-xs text-muted">
+                <div className="inline-flex items-center gap-2 rounded-xl border border-primary/10 bg-panel-raised px-3 py-1.5 text-xs text-muted">
                   <Eye size={14} />
                   透明规则
                 </div>

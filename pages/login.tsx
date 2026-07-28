@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   GithubLogo,
   Envelope,
@@ -13,6 +13,8 @@ import {
   Crosshair,
   Shield,
   Radioactive,
+  Fingerprint,
+  Hexagon,
 } from "@phosphor-icons/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
@@ -96,28 +98,30 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-background text-foreground lg:flex-row">
       <div className="noise-overlay" />
-      <div className="pointer-events-none absolute inset-0 dot-grid opacity-30" />
+      <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
+      <div className="pointer-events-none absolute inset-0 bridge-grid opacity-30" />
 
       <div className="pointer-events-none fixed -left-[10%] -top-[10%] h-[60vh] w-[60vh] rounded-full bg-primary/5 blur-[120px]" />
       <div className="pointer-events-none fixed -bottom-[10%] -right-[10%] h-[50vh] w-[50vh] rounded-full bg-accent/5 blur-[100px]" />
 
+      {/* ── Left: Bridge Welcome Panel ── */}
       <motion.div
         initial={reducedMotion ? undefined : { opacity: 0, x: -24 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 flex flex-col justify-between border-b border-border bg-panel/30 p-6 lg:w-[45%] lg:border-b-0 lg:border-r lg:p-10"
+        className="relative z-10 flex flex-col justify-between border-b border-primary/10 bg-panel/40 p-6 lg:w-[45%] lg:border-b-0 lg:border-r lg:p-10"
       >
         <div>
           <Link
             href="/"
             className="group inline-flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+            <span className="holo-ring inline-flex h-9 w-9 items-center justify-center text-primary transition-colors">
               <Crosshair size={20} weight="bold" />
             </span>
             <div className="flex flex-col">
-              <span className="font-mono text-sm font-bold uppercase tracking-widest">Project M</span>
-              <span className="text-[10px] text-muted">L3V100 旗舰版</span>
+              <span className="font-mono text-sm font-bold uppercase tracking-widest">多重宇宙</span>
+              <span className="text-[10px] text-muted">舰桥指挥终端</span>
             </div>
           </Link>
         </div>
@@ -127,15 +131,18 @@ export default function LoginPage() {
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="bridge-panel p-5"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/20 bg-warning/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-warning">
-              <Radioactive size={10} weight="fill" />
-              辐射区准入认证
-            </span>
-            <h1 className="mt-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[0.95] tracking-tight">
+            <div className="bridge-panel-header -mx-5 -mt-5 mb-4">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                <Radioactive size={10} weight="fill" className="status-pulse" />
+                辐射区准入认证
+              </span>
+            </div>
+            <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[0.95] tracking-tight">
               一人一枪
               <br />
-              <span className="text-primary">杀穿辐射区</span>
+              <span className="text-gradient">杀穿辐射区</span>
             </h1>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
               登录后即可进入据点防守、生存模式与组队大厅。战绩、解锁进度与外观将跟随账号同步。
@@ -146,7 +153,7 @@ export default function LoginPage() {
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+            className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
           >
             {[
               { icon: Shield, label: "据点防守", desc: "2-4 人合作守核芯" },
@@ -154,9 +161,9 @@ export default function LoginPage() {
             ].map((feature) => (
               <div
                 key={feature.label}
-                className="flex items-center gap-3 rounded-xl border border-border bg-panel/60 p-3"
+                className="bridge-panel flex items-center gap-3 p-3 bridge-glow"
               >
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="holo-ring inline-flex h-9 w-9 shrink-0 items-center justify-center text-primary">
                   <feature.icon size={18} weight="bold" />
                 </span>
                 <div>
@@ -168,9 +175,12 @@ export default function LoginPage() {
           </motion.div>
         </div>
 
-        <p className="text-xs text-muted">公平竞技 · 无付费加成 · Project M</p>
+        <div className="bridge-panel bridge-panel-header py-3 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">公平竞技 · 无付费加成 · 多重宇宙</p>
+        </div>
       </motion.div>
 
+      {/* ── Right: Bridge Auth Terminal ── */}
       <div className="relative z-10 flex flex-1 items-center justify-center p-4 lg:p-10">
         <motion.div
           initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
@@ -178,11 +188,14 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-md"
         >
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-panel p-6 shadow-2xl shadow-black/20 lg:p-8">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-danger opacity-60" />
+          <div className="bridge-panel holo-scan p-6 shadow-2xl shadow-black/30 lg:p-8">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
-            <div className="mb-6">
-              <h2 className="text-xl font-bold tracking-tight">欢迎回来</h2>
+            <div className="bridge-panel-header -mx-6 -mt-6 mb-6 px-6 pt-6 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pt-8">
+              <div className="flex items-center gap-2">
+                <Fingerprint size={18} weight="bold" className="text-primary status-pulse" />
+                <h2 className="font-mono text-sm font-bold uppercase tracking-[0.15em]">舰桥认证终端</h2>
+              </div>
               <p className="mt-1 text-xs text-muted">选择登录方式进入作战指挥系统</p>
             </div>
 
@@ -227,17 +240,17 @@ export default function LoginPage() {
 
             <div className="mt-6">
               <div className="relative flex items-center py-2">
-                <div className="flex-1 border-t border-border" />
-                <span className="px-3 text-[10px] font-medium uppercase tracking-wider text-muted">
+                <div className="flex-1 border-t border-primary/10" />
+                <span className="px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
                   或使用
                 </span>
-                <div className="flex-1 border-t border-border" />
+                <div className="flex-1 border-t border-primary/10" />
               </div>
 
               <div className="mt-4 grid gap-3">
                 <a
                   href={`/api/auth/github?next=${oauthNext}`}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold transition-all hover:bg-panel-raised hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-primary/10 bg-background px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
                 >
                   <GithubLogo size={18} weight="fill" />
                   GitHub
@@ -276,30 +289,36 @@ function AuthForm({
 }: AuthFormProps) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-sm text-danger"
-        >
-          <Warning size={16} weight="fill" className="mt-0.5 shrink-0" />
-          <span>{error}</span>
-        </motion.div>
-      )}
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="flex items-start gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-sm text-danger"
+          >
+            <Warning size={16} weight="fill" className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </motion.div>
+        )}
 
-      {success && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2 text-sm text-success"
-        >
-          <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0" />
-          <span>{success}</span>
-        </motion.div>
-      )}
+        {success && (
+          <motion.div
+            key="success"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="flex items-start gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2 text-sm text-success"
+          >
+            <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0" />
+            <span>{success}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="space-y-1">
-        <label htmlFor={`${mode}-email`} className="text-xs font-medium text-muted">
+        <label htmlFor={`${mode}-email`} className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">
           邮箱
         </label>
         <div className="relative">
@@ -321,7 +340,7 @@ function AuthForm({
       </div>
 
       <div className="space-y-1">
-        <label htmlFor={`${mode}-password`} className="text-xs font-medium text-muted">
+        <label htmlFor={`${mode}-password`} className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">
           密码
         </label>
         <div className="relative">

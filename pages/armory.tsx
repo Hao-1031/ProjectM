@@ -84,7 +84,7 @@ function WeaponTag({ label, icon: Icon, color }: { label: string; icon: typeof C
 
 function StatMini({ label, value, icon: Icon, color }: { label: string; value: string; icon: typeof Shield; color: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background/50 px-2 py-1.5">
+    <div className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-background/50 px-2 py-1.5">
       <Icon size={12} weight="bold" style={{ color }} />
       <div><p className="text-[9px] uppercase tracking-wider text-muted">{label}</p><p className="text-[11px] font-bold tabular-nums">{value}</p></div>
     </div>
@@ -199,7 +199,7 @@ function WeaponCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-primary/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+      className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
       <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-25 transition-opacity group-hover:opacity-50" style={{ backgroundColor: weapon.color }} />
       <div className="relative p-2.5 md:p-3">
         {isLarge && WEAPON_IMAGES[id] && (
@@ -272,13 +272,13 @@ function WeaponCard({
           )}
         </div>
 
-        <div className="mt-2 border-t border-border pt-1.5">
+        <div className="mt-2 border-t border-primary/10 pt-1.5">
           <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
             <Swap size={10} />升级路线
           </p>
           <div className="space-y-1">
             {weapon.upgrades.slice(0, 4).map((upgrade, i) => (
-              <div key={i} className="flex items-start gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-panel-raised">
+              <div key={i} className="flex items-start gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-panel">
                 <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-bold" style={{ backgroundColor: `${weapon.color}20`, color: weapon.color }}>
                   {upgrade.level}
                 </span>
@@ -288,11 +288,11 @@ function WeaponCard({
           </div>
         </div>
 
-        <div className="mt-3 flex items-center gap-2 border-t border-border pt-2">
+        <div className="mt-3 flex items-center gap-2 border-t border-primary/10 pt-2">
           {unlocked ? (
             equipped ? (
               <button type="button" onClick={() => onUnequip(id)} disabled={save.equippedWeapons.length <= 1}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100 border border-border bg-panel text-muted hover:border-danger/40 hover:bg-danger/10 hover:text-danger">
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 disabled:opacity-50 disabled:hover:scale-100 border border-primary/10 bg-panel/60 text-muted hover:border-danger/40 hover:bg-danger/10 hover:text-danger">
                 <Minus size={12} weight="bold" />卸下
               </button>
             ) : (
@@ -303,7 +303,7 @@ function WeaponCard({
             )
           ) : (
             <button type="button" onClick={() => onBuy(id)} disabled={!canAfford}
-              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-border bg-panel text-muted"}`}>
+              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted"}`}>
               {canAfford ? <ShoppingCart size={12} weight="bold" /> : <Lock size={12} weight="bold" />}
               <Coin size={12} weight="bold" />{weapon.cost}
             </button>
@@ -410,7 +410,7 @@ export default function ArmoryPage() {
             return (
               <button key={cat.id} type="button" role="tab" aria-selected={active}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-primary/10 bg-panel/60 text-muted hover:border-muted/60 hover:text-foreground"}`}>
                 <Icon size={14} weight={active ? "bold" : "regular"} />
                 {cat.label}
                 <span className="ml-0.5 rounded-md bg-border/50 px-1.5 py-0.5 text-[10px] font-mono">{count}</span>
@@ -462,7 +462,7 @@ export default function ArmoryPage() {
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="mt-4 rounded-3xl border border-border bg-panel p-2.5 md:p-3"
+            className="mt-4 rounded-3xl bridge-panel holo-scan p-2.5 md:p-3"
           >
             <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
               <Shield size={12} weight="duotone" />当前出战配置
@@ -471,7 +471,7 @@ export default function ArmoryPage() {
               {equippedWeapons.map(([id, weapon]) => {
                 const stats = weapon.base;
                 return (
-                  <div key={id} className="flex items-center gap-2.5 rounded-xl border border-border bg-panel-raised px-3 py-2.5 transition-colors hover:border-primary/30">
+                  <div key={id} className="flex items-center gap-2.5 rounded-xl border border-primary/10 bg-panel-raised holo-scan px-3 py-2.5 transition-colors hover:border-primary/30 hover:bg-panel">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${weapon.color}18`, color: weapon.color }}>
                       <Crosshair size={16} weight="duotone" />
                     </span>
@@ -489,7 +489,7 @@ export default function ArmoryPage() {
                 );
               })}
               {Array.from({ length: Math.max(0, maxWeapons - equippedCount) }).map((_, i) => (
-                <div key={`empty-${i}`} className="flex items-center gap-2.5 rounded-xl border border-dashed border-border/50 px-3 py-2.5">
+                <div key={`empty-${i}`} className="flex items-center gap-2.5 rounded-xl border border-dashed border-primary/10/50 px-3 py-2.5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-border/20 text-muted">
                     <Plus size={16} weight="regular" />
                   </span>
@@ -504,13 +504,13 @@ export default function ArmoryPage() {
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="mt-4 rounded-3xl border border-border bg-panel p-2.5 md:p-3"
+          className="mt-4 rounded-3xl bridge-panel holo-scan p-2.5 md:p-3"
         >
           <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
             <Sparkle size={12} weight="duotone" />武器搭配推荐
           </div>
           <div className="grid gap-2 md:grid-cols-3">
-            <div className="rounded-xl border border-border bg-panel-raised p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#f43f5e18", color: "#f43f5e" }}>
                   <Sword size={14} weight="bold" />
@@ -521,7 +521,7 @@ export default function ArmoryPage() {
                 等离子刃配合冷冻榴弹可清理贴脸敌人并封锁通道，突击与工程最优组合。
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-panel-raised p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#60a5fa18", color: "#60a5fa" }}>
                   <Target size={14} weight="bold" />
@@ -532,7 +532,7 @@ export default function ArmoryPage() {
                 磁轨炮点杀精英，重力井投射器聚怪清杂兵潮，侦察与医疗核心搭配。
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-panel-raised p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#34d39918", color: "#34d399" }}>
                   <Drone size={14} weight="bold" />

@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import localFont from "next/font/local";
 import Head from "next/head";
 import { useEffect } from "react";
+import { VERSION_META_GENERATOR } from "@/lib/version";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -15,6 +16,9 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+// Cabinet Grotesk is loaded from FontShare via _document.tsx
+const cabinetVariable = "--font-cabinet";
 
 function useUnregisterServiceWorkerInDev() {
   useEffect(() => {
@@ -35,7 +39,8 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#070810" />
+        <meta name="theme-color" content="#0c0a14" />
+        <meta name="generator" content={VERSION_META_GENERATOR} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="apple-touch-icon" href="/icon.svg" />

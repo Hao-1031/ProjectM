@@ -46,7 +46,7 @@ export default function StatCard({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       whileHover={reducedMotion ? undefined : { y: -2 }}
-      className={`group relative overflow-hidden rounded-2xl border bg-panel p-2.5 transition-colors hover:bg-panel-raised md:p-3 ${variantBorder[variant]} ${className}`}
+      className={`group relative overflow-hidden rounded-2xl border bg-panel holo-scan p-2.5 transition-colors hover:bg-panel-raised md:p-3 ${variantBorder[variant]} ${className}`}
     >
       <div
         className={`pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl transition-opacity duration-500 ${variantGlow[variant]} opacity-30 group-hover:opacity-60`}

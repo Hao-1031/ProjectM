@@ -72,7 +72,7 @@ function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
         initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-panel p-5 shadow-2xl md:p-6"
+        className="w-full max-w-md overflow-hidden bridge-panel holo-scan p-5 shadow-2xl md:p-6"
       >
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <LockKey size={24} weight="bold" />
@@ -146,7 +146,7 @@ function AnnouncementEditor({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-border bg-panel-raised p-3 md:p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-primary/10 bg-panel-raised holo-scan p-3 md:p-4">
       <div>
         <label className="mb-1 block text-xs font-medium text-muted">标题</label>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="公告标题" maxLength={120} />
@@ -159,7 +159,7 @@ function AnnouncementEditor({
           placeholder="公告内容，支持纯文本"
           maxLength={4000}
           rows={3}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-xl border border-primary/10 bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -180,7 +180,7 @@ function AnnouncementEditor({
             className={`inline-flex h-9 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors ${
               active
                 ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-panel text-muted hover:text-foreground"
+                : "border-primary/10 bg-panel/60 text-muted hover:text-foreground"
             }`}
           >
             {active ? <Check size={16} weight="bold" /> : <X size={16} weight="bold" />}
@@ -259,7 +259,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
               initial={reducedMotion ? undefined : itemVariants.hidden}
               animate={itemVariants.visible}
               exit={reducedMotion ? undefined : { opacity: 0 }}
-              className="rounded-2xl border border-border bg-panel p-2.5"
+              className="rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -318,7 +318,7 @@ function LeaderboardBrowser() {
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value)}
-            className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+            className="h-9 rounded-xl border border-primary/10 bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none"
           >
             {MODE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -337,7 +337,7 @@ function LeaderboardBrowser() {
       {!loading && !error && entries.length === 0 && <EmptyState title="暂无记录" description="该模式下还没有玩家提交成绩" />}
 
       {!loading && !error && entries.length > 0 && (
-        <div className="max-h-[260px] overflow-auto rounded-2xl border border-border">
+        <div className="max-h-[260px] overflow-auto bridge-panel holo-scan">
           <table className="w-full text-left text-sm">
             <thead className="bg-panel-raised text-[10px] uppercase tracking-wider text-muted">
               <tr>
@@ -352,7 +352,7 @@ function LeaderboardBrowser() {
             </thead>
             <tbody className="divide-y divide-border">
               {entries.slice(0, 8).map((entry, index) => (
-                <tr key={entry.id} className="bg-panel hover:bg-panel-raised/50">
+                <tr key={entry.id} className="bg-panel/60 hover:bg-panel/50">
                   <td className="px-3 py-2 font-mono text-xs font-bold">{index + 1}</td>
                   <td className="px-3 py-2 text-xs font-medium">{entry.player_name}</td>
                   <td className="px-3 py-2 text-xs text-muted">{MODE_OPTIONS.find((o) => o.value === entry.mode)?.label ?? entry.mode}</td>

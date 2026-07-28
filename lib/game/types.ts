@@ -419,7 +419,15 @@ export type BossId =
   | "dreadnought"
   | "juggernaut"
   | "annihilator"
-  | "hive";
+  | "hive"
+  | "lancer"
+  | "charger"
+  | "summoner"
+  | "splitter"
+  | "corruptor"
+  | "phantom"
+  | "behemoth"
+  | "devourer";
 
 export interface Affix {
   id: AffixId;

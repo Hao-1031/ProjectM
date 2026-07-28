@@ -1,39 +1,70 @@
-# Project-M L3V100「旗舰版」完整生产部署手册
+# 多重宇宙「奇迹」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：注册/登录功能已启用，支持 GitHub OAuth 与邮箱验证码登录；官网升级为 Awwwards 级旗舰设计；旗舰模式（据点防守 + Roguelike + 赛季挑战）与赛季系统已上线；三人称引擎架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）与诅咒祝福双选系统；多人联机基础设施（网络预测、状态插值、Delta 同步、连接质量监控、匹配队列）；HUD 旗舰重设计（核工业美学、击杀推送、武器面板、状态效果栏）；算法实验室 `/algorithms` 与 API `/api/algorithms/run` 已上线；近战武器系统（4 基础 + 1 进阶）与英雄技能实用性增强已实装
+> 当前版本特性：全站 30 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与邮箱验证码登录；剧情战役 + BossRush 玩法系统；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为 L3V100「旗舰版」一次性全部上线，包含：
+本次部署为「奇迹」版本一次性全部上线，包含全站 30 个页面的舰桥风格重设计及全部玩法系统。
+
+### 1.1 全站页面清单（30 页）
+
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| 品牌首页 | `pages/landing.tsx` | 史诗叙事品牌首页，非对称 Hero、Bento 网格、舰桥风格 |
+| 战术指挥中心 | `pages/index.tsx` | 全息模式选择器、维度跃迁状态指示器、舰桥广播系统 |
+| 登录 | `pages/login.tsx` | GitHub OAuth + 邮箱验证码登录，舰桥面板风格 |
+| 游戏大厅 | `pages/game.tsx` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法入口 |
+| 基地 | `pages/base.tsx` | 玩家基地管理，舰桥风格面板 |
+| 模式选择 | `pages/modes.tsx` | 全部游戏模式概览 |
+| 剧情战役 | `pages/campaign.tsx` | 章节节点进度管理，全息地图风格 |
+| BossRush | `pages/boss-rush.tsx` | 首领连战模式，关卡与奖励 |
+| 顶峰挑战 | `pages/peak-challenge.tsx` | 高难度挑战内容 |
+| 极限生存 | `pages/extreme-survival/index.tsx` | 极限生存模式入口 |
+| 赛季 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
+| 英雄档案 | `pages/hero-archive.tsx` | 全部可玩英雄详细信息 |
+| 英雄收藏 | `pages/heroes.tsx` | 英雄、皮肤、表情、徽章收藏与解锁 |
+| 维度编年史 | `pages/chronicles.tsx` | 游戏历史与事件记录 |
+| 成就 | `pages/achievements.tsx` | 成就系统、进度与奖励 |
+| 排行榜 | `pages/leaderboard.tsx` | 本地最佳与全球排行榜 |
+| 公会 | `pages/guild.tsx` | 公会功能与信息展示 |
+| 世界地图 | `pages/world.tsx` | 维度网络节点连接图 |
+| 军械库 | `pages/armory.tsx` | 全部武器展示（含近战 5 把） |
+| 敌人图鉴 | `pages/enemies.tsx` | 全部敌人/Boss 信息 |
+| 算法实验室 | `pages/algorithms.tsx` | 三引擎算法仪表盘（α/β/基础设施） |
+| 关于 | `pages/about.tsx` | 项目信息与说明 |
+| 帮助 | `pages/help.tsx` | 游戏帮助与指南 |
+| 设置 | `pages/settings.tsx` | 用户个性化设置 |
+| 管理后台 | `pages/admin.tsx` | 公告管理，需 `ADMIN_KEY` |
+| 404 | `pages/404.tsx` | 自定义 404 页面 |
+
+### 1.2 核心系统模块
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 品牌官网 | `pages/landing.tsx`, `pages/index.tsx` | 史诗叙事风格官网，非对称 Hero、Bento 网格、GSAP 动效 |
-| 世界观页 | `pages/world.tsx` | 旗舰版世界观与战场背景叙事 |
-| 旗舰模式页 | `pages/flagship.tsx` | 主打模式介绍：据点防守 + Roguelike + 赛季挑战 |
-| 赛季页 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
-| 英雄档案 | `pages/heroes.tsx` | 英雄、皮肤、表情、徽章收藏与解锁 |
-| 战绩排行 | `pages/leaderboard.tsx`, `pages/api/leaderboard.ts` | 本地最佳与全球排行榜，支持旗舰/极限生存等模式 |
-| 游戏前端 | `pages/game.tsx`, `components/game/` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法 |
-| 算法实验室 | `pages/algorithms.tsx` | 六大核心算法公开演示与实时输出 |
-| 算法 API | `pages/api/algorithms/run.ts` | 在线运行任意已注册算法 |
-| 管理后台 | `pages/admin.tsx`, `pages/api/announcements.ts` | 公告管理，需 `ADMIN_KEY` |
-| 排行榜 API | `pages/api/leaderboard.ts` | 全球战绩提交与查询 |
-| 登录入口 | `pages/login.tsx`, `middleware.ts` | 已启用，支持 GitHub OAuth 与邮箱验证码登录 |
-| 旗舰模式核心 | `lib/game/flagship.ts`, `lib/game/engine.ts`, `lib/game/types.ts` | 赛季挑战、奖励分支、超频阶段、赛季 XP/货币 |
+| 版本常量 | `lib/version.ts` | 版本代号「奇迹」(MI-MIRACLE)、品牌名、标语 |
+| 全局设计系统 | `styles/globals.css` | 舰桥风格 CSS 变量、动画、工具类 |
+| Tailwind 配置 | `tailwind.config.ts` | 配色、字体、动画扩展 |
+| 全局布局 | `components/Layout.tsx` | 版本水印、舰桥基础结构 |
+| 游戏核心 | `lib/game/engine.ts`, `lib/game/types.ts` | 游戏循环、类型定义 |
+| 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
+| BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
+| 顶峰挑战 | `lib/game/peak-challenge.ts` | 高难度挑战逻辑 |
+| 成就系统 | `lib/game/achievements.ts` | 成就定义、进度、奖励 |
+| 编年史 | `lib/game/chronicles.ts` | 世界观数据 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
-| 动态天气系统 | `lib/game/weather.ts` | 辐射风暴、酸雨、沙尘暴实时影响战场 |
-| 诅咒祝福双选 | `lib/game/curseBlessing.ts` | Roguelike 模式诅咒与祝福二选一配对系统 |
-| 三引擎算法架构 | `lib/engine/alpha.ts`, `lib/engine/beta.ts`, `lib/engine/infra.ts` | α 玩家端 / β 敌方端 / 基础设施三引擎合并 |
-| 多人联机基础设施 | `lib/network/` | 网络预测、状态插值、Delta 同步、Jitter 缓冲、连接质量监控、匹配队列 |
-| 近战武器系统 | `lib/game/balance.ts`, `lib/game/engine.ts`, `lib/game/weapons.ts`, `lib/game/types.ts` | 4 基础近战 + 1 进阶能量刃，扇形/突刺双机制 |
-| 英雄技能增强 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果上调，新增近战天赋联动与部署物更新 |
-| HUD 旗舰重设计 | `components/Hud.tsx`, `components/game/HudDesktop.tsx`, `components/game/HudMobile.tsx`, `components/game/KillFeed.tsx` | 核工业美学、击杀推送、武器面板、状态效果栏 |
+| 天气系统 | `lib/game/weather.ts` | 辐射风暴、酸雨、沙尘暴 |
+| 诅咒祝福 | `lib/game/curseBlessing.ts` | Roguelike 二选一配对系统 |
+| 三引擎架构 | `lib/engine/alpha/`, `lib/engine/beta/`, `lib/engine/infra/` | α 玩家端 / β 敌方端 / 基础设施 |
+| 多人联机 | `lib/network/` | 预测、插值、Delta、Jitter、匹配、房间、信令 |
+| 近战武器 | `lib/game/balance.ts`, `lib/game/weapons.ts` | 4 基础 + 1 进阶，扇形/突刺双机制 |
+| 英雄系统 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果，近战天赋联动 |
+| HUD 系统 | `components/Hud.tsx`, `components/game/HudDesktop.tsx`, `components/game/HudMobile.tsx`, `components/game/KillFeed.tsx` | 武器面板、击杀推送、状态效果栏 |
+| 补给窗口 | `components/game/SupplyWindow.tsx` | B/ESC 快捷键、倒计时、快速下一波 |
 | Supabase 后端 | `lib/supabase/`, `supabase/schema.sql` | Postgres 数据库与类型契约 |
 | 进程管理 | `ecosystem.config.cjs` | PM2 跨平台配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
@@ -96,7 +127,7 @@ git clone https://github.com/Hao-1031/ProjectM.git project-m
 cd project-m
 ```
 
-> 仓库地址已校正为 `https://github.com/Hao-1031/ProjectM`。
+> 仓库地址：`https://github.com/Hao-1031/ProjectM`。
 
 ### 3.2 安装依赖
 
@@ -520,6 +551,7 @@ pm2 restart project-m --update-env
 
 部署完成后逐项确认：
 
+### 基础设施
 - [ ] Ubuntu 22.04 已更新
 - [ ] Node.js 20 LTS 已安装
 - [ ] pnpm 11.9 已安装
@@ -537,14 +569,44 @@ pm2 restart project-m --update-env
 - [ ] HTTPS 证书已配置并可自动续期
 - [ ] Sentry 未配置时构建不报错
 - [ ] GitHub Actions Secrets 已配置，push 到 main 可自动部署
-- [ ] `/world` 世界观页可正常访问
-- [ ] `/flagship` 旗舰模式专题页可正常访问
-- [ ] `/season` 赛季页可正常访问并领取奖励
-- [ ] `/heroes` 页面显示英雄、皮肤、表情、徽章收藏
-- [ ] `/leaderboard` 页面可查看本地最佳与全球榜单
-- [ ] `/algorithms` 页面可正常访问并演示算法
+
+### 核心页面
+- [ ] `/` 战术指挥中心主页可正常访问，全息模式选择器交互正常
+- [ ] `/landing` 品牌首页可正常访问，舰桥风格叙事 Hero 正常
 - [ ] `/login` 页面可正常访问，GitHub 登录按钮可跳转授权页面
+- [ ] `/game` 游戏大厅可正常访问，模式选择入口正常
+- [ ] `/base` 玩家基地可正常访问
+- [ ] `/modes` 模式选择页可正常访问
+
+### 玩法页面
+- [ ] `/campaign` 剧情战役页可正常访问，章节节点显示正常
+- [ ] `/boss-rush` BossRush 页可正常访问，关卡与首领信息正常
+- [ ] `/peak-challenge` 顶峰挑战页可正常访问
+- [ ] `/extreme-survival` 极限生存页可正常访问
+- [ ] `/season` 赛季页可正常访问并领取奖励
+
+### 归属感页面
+- [ ] `/hero-archive` 英雄档案页可正常访问，全部英雄信息正常
+- [ ] `/heroes` 页面显示英雄、皮肤、表情、徽章收藏
+- [ ] `/chronicles` 维度编年史页可正常访问
+- [ ] `/achievements` 成就页可正常访问，进度与奖励正常
+- [ ] `/leaderboard` 页面可查看本地最佳与全球榜单
+
+### 社交与世界观
+- [ ] `/guild` 公会页可正常访问
+- [ ] `/world` 世界观页可正常访问，维度网络节点正常
 - [ ] `/armory` 页面显示近战武器（短刃/长枪/重剑/拳套/等离子刃·改）
+- [ ] `/enemies` 敌人图鉴页可正常访问
+
+### 工具页面
+- [ ] `/algorithms` 页面可正常访问，三引擎仪表盘显示正常
+- [ ] `/about` 关于页可正常访问
+- [ ] `/help` 帮助页可正常访问
+- [ ] `/settings` 设置页可正常访问
+- [ ] `/admin` 管理后台可正常访问，需 `ADMIN_KEY`
+- [ ] `/404` 自定义 404 页面正常
+
+### 游戏功能
 - [ ] 游戏内可选择「旗舰模式」，完成挑战并进入超频阶段
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
 - [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
@@ -553,66 +615,263 @@ pm2 restart project-m --update-env
 - [ ] Roguelike 模式中诅咒祝福双选弹窗正常显示
 - [ ] 多人联机模式下网络预测与状态同步正常
 - [ ] 游戏 HUD 显示武器面板、击杀推送、状态效果栏
+- [ ] 补给窗口 B/ESC 快捷键正常，倒计时与快速下一波正常
 - [ ] 算法页面显示三引擎架构（α / β / 基础设施）
+
+### 视觉验证
+- [ ] 全站暗物质紫黑 (#0c0a14) 底色一致
+- [ ] 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色一致
+- [ ] 舰桥面板 (bridge-panel) 样式一致
+- [ ] 全息扫描线 (holo-scan) 动画效果正常
+- [ ] 页面底部版本水印「奇迹」正确显示
+- [ ] 字体为 Cabinet Grotesk / Geist / Outfit / Satoshi（非 Inter）
 
 ---
 
 ## 15. 关键文件说明
 
+### 15.1 配置文件
+
 | 文件 | 作用 |
 |------|------|
 | `next.config.mjs` | 控制 standalone 输出、Sentry 自动禁用、测试文件忽略 |
-| `ecosystem.config.cjs` | PM2 生产进程配置 |
+| `tailwind.config.ts` | Tailwind 配色、字体、舰桥动画扩展 |
+| `ecosystem.config.cjs` | PM2 生产进程配置（max_memory_restart: 1G, node_args: --max-old-space-size=1536） |
 | `.env.local` | 本地/生产环境变量 |
+| `vitest.config.ts` | 测试运行池配置（forks + maxWorkers:1） |
+
+### 15.2 部署脚本
+
+| 文件 | 作用 |
+|------|------|
 | `scripts/deploy-ubuntu.sh` | Ubuntu 服务器一键部署脚本 |
+| `scripts/health-check.sh` | 健康检查脚本（需手动创建） |
+| `scripts/recover.sh` | 灾难恢复脚本（需手动创建） |
 | `.github/workflows/deploy.yml` | push 到 main 自动部署 |
 | `nginx/project-m.conf` | Nginx 反向代理配置模板 |
 | `supabase/schema.sql` | 数据库建表、RLS、触发器 |
-| `lib/algorithms/` | 六大核心算法实现与注册表 |
-| `lib/engine/` | 三引擎架构（α 玩家端 / β 敌方端 / 基础设施） |
-| `lib/network/` | 多人联机基础设施（预测、插值、Delta、Jitter、匹配） |
-| `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
-| `lib/game/curseBlessing.ts` | 诅咒祝福双选系统 |
-| `pages/world.tsx` | 世界观叙事页 |
-| `pages/flagship.tsx` | 旗舰模式专题页 |
-| `pages/season.tsx` | 赛季进度与奖励页 |
-| `pages/heroes.tsx` | 英雄、皮肤、表情、徽章档案 |
-| `pages/leaderboard.tsx` | 战绩与全球排行榜页 |
-| `pages/algorithms.tsx` | 算法公开演示页面 |
-| `pages/api/algorithms/run.ts` | 算法在线运行 API |
-| `components/Hud.tsx` | HUD 主入口（桌面/移动端路由） |
-| `components/game/HudDesktop.tsx` | 旗舰桌面 HUD（核工业美学、武器面板、击杀推送） |
-| `components/game/HudMobile.tsx` | 旗舰移动端 HUD |
-| `components/game/KillFeed.tsx` | 实时击杀滚动通知 |
-| `lib/game/flagship.ts` | 旗舰模式挑战、奖励与状态管理 |
+
+### 15.3 核心库
+
+| 文件 | 作用 |
+|------|------|
+| `lib/version.ts` | 版本代号「奇迹」(MI-MIRACLE)、品牌名「多重宇宙」、标语 |
+| `styles/globals.css` | 全局设计系统：舰桥风格 CSS 变量、动画（holoScan/dataStream/statusPulse）、工具类（bridge-panel/holo-scan/bridge-glow） |
+| `components/Layout.tsx` | 全局布局组件，版本水印渲染 |
+
+### 15.4 游戏核心
+
+| 文件 | 作用 |
+|------|------|
+| `lib/game/engine.ts` | 游戏核心循环、近战攻击/渲染、补给窗口逻辑 |
+| `lib/game/types.ts` | 武器/英雄/Boss/存档类型扩展 |
+| `lib/game/balance.ts` | 武器平衡数值与升级曲线（含近战） |
+| `lib/game/weapons.ts` | 武器创建器与新手武器栏（3 把：2 远程 + 1 近战） |
+| `lib/game/heroes.ts` | 英雄定义、技能、天赋与近战联动 |
+| `lib/game/ai/` | AI 行为（bot-ai/pathfinding/tactics） |
+
+### 15.5 玩法系统
+
+| 文件 | 作用 |
+|------|------|
+| `lib/game/campaign.ts` | 剧情战役：章节、节点、进度管理 |
+| `lib/game/boss-rush.ts` | BossRush：关卡、首领、奖励机制 |
+| `lib/game/peak-challenge.ts` | 顶峰挑战：高难度挑战逻辑 |
 | `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
 | `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
-| `lib/game/balance.ts` | 武器平衡数值与升级曲线（含近战） |
-| `lib/game/engine.ts` | 游戏核心循环与近战攻击/渲染逻辑 |
-| `lib/game/weapons.ts` | 武器创建器与新手武器栏 |
-| `lib/game/heroes.ts` | 英雄定义、技能、天赋与近战联动 |
-| `lib/game/types.ts` | 武器/英雄类型扩展（`isMelee`、`meleeShape` 等） |
-| `vitest.config.ts` | 测试运行池配置（forks + maxWorkers:1） |
-| `DEPLOYMENT.md` | 本手册 |
+| `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
+| `lib/game/curseBlessing.ts` | 诅咒祝福双选系统 |
+| `lib/game/achievements.ts` | 成就系统：定义、进度、奖励 |
+| `lib/game/chronicles.ts` | 维度编年史：世界观数据 |
+
+### 15.6 引擎与网络
+
+| 文件 | 作用 |
+|------|------|
+| `lib/engine/alpha/` | α 引擎：玩家端（DDA、经济平衡、匹配、反作弊） |
+| `lib/engine/beta/` | β 引擎：敌方端（Bot AI、生成优化、敌人移动） |
+| `lib/engine/infra/` | 基础设施引擎（地图平衡、网络预测） |
+| `lib/network/` | 多人联机基础设施（预测、插值、Delta、Jitter、匹配、房间、信令、P2P） |
+
+### 15.7 UI 组件
+
+| 文件 | 作用 |
+|------|------|
+| `components/Hud.tsx` | HUD 主入口（桌面/移动端路由） |
+| `components/game/HudDesktop.tsx` | 桌面 HUD：武器面板、冷却环、击杀推送、状态效果栏 |
+| `components/game/HudMobile.tsx` | 移动端 HUD：紧凑状态栏、触控优化 |
+| `components/game/KillFeed.tsx` | 实时击杀滚动通知（AnimatePresence + 自动过期） |
+| `components/game/SupplyWindow.tsx` | 补给窗口：B/ESC 快捷键、倒计时、快速下一波 |
+
+### 15.8 页面
+
+| 文件 | 作用 |
+|------|------|
+| `pages/index.tsx` | 战术指挥中心主页（全息模式选择器、舰桥广播） |
+| `pages/landing.tsx` | 品牌首页（史诗叙事 Hero、舰桥风格） |
+| `pages/login.tsx` | 登录页（GitHub OAuth + 邮箱验证码） |
+| `pages/game.tsx` | 游戏大厅 |
+| `pages/base.tsx` | 玩家基地 |
+| `pages/modes.tsx` | 模式选择 |
+| `pages/campaign.tsx` | 剧情战役 |
+| `pages/boss-rush.tsx` | BossRush |
+| `pages/peak-challenge.tsx` | 顶峰挑战 |
+| `pages/extreme-survival/index.tsx` | 极限生存 |
+| `pages/season.tsx` | 赛季进度与奖励 |
+| `pages/hero-archive.tsx` | 英雄档案 |
+| `pages/heroes.tsx` | 英雄收藏 |
+| `pages/chronicles.tsx` | 维度编年史 |
+| `pages/achievements.tsx` | 成就系统 |
+| `pages/leaderboard.tsx` | 战绩与全球排行榜 |
+| `pages/guild.tsx` | 公会 |
+| `pages/world.tsx` | 世界地图（维度网络） |
+| `pages/armory.tsx` | 军械库 |
+| `pages/enemies.tsx` | 敌人图鉴 |
+| `pages/algorithms.tsx` | 算法实验室（三引擎仪表盘） |
+| `pages/about.tsx` | 关于 |
+| `pages/help.tsx` | 帮助 |
+| `pages/settings.tsx` | 设置 |
+| `pages/admin.tsx` | 管理后台 |
+| `pages/404.tsx` | 自定义 404 |
 
 ---
 
-## 16. L3V100 旗舰版内容说明
+## 16. 奇迹版本内容说明
 
-### 16.1 旗舰版核心内容
+### 16.1 舰桥指挥舱设计系统
 
-L3V100「旗舰版」在原有玩法基础上完成品牌升级与内容扩展：
+「奇迹」版本全站 30 页面统一采用太空舰桥指挥舱视觉风格。
 
-- **官网叙事包装**：首页升级为史诗叙事 Hero，新增 `/world` 世界观、`/flagship` 旗舰模式、`/season` 赛季、`/heroes` 英雄档案等专题页，统一暗色产品基调与金属/灰烬质感。
-- **旗舰模式**：融合「据点防守 + Roguelike 强化选择 + 赛季挑战」。玩家守护核心、完成赛季挑战、在第 15 波进入超频阶段，并积累赛季 XP/货币。
-- **极限生存**：已有模式提升为旗舰主打，满配开局、15 分钟高压、进入超频阶段后才可提交排行榜。
-- **赛季系统**：`lib/game/season.ts` 提供赛季等级、奖励、任务与进度；`lib/game/save.ts` 持久化赛季 XP/货币。
-- **排行榜**：`pages/leaderboard.tsx` 支持按模式筛选，旗舰模式与极限生存仅记录进入超频阶段的 run。
-- **英雄与外观**：`pages/heroes.tsx` 展示英雄、皮肤、表情、徽章收藏；所有外观只改变视觉效果，不影响数值。
+#### 配色方案
 
-### 16.2 近战武器概览
+| 角色 | 颜色 | CSS 变量 | 用途 |
+|------|------|----------|------|
+| 底色 | `#0c0a14` | `--background` | 暗物质紫黑，全站背景 |
+| 主强调 | `#c44dff` | `--primary` | 品红全息光，主交互元素 |
+| 辅强调 | `#c8a45c` | `--accent` | 金色锚点，高亮重要数据 |
+| 面板 | `rgba(255,255,255,0.02)` | `--panel` | 半透明面板背景 |
+| 前景 | `#e8e4f0` | `--foreground` | 主文字色 |
+| 前景次要 | `#9a95a8` | `--foreground-muted` | 次要文字色 |
 
-L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基础近战武器免费解锁并进入军械库，1 把进阶能量刃由旧版「等离子刃」重做为近战武器。所有近战武器沿用现有升级系统、通用被动加成与英雄天赋联动。
+#### 核心 CSS 类
+
+| 类名 | 作用 |
+|------|------|
+| `.bridge-panel` | 舰桥面板：1px 品红边框 + 圆角 + 半透明背景 |
+| `.bridge-panel-header` | 面板标题：品红渐变文字 + 底部边框 |
+| `.holo-scan` | 全息扫描线：线性渐变 + 4s 循环动画 |
+| `.bridge-glow` | 舰桥光晕：品红 box-shadow 辉光效果 |
+| `.holo-ring` | 全息环：旋转 border 动画 |
+| `.status-pulse` | 状态脉冲：呼吸灯效果 |
+| `.data-stream` | 数据流：上下滚动文字动画 |
+| `.version-watermark` | 版本水印：右下角「奇迹」标记 |
+
+#### 动画关键帧
+
+| 动画 | 效果 |
+|------|------|
+| `holoScan` | 全息扫描线从上到下 4s 循环 |
+| `dataStream` | 数据流滚动 1s 循环 |
+| `statusPulse` | 呼吸脉冲 2s 缓入缓出 |
+| `holoRing` | 全息环旋转 8s 线性 |
+| `bridgeGlow` | 舰桥光晕脉冲 3s 缓入缓出 |
+
+#### 字体栈
+
+- 标题：Cabinet Grotesk / Outfit
+- 正文：Geist / Satoshi
+- 等宽数据：JetBrains Mono (font-mono tabular-nums)
+- 禁止：Inter
+
+### 16.2 版本代号机制
+
+`lib/version.ts` 定义全站版本常量：
+
+```typescript
+VERSION_CODE = "MI-MIRACLE"    // 版本代码
+VERSION_DISPLAY = "奇迹"        // 显示名称
+VERSION_LABEL = "奇迹 (MI-MIRACLE)"  // 完整标签
+VERSION_META_GENERATOR = "多重宇宙 奇迹 (MI-MIRACLE)"  // meta 标签
+VERSION_WATERMARK = "奇迹"      // 页面水印
+
+BRAND_NAME = "多重宇宙"         // 品牌名
+BRAND_NAME_EN = "Multiverse"   // 品牌英文名
+BRAND_TAGLINE = "公平竞技 · 无付费加成"  // 品牌标语
+BRAND_URL = "multiverse.game"  // 品牌域名
+```
+
+版本水印通过 `components/Layout.tsx` 渲染在所有页面底部。
+
+### 16.3 新增玩法系统
+
+#### 剧情战役 (Campaign)
+
+`lib/game/campaign.ts` + `pages/campaign.tsx`
+
+- 多章节线性叙事，每章包含多个节点
+- 节点类型：战斗、Boss、剧情、奖励
+- 进度持久化至 `SaveData.campaignProgress`
+- 全息地图风格 UI，章节节点可视化
+
+#### BossRush
+
+`lib/game/boss-rush.ts` + `pages/boss-rush.tsx`
+
+- 连续挑战 8 个首领（lancer/charger/spitter/phantom/overlord/juggernaut/weaver/nexus）
+- 每个首领有多阶段机制（phases）
+- 通关奖励与进度持久化至 `SaveData.bossRushProgress`
+- 舰桥面板风格关卡选择
+
+#### 顶峰挑战 (Peak Challenge)
+
+`lib/game/peak-challenge.ts` + `pages/peak-challenge.tsx`
+
+- 高难度挑战模式，含特殊规则与限制
+- 独立的挑战进度与奖励系统
+
+### 16.4 归属感系统
+
+#### 成就系统
+
+`lib/game/achievements.ts` + `pages/achievements.tsx`
+
+- 多类别成就定义（战斗/探索/收集/社交/赛季）
+- 进度追踪与奖励发放
+- 舰桥面板风格成就展示
+
+#### 玩家成长
+
+`pages/base.tsx`
+
+- 玩家等级、经验进度条
+- 总游戏时长、击杀数等统计数据
+- 维度跃迁状态指示器
+
+#### 收藏进度
+
+`pages/heroes.tsx` + `pages/armory.tsx` + `pages/enemies.tsx`
+
+- 已收集英雄、武器、皮肤、表情、徽章
+- 已击败 Boss 图鉴
+- 收藏完成度百分比
+
+### 16.5 世界观内容
+
+#### 英雄档案
+
+`pages/hero-archive.tsx`
+
+- 全部可玩英雄详细信息（背景故事、技能、天赋）
+- 全息卡片风格展示
+
+#### 维度编年史
+
+`lib/game/chronicles.ts` + `pages/chronicles.tsx`
+
+- 游戏世界历史事件时间线
+- 维度设定与背景叙事
+
+### 16.6 近战武器概览
 
 | 武器 ID | 名称 | 类型 | 机制 | 定位 |
 |---------|------|------|------|------|
@@ -622,56 +881,20 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 | `gauntlet` | 脉冲拳套 | 基础近战 | 扇形瞬发 (`arc`) | 超高速连击、大角度 |
 | `plasmaBlade` | 等离子刃·改 | 进阶近战 | 扇形瞬发 (`arc`) | 高伤能量斩击 + 灼烧 |
 
-### 16.3 双攻击机制
+### 16.7 双攻击机制
 
-近战武器采用混合机制，按武器类型区分：
+- **扇形瞬发 (`arc`)**：短刃、拳套、等离子刃·改。以玩家面朝方向为中心，`meleeAngle` 扇形检测，命中最多 `pierce + 1` 个敌人。瞬时伤害，无飞行弹道。
+- **短程弹道突刺 (`thrust`)**：长枪、重剑。短寿命穿透弹道，沿直线命中多个敌人。
 
-- **扇形瞬发 (`arc`)**：适用于短刃、拳套、等离子刃·改。攻击时以玩家面朝方向为中心，按 `meleeAngle` 展开扇形检测，命中范围内最多 `pierce + 1` 个敌人。判定为瞬时伤害，无飞行弹道。
-- **短程弹道突刺 (`thrust`)**：适用于长枪、重剑。生成短寿命穿透弹道，沿直线前进并命中路径上多个敌人，适合中距离直线清场。
-
-### 16.4 新手武器栏
-
-`getStarterWeapons()` 默认返回 3 把武器，确保新玩家开局即可体验远近搭配：
+### 16.8 新手武器栏
 
 ```typescript
-[pulseRifle, shotgun, spear] // 2 远程 + 1 近战
+getStarterWeapons() // [pulseRifle, shotgun, spear] = 2 远程 + 1 近战
 ```
 
-### 16.5 高风险高回报平衡
+### 16.9 英雄技能实用性增强
 
-近战武器在数值上定位为「高风险高回报」：
-
-- 基础伤害为同阶远程武器的 1.5 ~ 3 倍；
-- 射程控制在 88 ~ 220 px（远程武器通常 > 400 px）；
-- 冷却较长，需要贴近敌人输出；
-- 穿透/连击属性鼓励冲入敌群。
-
-### 16.6 视觉表现
-
-采用分层视觉方案：
-
-- 基础攻击：几何扇形光效或矩形突刺轨迹，使用武器主题色；
-- 暴击/重击：触发粒子爆发；
-- 等离子刃·改：附带高热灼烧的离子残影。
-
-渲染逻辑位于 `lib/game/engine.ts` 的 `drawProjectiles` 中，通过 `isMelee` / `meleeArcVisual` 标志区分。
-
-### 16.7 英雄技能实用性增强
-
-本次更新对所有英雄的主动技能、终极技能、被动与天赋进行了数值上调、效果强化与关键 Bug 修复，提升实战存在感。
-
-#### 16.7.1 技能使用无效修复（关键 Bug）
-
-**问题**：在非防御模式（无限模式、日常挑战、肉鸽、死亡竞赛、生存、极限生存、旗舰模式）中，英雄技能和终极技能完全无法使用。根因是 `useHeroSkill` 和 `useHeroUltimate` 函数中存在 `if (!ds) return;` 守卫，导致非防御模式下技能调用被直接拦截。
-
-**修复方案**：
-- 移除 `useHeroSkill` 和 `useHeroUltimate` 中的 `defenseState` 强制检查，改为 `const deployTarget = ds?.deployables ?? state.deployables;` 双存储降级策略
-- 在 `GameState` 接口中新增全局 `deployables: Deployable[]` 字段，为非防御模式提供部署物存储
-- 新增 `updateDeployableList` 函数，统一处理所有模式下的部署物效果（治愈光环、冰冻场、毒雾、无人机、激光束等），优先使用 `defenseState.deployables`，回退至 `state.deployables`
-- 在网络输入广播中新增 `useSkill` 和 `useUltimate` 状态，修复多人模式下技能激活无法同步的问题
-- 更新障碍物碰撞检测逻辑，同时检查 `defenseState` 和全局 `deployables` 中的墙体部署物
-
-#### 16.7.2 英雄数值对齐
+关键 Bug 修复：非防御模式下技能完全无法使用（`if (!ds) return;` 守卫拦截）。修复方案：移除强制检查，改为双存储降级策略，新增全局 `deployables` 字段。
 
 | 英雄 | 技能 | 修复前 | 修复后 |
 |------|------|--------|--------|
@@ -687,40 +910,22 @@ L3V100「旗舰版」新增完整近战武器体系，共 5 把武器：4 把基
 | 猎鹰 (Recon) | 终极技能 伤害 | 420 | 500 |
 | 暮蝶 (Twilight) | 茧 治疗量 | 120 | 150 |
 
-### 16.8 近战天赋联动
+### 16.10 近战天赋联动
 
-部分英雄新增近战专属天赋：
+- **豹（leopard）- 利刃精通**：近战武器伤害 +12%，攻击范围 +8%
+- **蝰蛇（viper）- 毒刃**：近战武器伤害 +10%，近战命中附加 2 秒毒素（每秒 15 伤害）
 
-- **豹（leopard）- 利刃精通**：近战武器伤害 +12%，攻击范围 +8%；
-- **蝰蛇（viper）- 毒刃**：近战武器伤害 +10%，近战命中附加 2 秒毒素（每秒 15 伤害）。
-
-天赋系统在 `applyHeroTalent` 中通过 `meleeDamageMul` 与 `meleeRangeMul` 修饰符仅对 `isMelee` 武器生效。
-
-### 16.9 测试覆盖
-
-近战武器与英雄改动已被以下测试覆盖：
-
-- `lib/game/weapons.test.ts`：新手武器栏、近战武器创建器；
-- `lib/game/balance.test.ts`：武器平衡数值、升级曲线、弹速例外；
-- `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算；
-- `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑；
-- `lib/game/ai.test.ts`：AI 行为适配近战范围（如 spitter 改为横向游斗）。
-
-### 16.10 三引擎算法架构
-
-L3V100 旗舰版将 11 个独立算法合并为三个内聚引擎：
+### 16.11 三引擎算法架构
 
 | 引擎 | 定位 | 包含算法 | 文件 |
 |------|------|----------|------|
-| α 引擎 | 玩家端 | DDA 动态难度、经济平衡、匹配系统、奖励推荐、内容推荐、反作弊 | `lib/engine/alpha.ts` |
-| β 引擎 | 敌方端 | Bot AI、生成优化、敌人移动 | `lib/engine/beta.ts` |
-| 基础设施引擎 | 共享 | 地图平衡、网络预测 | `lib/engine/infra.ts` |
+| α 引擎 | 玩家端 | DDA 动态难度、经济平衡、匹配系统、奖励推荐、内容推荐、反作弊 | `lib/engine/alpha/` |
+| β 引擎 | 敌方端 | Bot AI、生成优化、敌人移动 | `lib/engine/beta/` |
+| 基础设施引擎 | 共享 | 地图平衡、网络预测 | `lib/engine/infra/` |
 
-每个引擎提供统一输入输出接口，支持独立测试与替换。引擎间通过 `lib/algorithms/registry.ts` 统一注册，算法页面 `/algorithms` 展示所有引擎的实时演示。
+算法页面 `/algorithms` 以三引擎仪表盘形式展示所有引擎的实时演示。
 
-### 16.11 动态天气系统
-
-`lib/game/weather.ts` 实现三种天气类型，在防守模式中随机切换：
+### 16.12 动态天气系统
 
 | 天气 | 视觉效果 | 玩家影响 | 敌人影响 |
 |------|----------|----------|----------|
@@ -728,20 +933,14 @@ L3V100 旗舰版将 11 个独立算法合并为三个内聚引擎：
 | 酸雨 | 蓝色下落粒子、屏幕腐蚀 | 护甲 -30%、移速 -10% | 生命回复 +5/s |
 | 沙尘暴 | 棕色粒子、视野缩小 | 视野 -40%、移速 -20% | 无影响 |
 
-天气持续 30-60 秒，切换间隔 45-90 秒。天气效果通过 `WeatherState` 注入 `GameState`，引擎每帧应用天气修正。
+### 16.13 诅咒祝福双选系统
 
-### 16.12 诅咒祝福双选系统
+Roguelike 模式每次升级时二选一：
 
-`lib/game/curseBlessing.ts` 为 Roguelike 模式提供每次升级时的二选一机制：
+- **诅咒（Curse）**：负面效果 + 高额奖励
+- **祝福（Blessing）**：纯正面增益
 
-- **诅咒（Curse）**：负面效果 + 高额奖励（如 "移速 -15%，但经验获取 +40%"）
-- **祝福（Blessing）**：纯正面增益（如 "攻击力 +15%"）
-
-配对规则确保每次选择都有意义：诅咒提供更高奖励倍率以平衡风险，祝福提供稳定但较低的增益。系统通过 `CurseBlessingState` 注入 `GameState`，UI 通过 `RoguelikeRewardModal` 展示。
-
-### 16.13 多人联机基础设施
-
-`lib/network/` 提供完整的多人联机底层支持：
+### 16.14 多人联机基础设施
 
 | 模块 | 文件 | 功能 |
 |------|------|------|
@@ -754,11 +953,7 @@ L3V100 旗舰版将 11 个独立算法合并为三个内聚引擎：
 | 信令服务 | `signaling.ts` | WebRTC 信令交换 |
 | 点对点连接 | `peer.ts` | WebRTC DataChannel 封装 |
 
-所有模块通过 `lib/network/index.ts` 统一导出，`room.ts` 中集成所有子模块实现自适应网络质量调整。
-
-### 16.14 HUD 旗舰重设计
-
-战斗内 HUD 完成旗舰级重设计，核工业美学风格匹配首页：
+### 16.15 HUD 旗舰重设计
 
 | 组件 | 文件 | 功能 |
 |------|------|------|
@@ -766,14 +961,24 @@ L3V100 旗舰版将 11 个独立算法合并为三个内聚引擎：
 | 桌面 HUD | `components/game/HudDesktop.tsx` | 玩家状态面板、武器面板、技能按钮、击杀推送、统计行 |
 | 移动 HUD | `components/game/HudMobile.tsx` | 紧凑状态栏、触控优化技能按钮、防守模式指示器 |
 | 击杀推送 | `components/game/KillFeed.tsx` | 实时滚动击杀通知（AnimatePresence + 自动过期） |
+| 补给窗口 | `components/game/SupplyWindow.tsx` | B/ESC 快捷键、倒计时、快速下一波 |
 
 新增特性：
-- **武器面板**：显示所有武器冷却环（SVG 圆环进度），就绪/冷却状态区分
+
+- **武器面板**：冷却环（SVG 圆环进度），就绪/冷却状态区分
 - **状态效果栏**：护甲、暴击、回复、范围等被动效果可视化标签
 - **渐变血条**：绿/黄/红三色渐变，低血量脉冲动画
 - **击杀推送**：滚动显示击杀者、武器、受害者，自动消失
 - **连杀指示器**：底部进度条显示连杀窗口剩余时间
-- **核工业美学**：玻璃拟态面板、渐变边框、战术字体、扫描线效果
+- **补给窗口**：B/ESC 快捷键控制，倒计时自动跳过，快速下一波按钮
+
+### 16.16 测试覆盖
+
+- `lib/game/weapons.test.ts`：新手武器栏、近战武器创建器
+- `lib/game/balance.test.ts`：武器平衡数值、升级曲线、弹速例外
+- `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算
+- `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑
+- `lib/game/ai.test.ts`：AI 行为适配近战范围
 
 ---
 
@@ -829,14 +1034,10 @@ chmod +x /var/www/project-m/scripts/health-check.sh
 
 ### 17.4 应用层健康检查接口
 
-项目提供 `/api/health` 端点用于外部监控：
-
 ```bash
 curl http://localhost:3000/api/health
 # 预期返回: {"status":"ok","timestamp":"..."}
 ```
-
-可配置阿里云云监控或 UptimeRobot 定时探测此接口。
 
 ### 17.5 告警阈值建议
 
@@ -880,7 +1081,6 @@ pg_dump --schema-only \
 ### 18.3 代码备份
 
 ```bash
-# GitHub 为主备份源，本地仅为应急
 tar -czf "/var/backups/project-m-code-$(date +%Y%m%d).tar.gz" \
   --exclude=node_modules --exclude=.next --exclude=.git \
   /var/www/project-m
@@ -915,8 +1115,8 @@ pm2 save
 
 `next.config.mjs` 已配置：
 
-- `output: "standalone"`：独立部署，减少依赖体积
-- `productionBrowserSourceMaps: false`：生产禁用 sourcemap
+- `output: "standalone"`：独立部署（Linux 生产环境），减少依赖体积
+- `staticPageGenerationTimeout: 300`：放宽静态生成超时至 5 分钟
 - 测试文件排除：`test Match`、`spec Match`、`test` 目录
 
 ### 19.2 静态资源优化
@@ -941,16 +1141,14 @@ location /_next/static/ {
   expires 365d;
   add_header Cache-Control "public, immutable";
 }
-
-# 安全头（已由 applySecurityHeaders 中间件处理）
 ```
 
 ### 19.4 内存优化
 
 ```bash
 # PM2 内存限制（ecosystem.config.cjs）
-max_memory_restart: "800M"   # 超过 800MB 自动重启
-node_args: "--max-old-space-size=512"  # V8 堆上限 512MB
+max_memory_restart: "1G"                          # 超过 1GB 自动重启
+node_args: "--max-old-space-size=1536 --optimize-for-size"  # V8 堆上限 1.5GB + 优化体积
 ```
 
 ---
@@ -1095,10 +1293,6 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应 Project-M L3V100「旗舰版」一次性全部上线部署流程。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*
-
----
-
 ## 24. OAuth 配置速查表
 
 | 配置项 | 生产环境值（IP 方式） | 生产环境值（域名方式） |
@@ -1108,3 +1302,7 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 | GitHub OAuth Authorization callback URL | `http://121.40.218.245:3000/api/auth/callback` | `https://your-domain.com/api/auth/callback` |
 | Supabase Site URL | `http://121.40.218.245:3000` | `https://your-domain.com` |
 | Supabase Redirect URL | `http://121.40.218.245:3000/api/auth/callback` | `https://your-domain.com/api/auth/callback` |
+
+---
+
+*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 30 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*

@@ -47,7 +47,7 @@ function TalentRow({ talent, heroColor }: { talent: HeroTalent; heroColor: strin
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3 }}
-      className="group flex items-center gap-2 rounded-lg border border-border bg-panel/60 px-2.5 py-2 transition-colors hover:border-primary/30 hover:bg-panel-raised"
+      className="group flex items-center gap-2 rounded-lg border border-primary/10 bg-panel/60 holo-scan px-2.5 py-2 transition-colors hover:border-primary/30 hover:bg-panel"
     >
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold" style={{ backgroundColor: `${heroColor}18`, color: heroColor }}>
         <Star size={11} weight="fill" />
@@ -96,7 +96,7 @@ function ToastMessage({ toast, onDismiss }: { toast: Toast; onDismiss: () => voi
 
 function StatMini({ label, value, icon: Icon, color }: { label: string; value: string; icon: typeof Shield; color: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background/50 px-2 py-1.5">
+    <div className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-background/50 px-2 py-1.5">
       <Icon size={12} weight="bold" style={{ color }} />
       <div><p className="text-[9px] uppercase tracking-wider text-muted">{label}</p><p className="text-[11px] font-bold">{value}</p></div>
     </div>
@@ -178,7 +178,7 @@ export default function HeroesPage() {
             const Icon = tab.icon; const active = activeTab === tab.id;
             return (
               <button key={tab.id} type="button" role="tab" aria-selected={active} onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-primary/10 bg-panel/60 text-muted hover:border-primary/30 hover:text-foreground"}`}>
                 <Icon size={14} weight={active ? "bold" : "regular"} />{tab.label}
               </button>
             );
@@ -203,7 +203,7 @@ export default function HeroesPage() {
                       initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                      className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-primary/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                      className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                       <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-25 transition-opacity group-hover:opacity-50" style={{ backgroundColor: hero.color }} />
                       <div className="relative p-2.5 md:p-3">
                         {isLarge && (
@@ -279,15 +279,15 @@ export default function HeroesPage() {
                           </div>
                         )}
 
-                        <div className="mt-3 flex items-center gap-2 border-t border-border pt-2">
+                        <div className="mt-3 flex items-center gap-2 border-t border-primary/10 pt-2">
                           {unlocked ? (
                             <button type="button" onClick={() => handleSelectHero(hero.id)} disabled={isSelected}
-                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${isSelected ? "cursor-not-allowed border border-border bg-panel text-muted" : "bg-primary text-background hover:bg-primary/90"}`}>
+                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${isSelected ? "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted" : "bg-primary text-background hover:bg-primary/90"}`}>
                               {isSelected ? <><Check size={12} weight="bold" />已出战</> : <><Target size={12} weight="bold" />设为出战</>}
                             </button>
                           ) : (
                             <button type="button" onClick={() => handleBuyHero(hero.id)} disabled={!canAfford}
-                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-border bg-panel text-muted"}`}>
+                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted"}`}>
                               {canAfford ? <ShoppingCart size={12} weight="bold" /> : <Lock size={12} weight="bold" />}
                               <Coin size={12} weight="bold" />{cost}
                             </button>
@@ -308,14 +308,14 @@ export default function HeroesPage() {
                   const Icon = ICONS[hero.id] ?? Target; const active = selectedHeroId === hero.id;
                   return (
                     <button key={hero.id} type="button" onClick={() => setSelectedHeroId(hero.id)}
-                      className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-panel text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                      className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all focus-ring active:scale-95 ${active ? "border-primary bg-primary/10 text-primary" : "border-primary/10 bg-panel/60 text-muted hover:border-primary/30 hover:text-foreground"}`}>
                       <Icon size={14} style={{ color: active ? hero.color : undefined }} />{hero.name}
                     </button>
                   );
                 })}
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                <div className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${getEquippedSkin() === null ? "border-primary bg-primary/10" : "border-border bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
+                <div className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${getEquippedSkin() === null ? "border-primary bg-primary/10" : "border-primary/10 bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
                   <div>
                     <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${HERO_DEFS[selectedHeroId]?.color ?? "#94a3b8"}18`, color: HERO_DEFS[selectedHeroId]?.color ?? "#94a3b8" }}>
                       <UserCircle size={22} weight="bold" />
@@ -324,7 +324,7 @@ export default function HeroesPage() {
                     <p className="text-[11px] text-muted">{HERO_DEFS[selectedHeroId]?.name ?? ""} 原始配色</p>
                   </div>
                   <button type="button" onClick={() => handleEquipSkin(null)} disabled={getEquippedSkin() === null}
-                    className={`mt-2 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${getEquippedSkin() === null ? "cursor-not-allowed border border-border bg-panel text-muted" : "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"}`}>
+                    className={`mt-2 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${getEquippedSkin() === null ? "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted" : "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"}`}>
                     {getEquippedSkin() === null ? <><Check size={12} weight="bold" />已装备</> : <><Target size={12} weight="bold" />装备默认</>}
                   </button>
                 </div>
@@ -332,7 +332,7 @@ export default function HeroesPage() {
                   const owned = isCosmeticOwned(cosmetic.id); const equipped = getEquippedSkin() === cosmetic.id; const canAfford = (save?.coins ?? 0) >= cosmetic.cost;
                   return (
                     <motion.div key={cosmetic.id} initial={reducedMotion ? undefined : { opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
-                      className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${equipped ? "border-primary bg-primary/10" : "border-border bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
+                      className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${equipped ? "border-primary bg-primary/10" : "border-primary/10 bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
                       <div>
                         <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${cosmetic.color}18`, color: cosmetic.color }}>
                           <PaintBrush size={22} weight="bold" />
@@ -343,12 +343,12 @@ export default function HeroesPage() {
                       <div className="mt-2">
                         {owned ? (
                           <button type="button" onClick={() => handleEquipSkin(cosmetic.id)} disabled={equipped}
-                            className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${equipped ? "cursor-not-allowed border border-border bg-panel text-muted" : "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"}`}>
+                            className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${equipped ? "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted" : "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"}`}>
                             {equipped ? <><Check size={12} weight="bold" />已装备</> : <><Target size={12} weight="bold" />装备</>}
                           </button>
                         ) : (
                           <button type="button" onClick={() => handleBuyCosmetic(cosmetic.id)} disabled={!canAfford}
-                            className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-border bg-panel text-muted"}`}>
+                            className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted"}`}>
                             {canAfford ? <ShoppingCart size={12} weight="bold" /> : <Lock size={12} weight="bold" />}
                             <Coin size={12} weight="bold" />{cosmetic.cost}
                           </button>
@@ -367,7 +367,7 @@ export default function HeroesPage() {
                 const owned = isCosmeticOwned(cosmetic.id); const canAfford = (save?.coins ?? 0) >= cosmetic.cost;
                 return (
                   <motion.div key={cosmetic.id} initial={reducedMotion ? undefined : { opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
-                    className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${owned ? "border-success/30 bg-success/5" : "border-border bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
+                    className={`relative flex flex-col justify-between rounded-2xl border p-3 transition-all ${owned ? "border-success/30 bg-success/5" : "border-primary/10 bg-panel hover:border-primary/30 hover:bg-panel-raised"}`}>
                     <div>
                       <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${cosmetic.color}18`, color: cosmetic.color }}>
                         {activeTab === "emotes" ? <Smiley size={22} weight="bold" /> : <Crown size={22} weight="bold" />}
@@ -382,7 +382,7 @@ export default function HeroesPage() {
                         </span>
                       ) : (
                         <button type="button" onClick={() => handleBuyCosmetic(cosmetic.id)} disabled={!canAfford}
-                          className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-border bg-panel text-muted"}`}>
+                          className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring active:scale-95 ${canAfford ? "bg-warning text-background hover:bg-warning/90" : "cursor-not-allowed border border-primary/10 bg-panel/60 text-muted"}`}>
                           {canAfford ? <ShoppingCart size={12} weight="bold" /> : <Lock size={12} weight="bold" />}
                           <Coin size={12} weight="bold" />{cosmetic.cost}
                         </button>

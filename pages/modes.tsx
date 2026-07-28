@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import {
   GameController,
@@ -27,6 +27,8 @@ import {
   Lightning,
   Trophy,
   Star,
+  Hexagon,
+  Pulse,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { getModeList, getDailyModifiers } from "@/lib/game/modes";
@@ -62,8 +64,9 @@ const THREAT_COLOR: Record<string, string> = {
 function ThreatBadge({ threat }: { threat: string }) {
   const color = THREAT_COLOR[threat] ?? THREAT_COLOR["低"];
   return (
-    <span className="rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+    <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em]"
       style={{ borderColor: `${color}40`, color, backgroundColor: `${color}10` }}>
+      <Warning size={9} weight="bold" />
       威胁 {threat}
     </span>
   );
@@ -79,6 +82,7 @@ export default function ModesPage() {
       <div className="relative min-h-[100dvh]">
         <NuclearBackground />
         <div className="noise-overlay" />
+        <div className="pointer-events-none absolute inset-0 z-0 bridge-grid opacity-20" />
         <div className="pointer-events-none absolute inset-0 z-0">
           <div className="absolute -right-[15%] top-[5%] h-[55vh] w-[55vh] rounded-full bg-primary/5 blur-[120px]" />
           <div className="absolute -left-[10%] bottom-[10%] h-[45vh] w-[45vh] rounded-full bg-accent/4 blur-[100px]" />
@@ -94,13 +98,13 @@ export default function ModesPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
-                  <Radioactive weight="duotone" size={14} />作战模式
+                  <Radioactive weight="duotone" size={14} className="status-pulse" />作战模式
                 </span>
-                <h1 className="mt-2 text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
+                <h1 className="mt-2 font-display text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
                   选择<br /><span className="text-gradient">辐射区任务</span>
                 </h1>
                 <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-                  10种模式覆盖单人任务、无尽生存、PVP混战与PvE合作。据点防守为L3V100旗舰版核心玩法。
+                  10种模式覆盖单人任务、无尽生存、PVP混战与PvE合作。据点防守为奇迹版本核心玩法。
                 </p>
               </div>
             </div>
@@ -120,24 +124,26 @@ export default function ModesPage() {
                   initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                  className={`group relative overflow-hidden rounded-3xl border border-border bg-panel transition-all hover:border-primary/30 hover:bg-panel-raised ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
-                  <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: THREAT_COLOR[meta.threat] ?? "#6e7870" }} />
+                  className={`bridge-panel group holo-scan relative overflow-hidden transition-all hover:border-primary/30 bridge-glow ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                  <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-15 transition-opacity group-hover:opacity-35" style={{ backgroundColor: THREAT_COLOR[meta.threat] ?? "#6e7870" }} />
                   <div className="relative flex h-full flex-col p-2.5 md:p-3">
                     {isLarge && meta.image && (
                       <div className="relative mb-3 overflow-hidden rounded-2xl">
                         <img src={meta.image} alt={mode.name} className="h-40 w-full object-cover md:h-48" />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
+                        {/* Holographic projection overlay */}
+                        <div className="pointer-events-none absolute inset-0 data-stream opacity-30" />
                         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                           <div className="flex items-center gap-2">
-                            <span className={`rounded-xl p-1.5 ${meta.accentBg}`}>
+                            <span className="holo-ring inline-flex p-1.5">
                               <Icon size={20} weight="duotone" className={meta.accent} />
                             </span>
                             <div>
-                              <h2 className="text-xl font-bold tracking-tight md:text-2xl">{mode.name}</h2>
+                              <h2 className="font-display text-xl font-bold tracking-tight md:text-2xl">{mode.name}</h2>
                               <ThreatBadge threat={meta.threat} />
                             </div>
                           </div>
-                          <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+                          <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-primary status-pulse">
                             旗舰
                           </span>
                         </div>
@@ -146,14 +152,14 @@ export default function ModesPage() {
                     {(!isLarge || !meta.image) && (
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <span className={`rounded-xl p-1.5 ${meta.accentBg}`}>
+                          <span className={`holo-ring inline-flex p-1.5 ${meta.accentBg}`}>
                             <Icon size={20} weight="duotone" className={meta.accent} />
                           </span>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h2 className="text-base font-bold tracking-tight">{mode.name}</h2>
+                              <h2 className="font-display text-base font-bold tracking-tight">{mode.name}</h2>
                               {isLarge && (
-                                <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-primary status-pulse">
                                   旗舰
                                 </span>
                               )}
@@ -173,7 +179,7 @@ export default function ModesPage() {
                       ))}
                     </ul>
                     {mode.type === "defense" && (
-                      <div className="mt-1.5 flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-muted">
+                      <div className="mt-1.5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-muted">
                         <Users size={11} />推荐 2-4 人合作
                       </div>
                     )}
@@ -193,14 +199,17 @@ export default function ModesPage() {
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="mt-4 rounded-3xl border border-border bg-panel p-2.5 md:p-3"
+            className="bridge-panel mt-4 p-2.5 md:p-3"
           >
-            <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
-              <Sparkle size={12} weight="duotone" />环境词缀
+            <div className="bridge-panel-header -mx-2.5 -mt-2.5 mb-2 md:-mx-3 md:-mt-3">
+              <div className="flex items-center gap-2 px-2.5 pt-2.5 md:px-3 md:pt-3">
+                <Sparkle size={12} weight="duotone" className="text-primary status-pulse" />
+                <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-primary">环境词缀</span>
+              </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {dailyModifiers.map((mod, index) => (
-                <div key={index} className="rounded-xl border border-border bg-panel-raised p-2.5 transition-colors hover:border-warning/20">
+                <div key={index} className="bridge-panel p-2.5 transition-all hover:border-warning/20">
                   <div className="flex items-center gap-2">
                     <Warning size={12} weight="bold" className="text-warning" />
                     <p className="text-xs font-semibold">{mod.title}</p>
@@ -218,10 +227,10 @@ export default function ModesPage() {
             className="mt-4 grid gap-3 md:grid-cols-2"
           >
             <Link href="/enemies"
-              className="group relative overflow-hidden rounded-3xl border border-danger/20 bg-danger/5 p-3 transition-all hover:border-danger/40 hover:bg-danger/10">
+              className="bridge-panel group relative p-3 transition-all hover:border-danger/40 bridge-glow">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-danger/10 blur-3xl" />
               <div className="relative flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-danger/10 text-danger">
+                <span className="holo-ring flex h-10 w-10 shrink-0 items-center justify-center text-danger">
                   <Skull size={22} weight="bold" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -234,10 +243,10 @@ export default function ModesPage() {
               </div>
             </Link>
             <Link href="/armory"
-              className="group relative overflow-hidden rounded-3xl border border-primary/20 bg-primary/5 p-3 transition-all hover:border-primary/40 hover:bg-primary/10">
+              className="bridge-panel group relative p-3 transition-all hover:border-primary/40 bridge-glow">
               <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
               <div className="relative flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="holo-ring flex h-10 w-10 shrink-0 items-center justify-center text-primary">
                   <Crosshair size={22} weight="bold" />
                 </span>
                 <div className="min-w-0 flex-1">

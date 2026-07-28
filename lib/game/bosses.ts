@@ -473,6 +473,353 @@ export const BOSSES: Record<BossId, BossTemplate> = {
       }
     },
   },
+  lancer: {
+    id: "lancer",
+    name: "枪骑兵",
+    description: "维度哨兵，以高速突刺和能量长矛攻击",
+    radius: 28,
+    speed: 100,
+    health: 2000,
+    damage: 25,
+    color: "#6366f1",
+    secondaryColor: "#a5b4fc",
+    phases: [
+      {
+        index: 0,
+        name: "突刺",
+        attackPattern: "charge",
+        attackCooldown: 1.5,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "能量爆发",
+        attackPattern: "burst",
+        attackCooldown: 0.8,
+        projectileCount: 3,
+        moveSpeedMultiplier: 1.3,
+      },
+    ],
+    phaseThresholds: [0.5],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.speed *= 1.3;
+        boss.damage *= 1.2;
+      }
+    },
+  },
+  charger: {
+    id: "charger",
+    name: "冲锋者",
+    description: "重装冲锋型敌人，直线冲撞路径上的所有目标",
+    radius: 34,
+    speed: 75,
+    health: 3500,
+    damage: 35,
+    color: "#f97316",
+    secondaryColor: "#fdba74",
+    phases: [
+      {
+        index: 0,
+        name: "冲锋",
+        attackPattern: "charge",
+        attackCooldown: 2,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "狂暴冲撞",
+        attackPattern: "charge",
+        attackCooldown: 1.4,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1.4,
+        onEnter: (boss) => {
+          boss.damage *= 1.3;
+        },
+      },
+    ],
+    phaseThresholds: [0.45],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.speed *= 1.4;
+      }
+    },
+  },
+  summoner: {
+    id: "summoner",
+    name: "召唤师",
+    description: "能量实体，持续召唤维度生物协助战斗",
+    radius: 30,
+    speed: 55,
+    health: 2800,
+    damage: 20,
+    color: "#a855f7",
+    secondaryColor: "#d8b4fe",
+    phases: [
+      {
+        index: 0,
+        name: "召唤",
+        attackPattern: "summon",
+        attackCooldown: 2.5,
+        projectileCount: 0,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "狂潮召唤",
+        attackPattern: "summon",
+        attackCooldown: 1.5,
+        projectileCount: 0,
+        moveSpeedMultiplier: 1.2,
+        onEnter: (boss) => {
+          boss.damage *= 1.2;
+        },
+      },
+    ],
+    phaseThresholds: [0.4],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.speed *= 1.2;
+      }
+    },
+  },
+  splitter: {
+    id: "splitter",
+    name: "分裂者",
+    description: "熵能实体，受伤后分裂为多个小型个体",
+    radius: 32,
+    speed: 65,
+    health: 3800,
+    damage: 28,
+    color: "#14b8a6",
+    secondaryColor: "#5eead4",
+    phases: [
+      {
+        index: 0,
+        name: "熵能弹",
+        attackPattern: "spread",
+        attackCooldown: 1.6,
+        projectileCount: 4,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "分裂增殖",
+        attackPattern: "spread",
+        attackCooldown: 1.0,
+        projectileCount: 6,
+        moveSpeedMultiplier: 1.3,
+        onEnter: (boss) => {
+          boss.damage *= 1.15;
+        },
+      },
+    ],
+    phaseThresholds: [0.5],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.speed *= 1.3;
+      }
+    },
+  },
+  corruptor: {
+    id: "corruptor",
+    name: "腐蚀者",
+    description: "熵能污染核心，持续释放腐蚀性能量场",
+    radius: 40,
+    speed: 48,
+    health: 5000,
+    damage: 32,
+    color: "#84cc16",
+    secondaryColor: "#bef264",
+    phases: [
+      {
+        index: 0,
+        name: "腐蚀弹幕",
+        attackPattern: "spread",
+        attackCooldown: 1.5,
+        projectileCount: 5,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "熵能爆发",
+        attackPattern: "burst",
+        attackCooldown: 1.2,
+        projectileCount: 4,
+        moveSpeedMultiplier: 1.1,
+        onEnter: (boss) => {
+          boss.damage *= 1.25;
+        },
+      },
+      {
+        index: 2,
+        name: "腐蚀领域",
+        attackPattern: "laser",
+        attackCooldown: 2,
+        projectileCount: 1,
+        moveSpeedMultiplier: 0.85,
+        onEnter: (boss) => {
+          boss.damage *= 1.3;
+        },
+      },
+    ],
+    phaseThresholds: [0.6, 0.25],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 2) {
+        boss.radius += 5;
+      }
+    },
+  },
+  phantom: {
+    id: "phantom",
+    name: "幻影",
+    description: "量子维度的守护者，先驱者AI的化身，能够相位穿梭",
+    radius: 36,
+    speed: 85,
+    health: 7000,
+    damage: 38,
+    color: "#22d3ee",
+    secondaryColor: "#67e8f9",
+    phases: [
+      {
+        index: 0,
+        name: "量子弹幕",
+        attackPattern: "burst",
+        attackCooldown: 1.2,
+        projectileCount: 4,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "相位穿梭",
+        attackPattern: "charge",
+        attackCooldown: 1.5,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1.5,
+        onEnter: (boss) => {
+          boss.damage *= 1.2;
+        },
+      },
+      {
+        index: 2,
+        name: "量子风暴",
+        attackPattern: "spread",
+        attackCooldown: 0.9,
+        projectileCount: 10,
+        moveSpeedMultiplier: 1.3,
+        onEnter: (boss) => {
+          boss.damage *= 1.3;
+        },
+      },
+    ],
+    phaseThresholds: [0.65, 0.3],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.speed *= 1.5;
+      }
+    },
+  },
+  behemoth: {
+    id: "behemoth",
+    name: "巨兽",
+    description: "量子维度的远古守护者，体型庞大且拥有超强再生能力",
+    radius: 50,
+    speed: 40,
+    health: 10000,
+    damage: 55,
+    color: "#8b5cf6",
+    secondaryColor: "#c4b5fd",
+    phases: [
+      {
+        index: 0,
+        name: "巨兽碾压",
+        attackPattern: "single",
+        attackCooldown: 2,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "量子再生",
+        attackPattern: "spread",
+        attackCooldown: 1.6,
+        projectileCount: 6,
+        moveSpeedMultiplier: 1.1,
+        onEnter: (boss) => {
+          boss.health = Math.min(boss.maxHealth, boss.health + boss.maxHealth * 0.3);
+          boss.damage *= 1.15;
+        },
+      },
+      {
+        index: 2,
+        name: "毁灭冲击",
+        attackPattern: "burst",
+        attackCooldown: 1.0,
+        projectileCount: 8,
+        moveSpeedMultiplier: 1.2,
+        onEnter: (boss) => {
+          boss.damage *= 1.25;
+        },
+      },
+    ],
+    phaseThresholds: [0.65, 0.3],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 2) {
+        boss.speed *= 1.2;
+      }
+    },
+  },
+  devourer: {
+    id: "devourer",
+    name: "吞噬者",
+    description: "虚空深渊的终极捕食者，吞噬一切能量",
+    radius: 54,
+    speed: 38,
+    health: 12000,
+    damage: 60,
+    color: "#1e1b4b",
+    secondaryColor: "#6366f1",
+    phases: [
+      {
+        index: 0,
+        name: "虚空吞噬",
+        attackPattern: "single",
+        attackCooldown: 1.8,
+        projectileCount: 1,
+        moveSpeedMultiplier: 1,
+      },
+      {
+        index: 1,
+        name: "虚空召唤",
+        attackPattern: "summon",
+        attackCooldown: 2.2,
+        projectileCount: 0,
+        moveSpeedMultiplier: 1.1,
+        onEnter: (boss) => {
+          boss.damage *= 1.2;
+        },
+      },
+      {
+        index: 2,
+        name: "虚空湮灭",
+        attackPattern: "laser",
+        attackCooldown: 1.4,
+        projectileCount: 1,
+        moveSpeedMultiplier: 0.8,
+        onEnter: (boss) => {
+          boss.damage *= 1.35;
+        },
+      },
+    ],
+    phaseThresholds: [0.7, 0.3],
+    onPhaseEnter: (boss) => {
+      if (boss.phase === 1) {
+        boss.radius += 5;
+      }
+    },
+  },
 };
 
 export function getBossTemplate(id: BossId): BossTemplate {
@@ -566,6 +913,34 @@ export const BOSS_SUMMONS: Record<BossId, BossSummonInfo[]> = {
     { variant: "drone", count: 6, radius: 9, offsetRadius: 90, eliteChance: 0.05 },
     { variant: "raptor", count: 3, radius: 10, offsetRadius: 120, eliteChance: 0.15 },
     { variant: "stalker", count: 2, radius: 11, offsetRadius: 150, eliteChance: 0.2 },
+  ],
+  lancer: [{ variant: "runner", count: 2, radius: 11, offsetRadius: 65, eliteChance: 0 }],
+  charger: [{ variant: "tank", count: 2, radius: 15, offsetRadius: 80, eliteChance: 0.1 }],
+  summoner: [
+    { variant: "walker", count: 3, radius: 12, offsetRadius: 75, eliteChance: 0.05 },
+    { variant: "drone", count: 2, radius: 9, offsetRadius: 90, eliteChance: 0 },
+  ],
+  splitter: [
+    { variant: "walker", count: 3, radius: 11, offsetRadius: 70, eliteChance: 0.05 },
+    { variant: "runner", count: 2, radius: 10, offsetRadius: 85, eliteChance: 0 },
+  ],
+  corruptor: [
+    { variant: "spitter", count: 3, radius: 12, offsetRadius: 90, eliteChance: 0.1 },
+    { variant: "tank", count: 1, radius: 16, offsetRadius: 110, eliteChance: 0.2 },
+  ],
+  phantom: [
+    { variant: "drone", count: 4, radius: 9, offsetRadius: 85, eliteChance: 0.1 },
+    { variant: "stalker", count: 2, radius: 11, offsetRadius: 110, eliteChance: 0.15 },
+  ],
+  behemoth: [
+    { variant: "tank", count: 3, radius: 16, offsetRadius: 110, eliteChance: 0.2 },
+    { variant: "elite", count: 2, radius: 14, offsetRadius: 130, eliteChance: 0.3 },
+    { variant: "crusher", count: 1, radius: 18, offsetRadius: 150, eliteChance: 0.5 },
+  ],
+  devourer: [
+    { variant: "elite", count: 3, radius: 14, offsetRadius: 100, eliteChance: 0.3 },
+    { variant: "stalker", count: 3, radius: 11, offsetRadius: 120, eliteChance: 0.2 },
+    { variant: "sentinel", count: 2, radius: 14, offsetRadius: 140, eliteChance: 0.25 },
   ],
 };
 
@@ -677,10 +1052,13 @@ export function getBossList(): { id: BossId; name: string; description: string }
 // Boss 元数据与查询辅助
 // ========================================================================
 
-export type BossFaction = "biological" | "mechanical" | "energy" | "corrupted";
+export type BossFaction = "biological" | "mechanical" | "energy" | "corrupted" | "entropy" | "quantum" | "void" | "bio" | "mech";
 export type BossDifficultyTier = "standard" | "advanced" | "epic";
 
 export interface BossMetadata {
+  name: string;
+  description: string;
+  phases: number;
   faction: BossFaction;
   tier: BossDifficultyTier;
   recommendedLevel: number;
@@ -692,6 +1070,9 @@ export interface BossMetadata {
 
 export const BOSS_METADATA: Record<BossId, BossMetadata> = {
   overlord: {
+    name: "支配者",
+    description: "高速突袭型 Boss，低血量时进入狂暴并召唤分身",
+    phases: 3,
     faction: "biological",
     tier: "standard",
     recommendedLevel: 5,
@@ -701,6 +1082,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.6,
   },
   plaguebringer: {
+    name: "疫祸",
+    description: "范围毒雾型 Boss，持续施放腐蚀弹幕和自爆虫群",
+    phases: 3,
     faction: "biological",
     tier: "advanced",
     recommendedLevel: 8,
@@ -710,6 +1094,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.7,
   },
   titan: {
+    name: "泰坦",
+    description: "高护甲重装型 Boss，周期性召唤护盾并释放震荡波",
+    phases: 3,
     faction: "mechanical",
     tier: "advanced",
     recommendedLevel: 10,
@@ -719,6 +1106,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.75,
   },
   ravager: {
+    name: "掠夺者",
+    description: "极速猎杀型 Boss，闪避弹幕并发动连续冲锋",
+    phases: 3,
     faction: "biological",
     tier: "standard",
     recommendedLevel: 6,
@@ -728,6 +1118,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.65,
   },
   siren: {
+    name: "塞壬",
+    description: "精神控制型 Boss，召唤信徒并释放追踪音波",
+    phases: 3,
     faction: "energy",
     tier: "advanced",
     recommendedLevel: 9,
@@ -737,6 +1130,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.7,
   },
   colossus: {
+    name: "巨像",
+    description: "超重型攻城 Boss，缓慢推进并释放毁灭性震荡波",
+    phases: 3,
     faction: "mechanical",
     tier: "epic",
     recommendedLevel: 12,
@@ -746,6 +1142,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.9,
   },
   dreadnought: {
+    name: "无畏舰",
+    description: "机械舰队核心，倾泻导弹弹幕并部署突击无人机",
+    phases: 3,
     faction: "mechanical",
     tier: "epic",
     recommendedLevel: 13,
@@ -755,6 +1154,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.85,
   },
   juggernaut: {
+    name: "主宰",
+    description: "重型装甲 walker，碾压路径上的障碍并释放 EMP 震荡",
+    phases: 3,
     faction: "mechanical",
     tier: "epic",
     recommendedLevel: 14,
@@ -764,6 +1166,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 0.9,
   },
   annihilator: {
+    name: "歼灭者",
+    description: "机械要塞核心，倾泻导弹弹幕并召唤自动炮塔协防",
+    phases: 3,
     faction: "mechanical",
     tier: "epic",
     recommendedLevel: 15,
@@ -773,6 +1178,9 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     soundtrackIntensity: 1,
   },
   hive: {
+    name: "蜂巢",
+    description: "机械虫巢母舰，无限孵化无人机并释放腐蚀性酸液",
+    phases: 3,
     faction: "mechanical",
     tier: "epic",
     recommendedLevel: 16,
@@ -781,11 +1189,110 @@ export const BOSS_METADATA: Record<BossId, BossMetadata> = {
     resistance: ["毒素", "腐蚀"],
     soundtrackIntensity: 0.95,
   },
+  lancer: {
+    name: "枪骑兵",
+    description: "维度哨兵，以高速突刺和能量长矛攻击",
+    phases: 2,
+    faction: "energy",
+    tier: "standard",
+    recommendedLevel: 3,
+    tags: ["突刺", "高速", "能量"],
+    weakness: ["减速", "束缚"],
+    resistance: ["击退"],
+    soundtrackIntensity: 0.5,
+  },
+  charger: {
+    name: "冲锋者",
+    description: "重装冲锋型敌人，直线冲撞路径上的所有目标",
+    phases: 2,
+    faction: "mechanical",
+    tier: "standard",
+    recommendedLevel: 4,
+    tags: ["冲锋", "冲撞", "重装"],
+    weakness: ["地雷", "减速"],
+    resistance: ["击退", "常规弹道"],
+    soundtrackIntensity: 0.55,
+  },
+  summoner: {
+    name: "召唤师",
+    description: "能量实体，持续召唤维度生物协助战斗",
+    phases: 2,
+    faction: "energy",
+    tier: "standard",
+    recommendedLevel: 4,
+    tags: ["召唤", "能量", "远程"],
+    weakness: ["近战", "高爆"],
+    resistance: ["精神控制"],
+    soundtrackIntensity: 0.5,
+  },
+  splitter: {
+    name: "分裂者",
+    description: "熵能实体，受伤后分裂为多个小型个体",
+    phases: 2,
+    faction: "entropy",
+    tier: "advanced",
+    recommendedLevel: 7,
+    tags: ["分裂", "熵能", "增殖"],
+    weakness: ["范围伤害", "火焰"],
+    resistance: ["单体攻击"],
+    soundtrackIntensity: 0.6,
+  },
+  corruptor: {
+    name: "腐蚀者",
+    description: "熵能污染核心，持续释放腐蚀性能量场",
+    phases: 3,
+    faction: "entropy",
+    tier: "advanced",
+    recommendedLevel: 9,
+    tags: ["腐蚀", "熵能", "范围"],
+    weakness: ["EMP", "冰冻"],
+    resistance: ["毒素", "火焰"],
+    soundtrackIntensity: 0.7,
+  },
+  phantom: {
+    name: "幻影",
+    description: "量子维度的守护者，先驱者AI的化身，能够相位穿梭",
+    phases: 3,
+    faction: "quantum",
+    tier: "epic",
+    recommendedLevel: 14,
+    tags: ["量子", "相位", "AI"],
+    weakness: ["EMP", "束缚"],
+    resistance: ["物理攻击", "毒素"],
+    soundtrackIntensity: 0.9,
+  },
+  behemoth: {
+    name: "巨兽",
+    description: "量子维度的远古守护者，体型庞大且拥有超强再生能力",
+    phases: 3,
+    faction: "quantum",
+    tier: "epic",
+    recommendedLevel: 15,
+    tags: ["巨兽", "再生", "量子"],
+    weakness: ["集火", "火焰"],
+    resistance: ["单体攻击", "减速"],
+    soundtrackIntensity: 0.95,
+  },
+  devourer: {
+    name: "吞噬者",
+    description: "虚空深渊的终极捕食者，吞噬一切能量",
+    phases: 3,
+    faction: "void",
+    tier: "epic",
+    recommendedLevel: 16,
+    tags: ["虚空", "吞噬", "终极"],
+    weakness: ["EMP", "冰冻", "束缚"],
+    resistance: ["火焰", "毒素", "常规弹道"],
+    soundtrackIntensity: 1,
+  },
 };
 
 export function getBossMetadata(id: BossId): BossMetadata {
   return (
     BOSS_METADATA[id] ?? {
+      name: "未知首领",
+      description: "",
+      phases: 1,
       faction: "biological",
       tier: "standard",
       recommendedLevel: 1,

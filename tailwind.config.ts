@@ -26,6 +26,25 @@ const config: Config = {
           muted: "var(--secondary-muted)",
           subtle: "var(--secondary-subtle)",
         },
+        quantum: {
+          DEFAULT: "var(--quantum)",
+          muted: "var(--quantum-muted)",
+          subtle: "var(--quantum-subtle)",
+        },
+        anchor: {
+          DEFAULT: "var(--anchor)",
+          muted: "var(--anchor-muted)",
+          subtle: "var(--anchor-subtle)",
+        },
+        entropy: {
+          DEFAULT: "var(--entropy)",
+          muted: "var(--entropy-muted)",
+          subtle: "var(--entropy-subtle)",
+        },
+        void: {
+          DEFAULT: "var(--void)",
+          muted: "var(--void-muted)",
+        },
         danger: "var(--danger)",
         success: "var(--success)",
         warning: "var(--warning)",
@@ -44,6 +63,7 @@ const config: Config = {
         },
       },
       fontFamily: {
+        display: ["var(--font-cabinet)", "system-ui", "sans-serif"],
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
       },
@@ -56,15 +76,21 @@ const config: Config = {
         "4xl": "2rem",
       },
       animation: {
-        pulseSlow: "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        scan: "scan 4s linear infinite",
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "holo-scan": "holoScan 4s linear infinite",
         drift: "drift 12s ease-in-out infinite",
         geiger: "geiger 2.4s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
-        fadeIn: "fadeIn 0.5s ease-out forwards",
+        "fade-in": "fadeIn 0.5s ease-out forwards",
+        "bridge-pulse": "bridgePulse 3s ease-in-out infinite",
+        "rift-open": "riftOpen 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "anchor-rotate": "anchorRotate 20s linear infinite",
+        "data-stream": "dataStream 1s linear infinite",
+        "status-pulse": "statusPulse 2s ease-in-out infinite",
+        "projection-flicker": "projectionFlicker 3s ease-in-out infinite",
       },
       keyframes: {
-        scan: {
+        holoScan: {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" },
         },
@@ -85,6 +111,34 @@ const config: Config = {
         fadeIn: {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        bridgePulse: {
+          "0%, 100%": { opacity: "0.4", boxShadow: "0 0 20px rgba(196,77,255,0.15)" },
+          "50%": { opacity: "0.8", boxShadow: "0 0 40px rgba(196,77,255,0.3)" },
+        },
+        riftOpen: {
+          "0%": { opacity: "0", transform: "scaleX(0)" },
+          "100%": { opacity: "1", transform: "scaleX(1)" },
+        },
+        anchorRotate: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        dataStream: {
+          "0%": { backgroundPosition: "0 0" },
+          "100%": { backgroundPosition: "0 100%" },
+        },
+        statusPulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.4" },
+        },
+        projectionFlicker: {
+          "0%, 100%": { opacity: "1" },
+          "92%": { opacity: "1" },
+          "93%": { opacity: "0.85" },
+          "94%": { opacity: "1" },
+          "96%": { opacity: "0.9" },
+          "97%": { opacity: "1" },
         },
       },
     },

@@ -27,7 +27,7 @@ export default function ErrorPage({ statusCode }: ErrorPageProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-panel p-8 text-center shadow-2xl"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-primary/10 bg-panel/60 p-8 text-center shadow-2xl"
       >
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-danger/30 bg-danger/10">
           <Warning size={32} weight="bold" className="text-danger" />
@@ -38,7 +38,7 @@ export default function ErrorPage({ statusCode }: ErrorPageProps) {
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-[var(--panel-raised)] focus-ring active:scale-95"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-[var(--panel-raised)] focus-ring active:scale-95"
           >
             <House size={16} weight="bold" />
             返回指挥部
