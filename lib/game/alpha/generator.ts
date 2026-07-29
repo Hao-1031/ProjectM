@@ -124,7 +124,7 @@ export function generateVariantStats(
   scaling: ScalingParams = DEFAULT_SCALING_PARAMS
 ): Pick<AlphaEnemyStats, "maxHp" | "damage" | "speed"> {
   const balance = DEFAULT_BALANCE.enemies[variant] ?? DEFAULT_BALANCE.enemies.base;
-  const baseHealth = 200 * balance.healthMul;
+  const baseHealth = 357 * balance.healthMul;
   const baseDamage = balance.damage;
   const baseSpeed = balance.speed;
 

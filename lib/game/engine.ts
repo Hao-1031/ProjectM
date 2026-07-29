@@ -2703,7 +2703,10 @@ export class GameEngine {
             wave.bossVariant = undefined;
           }
 
-          if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
+          const waveCleared =
+            (ds.waveTimer >= wave.duration || (wave.spawned ?? 0) >= wave.enemyCount) &&
+            this.state.enemies.length === 0;
+          if (waveCleared) {
             this.finalizeDefenseWave(ds);
           }
         } else {
@@ -2742,6 +2745,15 @@ export class GameEngine {
           }
 
           if (ds.waveTimer >= wave.duration && this.state.enemies.length === 0) {
+            this.finalizeDefenseWave(ds);
+          }
+
+          const waveClearedFallback =
+            ((wave.spawned ?? 0) >= wave.enemyCount) &&
+            this.state.enemies.length === 0 &&
+            !wave.bossVariant;
+          if (waveClearedFallback && ds.waveTimer < wave.duration) {
+            // 敌人全部清除，立即结束波次，不等计时器
             this.finalizeDefenseWave(ds);
           }
         }

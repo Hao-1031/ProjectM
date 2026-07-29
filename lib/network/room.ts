@@ -116,15 +116,32 @@ export class GameRoomManager {
   }
 
   private createSignalingChannel(): SignalingChannel {
+    const signalingUrl = typeof process !== "undefined"
+      ? (process.env as Record<string, string | undefined>).NEXT_PUBLIC_SIGNALING_URL
+      : undefined;
+
     return new SignalingChannel({
       roomCode: this.roomCode,
       localPeerId: this.localPeerId,
+      signalingServerUrl: signalingUrl,
       onOffer: (peerId, offer) => this.handleOffer(peerId, offer),
       onAnswer: (peerId, answer) => this.handleAnswer(peerId, answer),
       onDiscovery: (roomCode, hostId, playerName) =>
         this.handleDiscovery(roomCode, hostId, playerName),
       onDiscoveryResponse: (roomCode, hostId, playerName) =>
         this.handleDiscoveryResponse(roomCode, hostId, playerName),
+      onPeerListChange: (peers) => {
+        this.players = peers
+          .filter((p) => p.peerId !== this.localPeerId)
+          .map((p) => ({
+            peerId: p.peerId,
+            playerName: p.playerName,
+            ready: false,
+            latency: 0,
+            lastInputFrame: 0,
+          }));
+        this.onPlayerListChange?.(this.players);
+      },
     });
   }
 

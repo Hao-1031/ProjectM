@@ -280,13 +280,13 @@ export interface RoguelikeRewardBalance {
 
 export const DEFAULT_BALANCE: BalanceConfig = {
   player: {
-    baseHealth: 280,
+    baseHealth: 500,
     baseSpeed: 270,
     baseRadius: 16,
     baseMagnetRange: 140,
     invincibilityDuration: 0.6,
     knockbackDecay: 5,
-    regenCap: 30,
+    regenCap: 54,
     armorCap: 0.75,
     critDamageMultiplier: 2.2,
     levelXpCurve: 1.15,
@@ -1775,7 +1775,7 @@ export function getWeaponDps(weapon: Weapon): number {
 export function getDifficultyScaledHealth(difficulty: number, variant: EnemyVariant): number {
   const base = DEFAULT_BALANCE.enemies.base;
   const v = DEFAULT_BALANCE.enemies[variant] ?? base;
-  const baseHealth = 30 + difficulty * 8;
+  const baseHealth = 54 + difficulty * 14;
   return Math.floor(baseHealth * v.healthMul);
 }
 

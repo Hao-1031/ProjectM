@@ -29,7 +29,7 @@ describe("GameEngine", () => {
   it("initializes in idle state", () => {
     const engine = new GameEngine();
     expect(engine.state.status).toBe("idle");
-    expect(engine.state.player.health).toBe(280);
+    expect(engine.state.player.health).toBe(500);
   });
 
   it("starts running", () => {
@@ -118,7 +118,7 @@ describe("GameEngine", () => {
       speed: 0,
       health: 100,
       maxHealth: 100,
-      damage: 300,
+      damage: 600,
       xpValue: 0,
       color: "#f43f5e",
       variant: "tank",
@@ -165,7 +165,7 @@ describe("GameEngine", () => {
     engine.state.status = "defeat";
     engine.restart();
     expect(engine.state.status).toBe("running");
-    expect(engine.state.player.health).toBe(280);
+    expect(engine.state.player.health).toBe(500);
   });
 
   describe("enemy variants", () => {
