@@ -20,6 +20,7 @@ import {
   Sparkle,
   CaretRight,
   Plus,
+  Trophy,
 } from "@phosphor-icons/react";
 import type { GameState } from "@/lib/game/types";
 import { formatTime } from "@/lib/game/math";
@@ -32,6 +33,7 @@ import NodeStatus from "./NodeStatus";
 import HeroSkillButton from "./HeroSkillButton";
 import BossHealthBar from "./BossHealthBar";
 import KillFeed, { type KillFeedEntry } from "./KillFeed";
+import PhaseIndicator, { FlagshipPeakHudPanel } from "./PhaseIndicator";
 
 interface HudDesktopProps {
   state: GameState;
@@ -408,6 +410,45 @@ export default function HudDesktop({
                       </div>
                     </div>
                   )}
+                  {state.mode === "flagship-peak" && state.flagshipPeakState && (
+                    <div className="space-y-1.5 border-t border-border/50 pt-2">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="flex items-center gap-1 text-muted">
+                          <Trophy size={10} weight="bold" className="text-accent" />
+                          积分
+                        </span>
+                        <span className="font-mono font-bold tabular-nums text-accent">
+                          {state.flagshipPeakState.score.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="flex items-center gap-1 text-muted">
+                          <Fire size={10} weight="bold" className="text-danger" />
+                          连击
+                        </span>
+                        <span className="font-mono font-bold tabular-nums">
+                          {state.flagshipPeakState.combos}
+                          <span className="text-muted"> / 最佳 {state.flagshipPeakState.maxCombo}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="flex items-center gap-1 text-muted">
+                          <Target size={10} weight="bold" className="text-primary" />
+                          挑战
+                        </span>
+                        <span className="font-mono font-bold tabular-nums text-success">
+                          {state.flagshipPeakState.challenges.filter((c) => c.completed).length}/
+                          {state.flagshipPeakState.challenges.length}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-muted">赛季XP</span>
+                        <span className="font-mono font-bold text-warning">
+                          {state.flagshipPeakState.seasonXp}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -552,6 +593,18 @@ export default function HudDesktop({
                 />
               )}
             </div>
+          )}
+
+          {/* Flagship Peak Phase Indicator */}
+          {state.mode === "flagship-peak" && state.flagshipPeakState && (
+            <FlagshipPeakHudPanel
+              phase={state.flagshipPeakState.phase}
+              score={state.flagshipPeakState.score}
+              combos={state.flagshipPeakState.combos}
+              maxCombo={state.flagshipPeakState.maxCombo}
+              challengesCompleted={state.flagshipPeakState.challenges.filter((c) => c.completed).length}
+              totalChallenges={state.flagshipPeakState.challenges.length}
+            />
           )}
         </div>
       </div>

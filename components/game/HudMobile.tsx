@@ -16,6 +16,7 @@ import {
   Coins,
   Crosshair,
   Shield,
+  Trophy,
 } from "@phosphor-icons/react";
 import type { GameState } from "@/lib/game/types";
 import { formatTime } from "@/lib/game/math";
@@ -26,6 +27,7 @@ import CoreHealthBar from "./CoreHealthBar";
 import NodeStatus from "./NodeStatus";
 import HeroSkillButton from "./HeroSkillButton";
 import BossHealthBar from "./BossHealthBar";
+import PhaseIndicator from "./PhaseIndicator";
 
 interface HudMobileProps {
   state: GameState;
@@ -121,6 +123,20 @@ export default function HudMobile({
                 <Star size={14} weight="bold" className="text-warning" />
                 <span className="font-mono text-xs font-bold text-warning">
                   {state.peakChallengeState.seasonXp}
+                </span>
+              </>
+            )}
+            {state.mode === "flagship-peak" && state.flagshipPeakState && (
+              <>
+                <div className="h-4 w-px bg-border/50" />
+                <Trophy size={14} weight="bold" className="text-accent" />
+                <span className="font-mono text-xs font-bold text-accent">
+                  {state.flagshipPeakState.score.toLocaleString()}
+                </span>
+                <div className="h-4 w-px bg-border/50" />
+                <Fire size={14} weight="bold" className="text-danger" />
+                <span className="font-mono text-xs font-bold">
+                  {state.flagshipPeakState.combos}
                 </span>
               </>
             )}

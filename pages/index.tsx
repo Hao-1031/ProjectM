@@ -32,6 +32,8 @@ import {
   Rocket,
   Warning,
   CheckCircle,
+  Fire,
+  Hexagon,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -59,12 +61,12 @@ const MODES: {
   {
     type: "flagship-peak",
     label: "旗舰巅峰",
-    subtitle: "终极维度",
+    subtitle: "创世维度",
     icon: Rocket,
     accent: "primary",
-    desc: "三阶段25波终极挑战",
+    desc: "三阶段25波 · 双轨挑战 · 双维度评级 · 六维雷达",
     featured: true,
-    span: "lg:col-span-3 lg:row-span-2",
+    span: "lg:col-span-6 lg:row-span-2",
   },
   {
     type: "defense",
@@ -968,6 +970,12 @@ export default function HomePage() {
                 {mode.featured && (
                   <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.8),transparent_70%)]" />
                 )}
+                {mode.type === "flagship-peak" && (
+                  <div className="pointer-events-none absolute inset-0">
+                    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/6 blur-3xl" />
+                    <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-danger/4 blur-3xl" />
+                  </div>
+                )}
 
                 <div className="relative">
                   <div className="flex items-start justify-between">
@@ -980,7 +988,7 @@ export default function HomePage() {
                     {mode.featured && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         <Sparkle size={10} weight="fill" />
-                        主打
+                        {mode.type === "flagship-peak" ? "创世" : "主打"}
                       </span>
                     )}
                   </div>
@@ -993,6 +1001,23 @@ export default function HomePage() {
                     </h3>
                     <p className="mt-1 text-xs text-muted">{mode.desc}</p>
                   </div>
+                  {mode.type === "flagship-peak" && (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {[
+                        { label: "标准巡航", color: "#6366f1" },
+                        { label: "超频增压", color: "#ef4444" },
+                        { label: "地狱终局", color: "#a855f7" },
+                      ].map((p) => (
+                        <span
+                          key={p.label}
+                          className="inline-flex items-center rounded border px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider"
+                          style={{ borderColor: `${p.color}30`, color: p.color, backgroundColor: `${p.color}08` }}
+                        >
+                          {p.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative mt-4 flex items-center gap-2 text-xs text-muted">

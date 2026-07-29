@@ -1127,3 +1127,82 @@ export interface PlayerProgression {
   premiumCurrency: number;
   seasonStates: SeasonState[];
 }
+
+// ========================================================================
+// 旗舰巅峰结算系统 — 六维雷达 + 隐藏成就 + 里程碑 + 阶段奖励
+// ========================================================================
+
+export type FlagshipPeakRadarDimension =
+  | "speed"
+  | "kills"
+  | "combos"
+  | "perfectWaves"
+  | "eliteKills"
+  | "bossKills";
+
+export interface FlagshipPeakRadarScore {
+  dimension: FlagshipPeakRadarDimension;
+  label: string;
+  score: number;
+  maxScore: number;
+  weight: number;
+  weightedScore: number;
+}
+
+export type FlagshipPeakAchievementId =
+  | "no_damage_10"
+  | "speedrun_flagship"
+  | "all_challenges"
+  | "hell_survivor"
+  | "zero_death_25"
+  | "triple_s_rank"
+  | "void_lord";
+
+export type FlagshipPeakAchievementRarity = "common" | "rare" | "legendary";
+
+export interface FlagshipPeakAchievement {
+  id: FlagshipPeakAchievementId;
+  title: string;
+  description: string;
+  rarity: FlagshipPeakAchievementRarity;
+  icon: string;
+  unlocked: boolean;
+}
+
+export interface FlagshipPeakMilestone {
+  wave: number;
+  xpReward: number;
+  currencyReward: number;
+  label: string;
+  reached: boolean;
+}
+
+export interface FlagshipPeakPhaseReward {
+  phase: FlagshipPeakPhase;
+  xpReward: number;
+  currencyReward: number;
+  title: string;
+  description: string;
+  unlocked: boolean;
+}
+
+export interface FlagshipPeakSettlement {
+  victory: boolean;
+  reachedPhase: FlagshipPeakPhase;
+  totalScore: number;
+  radarScores: FlagshipPeakRadarScore[];
+  totalRadarScore: number;
+  unlockedAchievements: FlagshipPeakAchievement[];
+  milestonesReached: FlagshipPeakMilestone[];
+  phaseRewards: FlagshipPeakPhaseReward[];
+  finalSpeedRank: FlagshipSpeedRank;
+  finalSeasonRank: PeakSeasonRank;
+  totalXp: number;
+  totalCurrency: number;
+  kills: number;
+  maxCombo: number;
+  bossKills: number;
+  eliteKills: number;
+  perfectWaves: number;
+  timeAttackScore: number;
+}

@@ -24,7 +24,17 @@ import {
   FLAGSHIP_PEAK_BOSS_WAVE_2,
   FLAGSHIP_PEAK_FINAL_BOSS_WAVE,
 } from "./flagship-peak";
-import type { GameState, DefenseState, FlagshipPeakPhase } from "./types";
+import {
+  calculateFlagshipPeakRadar,
+  checkFlagshipPeakAchievements,
+  checkFlagshipPeakMilestones,
+  checkFlagshipPeakPhaseRewards,
+  calculateFlagshipPeakSettlement,
+  FLAGSHIP_PEAK_ACHIEVEMENTS,
+  FLAGSHIP_PEAK_MILESTONES,
+  FLAGSHIP_PEAK_PHASE_REWARDS,
+} from "./flagship-peak-achievements";
+import type { GameState, FlagshipPeakPhase, FlagshipPeakState, FlagshipSpeedRank } from "./types";
 
 function makeMockGameState(overrides: Partial<GameState> = {}): GameState {
   const base = {
@@ -499,6 +509,442 @@ describe("flagship-peak", () => {
       expect(FLAGSHIP_PEAK_BOSS_WAVE_1).toBe(10);
       expect(FLAGSHIP_PEAK_BOSS_WAVE_2).toBe(23);
       expect(FLAGSHIP_PEAK_FINAL_BOSS_WAVE).toBe(25);
+    });
+  });
+});
+
+// ========================================================================
+// 结算+成就+雷达图 测试
+// ========================================================================
+
+function makeFPState(overrides: Partial<FlagshipPeakState> = {}): FlagshipPeakState {
+  return {
+    phase: "standard",
+    wave: 0,
+    totalWaves: 25,
+    challenges: [],
+    tasks: [],
+    score: 0,
+    combos: 0,
+    maxCombo: 0,
+    bossKills: 0,
+    eliteKills: 0,
+    coreHealth: 100,
+    coreMaxHealth: 100,
+    timeAttackScore: 0,
+    perfectWaves: 0,
+    speedRank: "none" as FlagshipSpeedRank,
+    seasonRank: "bronze",
+    seasonXp: 0,
+    waveClearTimes: [],
+    comboBreakerCount: 0,
+    challengeStreak: 0,
+    seasonCurrency: 0,
+    ...overrides,
+  };
+}
+
+describe("flagship-peak-achievements", () => {
+  describe("成就定义", () => {
+    it("定义了7个成就", () => {
+      expect(FLAGSHIP_PEAK_ACHIEVEMENTS).toHaveLength(7);
+    });
+
+    it("包含5个普通成就", () => {
+      const common = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "common");
+      expect(common).toHaveLength(3);
+    });
+
+    it("包含3个稀有成就", () => {
+      const rare = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "rare");
+      expect(rare).toHaveLength(3);
+    });
+
+    it("包含1个传说成就", () => {
+      const legendary = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "legendary");
+      expect(legendary).toHaveLength(1);
+      expect(legendary[0].id).toBe("void_lord");
+    });
+
+    it("每个成就都有标题和描述", () => {
+      for (const ach of FLAGSHIP_PEAK_ACHIEVEMENTS) {
+        expect(ach.title).toBeTruthy();
+        expect(ach.description).toBeTruthy();
+        expect(ach.icon).toBeTruthy();
+      }
+    });
+  });
+
+  describe("里程碑定义", () => {
+    it("定义了5个里程碑", () => {
+      expect(FLAGSHIP_PEAK_MILESTONES).toHaveLength(5);
+    });
+
+    it("里程碑波次为5/10/15/20/25", () => {
+      const waves = FLAGSHIP_PEAK_MILESTONES.map((m) => m.wave);
+      expect(waves).toEqual([5, 10, 15, 20, 25]);
+    });
+
+    it("奖励递增", () => {
+      const xpRewards = FLAGSHIP_PEAK_MILESTONES.map((m) => m.xpReward);
+      for (let i = 1; i < xpRewards.length; i++) {
+        expect(xpRewards[i]).toBeGreaterThan(xpRewards[i - 1]);
+      }
+    });
+  });
+
+  describe("阶段奖励定义", () => {
+    it("定义了3个阶段奖励", () => {
+      const phases = Object.keys(FLAGSHIP_PEAK_PHASE_REWARDS);
+      expect(phases).toHaveLength(3);
+      expect(phases).toContain("standard");
+      expect(phases).toContain("overclock");
+      expect(phases).toContain("hell");
+    });
+
+    it("hell阶段奖励最高", () => {
+      const hellReward = FLAGSHIP_PEAK_PHASE_REWARDS.hell;
+      const standardReward = FLAGSHIP_PEAK_PHASE_REWARDS.standard;
+      expect(hellReward.xpReward).toBeGreaterThan(standardReward.xpReward);
+      expect(hellReward.currencyReward).toBeGreaterThan(standardReward.currencyReward);
+    });
+  });
+
+  describe("calculateFlagshipPeakRadar", () => {
+    it("返回6个维度", () => {
+      const fp = makeFPState({
+        timeAttackScore: 50,
+        perfectWaves: 10,
+        maxCombo: 25,
+        bossKills: 2,
+        eliteKills: 15,
+      });
+      const radar = calculateFlagshipPeakRadar(fp, 100);
+      expect(radar).toHaveLength(6);
+    });
+
+    it("维度标签正确", () => {
+      const fp = makeFPState();
+      const radar = calculateFlagshipPeakRadar(fp, 0);
+      const labels = radar.map((r) => r.label);
+      expect(labels).toEqual(["速度", "击杀", "连击", "完美波次", "精英", "首领"]);
+    });
+
+    it("权重总和为1", () => {
+      const fp = makeFPState();
+      const radar = calculateFlagshipPeakRadar(fp, 0);
+      const totalWeight = radar.reduce((s, r) => s + r.weight, 0);
+      expect(totalWeight).toBeCloseTo(1.0, 2);
+    });
+
+    it("score不超过100", () => {
+      const fp = makeFPState({
+        timeAttackScore: 500,
+        perfectWaves: 100,
+        maxCombo: 200,
+        bossKills: 20,
+        eliteKills: 100,
+      });
+      const radar = calculateFlagshipPeakRadar(fp, 1000);
+      for (const r of radar) {
+        expect(r.score).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it("零数据时所有维度为0", () => {
+      const fp = makeFPState();
+      const radar = calculateFlagshipPeakRadar(fp, 0);
+      for (const r of radar) {
+        expect(r.score).toBe(0);
+      }
+    });
+
+    it("满分数据时所有维度为100", () => {
+      const fp = makeFPState({
+        timeAttackScore: 100,
+        perfectWaves: 25,
+        maxCombo: 50,
+        bossKills: 3,
+        eliteKills: 30,
+      });
+      const radar = calculateFlagshipPeakRadar(fp, 200);
+      for (const r of radar) {
+        expect(r.score).toBe(100);
+      }
+    });
+  });
+
+  describe("checkFlagshipPeakAchievements", () => {
+    it("完美波次>=10解锁钢铁防线", () => {
+      const fp = makeFPState({ perfectWaves: 10 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "no_damage_10");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("完美波次<10不解锁钢铁防线", () => {
+      const fp = makeFPState({ perfectWaves: 5 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "no_damage_10");
+      expect(ach?.unlocked).toBe(false);
+    });
+
+    it("平均通关<30秒+>=10波解锁闪电突袭", () => {
+      const fp = makeFPState({
+        waveClearTimes: [25, 28, 22, 30, 20, 26, 24, 29, 27, 21],
+      });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "speedrun_flagship");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("挑战连胜>=3解锁挑战征服者", () => {
+      const fp = makeFPState({ challengeStreak: 3 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "all_challenges");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("wave>23解锁地狱幸存者", () => {
+      const fp = makeFPState({ wave: 24 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "hell_survivor");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("零死亡+25波通关解锁不朽传奇", () => {
+      const fp = makeFPState({ wave: 25 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 0);
+      const ach = results.find((a) => a.id === "zero_death_25");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("有死亡记录不解锁不朽传奇", () => {
+      const fp = makeFPState({ wave: 25 });
+      const results = checkFlagshipPeakAchievements(fp, {}, 0, 1);
+      const ach = results.find((a) => a.id === "zero_death_25");
+      expect(ach?.unlocked).toBe(false);
+    });
+
+    it("三阶段S评级解锁三阶全S", () => {
+      const fp = makeFPState({ wave: 25 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+        overclock: "gold",
+        hell: "gold",
+      };
+      const results = checkFlagshipPeakAchievements(fp, phaseStats, 0, 0);
+      const ach = results.find((a) => a.id === "triple_s_rank");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("阶段评级不全是S不解锁三阶全S", () => {
+      const fp = makeFPState({ wave: 25 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+        overclock: "silver",
+        hell: "gold",
+      };
+      const results = checkFlagshipPeakAchievements(fp, phaseStats, 0, 0);
+      const ach = results.find((a) => a.id === "triple_s_rank");
+      expect(ach?.unlocked).toBe(false);
+    });
+
+    it("同时达成不朽+三阶全S+挑战征服者解锁虚空之主", () => {
+      const fp = makeFPState({
+        wave: 25,
+        challengeStreak: 3,
+      });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+        overclock: "gold",
+        hell: "gold",
+      };
+      const results = checkFlagshipPeakAchievements(fp, phaseStats, 0, 0);
+      const ach = results.find((a) => a.id === "void_lord");
+      expect(ach?.unlocked).toBe(true);
+    });
+
+    it("未达成前提条件不解锁虚空之主", () => {
+      const fp = makeFPState({ wave: 25, challengeStreak: 1 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+        overclock: "silver",
+        hell: "gold",
+      };
+      const results = checkFlagshipPeakAchievements(fp, phaseStats, 0, 0);
+      const ach = results.find((a) => a.id === "void_lord");
+      expect(ach?.unlocked).toBe(false);
+    });
+  });
+
+  describe("checkFlagshipPeakMilestones", () => {
+    it("wave=0时无里程碑达成", () => {
+      const milestones = checkFlagshipPeakMilestones(0);
+      expect(milestones.filter((m) => m.reached)).toHaveLength(0);
+    });
+
+    it("wave=5时达成第一个里程碑", () => {
+      const milestones = checkFlagshipPeakMilestones(5);
+      const reached = milestones.filter((m) => m.reached);
+      expect(reached).toHaveLength(1);
+      expect(reached[0].wave).toBe(5);
+    });
+
+    it("wave=10时达成前两个里程碑", () => {
+      const milestones = checkFlagshipPeakMilestones(10);
+      const reached = milestones.filter((m) => m.reached);
+      expect(reached).toHaveLength(2);
+    });
+
+    it("wave=25时达成全部里程碑", () => {
+      const milestones = checkFlagshipPeakMilestones(25);
+      expect(milestones.every((m) => m.reached)).toBe(true);
+    });
+  });
+
+  describe("checkFlagshipPeakPhaseRewards", () => {
+    it("standard阶段解锁标准奖励", () => {
+      const fp = makeFPState({ phase: "standard" });
+      const rewards = checkFlagshipPeakPhaseRewards("standard", fp);
+      expect(rewards).toHaveLength(1);
+      expect(rewards[0].phase).toBe("standard");
+    });
+
+    it("overclock阶段解锁标准+超频奖励", () => {
+      const fp = makeFPState({ phase: "overclock" });
+      const rewards = checkFlagshipPeakPhaseRewards("overclock", fp);
+      expect(rewards).toHaveLength(2);
+      expect(rewards.map((r) => r.phase)).toEqual(["standard", "overclock"]);
+    });
+
+    it("hell阶段解锁全部奖励", () => {
+      const fp = makeFPState({ phase: "hell" });
+      const rewards = checkFlagshipPeakPhaseRewards("hell", fp);
+      expect(rewards).toHaveLength(3);
+      expect(rewards.map((r) => r.phase)).toEqual(["standard", "overclock", "hell"]);
+    });
+
+    it("victory阶段解锁全部奖励", () => {
+      const fp = makeFPState({ phase: "victory" });
+      const rewards = checkFlagshipPeakPhaseRewards("victory", fp);
+      expect(rewards).toHaveLength(3);
+    });
+
+    it("defeat阶段不解锁任何奖励", () => {
+      const fp = makeFPState({ phase: "defeat" });
+      const rewards = checkFlagshipPeakPhaseRewards("defeat", fp);
+      expect(rewards).toHaveLength(0);
+    });
+  });
+
+  describe("calculateFlagshipPeakSettlement", () => {
+    it("返回完整结算数据", () => {
+      const fp = makeFPState({
+        phase: "standard",
+        wave: 10,
+        score: 5000,
+        timeAttackScore: 60,
+        perfectWaves: 8,
+        maxCombo: 30,
+        bossKills: 1,
+        eliteKills: 12,
+        seasonXp: 300,
+        seasonCurrency: 50,
+        speedRank: "gold",
+        seasonRank: "silver",
+      });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+      };
+      const settlement = calculateFlagshipPeakSettlement(fp, 80, 0, phaseStats, true);
+
+      expect(settlement.victory).toBe(true);
+      expect(settlement.reachedPhase).toBe("standard");
+      expect(settlement.radarScores).toHaveLength(6);
+      expect(settlement.totalScore).toBeGreaterThan(5000);
+      expect(settlement.totalXp).toBeGreaterThan(300);
+      expect(settlement.totalCurrency).toBeGreaterThan(50);
+      expect(settlement.kills).toBe(80);
+      expect(settlement.maxCombo).toBe(30);
+      expect(settlement.bossKills).toBe(1);
+      expect(settlement.eliteKills).toBe(12);
+      expect(settlement.perfectWaves).toBe(8);
+    });
+
+    it("victory结算包含胜利加成", () => {
+      const fp = makeFPState({ phase: "hell", wave: 25, score: 10000 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {};
+      const victorySettlement = calculateFlagshipPeakSettlement(fp, 200, 0, phaseStats, true);
+      const defeatSettlement = calculateFlagshipPeakSettlement(fp, 200, 0, phaseStats, false);
+
+      expect(victorySettlement.totalScore).toBeGreaterThan(defeatSettlement.totalScore);
+      expect(victorySettlement.totalXp).toBeGreaterThan(defeatSettlement.totalXp);
+    });
+
+    it("解锁成就时获得额外奖励", () => {
+      const fp = makeFPState({
+        phase: "hell",
+        wave: 25,
+        score: 10000,
+        perfectWaves: 10,
+        challengeStreak: 3,
+      });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {
+        standard: "gold",
+        overclock: "gold",
+        hell: "gold",
+      };
+      const settlement = calculateFlagshipPeakSettlement(fp, 200, 0, phaseStats, true);
+
+      expect(settlement.unlockedAchievements.length).toBeGreaterThan(0);
+      expect(settlement.totalScore).toBeGreaterThan(10000);
+    });
+
+    it("radarScores包含加权分数", () => {
+      const fp = makeFPState({
+        timeAttackScore: 50,
+        perfectWaves: 10,
+        maxCombo: 25,
+        bossKills: 2,
+        eliteKills: 15,
+      });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {};
+      const settlement = calculateFlagshipPeakSettlement(fp, 100, 0, phaseStats, false);
+
+      for (const r of settlement.radarScores) {
+        expect(r.weightedScore).toBeGreaterThanOrEqual(0);
+        expect(r.weight).toBeGreaterThan(0);
+      }
+    });
+
+    it("milestonesReached根据wave正确计算", () => {
+      const fp = makeFPState({ wave: 12 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {};
+      const settlement = calculateFlagshipPeakSettlement(fp, 50, 0, phaseStats, false);
+
+      const reached = settlement.milestonesReached.filter((m) => m.reached);
+      expect(reached).toHaveLength(2);
+      expect(reached.map((m) => m.wave)).toEqual([5, 10]);
+    });
+
+    it("phaseRewards根据phase正确计算", () => {
+      const fp = makeFPState({ phase: "overclock", wave: 15 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {};
+      const settlement = calculateFlagshipPeakSettlement(fp, 50, 0, phaseStats, false);
+
+      expect(settlement.phaseRewards).toHaveLength(2);
+      expect(settlement.phaseRewards[0].phase).toBe("standard");
+      expect(settlement.phaseRewards[1].phase).toBe("overclock");
+    });
+
+    it("defeat结算不包含胜利加成", () => {
+      const fp = makeFPState({ phase: "defeat", wave: 18, score: 5000 });
+      const phaseStats: Record<string, FlagshipSpeedRank> = {};
+      const settlement = calculateFlagshipPeakSettlement(fp, 100, 0, phaseStats, false);
+
+      expect(settlement.victory).toBe(false);
+      expect(settlement.totalScore).toBe(5000);
     });
   });
 });

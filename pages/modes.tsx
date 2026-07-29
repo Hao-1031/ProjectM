@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import React from "react";
 import {
   GameController,
   Infinity,
@@ -31,6 +32,7 @@ import {
   Pulse,
   Rocket,
 } from "@phosphor-icons/react";
+import { useState } from "react";
 import Layout from "@/components/Layout";
 import { getModeList, getDailyModifiers } from "@/lib/game/modes";
 import NuclearBackground from "@/components/effects/NuclearBackground";
@@ -55,7 +57,7 @@ const MODE_META: Record<string, ModeMetaEntry> = {
   deathmatch: { icon: Crosshair, accent: "text-danger", accentBg: "bg-danger/10", bullets: ["PVP 自由混战 + Bot", "率先达到击杀目标获胜", "限时最高击杀决胜", "动态阶段与连杀系统"], threat: "中", isFeatured: false },
   "peak-challenge": { icon: Crown, accent: "text-warning", accentBg: "bg-warning/10", bullets: ["赛季排名与段位系统", "5波挑战任务轮换", "完美波次额外奖励", "挑战连胜额外加分"], threat: "高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20an%20elite%20challenge%20arena%2C%20golden%20ranking%20icons%2C%20mechanical%20bosses%20circling%2C%20dark%20industrial%2C%20low%20saturation%2C%20epic%2C%20no%20text&image_size=landscape_16_9" },
   flagship: { icon: Trophy, accent: "text-primary", accentBg: "bg-primary/10", bullets: ["速通排名与时间挑战", "连击倍数得分系统", "完美波次大幅加分", "旗舰级综合挑战"], threat: "极高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20a%20flagship%20command%20center%2C%20holographic%20displays%2C%20tactical%20map%2C%20dark%20industrial%2C%20low%20saturation%2C%20epic%2C%20no%20text&image_size=landscape_16_9" },
-  "flagship-peak": { icon: Rocket, accent: "text-primary", accentBg: "bg-primary/10", bullets: ["三阶段25波终极挑战", "标准巡航→超频增压→地狱终局", "双轨挑战+双维度评级", "统一积分制+赛季段位"], threat: "极高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20a%20spaceship%20bridge%20command%20center%2C%20three%20phase%20transformation%20from%20blue%20to%20red%20to%20void%20black%2C%20holographic%20tactical%20displays%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9" },
+  "flagship-peak": { icon: Rocket, accent: "text-primary", accentBg: "bg-primary/10", bullets: ["三阶段25波终极挑战", "标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)", "双轨挑战(固定+动态) + 双维度评级(速度×赛季)", "统一积分制 + 六维雷达结算 + 隐藏成就"], threat: "极高", isFeatured: true, image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20scene%20of%20a%20spaceship%20bridge%20command%20center%2C%20three%20phase%20transformation%20from%20blue%20to%20red%20to%20void%20black%2C%20holographic%20tactical%20displays%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9" },
   "extreme-survival": { icon: Lightning, accent: "text-danger", accentBg: "bg-danger/10", bullets: ["熵增事件随机触发", "过载阶段极限挑战", "表现评分系统", "Boss击杀与精英击杀统计"], threat: "极高", isFeatured: false },
 };
 
@@ -71,6 +73,56 @@ function ThreatBadge({ threat }: { threat: string }) {
       <Warning size={9} weight="bold" />
       威胁 {threat}
     </span>
+  );
+}
+
+function FlagshipPeakPhaseGlow() {
+  const reducedMotion = useReducedMotion();
+  const phases = [
+    { color: "rgba(99, 102, 241, 0.4)", label: "标准巡航" },
+    { color: "rgba(239, 68, 68, 0.5)", label: "超频增压" },
+    { color: "rgba(168, 85, 247, 0.6)", label: "地狱终局" },
+  ];
+  const [activePhase, setActivePhase] = useState(0);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {phases.map((phase, i) => (
+        <motion.div
+          key={i}
+          className="absolute inset-0 transition-opacity duration-1000"
+          style={{ opacity: activePhase === i ? 0.35 : 0.05 }}
+          animate={reducedMotion ? {} : {
+            opacity: activePhase === i ? [0.15, 0.35, 0.15] : 0.05,
+          }}
+          transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+        >
+          <div
+            className="absolute -right-20 -top-20 h-80 w-80 rounded-full blur-3xl"
+            style={{ backgroundColor: phase.color }}
+          />
+          <div
+            className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl"
+            style={{ backgroundColor: phase.color }}
+          />
+        </motion.div>
+      ))}
+      <div className="absolute bottom-3 right-3 flex gap-1.5">
+        {phases.map((phase, i) => (
+          <button
+            key={i}
+            type="button"
+            className="pointer-events-auto relative h-2 w-2 rounded-full transition-all"
+            style={{
+              backgroundColor: activePhase === i ? phase.color : "rgba(255,255,255,0.15)",
+              boxShadow: activePhase === i ? `0 0 8px ${phase.color}` : undefined,
+            }}
+            onClick={() => setActivePhase(i)}
+            aria-label={phase.label}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -117,23 +169,28 @@ export default function ModesPage() {
               const meta = MODE_META[mode.type] ?? MODE_META.survival;
               const Icon = meta.icon;
               const isLarge = meta.isFeatured;
+              const isFlagshipPeak = mode.type === "flagship-peak";
               const href =
                 mode.type === "defense"
                   ? "/game?mode=defense&multiplayer=1"
-                  : `/game?mode=${mode.type}`;
+                  : mode.type === "flagship-peak"
+                    ? "/flagship-peak"
+                    : `/game?mode=${mode.type}`;
               return (
                 <motion.article key={mode.type}
                   initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                  className={`bridge-panel group holo-scan relative overflow-hidden transition-all hover:border-primary/30 bridge-glow ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
-                  <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-15 transition-opacity group-hover:opacity-35" style={{ backgroundColor: THREAT_COLOR[meta.threat] ?? "#6e7870" }} />
+                  className={`bridge-panel group holo-scan relative overflow-hidden transition-all hover:border-primary/30 bridge-glow ${isFlagshipPeak ? "md:col-span-12" : isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                  {isFlagshipPeak && <FlagshipPeakPhaseGlow />}
+                  {!isFlagshipPeak && (
+                    <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-15 transition-opacity group-hover:opacity-35" style={{ backgroundColor: THREAT_COLOR[meta.threat] ?? "#6e7870" }} />
+                  )}
                   <div className="relative flex h-full flex-col p-2.5 md:p-3">
                     {isLarge && meta.image && (
                       <div className="relative mb-3 overflow-hidden rounded-2xl">
-                        <img src={meta.image} alt={mode.name} className="h-40 w-full object-cover md:h-48" />
+                        <img src={meta.image} alt={mode.name} className={`object-cover w-full ${isFlagshipPeak ? "h-52 md:h-64" : "h-40 md:h-48"}`} />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
-                        {/* Holographic projection overlay */}
                         <div className="pointer-events-none absolute inset-0 data-stream opacity-30" />
                         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                           <div className="flex items-center gap-2">
@@ -145,9 +202,16 @@ export default function ModesPage() {
                               <ThreatBadge threat={meta.threat} />
                             </div>
                           </div>
-                          <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-primary status-pulse">
-                            旗舰
-                          </span>
+                          {isFlagshipPeak ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
+                              <Rocket size={10} weight="fill" className="status-pulse" />
+                              创世旗舰
+                            </span>
+                          ) : (
+                            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-primary status-pulse">
+                              旗舰
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
@@ -180,6 +244,32 @@ export default function ModesPage() {
                         </li>
                       ))}
                     </ul>
+                    {isFlagshipPeak && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {[
+                          { label: "标准巡航", color: "#6366f1", icon: Shield },
+                          { label: "超频增压", color: "#ef4444", icon: Fire },
+                          { label: "地狱终局", color: "#a855f7", icon: Skull },
+                        ].map((p) => (
+                          <span
+                            key={p.label}
+                            className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-bold"
+                            style={{ borderColor: `${p.color}40`, color: p.color, backgroundColor: `${p.color}10` }}
+                          >
+                            {React.createElement(p.icon, { size: 9, weight: "fill" })}
+                            {p.label}
+                          </span>
+                        ))}
+                        <span className="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[9px] font-bold text-accent">
+                          <Hexagon size={9} weight="fill" />
+                          六维雷达
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[9px] font-bold text-warning">
+                          <Star size={9} weight="fill" />
+                          7隐藏成就
+                        </span>
+                      </div>
+                    )}
                     {mode.type === "defense" && (
                       <div className="mt-1.5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-muted">
                         <Users size={11} />推荐 2-4 人合作
@@ -187,8 +277,12 @@ export default function ModesPage() {
                     )}
                     <div className="mt-auto pt-2">
                       <Link href={href}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary hover:text-background focus-ring active:scale-95">
-                        <Play size={14} weight="fill" />进入任务
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${
+                          isFlagshipPeak
+                            ? "bg-primary text-background hover:bg-primary/90 shadow-lg shadow-primary/20"
+                            : "bg-primary/10 text-primary hover:bg-primary hover:text-background"
+                        }`}>
+                        <Play size={14} weight="fill" />{isFlagshipPeak ? "进入旗舰巅峰" : "进入任务"}
                       </Link>
                     </div>
                   </div>
