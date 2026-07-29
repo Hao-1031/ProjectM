@@ -147,7 +147,7 @@ const BALLISTIC_MOD_TRACKER: WeaponMod = {
   type: "ballistic",
   description: "加装追踪装置，弹丸自动追踪敌人",
   rarity: "rare",
-  statBonus: {},
+  statBonus: { homing: 1 },
   specialEffect: "自动追踪：弹丸自动追踪敌人",
   requiredMaterials: { iron: 10, crystal: 8 },
 };
@@ -202,7 +202,7 @@ const BALLISTIC_MOD_GUIDANCE: WeaponMod = {
   type: "ballistic",
   description: "加装制导装置，弹丸必定命中目标",
   rarity: "legendary",
-  statBonus: {},
+  statBonus: { homing: 1 },
   specialEffect: "必中追踪：弹丸必定命中目标",
   requiredMaterials: { iron: 35, crystal: 20, voidEssence: 12, genesisCore: 8 },
 };

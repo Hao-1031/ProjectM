@@ -148,6 +148,7 @@ export interface Deployable {
   targetId?: string;
   fireTimer?: number;
   fireCooldown?: number;
+  missileTimer?: number;
   tickTimer?: number;
   tickInterval?: number;
   color: string;
@@ -351,6 +352,8 @@ export interface Weapon {
   gravityRadius?: number;
   pullStrength?: number;
   homing?: boolean;
+  homingRadius?: number;
+  homingTurnRate?: number;
   isMelee?: boolean;
   swarmCount?: number;
   // Melee-specific shape and feel
@@ -603,7 +606,10 @@ export interface Projectile {
   gravityRadius?: number;
   pullStrength?: number;
   homing?: boolean;
+  homingRadius?: number;
+  homingTurnRate?: number;
   homingTarget?: string;
+  undodgeable?: boolean;
   isMelee?: boolean;
   swarmCount?: number;
   // Melee thrust projectile rendering helpers
@@ -1020,7 +1026,7 @@ export interface WeaponMod {
   type: WeaponModType;
   description: string;
   rarity: "common" | "rare" | "epic" | "legendary";
-  statBonus: Partial<{ damage: number; speed: number; radius: number; cooldown: number; pierce: number }>;
+  statBonus: Partial<{ damage: number; speed: number; radius: number; cooldown: number; pierce: number; homing: number }>;
   specialEffect?: string;
   requiredMaterials: Partial<ForgeMaterials>;
 }

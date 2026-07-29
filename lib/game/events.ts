@@ -381,6 +381,9 @@ function fireDroneProjectile(state: GameState, drone: Deployable, target: Enemy)
     pierce: 1,
     weaponId: "drone",
     life: 520 / speed,
+    homing: true,
+    homingRadius: 240,
+    homingTurnRate: 4.5,
   });
 }
 

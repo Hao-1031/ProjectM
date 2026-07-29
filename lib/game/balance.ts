@@ -67,6 +67,8 @@ export interface WeaponStatBlock {
   gravityRadius?: number;
   pullStrength?: number;
   homing?: boolean;
+  homingRadius?: number;
+  homingTurnRate?: number;
   isMelee?: boolean;
   swarmCount?: number;
   // Melee tuning
@@ -420,6 +422,9 @@ export const DEFAULT_BALANCE: BalanceConfig = {
         count: 2,
         spread: 0.14,
         pierce: 1,
+        homing: true,
+        homingRadius: 240,
+        homingTurnRate: 5.0,
       },
       upgrades: [
         { level: 2, damageMul: 1.24, cooldownMul: 0.88, countAdd: 1 },
@@ -487,6 +492,9 @@ export const DEFAULT_BALANCE: BalanceConfig = {
         count: 4,
         spread: 0.28,
         pierce: 0,
+        homing: true,
+        homingRadius: 280,
+        homingTurnRate: 2.8,
       },
       upgrades: [
         { level: 2, damageMul: 1.18, cooldownMul: 0.9, countAdd: 1 },
@@ -1728,6 +1736,8 @@ export function getWeaponBase(id: WeaponId): Weapon {
     gravityRadius: cfg.base.gravityRadius,
     pullStrength: cfg.base.pullStrength,
     homing: cfg.base.homing,
+    homingRadius: cfg.base.homingRadius,
+    homingTurnRate: cfg.base.homingTurnRate,
     isMelee: cfg.base.isMelee,
     swarmCount: cfg.base.swarmCount,
     meleeShape: cfg.base.meleeShape,

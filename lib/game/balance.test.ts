@@ -264,6 +264,14 @@ describe("getWeaponBase", () => {
   it("preserves special fields like homing and gravity", () => {
     const seeker = getWeaponBase("seekerRifle");
     expect(seeker.homing).toBe(true);
+    const drone = getWeaponBase("drone");
+    expect(drone.homing).toBe(true);
+    expect(drone.homingRadius).toBe(240);
+    expect(drone.homingTurnRate).toBe(5.0);
+    const swarm = getWeaponBase("swarm");
+    expect(swarm.homing).toBe(true);
+    expect(swarm.homingRadius).toBe(280);
+    expect(swarm.homingTurnRate).toBe(2.8);
     const gravity = getWeaponBase("gravityWell");
     expect(gravity.gravityRadius).toBeGreaterThan(0);
     expect(gravity.pullStrength).toBeGreaterThan(0);

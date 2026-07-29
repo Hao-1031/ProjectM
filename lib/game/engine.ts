@@ -108,6 +108,7 @@ import {
   seededRandom,
 } from "./modes";
 import { getEnemySprite, getPlayerSprite } from "./sprites";
+import { getInstalledModEffects } from "./weapon-forge";
 import {
   getCurrentFrameIndex,
   setFacing,
@@ -1517,6 +1518,25 @@ export class GameEngine {
         projectile.isExplosive = true;
         projectile.areaRadius = 60 * player.areaMultiplier;
       }
+      // 哨兵追踪天赋：所有弹体附带追踪效果
+      if ((player.talentLevels?.["sentinel_utility_4"] ?? 0) > 0) {
+        projectile.homing = true;
+        projectile.homingRadius = 280;
+        projectile.homingTurnRate = 3.5;
+        projectile.speed = speed * 1.30;
+        projectile.vx = Math.cos(theta) * projectile.speed;
+        projectile.vy = Math.sin(theta) * projectile.speed;
+        projectile.undodgeable = true;
+      }
+      // 武器锻造追踪器/制导器：弹体附带追踪效果
+      if (this.state.flagshipPeakState?.weaponMods) {
+        const modEffects = getInstalledModEffects(this.state.flagshipPeakState.weaponMods);
+        if (modEffects.homing && !projectile.homing) {
+          projectile.homing = true;
+          projectile.homingRadius = 260;
+          projectile.homingTurnRate = 3.8;
+        }
+      }
       this.state.projectiles.push(projectile);
     }
     audio?.play("shoot");
@@ -1525,11 +1545,12 @@ export class GameEngine {
 
   private fireDrone(weapon: (typeof this.state.player.weapons)[number]) {
     const player = this.state.player;
+    const hasTracking = (player.talentLevels?.["sentinel_utility_4"] ?? 0) > 0;
     for (let i = 0; i < weapon.count; i++) {
       const nearest = this.findNearestEnemy(player.x, player.y, weapon.range);
       if (!nearest) break;
       const angle = angleBetween(player, nearest) + randomRange(-0.2, 0.2);
-      const speed = weapon.projectileSpeed;
+      const speed = hasTracking ? weapon.projectileSpeed * 1.30 : weapon.projectileSpeed;
       this.state.projectiles.push({
         id: uid("proj"),
         x: player.x + Math.cos(angle) * 24,
@@ -1544,6 +1565,10 @@ export class GameEngine {
         weaponId: weapon.id,
         life: weapon.range / speed,
         ownerId: player.id,
+        homing: weapon.homing || hasTracking,
+        homingRadius: weapon.homing ? weapon.homingRadius : (hasTracking ? 280 : undefined),
+        homingTurnRate: weapon.homing ? weapon.homingTurnRate : (hasTracking ? 3.5 : undefined),
+        undodgeable: hasTracking || undefined,
       });
     }
     if (this.state.projectiles.some((p) => p.weaponId === "drone")) {
@@ -1728,7 +1753,9 @@ export class GameEngine {
 
       if (p.homing) {
         let target: Enemy | null = null;
-        let bestDist = 280;
+        const searchRadius = p.homingRadius ?? 280;
+        const turnRate = p.homingTurnRate ?? 3.5;
+        let bestDist = searchRadius;
         for (const enemy of this.state.enemies) {
           const dist = distance({ x: p.x, y: p.y }, enemy);
           if (dist < bestDist) {
@@ -1742,7 +1769,7 @@ export class GameEngine {
           let delta = desiredAngle - currentAngle;
           while (delta > Math.PI) delta -= Math.PI * 2;
           while (delta < -Math.PI) delta += Math.PI * 2;
-          const turn = clamp(delta, -3.5 * dt, 3.5 * dt);
+          const turn = clamp(delta, -turnRate * dt, turnRate * dt);
           const newAngle = currentAngle + turn;
           p.vx = Math.cos(newAngle) * p.speed;
           p.vy = Math.sin(newAngle) * p.speed;

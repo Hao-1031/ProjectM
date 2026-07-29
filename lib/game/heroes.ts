@@ -1079,6 +1079,18 @@ function updateDeployableList(
             enemy.droneMarkTimer = Math.max(enemy.droneMarkTimer, 0.25);
           }
         }
+        // Recon 侦察无人机：发射追踪弹体
+        const droneOwner = players.find((p) => p.id === d.ownerId);
+        if (droneOwner && droneOwner.heroId === "recon") {
+          d.fireTimer = (d.fireTimer ?? 0) - dt;
+          if (d.fireTimer <= 0) {
+            const target = findNearestEnemy(state, d.x, d.y, d.radius);
+            if (target) {
+              fireReconDroneProjectile(state, d, target, droneOwner);
+              d.fireTimer = d.fireCooldown ?? 0.55;
+            }
+          }
+        }
         break;
       }
       case "laserBeam": {
@@ -1104,6 +1116,17 @@ function updateDeployableList(
             if (target) {
               fireTurretProjectile(state, d, target, owner);
               d.fireTimer = d.fireCooldown ?? 0.6;
+            }
+          }
+          // 导弹天赋：每5秒发射一枚追踪导弹
+          if (hasTalent(owner, "engineer_offense_2")) {
+            d.missileTimer = (d.missileTimer ?? 5) - dt;
+            if (d.missileTimer <= 0) {
+              const missileTarget = findNearestEnemy(state, d.x, d.y, 480);
+              if (missileTarget) {
+                fireTurretMissile(state, d, missileTarget, owner);
+                d.missileTimer = 5;
+              }
             }
           }
         }
@@ -1146,6 +1169,7 @@ function fireTurretProjectile(state: GameState, d: Deployable, target: Enemy, ow
   const angle = angleBetween(d, target);
   const speed = 760;
   const damageMul = getDeployableMultiplier(owner, "damage");
+  const hasMissileTalent = hasTalent(owner, "engineer_offense_2");
   state.projectiles.push({
     id: uid("proj"),
     x: d.x + Math.cos(angle) * 24,
@@ -1159,6 +1183,58 @@ function fireTurretProjectile(state: GameState, d: Deployable, target: Enemy, ow
     pierce: 0,
     weaponId: "turret",
     life: 480 / speed,
+    homing: hasMissileTalent,
+    homingRadius: hasMissileTalent ? 320 : undefined,
+    homingTurnRate: hasMissileTalent ? 4.5 : undefined,
+  });
+}
+
+function fireTurretMissile(state: GameState, d: Deployable, target: Enemy, owner: Player): void {
+  const angle = angleBetween(d, target);
+  const speed = 520;
+  const damageMul = getDeployableMultiplier(owner, "damage");
+  const missileDamage = hasTalent(owner, "engineer_offense_2") ? 1.20 : 1.0;
+  state.projectiles.push({
+    id: uid("proj"),
+    x: d.x + Math.cos(angle) * 28,
+    y: d.y + Math.sin(angle) * 28,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    radius: 6,
+    damage: Math.round(28 * damageMul * missileDamage),
+    speed,
+    color: "#f59e0b",
+    pierce: 0,
+    weaponId: "turret_missile",
+    life: 3.5,
+    homing: true,
+    homingRadius: 320,
+    homingTurnRate: 4.5,
+    isExplosive: true,
+    areaRadius: 60 * (owner.areaMultiplier ?? 1),
+  });
+}
+
+function fireReconDroneProjectile(state: GameState, d: Deployable, target: Enemy, owner: Player): void {
+  const angle = angleBetween(d, target);
+  const speed = 640;
+  const damageMul = getDeployableMultiplier(owner, "damage");
+  state.projectiles.push({
+    id: uid("proj"),
+    x: d.x + Math.cos(angle) * 18,
+    y: d.y + Math.sin(angle) * 18,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    radius: 4,
+    damage: Math.round(22 * damageMul),
+    speed,
+    color: d.color,
+    pierce: 0,
+    weaponId: "recon_drone",
+    life: 480 / speed,
+    homing: true,
+    homingRadius: 220,
+    homingTurnRate: 4.8,
   });
 }
 

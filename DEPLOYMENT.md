@@ -1256,6 +1256,65 @@ Roguelike 模式每次升级时二选一：
 - `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑
 - `lib/game/ai.test.ts`：AI 行为适配近战范围
 
+### 16.17 寻飞弹全追踪系统
+
+堡垒的寻飞弹追踪特性已复制到全部带追踪描述的武器和英雄技能上，实现差异化追踪参数。
+
+#### 追踪参数说明
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `homing` | boolean | 弹体是否启用追踪 |
+| `homingRadius` | number | 搜索最近敌人的半径（像素），默认 280 |
+| `homingTurnRate` | number | 最大转向速率（rad/s），默认 3.5 |
+| `undodgeable` | boolean | 弹体无法被闪避（哨兵追踪天赋专属） |
+
+#### 7个追踪目标及差异化参数
+
+| # | 目标 | 搜索半径 | 转向速度 | 设计理由 |
+|---|------|----------|----------|----------|
+| 1 | `drone` 浮游无人机 | 240 (射程50%) | 5.0 rad/s | 小型无人机灵活转向，搜索范围限制在射程内 |
+| 2 | `swarm` 蜂群发射器 | 280 (射程50%) | 2.8 rad/s | 蜂群弹多(4-9发)，转向慢形成"蜂群包裹"效果 |
+| 3 | 工程师导弹天赋 (`engineer_offense_2`) | 320 | 4.5 rad/s | 炮台导弹大范围搜索，快速锁定，120%范围伤害 |
+| 4 | 哨兵追踪天赋 (`sentinel_utility_4`) | 280 | 3.5 rad/s | 全局被动，弹速+30%，无法被闪避 |
+| 5 | Recon 侦察无人机 (`heroId: recon`) | 220 | 4.8 rad/s | 侦察型无人机搜索范围小但反应极快 |
+| 6 | 武器锻造追踪器 (`mod_ballistic_tracker`) | 260 | 3.8 rad/s | 稀有改装件，中规中矩参数 |
+| 7 | 武器锻造制导器 (`mod_ballistic_guidance`) | 260 | 3.8 rad/s | 传说改装件，必中追踪 |
+| 8 | 钱包事件无人机 (`events.ts`) | 240 | 4.5 rad/s | 临时部署物，性能与浮游无人机相当 |
+
+#### 引擎改动
+
+- `updateProjectiles()`：搜索半径从硬编码 `280` 改为读取 `p.homingRadius ?? 280`，转向速率从硬编码 `3.5` 改为读取 `p.homingTurnRate ?? 3.5`
+- `fireWeapon()`：检测哨兵追踪天赋 (`sentinel_utility_4`)，为所有弹体附加 `homing` + `undodgeable` + 弹速 1.30x
+- `fireDrone()`：透传武器 `homing`/`homingRadius`/`homingTurnRate`，同时检测哨兵追踪天赋
+- `fireWeapon()` 锻造检测：读取 `flagshipPeakState.weaponMods` 并调用 `getInstalledModEffects()` 检查追踪器/制导器
+- 炮台导弹：`updateDeployableList` 中 `turret` case 新增 `missileTimer` 逻辑，每5秒发射一枚追踪导弹（`fireTurretMissile`）
+- 炮台常规弹体：`fireTurretProjectile` 检测工程师导弹天赋，为弹体附加 `homing`
+- Recon 无人机：`updateDeployableList` 中 `drone` case 检测 `heroId === "recon"`，按 `fireCooldown` 发射追踪弹体（`fireReconDroneProjectile`）
+
+#### 类型定义变更
+
+| 文件 | 接口/类型 | 新增字段 |
+|------|----------|----------|
+| `types.ts` | `Projectile` | `homingRadius?: number`, `homingTurnRate?: number`, `undodgeable?: boolean` |
+| `types.ts` | `Weapon` | `homingRadius?: number`, `homingTurnRate?: number` |
+| `types.ts` | `WeaponMod.statBonus` | `homing?: number` |
+| `types.ts` | `Deployable` | `missileTimer?: number` |
+| `balance.ts` | `WeaponStatBlock` | `homingRadius?: number`, `homingTurnRate?: number` |
+
+#### 改动文件清单
+
+| 文件 | 改动 |
+|------|------|
+| `lib/game/types.ts` | 4 个接口新增字段 |
+| `lib/game/balance.ts` | `drone`、`swarm` 武器添加 `homing` + 参数，`createWeaponFromBalance` 透传 |
+| `lib/game/engine.ts` | `updateProjectiles` 自定义参数，`fireWeapon` 追踪天赋 + 锻造检测，`fireDrone` 透传参数 |
+| `lib/game/heroes.ts` | `fireTurretProjectile` 检测导弹天赋，新增 `fireTurretMissile`、`fireReconDroneProjectile`，`updateDeployableList` 导弹计时 + Recon 无人机射击 |
+| `lib/game/hero-skill-tree.ts` | 导弹天赋添加 `homingRadius: 320, homingTurnRate: 4.5`，追踪天赋添加 `homingRadius: 280, homingTurnRate: 3.5` |
+| `lib/game/weapon-forge.ts` | 追踪器添加 `statBonus: { homing: 1 }`，制导器添加 `statBonus: { homing: 1 }` |
+| `lib/game/events.ts` | 钱包无人机弹体添加 `homing: true, homingRadius: 240, homingTurnRate: 4.5` |
+| `lib/game/balance.test.ts` | 验证 `drone`/`swarm` 的 homing 字段和参数 |
+
 ---
 
 ## 17. 监控与日志

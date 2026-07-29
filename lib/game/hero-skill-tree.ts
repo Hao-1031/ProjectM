@@ -115,7 +115,7 @@ const engineerTree: HeroSkillTree = buildHeroTree(
   "engineer",
   [
     { id: "", name: "炮台强化", branch: "offense", tier: 1, description: "炮台伤害+15%，攻击速度+10%", effect: { turretDamage: 0.15, turretAttackSpeed: 0.10 }, requiredPoints: 1 },
-    { id: "", name: "导弹", branch: "offense", tier: 2, description: "炮台每5秒发射一枚追踪导弹，造成120%范围伤害", effect: { missileInterval: 5, missileDamage: 1.20 }, requiredPoints: 2 },
+    { id: "", name: "导弹", branch: "offense", tier: 2, description: "炮台每5秒发射一枚追踪导弹，造成120%范围伤害", effect: { missileInterval: 5, missileDamage: 1.20, homingRadius: 320, homingTurnRate: 4.5 }, requiredPoints: 2 },
     { id: "", name: "过热", branch: "offense", tier: 3, description: "炮台连续攻击10秒后进入过热状态，伤害+50%，持续5秒", effect: { overheatChargeTime: 10, overheatDamageBonus: 0.50, overheatDuration: 5 }, requiredPoints: 3 },
     { id: "", name: "轨道炮", branch: "offense", tier: 4, description: "部署轨道炮台，射程+40%，可穿透敌人", effect: { railgunRange: 0.40, railgunPierce: 1 }, requiredPoints: 4 },
     { id: "", name: "末日机甲", branch: "offense", tier: 5, description: "召唤巨型机甲，持续20秒，伤害+200%，范围攻击", effect: { mechDuration: 20, mechDamage: 2.0, mechAoe: 1 }, requiredPoints: 5 },
@@ -159,7 +159,7 @@ const sentinelTree: HeroSkillTree = buildHeroTree(
     { id: "", name: "侦察", branch: "utility", tier: 1, description: "视野范围+20%，移速+10%", effect: { visionRange: 0.20, speedBonus: 0.10 }, requiredPoints: 1 },
     { id: "", name: "标记弹", branch: "utility", tier: 2, description: "攻击标记目标，使其受到所有伤害+25%，持续6秒", effect: { markVulnerability: 0.25, markDuration: 6 }, requiredPoints: 2 },
     { id: "", name: "鹰眼", branch: "utility", tier: 3, description: "暴击率+15%，命中率+20%", effect: { critChance: 0.15, accuracyBonus: 0.20 }, requiredPoints: 3 },
-    { id: "", name: "追踪", branch: "utility", tier: 4, description: "攻击附带追踪效果，弹道速度+30%，无法被闪避", effect: { homing: 1, projectileSpeed: 0.30, undodgeable: 1 }, requiredPoints: 4 },
+    { id: "", name: "追踪", branch: "utility", tier: 4, description: "攻击附带追踪效果，弹道速度+30%，无法被闪避", effect: { homing: 1, projectileSpeed: 0.30, undodgeable: 1, homingRadius: 280, homingTurnRate: 3.5 }, requiredPoints: 4 },
     { id: "", name: "全知视野", branch: "utility", tier: 5, description: "获得全图视野，所有友军攻击力+20%，持续15秒", effect: { globalVision: 1, teamDamageBonus: 0.20, visionDuration: 15 }, requiredPoints: 5 },
   ],
 );
