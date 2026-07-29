@@ -40,7 +40,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#0c0a14" />
+        <meta name="theme-color" content="#F5F2ED" />
         <meta name="generator" content={VERSION_META_GENERATOR} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />

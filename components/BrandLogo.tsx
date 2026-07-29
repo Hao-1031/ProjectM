@@ -22,19 +22,18 @@ export default function BrandLogo({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Outer hexagon - dimension boundary */}
-      <motion.path
-        d="M24 4L44 14V34L24 44L4 34V14L24 4Z"
+      {/* Outer ring — orbital boundary */}
+      <motion.circle
+        cx="24" cy="24" r="22"
         stroke="currentColor"
-        strokeWidth="1.2"
-        strokeOpacity="0.3"
+        strokeWidth="0.8"
+        strokeOpacity="0.2"
         fill="none"
         initial={animated ? { pathLength: 0, opacity: 0 } : undefined}
         animate={animated ? { pathLength: 1, opacity: 1 } : undefined}
         transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
       />
-
-      {/* Inner hexagon - anchor point */}
+      {/* Inner hexagon — space station geometry */}
       <motion.path
         d="M24 10L36 16V28L24 34L12 28V16L24 10Z"
         stroke="currentColor"
@@ -45,9 +44,7 @@ export default function BrandLogo({
         animate={animated ? { pathLength: 1, opacity: 1 } : undefined}
         transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
       />
-
-      {/* M letterform - constructed from three diagonal strokes */}
-      {/* Left stroke */}
+      {/* M letterform — clean geometric */}
       <motion.path
         d="M17 14L17 34"
         stroke="currentColor"
@@ -58,7 +55,6 @@ export default function BrandLogo({
         animate={animated ? { pathLength: 1 } : undefined}
         transition={{ duration: 0.4, delay: 0.8, ease: "easeOut" }}
       />
-      {/* Center diagonal */}
       <motion.path
         d="M17 14L24 26L31 14"
         stroke="currentColor"
@@ -71,7 +67,6 @@ export default function BrandLogo({
         animate={animated ? { pathLength: 1 } : undefined}
         transition={{ duration: 0.5, delay: 1.0, ease: "easeOut" }}
       />
-      {/* Right stroke */}
       <motion.path
         d="M31 14L31 34"
         stroke="currentColor"
@@ -82,24 +77,18 @@ export default function BrandLogo({
         animate={animated ? { pathLength: 1 } : undefined}
         transition={{ duration: 0.4, delay: 1.2, ease: "easeOut" }}
       />
-
       {/* Center anchor dot */}
       <motion.circle
-        cx="24"
-        cy="26"
-        r="2.5"
+        cx="24" cy="26" r="2.5"
         fill="currentColor"
         fillOpacity="0.8"
         initial={animated ? { scale: 0 } : undefined}
         animate={animated ? { scale: 1 } : undefined}
         transition={{ duration: 0.3, delay: 1.5, ease: "easeOut" }}
       />
-
       {/* Bottom anchor point */}
       <motion.circle
-        cx="24"
-        cy="34"
-        r="1.5"
+        cx="24" cy="34" r="1.5"
         fill="currentColor"
         fillOpacity="0.4"
         initial={animated ? { scale: 0 } : undefined}
@@ -112,7 +101,7 @@ export default function BrandLogo({
   const wordmark = (
     <div className="flex flex-col">
       <span
-        className="font-display text-sm font-bold uppercase tracking-[0.25em]"
+        className="font-sans font-bold uppercase tracking-[0.25em]"
         style={{ fontSize: size * 0.4 }}
       >
         多重宇宙

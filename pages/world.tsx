@@ -139,6 +139,7 @@ export default function WorldPage() {
       <Head>
         <title>维度网络 - Project M</title>
         <meta name="description" content="探索Project M的多元宇宙维度网络，选择你的维度开始穿越。" />
+        <meta name="theme-color" content="#F5F2ED" />
       </Head>
       <DimensionBackground intensity="high" />
       <div className="noise-overlay" />
@@ -198,8 +199,8 @@ export default function WorldPage() {
             className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{ left: "50%", top: "50%", zIndex: 2 }}
           >
-            <div className="bridge-glow rounded-full p-4">
-              <div className="holo-ring inline-flex h-16 w-16 items-center justify-center">
+            <div className="station-glow rounded-full p-4">
+              <div className="orbital-ring inline-flex h-16 w-16 items-center justify-center">
                 <BrandLogo size={32} variant="icon" className="text-primary" />
               </div>
             </div>
@@ -249,7 +250,7 @@ export default function WorldPage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bridge-panel holo-scan bridge-glow mx-auto mt-8 max-w-md p-5"
+            className="station-panel orbital-scan station-glow mx-auto mt-8 max-w-md p-5"
           >
             <div className="flex items-center gap-3">
               <span

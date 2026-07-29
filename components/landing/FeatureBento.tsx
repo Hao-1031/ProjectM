@@ -11,7 +11,7 @@ import {
   Target,
   Sparkle,
   CaretRight,
-  Globe,
+  Planet,
   Atom,
   Brain,
   Cloud,
@@ -38,7 +38,7 @@ const DIMENSIONS = [
     subtitle: "压力维度",
     desc: "满配超频，火力全开。面对5倍密度敌潮，每一秒都是生存考验。",
     icon: Lightning,
-    accent: "entropy",
+    accent: "danger",
     size: "lg:col-span-2",
     href: "/game?mode=extreme-survival",
     featured: true,
@@ -49,7 +49,7 @@ const DIMENSIONS = [
     subtitle: "混沌维度",
     desc: "诅咒与祝福双选，每次升级都是关键抉择。",
     icon: Brain,
-    accent: "quantum",
+    accent: "orbital",
     size: "lg:col-span-2",
     href: "/game?mode=survival",
     featured: false,
@@ -60,7 +60,7 @@ const DIMENSIONS = [
     subtitle: "竞技维度",
     desc: "全球排行榜竞速，与所有维度行者一较高下。",
     icon: Trophy,
-    accent: "anchor",
+    accent: "accent",
     size: "lg:col-span-2",
     href: "/game?mode=peak-challenge",
     featured: false,
@@ -71,7 +71,7 @@ const DIMENSIONS = [
     subtitle: "叙事维度",
     desc: "连续任务推进，解锁维度档案。",
     icon: Target,
-    accent: "accent",
+    accent: "secondary",
     size: "lg:col-span-2",
     href: "/game?mode=campaign",
     featured: false,
@@ -82,7 +82,7 @@ const DIMENSIONS = [
     subtitle: "冲突维度",
     desc: "PvP竞技对抗，维度行者之间的较量。",
     icon: Sword,
-    accent: "danger",
+    accent: "caution",
     size: "lg:col-span-2",
     href: "/game?mode=deathmatch",
     featured: false,
@@ -119,12 +119,12 @@ export default function FeatureBento() {
       <GSAPScrollReveal direction="up">
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-              <Globe size={12} weight="bold" />
+              <Planet size={12} weight="bold" />
               维度网络
             </span>
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           </div>
           <h2 className="mt-4 font-display text-2xl font-bold tracking-tight md:text-3xl">
             七大维度，<span className="text-gradient">无限可能</span>
@@ -149,19 +149,19 @@ export default function FeatureBento() {
             >
               <Link
                 href={dim.href}
-                className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-panel/60 p-5 transition-all holo-scan hover:border-primary/30 hover:bg-panel hover:shadow-xl hover:shadow-primary/5 focus-ring ${
-                  dim.featured ? "border-primary/15 quantum-glow" : "border-border"
+                className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-panel/60 p-5 transition-all orbital-scan hover:border-primary/30 hover:bg-panel hover:shadow-lg hover:shadow-primary/5 focus-ring ${
+                  dim.featured ? "border-primary/15 station-glow" : "border-border"
                 }`}
               >
                 {/* Accent glow */}
                 <div
-                  className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-30"
+                  className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-25"
                   style={{ backgroundColor: `var(--${dim.accent})` }}
                 />
 
                 {/* Featured badge */}
                 {dim.featured && (
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.8),transparent_70%)]" />
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.01] bg-[radial-gradient(circle_at_70%_30%,rgba(11,29,58,0.5),transparent_70%)]" />
                 )}
 
                 <div className="relative">
@@ -169,14 +169,14 @@ export default function FeatureBento() {
                     <span
                       className="inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
                       style={{
-                        backgroundColor: `var(--${dim.accent})15`,
+                        backgroundColor: `var(--${dim.accent})10`,
                         color: `var(--${dim.accent})`,
                       }}
                     >
                       <Icon size={20} weight="bold" />
                     </span>
                     {dim.featured && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/15 bg-primary/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         <Sparkle size={10} weight="fill" />
                         主打
                       </span>

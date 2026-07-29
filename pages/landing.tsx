@@ -3,11 +3,13 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Crosshair,
   Trophy,
   GameController,
   ArrowRight,
   CaretRight,
+  Planet,
+  Rocket,
+  Star,
 } from "@phosphor-icons/react";
 import DimensionBackground from "@/components/effects/DimensionBackground";
 import BrandLogo from "@/components/BrandLogo";
@@ -23,7 +25,7 @@ import FooterCTA from "@/components/landing/FooterCTA";
 
 const FAQS = [
   {
-    q: "Project M 是什么类型游戏？",
+    q: "多重宇宙是什么类型游戏？",
     a: "一款多元宇宙背景的横屏动作射击 Web 游戏。主打据点防守、极限生存与英雄技能构建，浏览器打开即玩。",
   },
   {
@@ -36,7 +38,7 @@ const FAQS = [
   },
   {
     q: "数据会保存在哪里？",
-    a: "本地进度保存在浏览器本地存储中；全球排行榜、公告等在线功能通过 Supabase 云端同步。",
+    a: "本地进度保存在浏览器本地存储中；全球排行榜、公告等在线功能通过云端同步。",
   },
   {
     q: "支持联机吗？",
@@ -48,10 +50,10 @@ function LeaderboardPreview() {
   const { entries, loading, error, refetch } = useLeaderboard({ limit: 5 });
 
   return (
-    <div className="rounded-3xl border border-primary/10 bg-panel p-3 shadow-2xl shadow-black/20 md:p-4">
+    <div className="rounded-3xl border border-border bg-panel p-3 station-glow md:p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-bold">
-          <Trophy size={16} weight="bold" className="text-anchor" />
+          <Trophy size={16} weight="bold" className="text-accent" />
           维度行者榜
         </h3>
         <Link href="/leaderboard" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
@@ -68,17 +70,17 @@ function LeaderboardPreview() {
           {entries.map((entry, i) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/50 px-2.5 py-1.5"
+              className="flex items-center justify-between rounded-xl border border-border bg-background/50 px-2.5 py-1.5"
             >
               <div className="flex items-center gap-2">
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                     i === 0
-                      ? "bg-anchor/15 text-anchor"
+                      ? "bg-accent/15 text-accent"
                       : i === 1
                         ? "bg-muted/15 text-muted"
                         : i === 2
-                          ? "bg-accent/15 text-accent"
+                          ? "bg-orbital/15 text-orbital"
                           : "bg-border text-muted"
                   }`}
                 >
@@ -113,7 +115,7 @@ function FAQSection() {
             return (
               <div
                 key={i}
-                className={`rounded-2xl border transition-colors bridge-panel holo-scan ${open ? "border-primary/30 bg-panel" : "border-primary/10 bg-panel/50"}`}
+                className={`rounded-2xl border transition-colors orbital-scan ${open ? "border-primary/20 bg-panel" : "border-border bg-panel/50"}`}
               >
                 <button
                   type="button"
@@ -143,7 +145,7 @@ export default function LandingPage() {
   return (
     <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
-        <title>多重宇宙 · 梦想家 - 多元宇宙在此交汇</title>
+        <title>多重宇宙 · 梦想家 - 深空探索由此开始</title>
         <meta name="description" content="多重宇宙是多元宇宙背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
       </Head>
 
@@ -179,7 +181,8 @@ export default function LandingPage() {
         <RhythmSection />
         <ModesShowcase />
 
-        <section className="border-y border-primary/10 bg-panel/30">
+        {/* Leaderboard section */}
+        <section className="border-y border-border bg-panel/20">
           <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
             <div className="grid items-center gap-4 lg:grid-cols-12">
               <div className="lg:col-span-5">
@@ -204,7 +207,7 @@ export default function LandingPage() {
                   </Link>
                   <Link
                     href="/game?mode=defense"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/10 bg-panel px-5 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-panel px-5 text-sm font-semibold transition-colors hover:bg-panel-raised focus-ring"
                   >
                     挑战据点防守
                     <ArrowRight size={14} />

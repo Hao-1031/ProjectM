@@ -46,12 +46,13 @@ export default function PeakChallengePage() {
       <Head>
         <title>Project M 旗舰版 - 巅峰挑战</title>
         <meta name="description" content="Project M 旗舰版：巅峰挑战。满配开局、击杀效率驱动、15 分钟高压、超频极限与赛季排行榜。" />
+        <meta name="theme-color" content="#F5F2ED" />
       </Head>
 
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 starfield opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
@@ -81,7 +82,7 @@ export default function PeakChallengePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="lg:col-span-7"
             >
-              <div className="bridge-panel holo-scan bridge-glow overflow-hidden">
+              <div className="station-panel orbital-scan station-glow overflow-hidden">
                 <img
                   src={HERO_IMAGE}
                   alt="巅峰挑战"
@@ -94,7 +95,7 @@ export default function PeakChallengePage() {
                       <Clock size={10} />
                       15 分钟
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary-subtle px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                       <Trophy size={10} />
                       赛季榜
                     </span>
@@ -114,7 +115,7 @@ export default function PeakChallengePage() {
                 return (
                   <div
                     key={feature.title}
-                    className="bridge-panel holo-scan p-3 transition-all hover:border-accent/20"
+                    className="station-panel orbital-scan p-3 transition-all hover:border-accent/20"
                   >
                     <div className="flex items-start gap-3">
                       <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
@@ -136,7 +137,7 @@ export default function PeakChallengePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mt-4 bridge-panel holo-scan bridge-glow p-4"
+            className="relative mt-4 station-panel orbital-scan station-glow p-4"
           >
             <div className="relative grid gap-4 lg:grid-cols-2">
               <div>

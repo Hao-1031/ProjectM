@@ -1,14 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Layout from "@/components/Layout";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Crosshair,
   Skull,
   Sword,
   Target,
   Trophy,
-  Check,
   Lock,
   ArrowsOut,
   Scan,
@@ -42,6 +41,8 @@ import {
   Sparkle,
   Hexagon,
   Pulse,
+  Planet,
+  Broadcast,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { formatTime } from "@/lib/game/math";
@@ -80,17 +81,17 @@ function ResourceBar({ coins, seasonCurrency }: { coins: number; seasonCurrency:
       transition={{ duration: 0.4, delay: 0.1 }}
       className="flex flex-wrap gap-2"
     >
-      <div className="bridge-panel flex items-center gap-2 px-3 py-1.5">
-        <div className="holo-ring flex h-7 w-7 items-center justify-center">
-          <Coin size={14} weight="fill" className="text-amber-400" />
+      <div className="station-panel flex items-center gap-2 px-3 py-1.5">
+        <div className="orbital-ring flex h-7 w-7 items-center justify-center">
+          <Coin size={14} weight="fill" className="text-accent" />
         </div>
         <div>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted">金币</p>
           <p className="font-mono text-sm font-bold tabular-nums">{coins.toLocaleString()}</p>
         </div>
       </div>
-      <div className="bridge-panel flex items-center gap-2 px-3 py-1.5">
-        <div className="holo-ring flex h-7 w-7 items-center justify-center">
+      <div className="station-panel flex items-center gap-2 px-3 py-1.5">
+        <div className="orbital-ring flex h-7 w-7 items-center justify-center">
           <Star size={14} weight="fill" className="text-primary" />
         </div>
         <div>
@@ -111,15 +112,15 @@ function BestRunCard({ best }: { best: SaveData["bestRun"] | null | undefined })
         initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        className="bridge-panel holo-scan p-4 bridge-glow"
+        className="station-panel orbital-scan p-4 station-glow"
       >
-        <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+        <div className="station-panel-header -mx-4 -mt-4 mb-3">
           <div className="flex items-center gap-2 px-4 pt-4">
-            <Pulse size={14} weight="bold" className="text-primary status-pulse" />
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">最佳撤离记录</span>
+            <Broadcast size={14} weight="bold" className="text-primary status-pulse" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">最佳出航记录</span>
           </div>
         </div>
-        <p className="text-sm text-muted">暂无记录。完成第一次部署后，这里会显示你的个人巅峰。</p>
+        <p className="text-sm text-muted">暂无记录。完成第一次部署后，这里会显示你的深空探索巅峰。</p>
         <Link
           href="/game"
           className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
@@ -136,17 +137,17 @@ function BestRunCard({ best }: { best: SaveData["bestRun"] | null | undefined })
       initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.15 }}
-      className="bridge-panel holo-scan p-4 bridge-glow"
+      className="station-panel orbital-scan p-4 station-glow"
     >
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3">
         <div className="flex items-center justify-between px-4 pt-4">
           <div className="flex items-center gap-2">
-            <Pulse size={14} weight="bold" className="text-primary status-pulse" />
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">最佳撤离记录</span>
+            <Broadcast size={14} weight="bold" className="text-primary status-pulse" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">最佳出航记录</span>
           </div>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
-              best.victory ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+              best.victory ? "bg-success/10 text-success" : "bg-caution/10 text-caution"
             }`}
           >
             {best.victory ? <Shield size={12} weight="bold" /> : <Crosshair size={12} weight="bold" />}
@@ -157,8 +158,8 @@ function BestRunCard({ best }: { best: SaveData["bestRun"] | null | undefined })
 
       <div className="flex items-start justify-between">
         <div>
-          <p className={`font-display text-lg font-bold ${best.victory ? "text-emerald-400" : "text-red-400"}`}>
-            {best.victory ? "撤离成功" : "任务失败"}
+          <p className={`font-display text-lg font-bold ${best.victory ? "text-success" : "text-caution"}`}>
+            {best.victory ? "出航成功" : "任务失败"}
           </p>
           <p className="mt-0.5 text-[11px] text-muted">
             {MODE_NAMES[best.mode] ?? best.mode} · {formatTime(best.elapsed)}
@@ -167,12 +168,12 @@ function BestRunCard({ best }: { best: SaveData["bestRun"] | null | undefined })
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
-          { label: "击杀", value: best.stats.kills, icon: Skull, color: "text-red-400" },
-          { label: "伤害", value: Math.floor(best.stats.damageDealt).toLocaleString(), icon: Sword, color: "text-orange-400" },
-          { label: "存活", value: formatTime(best.elapsed), icon: Clock, color: "text-cyan-400" },
-          { label: "任务", value: best.completedMissions, icon: Target, color: "text-primary" },
+          { label: "击杀", value: best.stats.kills, icon: Skull, color: "text-caution" },
+          { label: "伤害", value: Math.floor(best.stats.damageDealt).toLocaleString(), icon: Sword, color: "text-orbital" },
+          { label: "存活", value: formatTime(best.elapsed), icon: Clock, color: "text-primary" },
+          { label: "任务", value: best.completedMissions, icon: Target, color: "text-accent" },
         ].map((stat) => (
-          <div key={stat.label} className="bridge-panel p-2">
+          <div key={stat.label} className="station-panel p-2">
             <dt className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted">
               <stat.icon size={10} weight="bold" className={stat.color} />
               {stat.label}
@@ -196,7 +197,7 @@ function StatMiniCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="bridge-panel group relative p-3 transition-all hover:border-primary/30 bridge-glow"
+      className="station-panel group relative p-3 transition-all hover:border-primary/30 station-glow"
     >
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-3xl transition-opacity group-hover:opacity-25" style={{ backgroundColor: color }} />
       <div className="relative flex items-center justify-between">
@@ -229,12 +230,12 @@ function HeroRoster({ save, selectedHero }: { save: SaveData | null; selectedHer
   }, [save, selectedHero]);
 
   return (
-    <div className="bridge-panel p-4">
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+    <div className="station-panel p-4">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3">
         <div className="flex items-center justify-between px-4 pt-4">
           <div className="flex items-center gap-2">
             <Users size={16} weight="bold" className="text-primary" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">英雄档案</h3>
+            <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">船员名录</h3>
           </div>
           <Link href="/heroes" className="flex items-center gap-1 text-[11px] font-medium text-muted transition-colors hover:text-primary">
             全部 <CaretRight size={11} weight="bold" />
@@ -252,7 +253,7 @@ function HeroRoster({ save, selectedHero }: { save: SaveData | null; selectedHer
               transition={{ duration: 0.3, delay: i * 0.05 }}
               className={`group relative w-[200px] flex-none snap-start overflow-hidden rounded-xl border p-2.5 transition-all ${
                 hero.isSelected
-                  ? "border-primary/30 bg-primary/5"
+                  ? "border-primary/30 bg-primary-subtle"
                   : hero.unlocked
                     ? "border-primary/10 bg-panel/60 hover:border-primary/20 hover:bg-panel"
                     : "border-primary/5 bg-panel/40 opacity-60"
@@ -266,7 +267,7 @@ function HeroRoster({ save, selectedHero }: { save: SaveData | null; selectedHer
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="truncate text-xs font-bold">{hero.name}</p>
-                    {hero.isSelected && <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold text-primary">出战</span>}
+                    {hero.isSelected && <span className="shrink-0 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-bold text-primary">出战</span>}
                   </div>
                   <p className="mt-0.5 text-[10px] leading-relaxed text-muted line-clamp-2">{hero.description}</p>
                   {hero.unlocked && (
@@ -302,12 +303,12 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
   const unlocked = weapons.filter((w) => w.unlocked && !w.equipped).slice(0, 4);
 
   return (
-    <div className="bridge-panel p-4">
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+    <div className="station-panel p-4">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3">
         <div className="flex items-center justify-between px-4 pt-4">
           <div className="flex items-center gap-2">
             <Sword size={16} weight="bold" className="text-primary" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">武器库</h3>
+            <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">武器阵列</h3>
           </div>
           <Link href="/armory" className="flex items-center gap-1 text-[11px] font-medium text-muted transition-colors hover:text-primary">
             军械库 <CaretRight size={11} weight="bold" />
@@ -325,11 +326,11 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
                 initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="bridge-panel group relative w-[180px] flex-none snap-start p-2.5 bridge-glow"
+                className="station-panel group relative w-[180px] flex-none snap-start p-2.5 station-glow"
               >
                 <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl transition-opacity group-hover:opacity-60" style={{ backgroundColor: `${weapon.color}10` }} />
                 <div className="relative flex items-center gap-2">
-                  <div className="holo-ring flex h-8 w-8 shrink-0 items-center justify-center">
+                  <div className="orbital-ring flex h-8 w-8 shrink-0 items-center justify-center">
                     <Icon size={14} weight="bold" style={{ color: weapon.color }} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -339,7 +340,7 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
                 </div>
                 <div className="relative mt-2 flex items-center gap-1">
                   <ShieldCheck size={10} weight="bold" className="text-primary status-pulse" />
-                  <span className="text-[9px] font-medium text-primary">已装备</span>
+                  <span className="text-[9px] font-medium text-primary">已装配</span>
                 </div>
               </motion.div>
             );
@@ -357,7 +358,7 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
                 initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="bridge-panel group relative w-[160px] flex-none snap-start p-2.5 transition-all hover:border-primary/20"
+                className="station-panel group relative w-[160px] flex-none snap-start p-2.5 transition-all hover:border-primary/20"
               >
                 <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-3xl transition-opacity group-hover:opacity-60" style={{ backgroundColor: `${weapon.color}08` }} />
                 <div className="relative flex items-center gap-2">
@@ -376,7 +377,7 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
       )}
 
       {equipped.length === 0 && unlocked.length === 0 && (
-        <div className="bridge-panel border-dashed border-primary/10 bg-panel/40 p-5 text-center">
+        <div className="station-panel border-dashed border-primary/10 bg-panel/40 p-5 text-center">
           <Crosshair size={22} weight="bold" className="mx-auto text-muted" />
           <p className="mt-2 text-xs text-muted">暂无武器。完成战役模式解锁新武器。</p>
         </div>
@@ -388,17 +389,17 @@ function WeaponArmory({ save, equippedWeapons }: { save: SaveData | null; equipp
 function QuickActions() {
   const reducedMotion = useReducedMotion();
   const actions = [
-    { href: "/game", label: "开始部署", icon: Play, color: "#3dd1c8", desc: "进入战场" },
-    { href: "/armory", label: "军械库", icon: Sword, color: "#c8a45c", desc: "武器管理" },
-    { href: "/heroes", label: "英雄", icon: Users, color: "#5b9cf5", desc: "英雄选择" },
-    { href: "/leaderboard", label: "排行榜", icon: Trophy, color: "#c84a4a", desc: "全球排名" },
-    { href: "/modes", label: "模式", icon: FlagBanner, color: "#3dd1c8", desc: "模式选择" },
-    { href: "/world", label: "世界观", icon: Globe, color: "#8b5e3c", desc: "维度故事" },
+    { href: "/game", label: "开始部署", icon: Play, color: "var(--primary)", desc: "进入战场" },
+    { href: "/armory", label: "军械库", icon: Sword, color: "var(--accent)", desc: "武器管理" },
+    { href: "/heroes", label: "船员", icon: Users, color: "var(--orbital)", desc: "船员选择" },
+    { href: "/leaderboard", label: "排行榜", icon: Trophy, color: "var(--caution)", desc: "全球排名" },
+    { href: "/modes", label: "星图", icon: Planet, color: "var(--orbital)", desc: "导航选择" },
+    { href: "/world", label: "世界观", icon: Globe, color: "var(--secondary)", desc: "维度故事" },
   ];
 
   return (
-    <div className="bridge-panel p-4">
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+    <div className="station-panel p-4">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3">
         <div className="flex items-center gap-2 px-4 pt-4">
           <Lightning size={16} weight="bold" className="text-primary" />
           <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">快捷操作</h3>
@@ -416,9 +417,9 @@ function QuickActions() {
             >
               <Link
                 href={action.href}
-                className="bridge-panel group flex flex-col items-center gap-1.5 p-3 transition-all hover:border-primary/30 hover:bridge-glow"
+                className="station-panel group flex flex-col items-center gap-1.5 p-3 transition-all hover:border-primary/30 station-glow"
               >
-                <div className="holo-ring flex h-9 w-9 items-center justify-center transition-transform group-hover:scale-110">
+                <div className="orbital-ring flex h-9 w-9 items-center justify-center transition-transform group-hover:scale-110">
                   <Icon size={18} weight="bold" style={{ color: action.color }} />
                 </div>
                 <span className="text-[11px] font-medium">{action.label}</span>
@@ -445,10 +446,10 @@ function RecentHistory({ save }: { save: SaveData | null }) {
         initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="bridge-panel border-dashed border-primary/10 bg-panel/40 p-5 text-center"
+        className="station-panel border-dashed border-primary/10 bg-panel/40 p-5 text-center"
       >
         <Clock size={22} weight="bold" className="mx-auto text-muted" />
-        <p className="mt-2 text-xs text-muted">暂无战斗记录。完成一次部署后这里会显示历史。</p>
+        <p className="mt-2 text-xs text-muted">暂无航行记录。完成一次部署后这里会显示历史。</p>
       </motion.div>
     );
   }
@@ -458,12 +459,12 @@ function RecentHistory({ save }: { save: SaveData | null }) {
       initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
-      className="bridge-panel p-4"
+      className="station-panel p-4"
     >
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3">
         <div className="flex items-center gap-2 px-4 pt-4">
           <Clock size={16} weight="bold" className="text-primary" />
-          <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">最近战斗</h3>
+          <h3 className="font-mono text-xs font-bold uppercase tracking-[0.15em]">航行记录</h3>
         </div>
       </div>
       <div className="space-y-1.5">
@@ -473,15 +474,15 @@ function RecentHistory({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
-            className="bridge-panel flex items-center gap-2.5 p-2.5 transition-all hover:border-primary/20"
+            className="station-panel flex items-center gap-2.5 p-2.5 transition-all hover:border-primary/20"
           >
-            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${entry.victory ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
-              {entry.victory ? <Shield size={14} weight="bold" className="text-emerald-400" /> : <Skull size={14} weight="bold" className="text-red-400" />}
+            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${entry.victory ? "bg-success/10" : "bg-caution/10"}`}>
+              {entry.victory ? <Shield size={14} weight="bold" className="text-success" /> : <Skull size={14} weight="bold" className="text-caution" />}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-xs font-bold">{MODE_NAMES[entry.mode] ?? entry.mode}</p>
-                <span className={`text-[9px] font-medium ${entry.victory ? "text-emerald-400" : "text-red-400"}`}>
+                <span className={`text-[9px] font-medium ${entry.victory ? "text-success" : "text-caution"}`}>
                   {entry.victory ? "胜利" : "失败"}
                 </span>
               </div>
@@ -511,7 +512,7 @@ export default function BasePage() {
   const equippedWeapons = save?.equippedWeapons ?? [];
 
   return (
-    <Layout title="幸存者基地">
+    <Layout title="深空前哨站">
       <div className="relative mx-auto max-w-7xl px-4 py-6 md:py-8">
         <div className="grid gap-4 lg:grid-cols-12 lg:gap-5">
           <motion.div
@@ -520,25 +521,25 @@ export default function BasePage() {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-4"
           >
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-              <Sparkle size={10} weight="fill" className="status-pulse" />
-              幸存者基地
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary-subtle px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+              <Planet size={10} weight="fill" className="status-pulse" />
+              深空前哨站
             </div>
             <h1 className="mt-3 font-display text-[clamp(1.5rem,3vw,2.25rem)] font-extrabold leading-[0.95] tracking-tight">
-              战绩、武器
+              航行数据
               <br />
-              <span className="text-gradient">与英雄</span>
+              <span className="text-gradient">武器与船员</span>
             </h1>
             <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-              累计数据、最佳撤离记录、已解锁武器与可用英雄。基地是你的维度锚点。
+              累计航行数据、最佳出航记录、已解锁武器与可用船员。前哨站是你的深空锚点。
             </p>
             <div className="mt-4">
               <Link
                 href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 focus-ring active:scale-95"
               >
-                <Play size={16} weight="fill" />
-                <span className="whitespace-nowrap">再次部署</span>
+                <Rocket size={16} weight="fill" />
+                <span className="whitespace-nowrap">再次出航</span>
               </Link>
             </div>
             <div className="mt-4">
@@ -548,10 +549,10 @@ export default function BasePage() {
 
           <div className="lg:col-span-8">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <StatMiniCard value={save?.totalRuns ?? 0} label="总出战" icon={Target} color="#3dd1c8" delay={0.05} />
-              <StatMiniCard value={save?.totalKills ?? 0} label="累计击杀" icon={Skull} color="#c84a4a" delay={0.1} />
-              <StatMiniCard value={best?.stats.kills ?? 0} label="最佳击杀" icon={Trophy} color="#c8a45c" delay={0.15} />
-              <StatMiniCard value={best?.stats.bossesKilled ?? 0} label="首领击杀" icon={Crown} color="#5b9cf5" delay={0.2} />
+              <StatMiniCard value={save?.totalRuns ?? 0} label="总出航" icon={Target} color="var(--orbital)" delay={0.05} />
+              <StatMiniCard value={save?.totalKills ?? 0} label="累计击杀" icon={Skull} color="var(--caution)" delay={0.1} />
+              <StatMiniCard value={best?.stats.kills ?? 0} label="最佳击杀" icon={Trophy} color="var(--accent)" delay={0.15} />
+              <StatMiniCard value={best?.stats.bossesKilled ?? 0} label="首领击杀" icon={Crown} color="var(--primary)" delay={0.2} />
             </div>
             <div className="mt-3">
               <BestRunCard best={best} />

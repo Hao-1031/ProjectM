@@ -6,16 +6,19 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
 import {
   Play,
   CaretRight,
-  Globe,
   Crosshair,
+  Planet,
+  Rocket,
+  Star,
 } from "@phosphor-icons/react";
 import BrandLogo from "@/components/BrandLogo";
+import { BRAND_TAGLINE } from "@/lib/version";
 
 export default function Hero() {
   const reducedMotion = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
@@ -23,26 +26,27 @@ export default function Hero() {
       ref={ref}
       className="relative flex min-h-[100dvh] items-center overflow-hidden"
     >
-      {/* Parallax background */}
+      {/* Parallax background layer */}
       <motion.div
         style={{ y: reducedMotion ? 0 : y, opacity: reducedMotion ? 1 : opacity }}
         className="absolute inset-0"
       >
-        <div className="absolute -right-[15%] top-[10%] h-[80vh] w-[80vh] rounded-full bg-primary/5 blur-[150px]" />
-        <div className="absolute -bottom-[10%] -left-[10%] h-[60vh] w-[60vh] rounded-full bg-anchor/4 blur-[120px]" />
-        <div className="absolute left-[40%] top-[30%] h-[40vh] w-[40vh] rounded-full bg-quantum/4 blur-[100px]" />
+        {/* Deep space blue glow — top right */}
+        <div className="absolute -right-[10%] top-[5%] h-[70vh] w-[70vh] rounded-full bg-primary/[0.04] blur-[140px]" />
+        {/* Astro gold glow — bottom left */}
+        <div className="absolute -bottom-[8%] -left-[8%] h-[55vh] w-[55vh] rounded-full bg-accent/[0.05] blur-[110px]" />
+        {/* Orbital blue — center */}
+        <div className="absolute left-[35%] top-[25%] h-[40vh] w-[40vh] rounded-full bg-orbital/[0.04] blur-[100px]" />
 
-        {/* Dimension grid */}
-        <div className="absolute inset-0 opacity-[0.03]">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern id="heroGrid" width="60" height="60" patternUnits="userSpaceOnUse">
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--primary)" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#heroGrid)" />
-          </svg>
-        </div>
+        {/* Station grid overlay */}
+        <div className="absolute inset-0 station-grid opacity-[0.06]" />
+
+        {/* Orbital path lines */}
+        <svg className="absolute inset-0 h-full w-full opacity-[0.04]" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+          <ellipse cx="600" cy="400" rx="500" ry="300" fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="1 12" />
+          <ellipse cx="600" cy="400" rx="380" ry="230" fill="none" stroke="var(--orbital)" strokeWidth="0.5" strokeDasharray="2 8" />
+          <ellipse cx="600" cy="400" rx="260" ry="160" fill="none" stroke="var(--accent)" strokeWidth="0.3" strokeDasharray="1 10" />
+        </svg>
       </motion.div>
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4">
@@ -60,9 +64,9 @@ export default function Hero() {
             </div>
 
             {/* Eyebrow */}
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-              <Globe size={12} weight="bold" />
-              梦想家
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/12 bg-primary/4 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+              <Planet size={12} weight="bold" />
+              深空门户站
             </span>
 
             {/* Title */}
@@ -74,17 +78,17 @@ export default function Hero() {
 
             {/* Subtitle */}
             <p className="mt-5 max-w-lg text-base leading-relaxed text-muted">
-              维度交汇·守住锚点。旗舰版多模式融合：据点防守、极限生存、肉鸽构筑与赛季挑战。
-              动态天气系统与诅咒祝福双选，每一局都是独一无二的维度穿越。
+              旗舰版多模式融合：据点防守、极限生存、旗舰巅峰与赛季挑战。
+              动态维度天气与诅咒祝福双选，每一局都是独一无二的深空穿越。
             </p>
 
             {/* CTA */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/game?mode=defense&multiplayer=1"
-                className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-[0.97]"
+                className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97]"
               >
-                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/12 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={20} weight="fill" />
                 <span className="whitespace-nowrap">穿越维度</span>
                 <CaretRight size={16} weight="bold" />
@@ -99,26 +103,32 @@ export default function Hero() {
             </div>
 
             {/* Quick stats */}
-            <div className="mt-10 flex gap-6">
+            <div className="mt-10 flex gap-8">
               {[
-                { value: "7", label: "维度" },
-                { value: "8", label: "英雄" },
-                { value: "12", label: "武器" },
-                { value: "∞", label: "构筑" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="font-display text-2xl font-bold tracking-tight text-primary">
-                    {stat.value}
-                  </p>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
+                { value: "7", label: "维度", icon: Planet },
+                { value: "8", label: "英雄", icon: Star },
+                { value: "12", label: "武器", icon: Crosshair },
+                { value: "∞", label: "构筑", icon: Rocket },
+              ].map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="flex items-center gap-2">
+                    <Icon size={14} weight="bold" className="text-primary/40" />
+                    <div>
+                      <p className="font-display text-2xl font-bold tracking-tight text-primary">
+                        {stat.value}
+                      </p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
+                        {stat.label}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
 
-          {/* Right: Dimension visual */}
+          {/* Right: Orbital visual */}
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -126,46 +136,34 @@ export default function Hero() {
             className="lg:col-span-5"
           >
             <div className="relative">
-              {/* Outer ring */}
-              <div className="absolute inset-0 animate-anchor-rotate opacity-20">
+              {/* Outer orbital rings */}
+              <motion.div
+                className="absolute inset-0 opacity-25"
+                animate={reducedMotion ? {} : { rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              >
                 <svg viewBox="0 0 400 400" className="h-full w-full">
-                  <circle
-                    cx="200"
-                    cy="200"
-                    r="180"
-                    fill="none"
-                    stroke="var(--primary)"
-                    strokeWidth="0.5"
-                    strokeDasharray="4 8"
-                  />
-                  <circle
-                    cx="200"
-                    cy="200"
-                    r="140"
-                    fill="none"
-                    stroke="var(--anchor)"
-                    strokeWidth="0.5"
-                    strokeDasharray="2 6"
-                  />
+                  <circle cx="200" cy="200" r="175" fill="none" stroke="var(--primary)" strokeWidth="0.4" strokeDasharray="3 10" />
+                  <circle cx="200" cy="200" r="135" fill="none" stroke="var(--orbital)" strokeWidth="0.4" strokeDasharray="2 8" />
+                  <circle cx="200" cy="200" r="95" fill="none" stroke="var(--accent)" strokeWidth="0.3" strokeDasharray="1 6" />
                 </svg>
-              </div>
+              </motion.div>
 
               {/* Center anchor */}
               <div className="flex aspect-square items-center justify-center">
                 <div className="relative">
-                  <div className="quantum-glow rounded-full p-8">
+                  <div className="station-glow rounded-full p-8">
                     <BrandLogo size={120} variant="icon" className="text-primary" />
                   </div>
-                  {/* Rift particles */}
-                  <div className="absolute -inset-8 animate-quantum-pulse rounded-full" />
+                  <div className="absolute -inset-8 rounded-full animate-station-pulse" />
                 </div>
               </div>
 
-              {/* Dimension labels */}
+              {/* Orbital dimension labels */}
               {[
                 { label: "据点防守", angle: 0, x: "50%", y: "0%" },
-                { label: "极限生存", angle: 120, x: "90%", y: "30%" },
-                { label: "肉鸽构筑", angle: 240, x: "10%", y: "30%" },
+                { label: "极限生存", angle: 120, x: "92%", y: "28%" },
+                { label: "旗舰巅峰", angle: 240, x: "8%", y: "28%" },
               ].map((dim) => (
                 <div
                   key={dim.label}
@@ -173,8 +171,8 @@ export default function Hero() {
                   style={{ left: dim.x, top: dim.y }}
                 >
                   <Link
-                    href={`/game?mode=${dim.label === "据点防守" ? "defense" : dim.label === "极限生存" ? "extreme-survival" : "survival"}`}
-                    className="group inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/80 px-3 py-1.5 text-[11px] font-semibold text-primary backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-primary/5"
+                    href={`/game?mode=${dim.label === "据点防守" ? "defense" : dim.label === "极限生存" ? "extreme-survival" : "flagship-peak"}`}
+                    className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-[11px] font-semibold text-primary backdrop-blur-sm transition-all hover:border-primary/30 hover:bg-primary-subtle"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     {dim.label}

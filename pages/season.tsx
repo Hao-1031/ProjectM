@@ -112,19 +112,19 @@ export default function SeasonPage() {
   const progressPct = xpToNext > 0 ? Math.min(100, (currentXp / xpToNext) * 100) : 100;
 
   return (
-    <Layout title="赛季">
+    <Layout title="任务日志">
       <Head>
-        <title>Project M 旗舰版 - 第一赛季：据点黎明</title>
+        <title>Project M 旗舰版 - 第一赛季：深空黎明</title>
         <meta
           name="description"
-          content="Project M 旗舰版第一赛季：据点黎明。完成挑战、解锁奖励、冲击排行榜。"
+          content="Project M 旗舰版第一赛季：深空黎明。完成挑战、解锁奖励、冲击排行榜。"
         />
       </Head>
 
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 starfield opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           <motion.div
@@ -135,13 +135,13 @@ export default function SeasonPage() {
           >
             <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
               <Calendar weight="duotone" size={14} />
-              当前赛季
+              当前任务
             </span>
             <h1 className="mt-2 font-display text-xl font-bold tracking-tight md:text-3xl">
-              第一赛季：{season?.name ?? "据点黎明"}
+              第一赛季：{season?.name ?? "深空黎明"}
             </h1>
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted">
-              赛季期间完成挑战、提升战阶，解锁限定外观与徽章。所有奖励仅改变外观，不影响战斗数值。
+              任务期间完成挑战、提升等级，解锁限定外观与徽章。所有奖励仅改变外观，不影响战斗数值。
             </p>
           </motion.div>
 
@@ -166,10 +166,10 @@ export default function SeasonPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                   className="lg:col-span-7"
                 >
-                  <div className="bridge-panel holo-scan bridge-glow overflow-hidden">
+                  <div className="station-panel orbital-scan station-glow overflow-hidden">
                     <img
                       src={HERO_IMAGE}
-                      alt="第一赛季：据点黎明"
+                      alt="第一赛季：深空黎明"
                       className="h-full w-full object-cover"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/40 to-transparent" />
@@ -189,17 +189,17 @@ export default function SeasonPage() {
                     initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mt-3 bridge-panel holo-scan p-4"
+                    className="mt-3 station-panel orbital-scan p-4"
                   >
-                    <div className="bridge-panel-header -mx-4 -mt-4 mb-4">
-                      <p className="font-mono text-xs uppercase tracking-widest text-muted">当前战阶</p>
+                    <div className="station-panel-header -mx-4 -mt-4 mb-4">
+                      <p className="font-mono text-xs uppercase tracking-widest text-muted">当前等级</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-mono text-2xl font-bold tabular-nums text-anchor">Lv.{currentLevel}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono text-xs uppercase tracking-widest text-muted">赛季 XP</p>
+                        <p className="font-mono text-xs uppercase tracking-widest text-muted">任务 XP</p>
                         <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-warning">
                           {currentXp} / {xpToNext}
                         </p>
@@ -214,7 +214,7 @@ export default function SeasonPage() {
                       />
                     </div>
                     <p className="mt-2 text-xs text-muted">
-                      每局巅峰挑战、极限生存和据点防守都会积累赛季 XP。
+                      每局巅峰挑战、极限生存和深空哨站防守都会积累任务 XP。
                     </p>
                   </motion.div>
                 </motion.div>
@@ -225,16 +225,16 @@ export default function SeasonPage() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="space-y-2 lg:col-span-5"
                 >
-                  <div className="bridge-panel holo-scan p-3">
-                    <div className="bridge-panel-header -mx-3 -mt-3 mb-3">
-                      <h2 className="text-sm font-bold tracking-tight">赛季挑战</h2>
+                  <div className="station-panel orbital-scan p-3">
+                    <div className="station-panel-header -mx-3 -mt-3 mb-3">
+                      <h2 className="text-sm font-bold tracking-tight">任务日志</h2>
                     </div>
                     <div className="space-y-3">
                       {(
                         [
                           ["每日", missionsByCategory.daily],
                           ["每周", missionsByCategory.weekly],
-                          ["赛季", missionsByCategory.season],
+                          ["远征", missionsByCategory.season],
                         ] as const
                       ).map(([label, missions]) => (
                         <div key={label}>
@@ -258,9 +258,9 @@ export default function SeasonPage() {
                     </div>
                   </div>
 
-                  <div className="bridge-panel holo-scan p-3">
-                    <div className="bridge-panel-header -mx-3 -mt-3 mb-3">
-                      <h2 className="text-sm font-bold tracking-tight">赛季货币</h2>
+                  <div className="station-panel orbital-scan p-3">
+                    <div className="station-panel-header -mx-3 -mt-3 mb-3">
+                      <h2 className="text-sm font-bold tracking-tight">深空币</h2>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -268,7 +268,7 @@ export default function SeasonPage() {
                       </div>
                       <div>
                         <p className="font-mono text-lg font-bold tabular-nums">{save?.seasonCurrency ?? 0}</p>
-                        <p className="text-[10px] text-muted">可用于赛季商店兑换外观</p>
+                        <p className="text-[10px] text-muted">可用于深空商店兑换外观</p>
                       </div>
                     </div>
                   </div>
@@ -280,11 +280,11 @@ export default function SeasonPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6 }}
-                className="mt-4 bridge-panel holo-scan p-4"
+                className="mt-4 station-panel orbital-scan p-4"
               >
-                <div className="bridge-panel-header -mx-4 -mt-4 mb-3">
+                <div className="station-panel-header -mx-4 -mt-4 mb-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-bold tracking-tight">战阶奖励</h2>
+                    <h2 className="text-sm font-bold tracking-tight">等级奖励</h2>
                     {claimMessage && (
                       <span className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-medium text-success">
                         {claimMessage}
@@ -298,7 +298,7 @@ export default function SeasonPage() {
                     return (
                       <div
                         key={level}
-                        className={`bridge-panel p-2 ${
+                        className={`station-panel p-2 ${
                           level <= currentLevel ? "" : "opacity-50"
                         }`}
                       >
@@ -318,7 +318,7 @@ export default function SeasonPage() {
                             return (
                               <div
                                 key={reward.id}
-                                className={`bridge-panel flex items-center gap-2 p-1.5 ${
+                                className={`station-panel flex items-center gap-2 p-1.5 ${
                                   reward.claimed
                                     ? "border-success/20"
                                     : reward.unlocked && !isPremiumLocked
@@ -370,13 +370,13 @@ export default function SeasonPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="relative mt-4 bridge-panel holo-scan bridge-glow p-4"
+                className="relative mt-4 station-panel orbital-scan station-glow p-4"
               >
                 <div className="relative grid items-center gap-4 md:grid-cols-2">
                   <div>
-                    <h2 className="font-display text-lg font-bold tracking-tight">开始你的赛季征程</h2>
+                    <h2 className="font-display text-lg font-bold tracking-tight">开始你的深空征程</h2>
                     <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-                      每一局战斗都会积累赛季进度。完成挑战、冲击排行榜，把限定奖励收入囊中。
+                      每一局战斗都会积累任务进度。完成挑战、冲击排行榜，把限定奖励收入囊中。
                     </p>
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row md:justify-end">

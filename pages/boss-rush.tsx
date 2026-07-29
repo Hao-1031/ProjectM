@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Head from "next/head";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
 import {
@@ -58,7 +59,7 @@ function BossCard({
 
   return (
     <motion.div
-      className={`group bridge-panel flex items-center gap-3 p-3 transition-all ${
+      className={`group station-panel flex items-center gap-3 p-3 transition-all ${
         defeated
           ? "border-emerald-500/20"
           : isActive
@@ -110,7 +111,7 @@ function TierCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className={`bridge-panel holo-scan bridge-glow p-5 transition-all ${
+      className={`station-panel orbital-scan station-glow p-5 transition-all ${
         completed
           ? "border-emerald-500/20"
           : unlocked
@@ -213,10 +214,13 @@ export default function BossRushPage() {
 
   return (
     <Layout title="Boss Rush">
+      <Head>
+        <meta name="theme-color" content="#F5F2ED" />
+      </Head>
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="medium" />
         <div className="noise-overlay pointer-events-none fixed inset-0 z-0" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 starfield opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 md:py-8">
           <motion.div
@@ -244,7 +248,7 @@ export default function BossRushPage() {
                 { label: "首领击败", value: `${progress.totalBossesDefeated}/${totalBosses}`, icon: Skull, color: "text-red-400" },
                 { label: "最高层级", value: progress.highestTierCleared ? BOSS_RUSH_TIERS.find((t) => t.id === progress.highestTierCleared)?.name ?? "-" : "-", icon: Crown, color: "text-primary" },
               ].map((stat) => (
-                <div key={stat.label} className="bridge-panel p-3">
+                <div key={stat.label} className="station-panel p-3">
                   <stat.icon size={16} weight="bold" className={stat.color} />
                   <p className="mt-1 font-mono text-lg font-bold tabular-nums">{stat.value}</p>
                   <p className="text-[10px] uppercase tracking-wider text-muted">{stat.label}</p>

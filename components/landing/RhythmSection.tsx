@@ -23,14 +23,14 @@ const RHYTHM_ITEMS = [
     title: "组建小队",
     desc: "邀请好友或匹配队友，分工明确的团队是守住锚点的关键。",
     icon: Users,
-    accent: "var(--quantum)",
+    accent: "var(--orbital)",
   },
   {
     step: "03",
     title: "部署防御",
     desc: "在波次间隙部署防御工事、升级武器、选择诅咒与祝福。",
     icon: Anchor,
-    accent: "var(--anchor)",
+    accent: "var(--accent)",
   },
   {
     step: "04",
@@ -45,7 +45,7 @@ export default function RhythmSection() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section className="relative z-10 border-y border-border/50 bg-panel/20">
+    <section className="relative z-10 border-y border-border bg-panel/30">
       <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
         <GSAPScrollReveal direction="up">
           <div className="mb-8">
@@ -68,7 +68,7 @@ export default function RhythmSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-panel/60 p-5 transition-all holo-scan hover:border-primary/20 hover:bg-panel"
+                className="group relative overflow-hidden rounded-2xl border border-border bg-panel/60 p-5 transition-all orbital-scan hover:border-primary/20 hover:bg-panel hover:shadow-lg hover:shadow-primary/5"
               >
                 <div
                   className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-20"
@@ -76,13 +76,13 @@ export default function RhythmSection() {
                 />
                 <span
                   className="font-display text-3xl font-extrabold tracking-tight"
-                  style={{ color: item.accent, opacity: 0.3 }}
+                  style={{ color: item.accent, opacity: 0.25 }}
                 >
                   {item.step}
                 </span>
                 <span
                   className="mt-3 inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
-                  style={{ backgroundColor: `${item.accent}15`, color: item.accent }}
+                  style={{ backgroundColor: `${item.accent}10`, color: item.accent }}
                 >
                   <Icon size={20} weight="bold" />
                 </span>

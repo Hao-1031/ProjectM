@@ -1,3 +1,4 @@
+import Head from "next/head";
 import Link from "next/link";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
@@ -6,6 +7,9 @@ import { MagnifyingGlass, House, GameController } from "@phosphor-icons/react";
 export default function NotFoundPage() {
   return (
     <Layout title="页面未找到" showNav={false}>
+      <Head>
+        <meta name="theme-color" content="#F5F2ED" />
+      </Head>
       <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-4">
         <div className="pointer-events-none absolute inset-0 opacity-20">
           <div className="absolute left-1/3 top-0 h-full w-px bg-primary/20" />
@@ -19,9 +23,9 @@ export default function NotFoundPage() {
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-10 w-full max-w-lg"
         >
-          <div className="bridge-panel holo-scan bridge-glow p-8 shadow-2xl md:p-10">
+          <div className="station-panel orbital-scan station-glow p-8 shadow-2xl md:p-10">
             <div className="flex flex-col items-center text-center">
-              <div className="holo-ring flex h-16 w-16 items-center justify-center">
+              <div className="orbital-ring flex h-16 w-16 items-center justify-center">
                 <MagnifyingGlass size={32} weight="bold" className="text-primary" />
               </div>
               <h1 className="mt-5 font-display text-3xl font-bold tracking-tight">404 - 信号丢失</h1>

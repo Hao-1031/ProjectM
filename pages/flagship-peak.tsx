@@ -25,6 +25,8 @@ import {
   Users,
   Sword,
   Atom,
+  Planet,
+  Broadcast,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import DimensionBackground from "@/components/effects/DimensionBackground";
@@ -36,11 +38,11 @@ const PHASES = [
     wave: "1-10 波",
     icon: Shield,
     accent: "text-primary",
-    accentHex: "#6366f1",
+    accentHex: "var(--primary)",
     accentBg: "bg-primary/10",
     borderGlow: "hover:border-primary/30",
-    glowColor: "rgba(99, 102, 241, 0.15)",
-    desc: "舰桥蓝紫色调，熟悉节奏。敌人稳步增强，占点激活补给，为后续阶段积累资源。",
+    glowColor: "rgba(11, 29, 58, 0.08)",
+    desc: "深空蓝基调，熟悉节奏。敌人稳步增强，占点激活补给，为后续阶段积累资源。",
     features: ["基础敌潮强度", "能量节点占点", "每3波特殊事件", "第10波首领战"],
   },
   {
@@ -48,12 +50,12 @@ const PHASES = [
     title: "超频增压",
     wave: "11-20 波",
     icon: Fire,
-    accent: "text-danger",
-    accentHex: "#ef4444",
-    accentBg: "bg-danger/10",
-    borderGlow: "hover:border-danger/30",
-    glowColor: "rgba(239, 68, 68, 0.15)",
-    desc: "红色警报！敌潮密度x1.5，精英怪大规模出现。动态任务激活，挑战极限。",
+    accent: "text-caution",
+    accentHex: "var(--caution)",
+    accentBg: "bg-caution/10",
+    borderGlow: "hover:border-caution/30",
+    glowColor: "rgba(196, 122, 106, 0.08)",
+    desc: "珊瑚预警！敌潮密度x1.5，精英怪大规模出现。动态任务激活，挑战极限。",
     features: ["1.5倍敌潮密度", "精英怪大规模侵入", "超频阶段动态任务", "第23波首领战"],
   },
   {
@@ -61,12 +63,12 @@ const PHASES = [
     title: "地狱终局",
     wave: "21-25 波",
     icon: Skull,
-    accent: "text-[#a855f7]",
-    accentHex: "#a855f7",
-    accentBg: "bg-[#a855f7]/10",
-    borderGlow: "hover:border-[#a855f7]/30",
-    glowColor: "rgba(168, 85, 247, 0.15)",
-    desc: "黑色虚空吞噬一切。2倍难度，虚空粒子密度1.5倍，屏幕震动0.7。第25波恐惧级首领战。",
+    accent: "text-orbital",
+    accentHex: "var(--orbital)",
+    accentBg: "bg-orbital/10",
+    borderGlow: "hover:border-orbital/30",
+    glowColor: "rgba(59, 125, 216, 0.08)",
+    desc: "轨道蓝警报。2倍难度，虚空粒子密度1.5倍，屏幕震动0.7。第25波恐惧级首领战。",
     features: ["2倍敌潮难度", "虚空粒子密度1.5倍", "屏幕震动0.7", "第25波恐惧级首领"],
   },
   {
@@ -74,12 +76,12 @@ const PHASES = [
     title: "深渊",
     wave: "26-35 波",
     icon: EyeSlash,
-    accent: "text-[#333333]",
-    accentHex: "#333333",
-    accentBg: "bg-[#333333]/10",
-    borderGlow: "hover:border-[#333333]/30",
-    glowColor: "rgba(51, 51, 51, 0.2)",
-    desc: "墨黑深渊吞噬一切光明。3倍难度，地图视野缩小40%，敌潮密度x2。第35波深渊吞噬者首领战。",
+    accent: "text-void",
+    accentHex: "var(--void)",
+    accentBg: "bg-void/10",
+    borderGlow: "hover:border-void/30",
+    glowColor: "rgba(11, 29, 58, 0.12)",
+    desc: "墨黑深渊吞噬一切。3倍难度，地图视野缩小40%，敌潮密度x2。第35波深渊吞噬者首领战。",
     features: ["3倍敌潮难度", "视野缩小40%", "敌潮密度x2", "第35波深渊首领"],
   },
   {
@@ -87,12 +89,12 @@ const PHASES = [
     title: "虚空",
     wave: "36-45 波",
     icon: Circle,
-    accent: "text-[#e2e8f0]",
-    accentHex: "#e2e8f0",
-    accentBg: "bg-[#e2e8f0]/10",
-    borderGlow: "hover:border-[#e2e8f0]/30",
-    glowColor: "rgba(226, 232, 240, 0.2)",
-    desc: "纯白虚空湮灭一切。4倍难度，重力反转机制，时间流速不稳定。第45波虚空湮灭者首领战。",
+    accent: "text-secondary",
+    accentHex: "var(--secondary)",
+    accentBg: "bg-secondary/10",
+    borderGlow: "hover:border-secondary/30",
+    glowColor: "rgba(74, 107, 138, 0.12)",
+    desc: "钢蓝虚空湮灭一切。4倍难度，重力反转机制，时间流速不稳定。第45波虚空湮灭者首领战。",
     features: ["4倍敌潮难度", "重力反转机制", "时间流速不稳定", "第45波虚空首领"],
   },
   {
@@ -100,12 +102,12 @@ const PHASES = [
     title: "创世",
     wave: "46-50 波",
     icon: Sparkle,
-    accent: "text-[#00ffcc]",
-    accentHex: "#00ffcc",
-    accentBg: "bg-[#00ffcc]/10",
-    borderGlow: "hover:border-[#00ffcc]/30",
-    glowColor: "rgba(0, 255, 204, 0.25)",
-    desc: "极光七彩终结之战。5倍难度，全机制融合，终极觉醒技能解锁。第50波创世泰坦首领战。",
+    accent: "text-accent",
+    accentHex: "var(--accent)",
+    accentBg: "bg-accent/10",
+    borderGlow: "hover:border-accent/30",
+    glowColor: "rgba(200, 164, 92, 0.15)",
+    desc: "航天金终结之战。5倍难度，全机制融合，终极觉醒技能解锁。第50波创世泰坦首领战。",
     features: ["5倍敌潮难度", "全机制融合", "创世觉醒技能", "第50波创世泰坦"],
   },
 ];
@@ -152,9 +154,8 @@ const SCORE_FORMULA = [
 ];
 
 const HERO_IMAGE =
-  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20spaceship%20bridge%20six%20phase%20transformation%20blue%20to%20red%20to%20void%20black%20to%20dark%20abyss%20to%20white%20void%20to%20aurora%20colors%2C%20holographic%20tactical%20displays%2C%20massive%20mechanical%20titan%20boss%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9";
+  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20bright%20clean%20space%20station%20flagship%20bridge%2C%20off-white%20aesthetic%2C%20deep%20blue%20accents%2C%20gold%20trim%20details%2C%20massive%20holographic%20tactical%20displays%2C%20chinese%20space%20station%20interior%20design%2C%20minimalist%20scifi%2C%20bright%20lighting%2C%20clean%20lines%2C%20no%20text%20no%20labels&image_size=landscape_16_9";
 
-// 浮动粒子
 function HeroParticles() {
   const particles = useMemo(() =>
     Array.from({ length: 20 }, (_, i) => ({
@@ -164,7 +165,7 @@ function HeroParticles() {
       size: 1 + Math.random() * 2,
       duration: 3 + Math.random() * 5,
       delay: Math.random() * 3,
-      opacity: 0.1 + Math.random() * 0.3,
+      opacity: 0.08 + Math.random() * 0.2,
     })),
     []
   );
@@ -174,7 +175,7 @@ function HeroParticles() {
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-primary/60"
+          className="absolute rounded-full bg-primary/40"
           style={{
             left: `${p.x}%`,
             top: `${p.y}%`,
@@ -204,14 +205,14 @@ export default function FlagshipPeakPage() {
   return (
     <Layout title="旗舰巅峰">
       <Head>
-        <title>Project M 旗舰版 - 旗舰巅峰 MAX</title>
-        <meta name="description" content="Project M 旗舰巅峰MAX：六阶段50波终极挑战。标准巡航-超频增压-地狱终局-深渊-虚空-创世，Boss变异+英雄技能树+武器锻造+2人联机。" />
+        <title>多重宇宙 旗舰巅峰 MAX - 旗舰舰桥</title>
+        <meta name="description" content="多重宇宙 旗舰巅峰MAX：六阶段50波终极挑战。标准巡航-超频增压-地狱终局-深渊-虚空-创世，Boss变异+英雄技能树+武器锻造+2人联机。" />
       </Head>
 
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="high" />
         <div className="noise-overlay" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 starfield opacity-30" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-4">
           {/* Hero */}
@@ -221,9 +222,9 @@ export default function FlagshipPeakPage() {
             transition={{ duration: 0.5 }}
             className="relative mb-3 md:mb-4"
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-              <Rocket size={12} weight="fill" className="status-pulse" />
-              旗舰巅峰 MAX
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary-subtle px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+              <Broadcast size={12} weight="fill" className="status-pulse" />
+              旗舰舰桥 · 旗舰巅峰 MAX
             </span>
             <h1 className="mt-3 text-[clamp(2rem,5vw,3.5rem)] font-display font-bold leading-[0.95] tracking-tight">
               六阶段
@@ -231,7 +232,7 @@ export default function FlagshipPeakPage() {
               <span className="text-gradient">50波终极挑战</span>
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-              标准巡航(1-10) - 超频增压(11-20) - 地狱终局(21-25) - 深渊(26-35) - 虚空(36-45) - 创世(46-50)。Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作，Project M 终局防守体验。
+              标准巡航(1-10) - 超频增压(11-20) - 地狱终局(21-25) - 深渊(26-35) - 虚空(36-45) - 创世(46-50)。Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作，多重宇宙终局防守体验。
             </p>
           </motion.div>
 
@@ -242,11 +243,11 @@ export default function FlagshipPeakPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="relative mb-4"
           >
-            <div className="bridge-panel holo-scan bridge-glow relative overflow-hidden">
+            <div className="station-panel orbital-scan station-glow relative overflow-hidden">
               <HeroParticles />
               <img
                 src={HERO_IMAGE}
-                alt="旗舰巅峰"
+                alt="旗舰舰桥"
                 className="h-[200px] w-full object-cover md:h-[320px]"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/40 to-transparent" />
@@ -255,7 +256,7 @@ export default function FlagshipPeakPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1 }}
-                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary-subtle px-2 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-primary backdrop-blur-sm"
                 >
                   <Shield size={10} />
                   50 波
@@ -264,7 +265,7 @@ export default function FlagshipPeakPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.2 }}
-                  className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-danger/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-danger backdrop-blur-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-caution/30 bg-caution/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-caution backdrop-blur-sm"
                 >
                   <Fire size={10} />
                   六阶段
@@ -273,7 +274,7 @@ export default function FlagshipPeakPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.4 }}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#00ffcc]/30 bg-[#00ffcc]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ffcc] backdrop-blur-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-subtle px-2 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-accent backdrop-blur-sm"
                 >
                   <Sparkle size={10} />
                   创世终局
@@ -282,7 +283,7 @@ export default function FlagshipPeakPage() {
             </div>
           </motion.div>
 
-          {/* Three Phases */}
+          {/* Six Phases */}
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -303,7 +304,7 @@ export default function FlagshipPeakPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.1 }}
-                    className={`bridge-panel holo-scan group relative p-4 transition-all duration-300 ${phase.borderGlow}`}
+                    className={`station-panel orbital-scan group relative p-4 transition-all duration-300 ${phase.borderGlow}`}
                     style={{
                       boxShadow: `0 0 40px ${phase.glowColor}`,
                     }}
@@ -361,10 +362,10 @@ export default function FlagshipPeakPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="bridge-panel holo-scan group p-4 transition-all duration-300 hover:border-primary/20 hover:shadow-[0_0_30px_rgba(99,102,241,0.08)]"
+                    className="station-panel orbital-scan group p-4 transition-all duration-300 hover:border-primary/20 station-glow"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary">
                         <Di size={18} weight="bold" />
                       </div>
                       <div>
@@ -399,10 +400,10 @@ export default function FlagshipPeakPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="bridge-panel holo-scan group p-4 transition-all duration-300 hover:border-primary/20"
+                    className="station-panel orbital-scan group p-4 transition-all duration-300 hover:border-primary/20 station-glow"
                   >
                     <div className="mb-3 flex items-center gap-2">
-                      <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary-subtle text-primary">
                         <Ri size={16} weight="bold" />
                       </div>
                       <h3 className="text-sm font-bold tracking-tight">{rating.title}</h3>
@@ -413,7 +414,7 @@ export default function FlagshipPeakPage() {
                         return (
                           <span
                             key={rank}
-                            className="inline-flex items-center rounded-full border border-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+                            className="inline-flex items-center rounded-full border border-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] transition-all"
                             style={{
                               opacity: 0.5 + j * 0.1,
                               color: isMax ? "var(--primary)" : undefined,
@@ -442,7 +443,7 @@ export default function FlagshipPeakPage() {
             transition={{ duration: 0.6 }}
             className="mb-4"
           >
-            <div className="bridge-panel holo-scan bridge-glow p-4">
+            <div className="station-panel orbital-scan station-glow p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Hexagon size={18} weight="fill" className="text-primary" />
                 <h2 className="font-display text-lg font-bold tracking-tight">统一积分制</h2>
@@ -471,10 +472,10 @@ export default function FlagshipPeakPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative bridge-panel holo-scan bridge-glow overflow-hidden p-4"
+            className="relative station-panel orbital-scan station-glow overflow-hidden p-4"
           >
             <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-[#a855f7]/5 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-orbital/5 blur-3xl" />
             <div className="relative grid gap-4 lg:grid-cols-2">
               <div>
                 <h2 className="text-lg font-display font-bold tracking-tight">准备就绪，舰长</h2>
@@ -485,7 +486,7 @@ export default function FlagshipPeakPage() {
               <div className="flex flex-col justify-center gap-2 sm:flex-row lg:justify-end">
                 <Link
                   href="/game?mode=flagship-peak"
-                  className="group relative inline-flex h-11 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                  className="group relative inline-flex h-11 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 focus-ring active:scale-95"
                 >
                   <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                   <Rocket size={18} weight="fill" />

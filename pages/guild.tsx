@@ -45,7 +45,7 @@ function CreateGuildForm({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="bridge-panel p-6"
+      className="station-panel p-6"
     >
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold">创建公会</h3>
@@ -116,8 +116,8 @@ function GuildChatPanel() {
   };
 
   return (
-    <div className="bridge-panel holo-scan flex h-full flex-col p-4">
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-3 px-4">
+    <div className="station-panel orbital-scan flex h-full flex-col p-4">
+      <div className="station-panel-header -mx-4 -mt-4 mb-3 px-4">
         <div className="flex items-center gap-2">
           <Chat size={16} weight="bold" className="text-primary" />
           <span className="text-sm font-bold">公会频道</span>
@@ -130,7 +130,7 @@ function GuildChatPanel() {
         )}
         {chatMessages.slice(-20).map((m) => (
           <div key={m.id} className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-subtle text-[10px] font-bold text-primary">
               {m.senderName[0]}
             </span>
             <div>
@@ -189,7 +189,7 @@ function PerkCard({ perk, onUpgrade }: { perk: GuildPerk; onUpgrade: () => void 
       {perk.level < perk.maxLevel && (
         <button
           onClick={onUpgrade}
-          className="mt-2 w-full rounded-lg border border-primary/30 bg-primary/5 py-1.5 text-[11px] font-semibold text-primary transition-all hover:bg-primary/10"
+          className="mt-2 w-full rounded-lg border border-primary/30 bg-primary-subtle py-1.5 text-[11px] font-semibold text-primary transition-all hover:bg-primary/10"
         >
           升级 ({perk.cost} 贡献)
         </button>
@@ -230,7 +230,7 @@ export default function GuildPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center"
               >
-                <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/5">
+                <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary-subtle">
                   <Shield size={40} weight="bold" className="text-primary" />
                 </div>
                 <h1 className="font-display text-2xl font-bold">创建你的公会</h1>
@@ -240,7 +240,7 @@ export default function GuildPage() {
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                   <button
                     onClick={() => setShowCreate(true)}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.97]"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 active:scale-[0.97]"
                   >
                     <Plus size={18} weight="bold" />
                     创建公会
@@ -280,16 +280,16 @@ export default function GuildPage() {
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-8">
         {/* Guild Header */}
-        <div className="bridge-panel holo-scan bridge-glow p-6 mb-8">
+        <div className="station-panel orbital-scan station-glow p-6 mb-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/5">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary-subtle">
                 <Shield size={32} weight="bold" className="text-primary" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-display text-2xl font-bold">{guild.name}</h1>
-                  <span className="rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-[11px] font-bold text-primary">
+                  <span className="rounded-md border border-primary/20 bg-primary-subtle px-2 py-0.5 font-mono text-[11px] font-bold text-primary">
                     [{guild.tag}]
                   </span>
                 </div>
@@ -334,7 +334,7 @@ export default function GuildPage() {
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-quantum transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-primary via-orbital to-primary transition-all"
                 style={{ width: `${(guild.exp / guild.expToNext) * 100}%` }}
               />
             </div>
@@ -344,8 +344,8 @@ export default function GuildPage() {
         <div className="grid gap-6 lg:grid-cols-12">
           {/* Members */}
           <div className="lg:col-span-4">
-            <div className="bridge-panel holo-scan p-4">
-              <div className="bridge-panel-header -mx-4 -mt-4 mb-3 px-4">
+            <div className="station-panel orbital-scan p-4">
+              <div className="station-panel-header -mx-4 -mt-4 mb-3 px-4">
                 <h3 className="flex items-center gap-2 text-sm font-bold">
                   <Users size={16} weight="bold" className="text-primary" />
                   公会成员
@@ -358,7 +358,7 @@ export default function GuildPage() {
                     className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/50 p-2.5"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary-subtle text-xs font-bold text-primary">
                         {member.name[0]}
                       </span>
                       <div>
@@ -380,8 +380,8 @@ export default function GuildPage() {
 
           {/* Perks */}
           <div className="lg:col-span-4">
-            <div className="bridge-panel holo-scan p-4">
-              <div className="bridge-panel-header -mx-4 -mt-4 mb-3 px-4">
+            <div className="station-panel orbital-scan p-4">
+              <div className="station-panel-header -mx-4 -mt-4 mb-3 px-4">
                 <h3 className="flex items-center gap-2 text-sm font-bold">
                   <TreeStructure size={16} weight="bold" className="text-primary" />
                   公会科技

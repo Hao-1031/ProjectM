@@ -43,9 +43,9 @@ const NODE_TYPE_LABELS: Record<string, string> = {
 const NODE_TYPE_COLORS: Record<string, string> = {
   story: "var(--anchor)",
   battle: "var(--primary)",
-  boss: "var(--entropy)",
-  reward: "var(--warning, #f59e0b)",
-  shop: "var(--quantum)",
+  boss: "var(--caution)",
+  reward: "var(--accent)",
+  shop: "var(--orbital)",
 };
 
 function CampaignNodeCard({
@@ -73,9 +73,9 @@ function CampaignNodeCard({
       disabled={!unlocked}
       className={`group relative flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-all ${
         completed
-          ? "border-emerald-500/20 bg-emerald-500/5"
+          ? "border-success/20 bg-success/5"
           : isNext
-            ? "border-primary/30 bg-primary/5 animate-pulse"
+            ? "border-primary/30 bg-primary-subtle animate-pulse"
             : unlocked
               ? "border-primary/10 bg-panel/60 hover:border-primary/30 hover:bg-panel"
               : "border-primary/5 bg-panel/30 opacity-40 cursor-not-allowed"
@@ -87,7 +87,7 @@ function CampaignNodeCard({
         style={{ backgroundColor: `${color}18` }}
       >
         {completed ? (
-          <Check size={22} weight="bold" className="text-emerald-400" />
+          <Check size={22} weight="bold" className="text-success" />
         ) : unlocked ? (
           <Icon size={22} weight="bold" style={{ color }} />
         ) : (
@@ -99,7 +99,7 @@ function CampaignNodeCard({
       </span>
       <span className="text-[11px] font-medium text-center leading-tight">{node.title}</span>
       {completed && (
-        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">
+        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-success text-[10px] font-bold text-white">
           <Check size={10} weight="bold" />
         </span>
       )}
@@ -134,10 +134,10 @@ function StoryModal({
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="relative w-full max-w-lg bridge-panel bridge-glow p-6"
+        className="relative w-full max-w-lg station-panel station-glow p-6"
       >
         <div className="relative">
-          <div className="bridge-panel-header -mx-6 -mt-6 mb-4">
+          <div className="station-panel-header -mx-6 -mt-6 mb-4">
             <div className="flex items-center gap-2">
               <Scroll size={18} weight="bold" className="text-anchor" />
               <h3 className="font-display text-lg font-bold">{title}</h3>
@@ -155,7 +155,7 @@ function StoryModal({
             <button
               type="button"
               onClick={onBattle}
-              className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-background transition-all hover:bg-primary/90 focus-ring active:scale-95 shadow-lg shadow-primary/15"
+              className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-background transition-all hover:bg-primary/90 focus-ring active:scale-95 shadow-lg shadow-primary/10"
             >
               进入战斗
             </button>
@@ -210,11 +210,11 @@ export default function CampaignPage() {
   }, [router, nextNode, chapter.id]);
 
   return (
-    <Layout title="剧情战役">
+    <Layout title="星历编年史">
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="medium" />
         <div className="noise-overlay pointer-events-none fixed inset-0 z-0" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 station-grid opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 md:py-8">
           <motion.div
@@ -223,17 +223,17 @@ export default function CampaignPage() {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="mb-6"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-subtle px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
               <Sparkle size={10} weight="fill" />
-              剧情战役
+              星历编年史
             </span>
             <h1 className="mt-3 font-display text-[clamp(1.5rem,4vw,2.5rem)] font-extrabold leading-[0.95] tracking-tight">
-              维度编年史
+              星历编年史
               <br />
-              <span className="text-gradient">穿越裂痕的旅程</span>
+              <span className="text-gradient">穿越星域的旅程</span>
             </h1>
             <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-              跟随剧情推进，探索维度裂痕背后的真相。每一章都是独立的故事，解锁新武器和英雄。
+              跟随星历推进，探索深空航路背后的真相。每一章都是独立的故事，解锁新装备和航天员。
             </p>
           </motion.div>
 
@@ -252,7 +252,7 @@ export default function CampaignPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: i * 0.08 }}
                   disabled={!available}
-                  className={`flex-none bridge-panel p-3 transition-all text-left focus-ring ${
+                  className={`flex-none station-panel p-3 transition-all text-left focus-ring ${
                     active
                       ? "border-primary/30"
                       : available
@@ -263,7 +263,7 @@ export default function CampaignPage() {
                 >
                   <div className="flex items-center gap-2">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${ch.accentColor}18` }}>
-                      {done ? <Check size={16} weight="bold" className="text-emerald-400" /> : <BookOpen size={16} weight="bold" style={{ color: ch.accentColor }} />}
+                      {done ? <Check size={16} weight="bold" className="text-success" /> : <BookOpen size={16} weight="bold" style={{ color: ch.accentColor }} />}
                     </span>
                     <div>
                       <p className="text-xs font-bold">{ch.name}</p>
@@ -285,7 +285,7 @@ export default function CampaignPage() {
             <motion.div
               initial={reducedMotion ? undefined : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bridge-panel holo-scan p-8 text-center"
+              className="station-panel orbital-scan p-8 text-center"
             >
               <Lock size={32} weight="bold" className="mx-auto text-muted" />
               <p className="mt-3 text-sm font-medium">章节未解锁</p>
@@ -298,7 +298,7 @@ export default function CampaignPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="mb-4 bridge-panel holo-scan bridge-glow p-5">
+              <div className="mb-4 station-panel orbital-scan station-glow p-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ export default function CampaignPage() {
                     <p className="mt-1 text-xs text-muted">{chapter.intro}</p>
                   </div>
                   {complete && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-400">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-[11px] font-bold text-success">
                       <Check size={12} weight="bold" />
                       已完成
                     </span>
@@ -344,7 +344,7 @@ export default function CampaignPage() {
                   <button
                     type="button"
                     onClick={() => handleNodeSelect(nextNode)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 focus-ring active:scale-95"
                   >
                     <Play size={16} weight="fill" />
                     继续战役

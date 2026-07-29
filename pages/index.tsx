@@ -83,7 +83,7 @@ const MODES: {
     label: "极限生存",
     subtitle: "压力维度",
     icon: Lightning,
-    accent: "entropy",
+    accent: "danger",
     desc: "满配超频极限挑战",
     featured: true,
     span: "lg:col-span-3 lg:row-span-2",
@@ -93,7 +93,7 @@ const MODES: {
     label: "生存模式",
     subtitle: "混沌维度",
     icon: Skull,
-    accent: "quantum",
+    accent: "orbital",
     desc: "15分钟割草突围",
     featured: false,
     span: "lg:col-span-3",
@@ -113,7 +113,7 @@ const MODES: {
     label: "个人死斗",
     subtitle: "冲突维度",
     icon: Sword,
-    accent: "danger",
+    accent: "caution",
     desc: "PvP竞技对抗",
     featured: false,
     span: "lg:col-span-3",
@@ -123,7 +123,7 @@ const MODES: {
     label: "巅峰挑战",
     subtitle: "竞技维度",
     icon: Trophy,
-    accent: "anchor",
+    accent: "accent",
     desc: "全球排行榜竞速",
     featured: false,
     span: "lg:col-span-3",
@@ -163,11 +163,11 @@ const modeCardStack: GSAPCardStackCard[] = [
 
 function RankBadge({ runs }: { runs: number }) {
   const ranks = [
-    { min: 0, name: "维度行者", color: "#6e7870" },
-    { min: 5, name: "锚定者", color: "#5e8c6a" },
-    { min: 20, name: "维度卫士", color: "#3dd1c8" },
-    { min: 50, name: "维度领主", color: "#c8a45c" },
-    { min: 100, name: "多元锚主", color: "#c84a4a" },
+    { min: 0, name: "维度行者", color: "#8A8578" },
+    { min: 5, name: "锚定者", color: "#4A8C5A" },
+    { min: 20, name: "维度卫士", color: "#3B7DD8" },
+    { min: 50, name: "维度领主", color: "#C8A45C" },
+    { min: 100, name: "多元锚主", color: "#C4554A" },
   ];
   const rank = [...ranks].reverse().find((r) => runs >= r.min) ?? ranks[0];
   return (
@@ -192,7 +192,7 @@ function StatCard({ label, value, icon: Icon, accent }: {
   accent: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-primary/10 bg-panel/60 p-3 transition-all hover:border-primary/30 hover:bg-panel hover:shadow-lg hover:shadow-primary/5">
+    <div className="group relative overflow-hidden rounded-xl border border-border bg-panel/60 p-3 transition-all hover:border-primary/20 hover:bg-panel hover:shadow-lg hover:shadow-primary/5">
       <div className="flex items-start justify-between">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">{label}</p>
@@ -217,9 +217,9 @@ function PlayerProfileCard({ save, isAuthenticated, user }: {
   user: { provider: string; avatarUrl: string | null } | null;
 }) {
   return (
-    <div className="bridge-panel holo-scan relative overflow-hidden rounded-2xl p-5 shadow-2xl shadow-black/30">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/6 blur-3xl" />
+    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/[0.03] blur-3xl" />
 
       <div className="relative">
         <div className="flex items-start justify-between">
@@ -239,21 +239,21 @@ function PlayerProfileCard({ save, isAuthenticated, user }: {
               <RankBadge runs={save?.totalRuns ?? 0} />
             </div>
           </div>
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-primary/10 bg-background">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background">
             <BrandLogo size={24} variant="icon" className="text-primary" />
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <StatCard label="维度穿越" value={save?.totalRuns ?? 0} icon={Play} accent="var(--primary)" />
-          <StatCard label="消灭" value={save?.totalKills ?? 0} icon={Skull} accent="var(--entropy)" />
-          <StatCard label="最佳记录" value={save?.bestRun?.stats.kills ?? 0} icon={Star} accent="var(--anchor)" />
-          <StatCard label="武器" value={save?.unlockedWeapons.length ?? 1} icon={Sword} accent="var(--quantum)" />
+          <StatCard label="消灭" value={save?.totalKills ?? 0} icon={Skull} accent="var(--danger)" />
+          <StatCard label="最佳记录" value={save?.bestRun?.stats.kills ?? 0} icon={Star} accent="var(--accent)" />
+          <StatCard label="武器" value={save?.unlockedWeapons.length ?? 1} icon={Sword} accent="var(--orbital)" />
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-primary/10 pt-3">
-          <div className="inline-flex items-center gap-2 rounded-xl border border-primary/10 bg-background/50 px-3 py-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-anchor/10 text-anchor">
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/50 px-3 py-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <Coin size={16} weight="fill" />
             </span>
             <div>
@@ -290,30 +290,29 @@ function HoloModeSelector({
   const orbitRadius = 140;
 
   return (
-    <div className="bridge-panel holo-scan relative flex flex-col items-center justify-center rounded-2xl p-6">
-      <div className="bridge-panel-header absolute inset-x-0 top-0" />
+    <div className="station-panel orbital-scan relative flex flex-col items-center justify-center rounded-2xl p-6">
+      <div className="station-panel-header absolute inset-x-0 top-0" />
 
       <div className="relative flex h-[320px] w-[320px] items-center justify-center sm:h-[360px] sm:w-[360px]">
-        {/* Outer holographic rings */}
+        {/* Outer orbital rings */}
         <motion.div
-          className="holo-ring absolute inset-0"
+          className="orbital-ring absolute inset-0"
           animate={reducedMotion ? {} : { rotate: 360 }}
           transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="holo-ring absolute inset-4"
+          className="orbital-ring absolute inset-4"
           style={{ opacity: 0.5 }}
           animate={reducedMotion ? {} : { rotate: -360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="holo-ring absolute inset-8"
+          className="orbital-ring absolute inset-8"
           style={{ opacity: 0.25 }}
           animate={reducedMotion ? {} : { rotate: 360 }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* Orbital ring grid lines */}
         <div className="pointer-events-none absolute inset-12 rounded-full border border-dashed border-primary/8" />
 
         {/* Orbiting mode nodes */}
@@ -348,7 +347,7 @@ function HoloModeSelector({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md border border-primary/20 bg-panel px-2 py-0.5 font-mono text-[10px] text-primary shadow-lg shadow-black/20"
+                    className="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md border border-border bg-panel px-2 py-0.5 font-mono text-[10px] text-primary shadow-lg"
                   >
                     {mode.label}
                   </motion.span>
@@ -357,10 +356,10 @@ function HoloModeSelector({
               <span
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all hover:shadow-lg"
                 style={{
-                  borderColor: `var(--${mode.accent})40`,
-                  backgroundColor: `var(--${mode.accent})10`,
+                  borderColor: `var(--${mode.accent})30`,
+                  backgroundColor: `var(--${mode.accent})08`,
                   color: `var(--${mode.accent})`,
-                  boxShadow: isHovered ? `0 0 16px var(--${mode.accent})30` : undefined,
+                  boxShadow: isHovered ? `0 0 16px var(--${mode.accent})20` : undefined,
                 }}
               >
                 <Icon size={18} weight="bold" />
@@ -380,15 +379,15 @@ function HoloModeSelector({
           <div
             className="relative flex h-20 w-20 items-center justify-center rounded-full"
             style={{
-              background: `radial-gradient(circle, var(--${selectedMode.accent})20 0%, transparent 70%)`,
-              boxShadow: `0 0 40px var(--${selectedMode.accent})20, 0 0 80px var(--${selectedMode.accent})10`,
+              background: `radial-gradient(circle, var(--${selectedMode.accent})15 0%, transparent 70%)`,
+              boxShadow: `0 0 40px var(--${selectedMode.accent})10, 0 0 80px var(--${selectedMode.accent})05`,
             }}
           >
             <span
               className="inline-flex h-14 w-14 items-center justify-center rounded-full border-2 transition-all"
               style={{
-                borderColor: `var(--${selectedMode.accent})60`,
-                backgroundColor: `var(--${selectedMode.accent})15`,
+                borderColor: `var(--${selectedMode.accent})40`,
+                backgroundColor: `var(--${selectedMode.accent})10`,
                 color: `var(--${selectedMode.accent})`,
               }}
             >
@@ -396,7 +395,7 @@ function HoloModeSelector({
             </span>
             <motion.span
               className="absolute inset-0 rounded-full"
-              style={{ borderColor: `var(--${selectedMode.accent})30` }}
+              style={{ borderColor: `var(--${selectedMode.accent})20` }}
               animate={reducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -439,13 +438,13 @@ function DimensionJumpStatus() {
   const fleetIcon =
     fleetStatus === "deployed" ? CheckCircle : fleetStatus === "standby" ? Clock : Warning;
   const fleetColor =
-    fleetStatus === "deployed" ? "var(--success)" : fleetStatus === "standby" ? "var(--anchor)" : "var(--entropy)";
+    fleetStatus === "deployed" ? "var(--success)" : fleetStatus === "standby" ? "var(--accent)" : "var(--danger)";
   const fleetLabel =
     fleetStatus === "deployed" ? "已部署" : fleetStatus === "standby" ? "待命中" : "维护中";
 
   return (
-    <div className="bridge-panel holo-scan relative overflow-hidden rounded-2xl p-5">
-      <div className="bridge-panel-header absolute inset-x-0 top-0" />
+    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
+      <div className="station-panel-header absolute inset-x-0 top-0" />
       <div className="relative mt-1">
         <div className="mb-3 flex items-center gap-2">
           <Rocket size={18} weight="bold" className="text-primary" />
@@ -454,23 +453,22 @@ function DimensionJumpStatus() {
         </div>
 
         <div className="space-y-3">
-          {/* Energy reading */}
           <div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                 <BatteryCharging size={12} weight="bold" />
                 能量读数
               </span>
-              <span className="font-mono text-sm font-bold tabular-nums" style={{ color: energyLevel > 60 ? "var(--primary)" : "var(--entropy)" }}>
+              <span className="font-mono text-sm font-bold tabular-nums" style={{ color: energyLevel > 60 ? "var(--primary)" : "var(--danger)" }}>
                 {energyLevel}%
               </span>
             </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-primary/10">
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-primary/8">
               <motion.div
                 className="h-full rounded-full"
                 style={{
                   width: `${energyLevel}%`,
-                  background: `linear-gradient(90deg, var(--primary), var(--anchor))`,
+                  background: `linear-gradient(90deg, var(--primary), var(--accent))`,
                 }}
                 animate={{ width: `${energyLevel}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -478,18 +476,17 @@ function DimensionJumpStatus() {
             </div>
           </div>
 
-          {/* Stability */}
           <div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                 <Pulse size={12} weight="bold" />
                 维度稳定性
               </span>
-              <span className="font-mono text-sm font-bold tabular-nums" style={{ color: stability > 90 ? "var(--success)" : "var(--anchor)" }}>
+              <span className="font-mono text-sm font-bold tabular-nums" style={{ color: stability > 90 ? "var(--success)" : "var(--accent)" }}>
                 {stability}%
               </span>
             </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-success/10">
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-success/8">
               <motion.div
                 className="h-full rounded-full bg-success"
                 style={{ width: `${stability}%` }}
@@ -499,8 +496,7 @@ function DimensionJumpStatus() {
             </div>
           </div>
 
-          {/* Fleet deployment */}
-          <div className="flex items-center justify-between rounded-lg border border-primary/10 bg-background/50 px-3 py-2">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2">
             <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
               <Planet size={12} weight="bold" />
               舰队部署
@@ -539,30 +535,29 @@ function OnlinePlayersPulse() {
   }, []);
 
   return (
-    <div className="bridge-panel holo-scan relative overflow-hidden rounded-2xl p-5">
-      <div className="bridge-panel-header absolute inset-x-0 top-0" />
+    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
+      <div className="station-panel-header absolute inset-x-0 top-0" />
       <div className="relative mt-1">
         <div className="mb-3 flex items-center gap-2">
-          <Users size={18} weight="bold" className="text-quantum" />
+          <Users size={18} weight="bold" className="text-orbital" />
           <h3 className="font-display text-sm font-bold uppercase tracking-wider">在线维度行者</h3>
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Pulse indicator */}
           <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
             <motion.span
               className="absolute inset-0 rounded-full"
-              style={{ backgroundColor: "var(--success)", opacity: 0.15 }}
-              animate={reducedMotion ? {} : { scale: [1, 1.8, 1], opacity: [0.15, 0, 0.15] }}
+              style={{ backgroundColor: "var(--success)", opacity: 0.12 }}
+              animate={reducedMotion ? {} : { scale: [1, 1.8, 1], opacity: [0.12, 0, 0.12] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.span
               className="absolute inset-0 rounded-full"
-              style={{ backgroundColor: "var(--success)", opacity: 0.1 }}
-              animate={reducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.1, 0, 0.1] }}
+              style={{ backgroundColor: "var(--success)", opacity: 0.08 }}
+              animate={reducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.08, 0, 0.08] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
             />
-            <span className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-success/20">
+            <span className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-success/15">
               <span className="inline-flex h-3 w-3 rounded-full bg-success status-pulse" />
             </span>
           </div>
@@ -601,10 +596,10 @@ function BridgeBroadcast({ announcements, loading }: {
 
   if (loading) {
     return (
-      <div className="bridge-panel holo-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
+      <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Broadcast size={14} weight="bold" className="text-primary animate-pulse" />
-          <div className="h-3 w-64 animate-pulse rounded bg-primary/10" />
+          <div className="h-3 w-64 animate-pulse rounded bg-primary/5" />
         </div>
       </div>
     );
@@ -612,10 +607,10 @@ function BridgeBroadcast({ announcements, loading }: {
 
   if (announcements.length === 0) {
     return (
-      <div className="bridge-panel holo-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
+      <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
         <div className="flex items-center gap-2 text-xs text-muted">
           <Broadcast size={14} weight="bold" />
-          <span className="font-mono">舰桥广播待命中...</span>
+          <span className="font-mono">轨道广播待命中...</span>
         </div>
       </div>
     );
@@ -626,11 +621,11 @@ function BridgeBroadcast({ announcements, loading }: {
     : announcements;
 
   return (
-    <div className="bridge-panel holo-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl">
+    <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl">
       <div className="data-stream flex items-center gap-3 px-4 py-2.5">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
           <Broadcast size={10} weight="bold" />
-          舰桥广播
+          轨道广播
         </span>
         <div className="relative flex-1 overflow-hidden">
           <motion.div
@@ -640,16 +635,16 @@ function BridgeBroadcast({ announcements, loading }: {
           >
             {items.map((item, i) => (
               <span key={i} className="inline-flex items-center gap-2 text-xs">
-                <span className="font-medium text-anchor">{item.title}</span>
+                <span className="font-medium text-accent">{item.title}</span>
                 <span className="text-muted">{item.content}</span>
-                <span className="mx-2 text-primary/30">|</span>
+                <span className="mx-2 text-primary/20">|</span>
               </span>
             ))}
             {items.map((item, i) => (
               <span key={`dup-${i}`} className="inline-flex items-center gap-2 text-xs">
-                <span className="font-medium text-anchor">{item.title}</span>
+                <span className="font-medium text-accent">{item.title}</span>
                 <span className="text-muted">{item.content}</span>
-                <span className="mx-2 text-primary/30">|</span>
+                <span className="mx-2 text-primary/20">|</span>
               </span>
             ))}
           </motion.div>
@@ -677,21 +672,21 @@ function EncyclopediaRow() {
       label: `${weapons.length} 种武器`,
       sub: "维度武装",
       icon: Sword,
-      accent: "var(--anchor)",
+      accent: "var(--accent)",
     },
     {
       href: "/enemies",
       label: `${enemies.length} 类敌人`,
       sub: "维度威胁",
       icon: Skull,
-      accent: "var(--entropy)",
+      accent: "var(--danger)",
     },
     {
       href: "/algorithms",
       label: "核心算法",
       sub: "维度引擎",
       icon: Gear,
-      accent: "var(--quantum)",
+      accent: "var(--orbital)",
     },
   ];
 
@@ -703,11 +698,11 @@ function EncyclopediaRow() {
           <Link
             key={item.href}
             href={item.href}
-            className="bridge-panel holo-scan group flex flex-col gap-2 rounded-xl p-3 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 focus-ring"
+            className="station-panel orbital-scan group flex flex-col gap-2 rounded-xl p-3 transition-all hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 focus-ring"
           >
             <span
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors group-hover:scale-110"
-              style={{ backgroundColor: `${item.accent}15`, color: item.accent }}
+              style={{ backgroundColor: `${item.accent}10`, color: item.accent }}
             >
               <Icon size={16} weight="bold" />
             </span>
@@ -788,7 +783,7 @@ export default function HomePage() {
         </nav>
       </motion.header>
 
-      {/* Bridge Broadcast System */}
+      {/* Orbit Broadcast System */}
       <motion.div
         initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -801,18 +796,17 @@ export default function HomePage() {
         />
       </motion.div>
 
-      {/* Hero Section - Bridge Command Deck */}
+      {/* Hero Section - Orbit Command Deck */}
       <section className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-8 md:pt-12">
         <div className="grid items-start gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Left Column: HoloModeSelector + Title */}
           <div className="flex flex-col gap-6 lg:col-span-7">
-            {/* Hero title */}
             <motion.div
               initial={reducedMotion ? undefined : { opacity: 0, x: -24 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             >
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                 <Globe size={10} weight="fill" />
                 维度锚点在线 · 梦想家
               </span>
@@ -829,7 +823,6 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            {/* CTA buttons */}
             <motion.div
               initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -838,16 +831,16 @@ export default function HomePage() {
             >
               <Link
                 href={playHref}
-                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-[0.97] md:h-14 md:text-base"
+                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97] md:h-14 md:text-base"
               >
-                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={20} weight="fill" />
                 <span className="whitespace-nowrap">穿越维度</span>
                 <CaretRight size={16} weight="bold" />
               </Link>
               <Link
                 href="/game?multiplayer=1"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/10 bg-panel/80 px-5 text-sm font-semibold backdrop-blur-sm transition-all hover:border-accent/40 hover:bg-panel focus-ring active:scale-[0.97] md:h-14"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-panel/80 px-5 text-sm font-semibold backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-panel focus-ring active:scale-[0.97] md:h-14"
               >
                 <Users size={18} />
                 <span className="whitespace-nowrap">组队锚点</span>
@@ -871,10 +864,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Bridge Deck Dashboard Row - 3 panels side by side */}
+      {/* Command Deck Dashboard */}
       <section className="relative z-10 mx-auto max-w-7xl px-4 pb-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Holo Mode Selector */}
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -888,7 +880,6 @@ export default function HomePage() {
             <HoloModeSelector selected={selectedMode} onSelect={setSelectedMode} />
           </motion.div>
 
-          {/* Right side: Online Players + Dimension Status stacked */}
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -906,15 +897,15 @@ export default function HomePage() {
         <div className="grid grid-cols-4 gap-2">
           {[
             { label: "英雄", value: Object.keys(HERO_DEFS).length, icon: PaintBrush, accent: "var(--success)" },
-            { label: "武器", value: Object.keys(DEFAULT_BALANCE.weapons).length, icon: Sword, accent: "var(--anchor)" },
-            { label: "敌人", value: Object.keys(DEFAULT_BALANCE.enemies).filter((k) => k !== "base").length, icon: Skull, accent: "var(--entropy)" },
-            { label: "维度", value: getModeList().length, icon: Target, accent: "var(--quantum)" },
+            { label: "武器", value: Object.keys(DEFAULT_BALANCE.weapons).length, icon: Sword, accent: "var(--accent)" },
+            { label: "敌人", value: Object.keys(DEFAULT_BALANCE.enemies).filter((k) => k !== "base").length, icon: Skull, accent: "var(--danger)" },
+            { label: "维度", value: getModeList().length, icon: Target, accent: "var(--orbital)" },
           ].map((stat) => {
             const Icon = stat.icon;
             return (
               <div
                 key={stat.label}
-                className="bridge-panel holo-scan flex flex-col items-center gap-1 rounded-xl p-3 text-center transition-all hover:border-primary/20"
+                className="station-panel orbital-scan flex flex-col items-center gap-1 rounded-xl p-3 text-center transition-all hover:border-primary/15"
               >
                 <Icon size={16} weight="bold" style={{ color: stat.accent }} />
                 <span className="font-display text-lg font-bold tabular-nums">{stat.value}</span>
@@ -960,20 +951,20 @@ export default function HomePage() {
               <Link
                 key={mode.type}
                 href={href}
-                className={`bridge-panel holo-scan group relative flex flex-col justify-between overflow-hidden rounded-2xl p-4 transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 focus-ring ${mode.span}`}
-                style={{ borderColor: mode.featured ? `var(--${mode.accent})25` : undefined }}
+                className={`station-panel orbital-scan group relative flex flex-col justify-between overflow-hidden rounded-2xl p-4 transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 focus-ring ${mode.span}`}
+                style={{ borderColor: mode.featured ? `var(--${mode.accent})20` : undefined }}
               >
                 <div
-                  className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-40"
+                  className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-25"
                   style={{ backgroundColor: `var(--${mode.accent})` }}
                 />
                 {mode.featured && (
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.8),transparent_70%)]" />
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.01] bg-[radial-gradient(circle_at_70%_30%,rgba(11,29,58,0.5),transparent_70%)]" />
                 )}
                 {mode.type === "flagship-peak" && (
                   <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/6 blur-3xl" />
-                    <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-danger/4 blur-3xl" />
+                    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/[0.03] blur-3xl" />
+                    <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-danger/[0.02] blur-3xl" />
                   </div>
                 )}
 
@@ -981,12 +972,12 @@ export default function HomePage() {
                   <div className="flex items-start justify-between">
                     <span
                       className="inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
-                      style={{ backgroundColor: `var(--${mode.accent})15`, color: `var(--${mode.accent})` }}
+                      style={{ backgroundColor: `var(--${mode.accent})10`, color: `var(--${mode.accent})` }}
                     >
                       <Icon size={20} weight="bold" />
                     </span>
                     {mode.featured && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/12 bg-primary/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         <Sparkle size={10} weight="fill" />
                         {mode.type === "flagship-peak" ? "创世" : "主打"}
                       </span>
@@ -1004,9 +995,9 @@ export default function HomePage() {
                   {mode.type === "flagship-peak" && (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {[
-                        { label: "标准巡航", color: "#6366f1" },
-                        { label: "超频增压", color: "#ef4444" },
-                        { label: "地狱终局", color: "#a855f7" },
+                        { label: "标准巡航", color: "#3B7DD8" },
+                        { label: "超频增压", color: "#C4554A" },
+                        { label: "地狱终局", color: "#8B7038" },
                       ].map((p) => (
                         <span
                           key={p.label}
@@ -1032,7 +1023,7 @@ export default function HomePage() {
         </div>
       </GSAPScrollReveal>
 
-      {/* GSAP Card Stack - Core Features */}
+      {/* GSAP Card Stack */}
       <GSAPScrollReveal direction="up" className="relative z-10 mx-auto max-w-7xl px-4 pb-8">
         <div className="mb-4">
           <h2 className="font-display text-xl font-bold tracking-tight md:text-2xl">核心特性</h2>
@@ -1058,9 +1049,9 @@ export default function HomePage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Link
             href="/leaderboard"
-            className="bridge-panel holo-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-primary/30 focus-ring"
+            className="station-panel orbital-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-primary/20 focus-ring"
           >
-            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-anchor/10 text-anchor">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <Trophy size={24} weight="bold" />
             </span>
             <div className="min-w-0 flex-1">
@@ -1071,7 +1062,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/settings"
-            className="bridge-panel holo-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-accent/30 focus-ring"
+            className="station-panel orbital-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-accent/20 focus-ring"
           >
             <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <Gear size={24} weight="bold" />
@@ -1087,12 +1078,12 @@ export default function HomePage() {
 
       {/* Footer CTA */}
       <section className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:py-12">
-        <div className="bridge-panel holo-scan relative overflow-hidden rounded-3xl p-8 shadow-2xl shadow-black/20 md:p-12">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/6 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-anchor/4 blur-3xl" />
+        <div className="station-panel orbital-scan relative overflow-hidden rounded-3xl p-8 station-glow md:p-12">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/[0.03] blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-accent/[0.03] blur-3xl" />
 
           <div className="relative flex flex-col items-center text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
               <Anchor size={10} weight="fill" />
               锚点就绪
             </span>
@@ -1107,15 +1098,15 @@ export default function HomePage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 href={playHref}
-                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-[0.97]"
+                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97]"
               >
-                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={18} weight="fill" />
                 穿越维度
               </Link>
               <Link
                 href="/about"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/10 bg-panel/80 px-5 text-sm font-semibold backdrop-blur-sm transition-all hover:border-accent/40 hover:bg-panel focus-ring active:scale-[0.97]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-panel/80 px-5 text-sm font-semibold backdrop-blur-sm transition-all hover:border-accent/30 hover:bg-panel focus-ring active:scale-[0.97]"
               >
                 <Info size={18} />
                 了解更多
@@ -1124,7 +1115,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-primary/10 pt-4 text-xs text-muted sm:flex-row">
+        <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-border pt-4 text-xs text-muted sm:flex-row">
           <div className="flex items-center gap-2">
             <BrandLogo size={14} variant="icon" />
             <span>公平竞技 · 无付费加成 · 多重宇宙 · 梦想家</span>
@@ -1143,7 +1134,6 @@ export default function HomePage() {
         </footer>
       </section>
 
-      {/* Version watermark */}
       <div className="version-watermark">梦想家 v2.0</div>
     </div>
   );

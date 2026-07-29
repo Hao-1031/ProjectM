@@ -30,10 +30,10 @@ const variantStyles: Record<ColorVariant, string> = {
 };
 
 const glowStyles: Record<ColorVariant, string> = {
-  primary: "bg-primary/10",
+  primary: "bg-primary-subtle",
   accent: "bg-accent/10",
   success: "bg-success/10",
-  danger: "bg-danger/10",
+  danger: "bg-danger-subtle",
   muted: "bg-muted/5",
 };
 
@@ -70,7 +70,7 @@ export default function FeatureCard({
     </>
   );
 
-  const classes = `group relative overflow-hidden rounded-2xl border p-2.5 text-left transition-all duration-300 holo-scan focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-3 ${variantStyles[variant]} ${className}`;
+  const classes = `group relative overflow-hidden rounded-2xl border p-2.5 text-left transition-all duration-300 orbital-scan focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:p-3 ${variantStyles[variant]} ${className}`;
 
   if (as === "link" && href) {
     return (

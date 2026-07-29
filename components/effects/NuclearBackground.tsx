@@ -14,7 +14,7 @@ interface Particle {
   maxLife: number;
 }
 
-export default function NuclearBackground() {
+export default function DimensionBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -80,14 +80,14 @@ export default function NuclearBackground() {
       const cx = width * 0.75;
       const cy = height * 0.35;
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.55);
-      gradient.addColorStop(0, "rgba(122, 143, 62, 0.06)");
-      gradient.addColorStop(0.35, "rgba(184, 122, 61, 0.03)");
-      gradient.addColorStop(1, "rgba(7, 10, 7, 0)");
+      gradient.addColorStop(0, "rgba(11, 29, 58, 0.06)");
+      gradient.addColorStop(0.35, "rgba(200, 164, 92, 0.03)");
+      gradient.addColorStop(1, "rgba(245, 242, 237, 0)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
       // Subtle grid
-      ctx.strokeStyle = "rgba(122, 143, 62, 0.04)";
+      ctx.strokeStyle = "rgba(11, 29, 58, 0.04)";
       ctx.lineWidth = 1;
       const gridSize = 64;
       for (let gx = 0; gx < width; gx += gridSize) {
@@ -117,7 +117,7 @@ export default function NuclearBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(184, 122, 61, ${alpha})`;
+        ctx.fillStyle = `rgba(200, 164, 92, ${alpha})`;
         ctx.fill();
 
         if (

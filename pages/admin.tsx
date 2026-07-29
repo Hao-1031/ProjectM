@@ -73,9 +73,9 @@ function AdminLogin({ onLogin }: { onLogin: (key: string) => void }) {
         initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md overflow-hidden bridge-panel holo-scan p-5 shadow-2xl md:p-6"
+        className="w-full max-w-md overflow-hidden station-panel orbital-scan p-5 shadow-2xl md:p-6"
       >
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-subtle text-primary">
           <LockKey size={24} weight="bold" />
         </div>
         <h1 className="mt-3 text-center text-xl font-bold tracking-tight">管理员后台</h1>
@@ -147,7 +147,7 @@ function AnnouncementEditor({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-primary/10 bg-panel-raised holo-scan p-3 md:p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-primary/10 bg-panel-raised orbital-scan p-3 md:p-4">
       <div>
         <label className="mb-1 block text-xs font-medium text-muted">标题</label>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="公告标题" maxLength={120} />
@@ -180,7 +180,7 @@ function AnnouncementEditor({
             onClick={() => setActive((v) => !v)}
             className={`inline-flex h-9 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors ${
               active
-                ? "border-primary bg-primary/10 text-primary"
+                ? "border-primary bg-primary-subtle text-primary"
                 : "border-primary/10 bg-panel/60 text-muted hover:text-foreground"
             }`}
           >
@@ -260,7 +260,7 @@ function AnnouncementManager({ adminKey }: { adminKey: string }) {
               initial={reducedMotion ? undefined : itemVariants.hidden}
               animate={itemVariants.visible}
               exit={reducedMotion ? undefined : { opacity: 0 }}
-              className="rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5"
+              className="rounded-2xl border border-primary/10 bg-panel/60 orbital-scan p-2.5"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -338,7 +338,7 @@ function LeaderboardBrowser() {
       {!loading && !error && entries.length === 0 && <EmptyState title="暂无记录" description="该模式下还没有玩家提交成绩" />}
 
       {!loading && !error && entries.length > 0 && (
-        <div className="max-h-[260px] overflow-auto bridge-panel holo-scan">
+        <div className="max-h-[260px] overflow-auto station-panel orbital-scan">
           <table className="w-full text-left text-sm">
             <thead className="bg-panel-raised text-[10px] uppercase tracking-wider text-muted">
               <tr>
@@ -421,6 +421,7 @@ export default function AdminPage() {
       <Layout title="管理员后台" showNav>
         <Head>
           <title>管理员后台 - Project M</title>
+          <meta name="theme-color" content="#F5F2ED" />
         </Head>
         <AdminLogin onLogin={handleLogin} />
         {authError && (
@@ -436,6 +437,7 @@ export default function AdminPage() {
     <Layout title="管理员后台" showNav>
       <Head>
         <title>管理员后台 - Project M</title>
+        <meta name="theme-color" content="#F5F2ED" />
       </Head>
       <div className="mx-auto max-w-6xl px-4 py-3 md:py-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

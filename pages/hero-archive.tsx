@@ -95,9 +95,9 @@ const ABILITY_TYPE_LABELS: Record<string, string> = {
 };
 
 const ABILITY_TYPE_COLORS: Record<string, string> = {
-  skill: "#3dd1c8",
-  ultimate: "#c8a45c",
-  passive: "#5b9cf5",
+  skill: "var(--orbital)",
+  ultimate: "var(--accent)",
+  passive: "var(--primary)",
 };
 
 function HeroHeader() {
@@ -113,13 +113,13 @@ function HeroHeader() {
       <div className="flex flex-col gap-2">
         <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
           <Sparkle weight="duotone" size={14} />
-          档案解密
+          船员档案
         </span>
         <h1 className="mt-1 font-display text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold leading-[0.95] tracking-tight">
-          英雄档案
+          船员名录
         </h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">
-          维度守护者 - 每一位战士都有属于自己的故事。从科考站的极寒废墟到维度裂痕的核心，这些英雄用生命守护着锚点基地的每一寸土地。
+          深空前哨站 - 每一位船员都有属于自己的故事。从科考站的极寒废墟到维度裂痕的核心，这些船员用生命守护着深空前哨站的每一寸土地。
         </p>
       </div>
     </motion.div>
@@ -201,7 +201,7 @@ function HeroPanel({ heroId, index }: { heroId: HeroId; index: number }) {
         delay: Math.min(index * 0.08, 0.5),
         ease: [0.22, 1, 0.36, 1],
       }}
-      className={`group bridge-panel holo-scan transition-all hover:border-primary/30 hover:bg-panel ${
+      className={`group station-panel orbital-scan transition-all hover:border-primary/30 hover:bg-panel ${
         isLarge ? "md:col-span-2" : "md:col-span-1"
       }`}
     >
@@ -263,7 +263,7 @@ function HeroPanel({ heroId, index }: { heroId: HeroId; index: number }) {
         <div className="mt-4 rounded-xl border border-primary/10 bg-background/50 p-3">
           <div className="flex items-center gap-2">
             <Info size={13} weight="bold" style={{ color: heroColor }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">性格特征</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">性格评估</span>
           </div>
           <p className="mt-1.5 text-[11px] leading-relaxed text-muted">{lore.personality}</p>
         </div>
@@ -272,7 +272,7 @@ function HeroPanel({ heroId, index }: { heroId: HeroId; index: number }) {
         <div className="mt-3">
           <div className="flex items-center gap-2">
             <Sparkle size={13} weight="bold" style={{ color: heroColor }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">背景故事</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">航行日志</span>
           </div>
           <p className="mt-1.5 text-[11px] leading-relaxed text-muted">{lore.backstory}</p>
         </div>
@@ -289,7 +289,7 @@ function HeroPanel({ heroId, index }: { heroId: HeroId; index: number }) {
         <div className="mt-4">
           <div className="flex items-center gap-2">
             <Star size={13} weight="bold" style={{ color: heroColor }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">能力档案</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">能力模块</span>
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
             {lore.abilities.map((ability) => (
@@ -303,7 +303,7 @@ function HeroPanel({ heroId, index }: { heroId: HeroId; index: number }) {
           <div className="mt-4">
             <div className="flex items-center gap-2">
               <Handshake size={13} weight="bold" style={{ color: heroColor }} />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted">人物关系</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted">船员关系</span>
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {lore.relationships.map((rel) => (
@@ -344,14 +344,14 @@ function ConceptArtSection() {
       transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
       className="mt-8 md:mt-12"
     >
-      <div className="bridge-panel-header mb-4 rounded-t-xl border-t border-x border-primary/10">
+      <div className="station-panel-header mb-4 rounded-t-xl border-t border-x border-primary/10">
         <div className="flex items-center gap-2 px-4 py-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
             <Palette size={16} weight="bold" className="text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-lg font-bold tracking-tight">概念艺术描述</h2>
-            <p className="text-[10px] text-muted">每位英雄的视觉化呈现方向</p>
+            <h2 className="font-display text-lg font-bold tracking-tight">视觉档案</h2>
+            <p className="text-[10px] text-muted">每位船员的视觉化呈现方向</p>
           </div>
         </div>
       </div>
@@ -366,7 +366,7 @@ function ConceptArtSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
-              className="group bridge-panel holo-scan p-4 transition-all hover:border-primary/30 hover:bg-panel"
+              className="group station-panel orbital-scan p-4 transition-all hover:border-primary/30 hover:bg-panel"
             >
               <div
                 className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl transition-opacity group-hover:opacity-50"
@@ -402,7 +402,7 @@ export default function HeroArchivePage() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <Layout title="英雄档案">
+    <Layout title="船员名录">
       <div className="relative mx-auto max-w-7xl px-4 py-6 md:py-8">
         <HeroHeader />
 

@@ -48,7 +48,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={`bridge-panel holo-scan p-3 shadow-2xl ${className}`}
+      className={`station-panel orbital-scan p-3 shadow-2xl ${className}`}
     >
       <div className="grid gap-3 md:grid-cols-2">
         <section>
@@ -67,7 +67,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
             aria-pressed={settings.audioEnabled}
             className={`mt-2 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all focus-ring active:scale-95 ${
               settings.audioEnabled
-                ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+                ? "border-primary/40 bg-primary-subtle text-primary hover:bg-primary/15"
                 : "border-border bg-panel-raised text-muted hover:border-primary/30 hover:text-foreground"
             }`}
           >
@@ -196,7 +196,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
                 aria-pressed={settings.graphicsQuality === q.value}
                 className={`rounded-xl border p-2 text-left transition-all focus-ring active:scale-95 ${
                   settings.graphicsQuality === q.value
-                    ? "border-primary/50 bg-primary/10"
+                    ? "border-primary/50 bg-primary-subtle"
                     : "border-border bg-panel-raised hover:border-primary/30"
                 }`}
               >
@@ -312,7 +312,7 @@ export default function SettingsPanel({ className = "" }: SettingsPanelProps) {
         </section>
       </div>
 
-      <div className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-panel-raised holo-scan p-2.5 text-xs text-muted">
+      <div className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-panel-raised orbital-scan p-2.5 text-xs text-muted">
         <ArrowCounterClockwise size={14} weight="bold" className="mt-0.5 shrink-0 text-primary" />
         <p className="text-[11px]">设置会随当前设备保存。需要跨设备同步请手动导出备份。</p>
       </div>
@@ -336,7 +336,7 @@ function ToggleButton({ label, description, icon, pressed, onClick }: ToggleButt
       aria-pressed={pressed}
       className={`flex items-center gap-2 rounded-xl border p-2 text-left transition-all focus-ring active:scale-95 ${
         pressed
-          ? "border-primary/40 bg-primary/10"
+          ? "border-primary/40 bg-primary-subtle"
           : "border-border bg-panel-raised hover:border-primary/30"
       }`}
     >

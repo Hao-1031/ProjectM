@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -51,10 +52,13 @@ export default function ExtremeSurvivalPage() {
 
   return (
     <Layout title="极限生存">
+      <Head>
+        <meta name="theme-color" content="#F5F2ED" />
+      </Head>
       <div className="relative min-h-[100dvh]">
         <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
-        <div className="pointer-events-none fixed inset-0 z-0 bridge-grid opacity-40" />
+        <div className="pointer-events-none fixed inset-0 z-0 starfield opacity-40" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 md:py-10">
           <motion.div
@@ -96,8 +100,8 @@ export default function ExtremeSurvivalPage() {
               transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="lg:col-span-7"
             >
-              <div className="bridge-panel holo-scan bridge-glow p-5 md:p-6">
-                <div className="bridge-panel-header -mx-5 -mt-5 mb-4 md:-mx-6 md:-mt-6">
+              <div className="station-panel orbital-scan station-glow p-5 md:p-6">
+                <div className="station-panel-header -mx-5 -mt-5 mb-4 md:-mx-6 md:-mt-6">
                   <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
                     <Info size={12} />
                     模式机制
@@ -116,7 +120,7 @@ export default function ExtremeSurvivalPage() {
                           delay: 0.15 + index * 0.06,
                           ease: [0.22, 1, 0.36, 1],
                         }}
-                        className="bridge-panel p-4 transition-colors hover:border-danger/20"
+                        className="station-panel p-4 transition-colors hover:border-danger/20"
                       >
                         <Icon size={22} weight="duotone" className="text-danger" />
                         <h3 className="mt-2 text-sm font-bold">{feature.title}</h3>
@@ -136,23 +140,23 @@ export default function ExtremeSurvivalPage() {
               transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="lg:col-span-5"
             >
-              <div className="bridge-panel holo-scan bridge-glow p-5 md:p-6">
-                <div className="bridge-panel-header -mx-5 -mt-5 mb-4 md:-mx-6 md:-mt-6">
+              <div className="station-panel orbital-scan station-glow p-5 md:p-6">
+                <div className="station-panel-header -mx-5 -mt-5 mb-4 md:-mx-6 md:-mt-6">
                   <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
                     <Clock size={12} />
                     当前状态
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="bridge-panel flex items-center justify-between p-3">
+                  <div className="station-panel flex items-center justify-between p-3">
                     <span className="text-xs text-muted">最高波次</span>
                     <span className="font-mono text-lg font-bold tabular-nums">{save?.bestRun?.stats.wavesCleared ?? 0}</span>
                   </div>
-                  <div className="bridge-panel flex items-center justify-between p-3">
+                  <div className="station-panel flex items-center justify-between p-3">
                     <span className="text-xs text-muted">总出战次数</span>
                     <span className="font-mono text-lg font-bold tabular-nums">{save?.totalRuns ?? 0}</span>
                   </div>
-                  <div className="bridge-panel flex items-center justify-between p-3">
+                  <div className="station-panel flex items-center justify-between p-3">
                     <span className="text-xs text-muted">游戏币</span>
                     <span className="font-mono text-lg font-bold tabular-nums">{save?.coins ?? 0}</span>
                   </div>

@@ -67,9 +67,9 @@ export default function StorePage() {
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
       <div className="noise-overlay" />
       <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
-      <div className="pointer-events-none absolute inset-0 bridge-grid opacity-30" />
+      <div className="pointer-events-none absolute inset-0 starfield opacity-30" />
 
-      <div className="pointer-events-none fixed -left-[10%] -top-[10%] h-[40vh] w-[40vh] rounded-full bg-primary/5 blur-[100px]" />
+      <div className="pointer-events-none fixed -left-[10%] -top-[10%] h-[40vh] w-[40vh] rounded-full bg-primary-subtle blur-[100px]" />
       <div className="pointer-events-none fixed -bottom-[10%] -right-[10%] h-[40vh] w-[40vh] rounded-full bg-accent/5 blur-[100px]" />
 
       {/* Header */}
@@ -80,7 +80,7 @@ export default function StorePage() {
             className="flex items-center gap-2 rounded-lg font-mono text-sm font-bold uppercase tracking-[0.15em] text-primary transition-colors hover:text-primary/80"
           >
             <ArrowLeft size={18} weight="bold" />
-            返回舰桥
+            返回空间站
           </Link>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 font-mono text-xs text-muted">
@@ -103,15 +103,15 @@ export default function StorePage() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="mb-8"
         >
-          <div className="bridge-panel holo-scan p-6 lg:p-8">
+          <div className="station-panel orbital-scan p-6 lg:p-8">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             <div className="flex items-center gap-3">
-              <span className="holo-ring inline-flex h-10 w-10 items-center justify-center text-primary">
+              <span className="orbital-ring inline-flex h-10 w-10 items-center justify-center text-primary">
                 <Storefront size={22} weight="bold" />
               </span>
               <div>
                 <h1 className="font-display text-2xl font-bold tracking-tight lg:text-3xl">
-                  舰桥军械库
+                  空间站军械库
                 </h1>
                 <p className="mt-1 text-sm text-muted">
                   使用战斗获得的货币兑换外观、英雄与徽章。无付费加成，仅外观与便捷。
@@ -208,7 +208,7 @@ function StoreCard({
 
   return (
     <div
-      className={`bridge-panel group relative flex flex-col p-4 transition-all ${
+      className={`station-panel group relative flex flex-col p-4 transition-all ${
         item.owned ? "opacity-60" : "hover:border-primary/20"
       }`}
     >

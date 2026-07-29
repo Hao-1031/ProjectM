@@ -69,8 +69,8 @@ const CATEGORY_ICON: Record<string, typeof Crosshair> = {
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
-  kinetic: "#94a3b8", energy: "#38bdf8", thermal: "#f97316", cryo: "#60a5fa",
-  gravity: "#818cf8", melee: "#f43f5e", special: "#34d399",
+  kinetic: "#94a3b8", energy: "var(--orbital)", thermal: "var(--caution)", cryo: "var(--orbital)",
+  gravity: "var(--primary)", melee: "var(--caution)", special: "var(--success)",
 };
 
 function WeaponTag({ label, icon: Icon, color }: { label: string; icon: typeof Crosshair; color: string }) {
@@ -118,20 +118,20 @@ function CoinBadge({ coins, unlocked, equipped, total, maxEquip }: { coins: numb
 function getWeaponTags(stats: WeaponStatBlock) {
   const tags: { label: string; icon: typeof Crosshair; color: string }[] = [];
   if (stats.isMelee) {
-    tags.push({ label: "近战", icon: Sword, color: "#f43f5e" });
-    if (stats.meleeShape === "arc") tags.push({ label: "横扫", icon: Waves, color: "#f59e0b" });
-    if (stats.meleeShape === "thrust") tags.push({ label: "刺击", icon: Target, color: "#60a5fa" });
-    if (stats.comboCount && stats.comboCount > 1) tags.push({ label: `${stats.comboCount}连击`, icon: ArrowsClockwise, color: "#facc15" });
+    tags.push({ label: "近战", icon: Sword, color: "var(--caution)" });
+    if (stats.meleeShape === "arc") tags.push({ label: "横扫", icon: Waves, color: "var(--accent)" });
+    if (stats.meleeShape === "thrust") tags.push({ label: "刺击", icon: Target, color: "var(--orbital)" });
+    if (stats.comboCount && stats.comboCount > 1) tags.push({ label: `${stats.comboCount}连击`, icon: ArrowsClockwise, color: "var(--accent)" });
   } else {
-    tags.push({ label: "远程", icon: Target, color: "#22d3ee" });
+    tags.push({ label: "远程", icon: Target, color: "var(--orbital)" });
   }
-  if (stats.homing) tags.push({ label: "追踪", icon: Crosshair, color: "#34d399" });
-  if (stats.pierce > 1) tags.push({ label: `穿透×${stats.pierce}`, icon: ArrowsOut, color: "#f59e0b" });
-  if (stats.chainCount) tags.push({ label: "连锁", icon: Lightning, color: "#e879f9" });
-  if (stats.burnDuration) tags.push({ label: "灼烧", icon: Fire, color: "#f97316" });
-  if (stats.freezeDuration) tags.push({ label: "冰冻", icon: Snowflake, color: "#60a5fa" });
-  if (stats.gravityRadius) tags.push({ label: "重力", icon: Magnet, color: "#a855f7" });
-  if (stats.swarmCount) tags.push({ label: "蜂群", icon: Drone, color: "#34d399" });
+  if (stats.homing) tags.push({ label: "追踪", icon: Crosshair, color: "var(--success)" });
+  if (stats.pierce > 1) tags.push({ label: `穿透×${stats.pierce}`, icon: ArrowsOut, color: "var(--accent)" });
+  if (stats.chainCount) tags.push({ label: "连锁", icon: Lightning, color: "var(--orbital)" });
+  if (stats.burnDuration) tags.push({ label: "灼烧", icon: Fire, color: "var(--caution)" });
+  if (stats.freezeDuration) tags.push({ label: "冰冻", icon: Snowflake, color: "var(--orbital)" });
+  if (stats.gravityRadius) tags.push({ label: "重力", icon: Magnet, color: "var(--primary)" });
+  if (stats.swarmCount) tags.push({ label: "蜂群", icon: Drone, color: "var(--success)" });
   return tags;
 }
 
@@ -199,7 +199,7 @@ function WeaponCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+      className={`group relative overflow-hidden rounded-3xl station-panel orbital-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
       <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-25 transition-opacity group-hover:opacity-50" style={{ backgroundColor: weapon.color }} />
       <div className="relative p-2.5 md:p-3">
         {isLarge && WEAPON_IMAGES[id] && (
@@ -372,7 +372,7 @@ export default function ArmoryPage() {
   }, [allWeapons, save]);
 
   return (
-    <Layout title="军械库">
+    <Layout title="深空装备库">
       <div className="mx-auto min-h-[100dvh] max-w-7xl px-4 py-3 md:py-6">
         <motion.div
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
@@ -383,13 +383,13 @@ export default function ArmoryPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
-                <Crosshair weight="duotone" size={14} />军械库
+                <Crosshair weight="duotone" size={14} />深空装备库
               </span>
               <h1 className="mt-2 text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
-                武器与<br /><span className="text-gradient">装备配置</span>
+                航天装备<br /><span className="text-gradient">配置中心</span>
               </h1>
               <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-                用任务奖励解锁武器，自由搭配出战配置。所有武器仅影响战术风格，无氪金数值加成。
+                解锁深空作战武器，自由搭配出战配置。所有装备仅影响战术风格，无氪金数值加成。
               </p>
             </div>
             <CoinBadge coins={coins} unlocked={unlockedCount} equipped={equippedCount} total={allWeapons.length} maxEquip={maxWeapons} />
@@ -462,7 +462,7 @@ export default function ArmoryPage() {
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="mt-4 rounded-3xl bridge-panel holo-scan p-2.5 md:p-3"
+            className="mt-4 rounded-3xl station-panel orbital-scan p-2.5 md:p-3"
           >
             <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
               <Shield size={12} weight="duotone" />当前出战配置
@@ -471,7 +471,7 @@ export default function ArmoryPage() {
               {equippedWeapons.map(([id, weapon]) => {
                 const stats = weapon.base;
                 return (
-                  <div key={id} className="flex items-center gap-2.5 rounded-xl border border-primary/10 bg-panel-raised holo-scan px-3 py-2.5 transition-colors hover:border-primary/30 hover:bg-panel">
+                  <div key={id} className="flex items-center gap-2.5 rounded-xl border border-primary/10 bg-panel-raised orbital-scan px-3 py-2.5 transition-colors hover:border-primary/30 hover:bg-panel">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${weapon.color}18`, color: weapon.color }}>
                       <Crosshair size={16} weight="duotone" />
                     </span>
@@ -504,15 +504,15 @@ export default function ArmoryPage() {
           initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="mt-4 rounded-3xl bridge-panel holo-scan p-2.5 md:p-3"
+          className="mt-4 rounded-3xl station-panel orbital-scan p-2.5 md:p-3"
         >
           <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-muted">
             <Sparkle size={12} weight="duotone" />武器搭配推荐
           </div>
           <div className="grid gap-2 md:grid-cols-3">
-            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised orbital-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#f43f5e18", color: "#f43f5e" }}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--caution-subtle)", color: "var(--caution)" }}>
                   <Sword size={14} weight="bold" />
                 </span>
                 <p className="text-xs font-semibold">近战 + 控制</p>
@@ -521,9 +521,9 @@ export default function ArmoryPage() {
                 等离子刃配合冷冻榴弹可清理贴脸敌人并封锁通道，突击与工程最优组合。
               </p>
             </div>
-            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised orbital-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#60a5fa18", color: "#60a5fa" }}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--orbital-subtle)", color: "var(--orbital)" }}>
                   <Target size={14} weight="bold" />
                 </span>
                 <p className="text-xs font-semibold">远程 + 范围</p>
@@ -532,9 +532,9 @@ export default function ArmoryPage() {
                 磁轨炮点杀精英，重力井投射器聚怪清杂兵潮，侦察与医疗核心搭配。
               </p>
             </div>
-            <div className="rounded-xl border border-primary/10 bg-panel-raised holo-scan p-2.5 transition-colors hover:border-primary/20">
+            <div className="rounded-xl border border-primary/10 bg-panel-raised orbital-scan p-2.5 transition-colors hover:border-primary/20">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "#34d39918", color: "#34d399" }}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--success-subtle)", color: "var(--success)" }}>
                   <Drone size={14} weight="bold" />
                 </span>
                 <p className="text-xs font-semibold">召唤 + 远程</p>

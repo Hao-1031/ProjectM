@@ -58,76 +58,76 @@ const PHASE_THEME: Record<string, {
   vignette: string;
 }> = {
   standard: {
-    bg: "from-[#06040f] via-[#0c0a18] to-[#100c2e]",
-    accent: "#6366f1",
-    glow: "rgba(99, 102, 241, 0.35)",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
+    accent: "var(--primary)",
+    glow: "rgba(11, 29, 58, 0.35)",
     label: "标准巡航",
-    particleColor: "rgba(99,102,241,0.6)",
-    secondaryGlow: "rgba(129, 140, 248, 0.2)",
-    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(6,4,15,0.85) 100%)",
+    particleColor: "rgba(11,29,58,0.6)",
+    secondaryGlow: "rgba(11, 29, 58, 0.2)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(245,242,237,0.85) 100%)",
   },
   overclock: {
-    bg: "from-[#0a0404] via-[#140808] to-[#2a0c0c]",
-    accent: "#ef4444",
-    glow: "rgba(239, 68, 68, 0.45)",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
+    accent: "var(--caution)",
+    glow: "rgba(200, 74, 74, 0.45)",
     label: "超频增压",
-    particleColor: "rgba(239,68,68,0.6)",
-    secondaryGlow: "rgba(251, 113, 133, 0.2)",
-    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(14,4,4,0.85) 100%)",
+    particleColor: "rgba(200,74,74,0.6)",
+    secondaryGlow: "rgba(200, 74, 74, 0.2)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(245,242,237,0.85) 100%)",
   },
   hell: {
-    bg: "from-[#040408] via-[#060608] to-[#000000]",
-    accent: "#a855f7",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
+    accent: "var(--orbital)",
     glow: "rgba(168, 85, 247, 0.5)",
     label: "地狱终局",
     particleColor: "rgba(168,85,247,0.6)",
     secondaryGlow: "rgba(192, 132, 252, 0.2)",
-    vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.9) 100%)",
+    vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(245,242,237,0.9) 100%)",
   },
   abyss: {
-    bg: "from-[#020202] via-[#050505] to-[#000000]",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
     accent: "#333333",
     glow: "rgba(51, 51, 51, 0.55)",
     label: "深渊",
     particleColor: "rgba(51,51,51,0.5)",
     secondaryGlow: "rgba(85, 85, 85, 0.15)",
-    vignette: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.95) 100%)",
+    vignette: "radial-gradient(ellipse at center, transparent 40%, rgba(245,242,237,0.95) 100%)",
   },
   void: {
-    bg: "from-[#080810] via-[#101018] to-[#181820]",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
     accent: "#e2e8f0",
     glow: "rgba(226, 232, 240, 0.45)",
     label: "虚空",
     particleColor: "rgba(226,232,240,0.5)",
     secondaryGlow: "rgba(248, 250, 252, 0.15)",
-    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(16,16,24,0.85) 100%)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(245,242,237,0.85) 100%)",
   },
   genesis: {
-    bg: "from-[#020810] via-[#081020] to-[#000810]",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
     accent: "#00ffcc",
     glow: "rgba(0, 255, 204, 0.6)",
     label: "创世",
     particleColor: "rgba(0,255,204,0.6)",
     secondaryGlow: "rgba(0, 255, 204, 0.15)",
-    vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(0,8,16,0.9) 100%)",
+    vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(245,242,237,0.9) 100%)",
   },
   victory: {
-    bg: "from-[#040a04] via-[#081408] to-[#0a200a]",
-    accent: "#22c55e",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
+    accent: "var(--success)",
     glow: "rgba(34, 197, 94, 0.45)",
     label: "胜利",
     particleColor: "rgba(34,197,94,0.5)",
     secondaryGlow: "rgba(74, 222, 128, 0.2)",
-    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(4,10,4,0.85) 100%)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(245,242,237,0.85) 100%)",
   },
   defeat: {
-    bg: "from-[#0a0404] via-[#140808] to-[#200808]",
-    accent: "#ef4444",
-    glow: "rgba(239, 68, 68, 0.25)",
+    bg: "from-[#F5F2ED] via-[#E8E4DB] to-[#DDD7CC]",
+    accent: "var(--caution)",
+    glow: "rgba(200, 74, 74, 0.25)",
     label: "失败",
-    particleColor: "rgba(239,68,68,0.4)",
-    secondaryGlow: "rgba(239, 68, 68, 0.1)",
-    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(12,4,4,0.9) 100%)",
+    particleColor: "rgba(200,74,74,0.4)",
+    secondaryGlow: "rgba(200, 74, 74, 0.1)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(245,242,237,0.9) 100%)",
   },
 };
 
@@ -146,14 +146,14 @@ const ACHIEVEMENT_ICONS: Record<string, typeof Trophy> = {
 
 const ACHIEVEMENT_RARITY_COLORS: Record<string, string> = {
   common: "var(--primary)",
-  rare: "var(--warning, #f59e0b)",
-  legendary: "var(--danger, #ef4444)",
+  rare: "var(--warning)",
+  legendary: "var(--caution)",
 };
 
 const ACHIEVEMENT_RARITY_GLOW: Record<string, string> = {
-  common: "rgba(99, 102, 241, 0.3)",
+  common: "rgba(11, 29, 58, 0.3)",
   rare: "rgba(245, 158, 11, 0.4)",
-  legendary: "rgba(239, 68, 68, 0.5)",
+  legendary: "rgba(200, 74, 74, 0.5)",
 };
 
 // ========================================================================
@@ -228,7 +228,7 @@ function Scanlines() {
     <div
       className="pointer-events-none absolute inset-0 z-20 opacity-[0.03]"
       style={{
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 4px)",
+        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(11,29,58,0.15) 2px, rgba(11,29,58,0.15) 4px)",
       }}
       aria-hidden="true"
     />
@@ -266,7 +266,7 @@ function RadarChart({ scores, accentColor }: { scores: FlagshipPeakRadarScore[];
   return (
     <svg
       viewBox={`0 0 ${size} ${size}`}
-      className="h-full w-full drop-shadow-[0_0_30px_rgba(99,102,241,0.2)]"
+      className="h-full w-full drop-shadow-[0_0_30px_rgba(11,29,58,0.2)]"
       role="img"
       aria-label="六维雷达评分图"
     >
@@ -294,7 +294,7 @@ function RadarChart({ scores, accentColor }: { scores: FlagshipPeakRadarScore[];
           key={i}
           points={points}
           fill="none"
-          stroke="rgba(255,255,255,0.05)"
+          stroke="rgba(11,29,58,0.08)"
           strokeWidth="1"
           strokeDasharray={i === levels - 1 ? "none" : "3 3"}
         />
@@ -310,7 +310,7 @@ function RadarChart({ scores, accentColor }: { scores: FlagshipPeakRadarScore[];
             y1={cy}
             x2={p.x}
             y2={p.y}
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(11,29,58,0.06)"
             strokeWidth="1"
           />
         );
@@ -501,7 +501,7 @@ export default function FlagshipPeakSettlement({
       <Scanlines />
 
       {/* 网格 */}
-      <div className="pointer-events-none absolute inset-0 z-10 bridge-grid opacity-15" />
+      <div className="pointer-events-none absolute inset-0 z-10 starfield opacity-15" />
 
       {/* 暗角 */}
       <div className="pointer-events-none absolute inset-0 z-10" style={{ background: theme.vignette }} />
@@ -548,7 +548,7 @@ export default function FlagshipPeakSettlement({
                 <PulseRing color={theme.accent} delay={0} />
                 <PulseRing color={theme.accent} delay={0.6} />
                 <PulseRing color={theme.accent} delay={1.2} />
-                <div className="relative z-10 inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/10 bg-white/5 backdrop-blur-sm">
+                <div className="relative z-10 inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/10 bg-primary/5 backdrop-blur-sm">
                   <motion.div
                     animate={reducedMotion ? {} : { rotate: 360 }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -560,7 +560,7 @@ export default function FlagshipPeakSettlement({
               <p className="font-mono text-xs uppercase tracking-[0.25em] text-muted">
                 结算数据加载中
               </p>
-              <div className="h-0.5 w-32 overflow-hidden rounded-full bg-white/5">
+              <div className="h-0.5 w-32 overflow-hidden rounded-full bg-primary/5">
                 <motion.div
                   className="h-full rounded-full"
                   style={{ backgroundColor: theme.accent }}
@@ -589,8 +589,8 @@ export default function FlagshipPeakSettlement({
                 >
                   {/* 结果图标 */}
                   <div className="relative inline-flex h-24 w-24 items-center justify-center">
-                    <PulseRing color={settlement.victory ? "#22c55e" : theme.accent} delay={0} />
-                    <PulseRing color={settlement.victory ? "#22c55e" : theme.accent} delay={0.8} />
+                    <PulseRing color={settlement.victory ? "var(--success)" : theme.accent} delay={0} />
+                    <PulseRing color={settlement.victory ? "var(--success)" : theme.accent} delay={0.8} />
                     <motion.div
                       initial={{ scale: 0, rotate: -30 }}
                       animate={{ scale: 1, rotate: 0 }}
@@ -598,9 +598,9 @@ export default function FlagshipPeakSettlement({
                       className="relative z-10"
                     >
                       {settlement.victory ? (
-                        <Trophy size={80} weight="fill" className="drop-shadow-[0_0_30px_rgba(34,197,94,0.5)]" style={{ color: "#22c55e" }} />
+                        <Trophy size={80} weight="fill" className="drop-shadow-[0_0_30px_rgba(34,197,94,0.5)]" style={{ color: "var(--success)" }} />
                       ) : (
-                        <Skull size={80} weight="fill" className="drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]" style={{ color: theme.accent }} />
+                        <Skull size={80} weight="fill" className="drop-shadow-[0_0_30px_rgba(200,74,74,0.5)]" style={{ color: theme.accent }} />
                       )}
                     </motion.div>
                   </div>
@@ -638,13 +638,13 @@ export default function FlagshipPeakSettlement({
                     transition={{ delay: 1.1, duration: 0.5 }}
                     className="flex gap-3 sm:gap-5"
                   >
-                    <div className="bridge-panel p-4 text-center min-w-[90px]">
+                    <div className="station-panel p-4 text-center min-w-[90px]">
                       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">总分</p>
                       <p className="mt-1.5 font-display text-2xl font-bold tabular-nums text-primary">
                         <AnimatedCounter value={settlement.totalScore} />
                       </p>
                     </div>
-                    <div className="bridge-panel p-4 text-center min-w-[90px]">
+                    <div className="station-panel p-4 text-center min-w-[90px]">
                       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">速度评级</p>
                       <motion.p
                         className="mt-1.5 font-display text-2xl font-bold tabular-nums"
@@ -656,7 +656,7 @@ export default function FlagshipPeakSettlement({
                         {speedRankName}
                       </motion.p>
                     </div>
-                    <div className="bridge-panel p-4 text-center min-w-[90px]">
+                    <div className="station-panel p-4 text-center min-w-[90px]">
                       <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">赛季段位</p>
                       <motion.p
                         className="mt-1.5 font-display text-2xl font-bold tabular-nums"
@@ -676,7 +676,7 @@ export default function FlagshipPeakSettlement({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 2, type: "spring", stiffness: 200 }}
-                      className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger/10 px-5 py-2.5"
+                      className="flex items-center gap-2 rounded-2xl border border-danger/30 bg-danger-subtle px-5 py-2.5"
                     >
                       <Hexagon size={20} weight="fill" className="text-danger" />
                       <span className="text-sm font-bold text-danger">传说成就已解锁！</span>
@@ -688,7 +688,7 @@ export default function FlagshipPeakSettlement({
                     animate={{ opacity: 1 }}
                     transition={{ delay: 2.2 }}
                     onClick={advanceStage}
-                    className="group flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 py-3.5 text-sm font-bold text-white/90 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 focus-ring active:scale-95"
+                    className="group flex items-center gap-2 rounded-2xl border border-primary/10 bg-primary-subtle px-7 py-3.5 text-sm font-bold text-primary/90 backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-primary/10 focus-ring active:scale-95"
                   >
                     查看详细评级
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -712,7 +712,7 @@ export default function FlagshipPeakSettlement({
                   </div>
 
                   {/* 雷达图 */}
-                  <div className="bridge-panel p-5">
+                  <div className="station-panel p-5">
                     <div className="mx-auto aspect-square max-w-[300px]">
                       <RadarChart scores={settlement.radarScores} accentColor={theme.accent} />
                     </div>
@@ -726,7 +726,7 @@ export default function FlagshipPeakSettlement({
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.08 * i, duration: 0.4 }}
-                        className="bridge-panel group p-3 text-center transition-all hover:border-white/10"
+                        className="station-panel group p-3 text-center transition-all hover:border-primary/10"
                       >
                         <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
                           {dim.label}
@@ -740,7 +740,7 @@ export default function FlagshipPeakSettlement({
                         >
                           {dim.score}
                         </motion.p>
-                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/5">
+                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-primary/5">
                           <motion.div
                             className="h-full rounded-full"
                             style={{ backgroundColor: theme.accent }}
@@ -759,13 +759,13 @@ export default function FlagshipPeakSettlement({
                   <div className="flex justify-center gap-3 pt-1">
                     <button
                       onClick={() => setStage("animation")}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/70 transition-all hover:border-white/20 hover:text-white/90 focus-ring active:scale-95"
+                      className="rounded-2xl border border-primary/10 bg-primary-subtle px-5 py-2.5 text-sm font-semibold text-primary/70 transition-all hover:border-primary/20 hover:text-primary/90 focus-ring active:scale-95"
                     >
                       返回
                     </button>
                     <button
                       onClick={advanceStage}
-                      className="group flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-bold text-white/90 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 focus-ring active:scale-95"
+                      className="group flex items-center gap-2 rounded-2xl border border-primary/10 bg-primary-subtle px-6 py-2.5 text-sm font-bold text-primary/90 backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-primary/10 focus-ring active:scale-95"
                     >
                       查看奖励
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -799,7 +799,7 @@ export default function FlagshipPeakSettlement({
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bridge-panel flex flex-col items-center gap-2 p-6"
+                        className="station-panel flex flex-col items-center gap-2 p-6"
                       >
                         <Lock size={28} className="text-muted" />
                         <p className="text-xs text-muted">本次未解锁隐藏成就</p>
@@ -810,7 +810,7 @@ export default function FlagshipPeakSettlement({
                         {settlement.unlockedAchievements.map((ach, i) => {
                           const Icon = ACHIEVEMENT_ICONS[ach.icon] ?? Star;
                           const color = ACHIEVEMENT_RARITY_COLORS[ach.rarity] ?? "var(--primary)";
-                          const glow = ACHIEVEMENT_RARITY_GLOW[ach.rarity] ?? "rgba(99,102,241,0.3)";
+                          const glow = ACHIEVEMENT_RARITY_GLOW[ach.rarity] ?? "rgba(11,29,58,0.3)";
                           const isLegendary = ach.rarity === "legendary";
                           return (
                             <motion.div
@@ -818,7 +818,7 @@ export default function FlagshipPeakSettlement({
                               initial={{ opacity: 0, x: -30, scale: 0.95 }}
                               animate={{ opacity: 1, x: 0, scale: 1 }}
                               transition={{ delay: 0.15 * i, type: "spring", stiffness: 200, damping: 18 }}
-                              className="bridge-panel holo-scan relative flex items-center gap-3 overflow-hidden p-3.5"
+                              className="station-panel orbital-scan relative flex items-center gap-3 overflow-hidden p-3.5"
                               style={{
                                 borderColor: `${color}30`,
                                 boxShadow: `0 0 20px ${glow}`,
@@ -884,8 +884,8 @@ export default function FlagshipPeakSettlement({
                             initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 * i, duration: 0.4 }}
-                            className={`flex-1 bridge-panel p-2.5 text-center transition-all ${
-                              reached ? "holo-scan" : "opacity-30"
+                            className={`flex-1 station-panel p-2.5 text-center transition-all ${
+                              reached ? "orbital-scan" : "opacity-30"
                             }`}
                             style={reached ? { borderColor: `${theme.accent}30` } : undefined}
                           >
@@ -924,7 +924,7 @@ export default function FlagshipPeakSettlement({
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.12 * i, duration: 0.4 }}
-                            className="bridge-panel holo-scan flex items-center gap-3 p-3.5"
+                            className="station-panel orbital-scan flex items-center gap-3 p-3.5"
                             style={{ borderColor: `${phaseTheme.accent}20` }}
                           >
                             <div
@@ -968,7 +968,7 @@ export default function FlagshipPeakSettlement({
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
-                    className="bridge-panel holo-scan p-5"
+                    className="station-panel orbital-scan p-5"
                     style={{ borderColor: `${theme.accent}20` }}
                   >
                     <div className="grid grid-cols-3 gap-4">
@@ -1019,19 +1019,19 @@ export default function FlagshipPeakSettlement({
                   <div className="flex justify-center gap-3 pt-3">
                     <button
                       onClick={() => setStage("ratings")}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/70 transition-all hover:border-white/20 hover:text-white/90 focus-ring active:scale-95"
+                      className="rounded-2xl border border-primary/10 bg-primary-subtle px-5 py-2.5 text-sm font-semibold text-primary/70 transition-all hover:border-primary/20 hover:text-primary/90 focus-ring active:scale-95"
                     >
                       返回
                     </button>
                     <motion.button
                       onClick={onContinue}
-                      className="group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-white px-8 py-3.5 text-sm font-bold text-background shadow-lg shadow-white/10 transition-all hover:bg-white/90 focus-ring active:scale-95"
+                      className="group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-primary px-8 py-3.5 text-sm font-bold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 focus-ring active:scale-95"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-black/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+                      <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-primary/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                       <Rocket size={18} weight="fill" />
-                      返回舰桥
+                      返回空间站
                     </motion.button>
                   </div>
                 </motion.div>

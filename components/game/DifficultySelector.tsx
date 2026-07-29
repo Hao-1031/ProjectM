@@ -53,7 +53,7 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
         >
           <div className="noise-overlay" />
           <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
-          <div className="pointer-events-none absolute inset-0 bridge-grid opacity-30" />
+          <div className="pointer-events-none absolute inset-0 starfield opacity-30" />
 
           <motion.div
             className="relative z-10 w-full max-w-2xl"
@@ -62,14 +62,14 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
             exit={{ opacity: 0, scale: 0.98, y: -8 }}
             transition={transition}
           >
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-panel/90 p-6 shadow-2xl shadow-black/25 backdrop-blur-xl md:p-10">
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-panel/90 p-6 shadow-2xl shadow-primary/10 backdrop-blur-xl md:p-10">
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-              <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/4 blur-3xl" />
-              <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-anchor/4 blur-3xl" />
+              <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary-subtle blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-anchor-subtle blur-3xl" />
 
               <div className="relative">
                 <div className="mb-6 flex items-center gap-3">
-                  <span className="holo-ring inline-flex h-10 w-10 items-center justify-center text-primary">
+                  <span className="orbital-ring inline-flex h-10 w-10 items-center justify-center text-primary">
                     <Crosshair size={20} weight="bold" />
                   </span>
                   <div>
@@ -97,15 +97,15 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                         transition={{ ...transition, delay: reducedMotion ? 0 : 0.1 + idx * 0.08 }}
                         className="group relative flex flex-col items-start gap-4 rounded-2xl border p-5 text-left transition-all hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-panel active:scale-[0.98]"
                         style={{
-                          borderColor: isHell ? "var(--danger, #ef4444)30" : "var(--success, #22c55e)30",
-                          backgroundColor: isHell ? "var(--danger, #ef4444)08" : "var(--success, #22c55e)06",
+                          borderColor: isHell ? "var(--caution)30" : "var(--success)30",
+                          backgroundColor: isHell ? "var(--caution)08" : "var(--success)06",
                         }}
                       >
                         <div className="absolute inset-0 rounded-2xl opacity-0 transition-opacity group-hover:opacity-100"
                           style={{
                             background: isHell
-                              ? "radial-gradient(circle at 50% -20%, var(--danger, #ef4444)15, transparent 70%)"
-                              : "radial-gradient(circle at 50% -20%, var(--success, #22c55e)10, transparent 70%)",
+                              ? "radial-gradient(circle at 50% -20%, var(--caution)15, transparent 70%)"
+                              : "radial-gradient(circle at 50% -20%, var(--success)10, transparent 70%)",
                           }}
                         />
 
@@ -113,7 +113,7 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                           <span
                             className="inline-flex h-12 w-12 items-center justify-center rounded-xl"
                             style={{
-                              backgroundColor: isHell ? "var(--danger, #ef4444)15" : "var(--success, #22c55e)15",
+                              backgroundColor: isHell ? "var(--caution)15" : "var(--success)15",
                               color: config.accentColor,
                             }}
                           >
@@ -186,7 +186,7 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                             className="w-full"
                             rightIcon={<ArrowRight size={14} weight="bold" />}
                             style={{
-                              background: isHell ? "var(--danger, #ef4444)" : "var(--success, #22c55e)",
+                              background: isHell ? "var(--caution)" : "var(--success)",
                               color: "#fff",
                             }}
                           >
@@ -225,10 +225,10 @@ function StatRow({
   positive?: boolean;
 }) {
   const valueColor = positive
-    ? "var(--success, #22c55e)"
+    ? "var(--success)"
     : isHell
-    ? "var(--danger, #ef4444)"
-    : "var(--success, #22c55e)";
+    ? "var(--caution)"
+    : "var(--success)";
 
   return (
     <div className="flex items-center gap-1.5">

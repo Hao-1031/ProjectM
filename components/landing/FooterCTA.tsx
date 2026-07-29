@@ -15,28 +15,19 @@ export default function FooterCTA() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-40px" }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden bridge-panel holo-scan bridge-glow p-8 shadow-2xl shadow-black/30 md:p-14"
+        className="relative overflow-hidden rounded-3xl border border-border bg-panel p-8 orbital-scan station-glow md:p-14"
       >
         {/* Background effects */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-anchor/4 blur-3xl" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern id="footerGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--primary)" strokeWidth="0.3" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#footerGrid)" />
-          </svg>
-        </div>
+        <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-primary/[0.03] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-accent/[0.03] blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 station-grid opacity-[0.04]" />
 
         <div className="relative flex flex-col items-center text-center">
           {/* Brand */}
           <BrandLogo size={40} variant="icon" className="text-primary" />
 
           {/* Eyebrow */}
-          <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+          <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
             <Anchor size={12} weight="bold" />
             绑定锚点
           </span>
@@ -55,9 +46,9 @@ export default function FooterCTA() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/game?mode=defense&multiplayer=1"
-              className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 text-sm font-bold text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 focus-ring active:scale-[0.97]"
+              className="group relative inline-flex h-14 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97]"
             >
-              <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/12 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
+              <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
               <Play size={20} weight="fill" />
               <span className="whitespace-nowrap">穿越维度</span>
               <CaretRight size={16} weight="bold" />

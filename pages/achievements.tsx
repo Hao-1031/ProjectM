@@ -118,17 +118,17 @@ function PlayerGrowthOverview({
       initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="bridge-panel holo-scan p-4 md:p-5"
+      className="station-panel orbital-scan p-4 md:p-5"
     >
       <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full blur-3xl opacity-20" style={{ backgroundColor: "var(--primary)" }} />
 
       <div className="relative">
-        <div className="bridge-panel-header -mx-4 -mt-4 mb-4 px-4 md:-mx-5 md:-mt-5 md:px-5">
+        <div className="station-panel-header -mx-4 -mt-4 mb-4 px-4 md:-mx-5 md:-mt-5 md:px-5">
           <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
             <Sparkle size={14} weight="duotone" />
-            幸存者档案
+            船员档案
           </span>
-          <span className="ml-2 rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-bold text-primary">
+          <span className="ml-2 rounded-full border border-primary/20 bg-primary-subtle px-2 py-0.5 text-[10px] font-bold text-primary">
             Lv.{growth.level}
           </span>
         </div>
@@ -148,20 +148,20 @@ function PlayerGrowthOverview({
                 initial={reducedMotion ? undefined : { width: 0 }}
                 animate={{ width: `${xpPercent}%` }}
                 transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="h-full rounded-full bg-gradient-to-r from-primary via-quantum to-primary"
+                className="h-full rounded-full bg-gradient-to-r from-primary via-orbital to-primary"
               />
             </div>
           </div>
 
           {[
-            { label: "总击杀", value: growth.totalKills.toLocaleString(), icon: Skull, color: "#c84a4a" },
-            { label: "总出战", value: growth.totalRuns.toLocaleString(), icon: Target, color: "#3dd1c8" },
-            { label: "胜利", value: growth.totalWins.toLocaleString(), icon: Trophy, color: "#c8a45c" },
-            { label: "游戏时长", value: formatTime(growth.totalPlayTime), icon: Clock, color: "#5b9cf5" },
-            { label: "最高波次", value: growth.highestWave.toString(), icon: Gauge, color: "#c8a45c" },
-            { label: "最长存活", value: formatTime(growth.longestSurvival), icon: Timer, color: "#5b9cf5" },
-            { label: "最爱英雄", value: growth.favoriteHero ?? "-", icon: Users, color: "#3dd1c8" },
-            { label: "最爱武器", value: growth.favoriteWeapon ?? "-", icon: Sword, color: "#c8a45c" },
+            { label: "总击杀", value: growth.totalKills.toLocaleString(), icon: Skull, color: "var(--caution)" },
+            { label: "总出战", value: growth.totalRuns.toLocaleString(), icon: Target, color: "var(--orbital)" },
+            { label: "胜利", value: growth.totalWins.toLocaleString(), icon: Trophy, color: "var(--accent)" },
+            { label: "游戏时长", value: formatTime(growth.totalPlayTime), icon: Clock, color: "var(--primary)" },
+            { label: "最高波次", value: growth.highestWave.toString(), icon: Gauge, color: "var(--accent)" },
+            { label: "最长存活", value: formatTime(growth.longestSurvival), icon: Timer, color: "var(--primary)" },
+            { label: "最爱船员", value: growth.favoriteHero ?? "-", icon: Users, color: "var(--orbital)" },
+            { label: "最爱武器", value: growth.favoriteWeapon ?? "-", icon: Sword, color: "var(--accent)" },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -189,7 +189,7 @@ function PlayerGrowthOverview({
             {growth.titles.slice(0, 8).map((title) => (
               <span
                 key={title}
-                className="rounded-full border border-anchor/20 bg-anchor/5 px-2 py-0.5 text-[10px] font-medium text-anchor"
+                className="rounded-full border border-anchor/20 bg-anchor-subtle px-2 py-0.5 text-[10px] font-medium text-anchor"
               >
                 {title}
               </span>
@@ -213,32 +213,32 @@ function CollectionProgress({
 }) {
   const items = [
     {
-      label: "英雄",
+      label: "船员",
       unlocked: collection.heroesUnlocked,
       total: collection.heroesTotal,
       icon: Users,
-      color: "#3dd1c8",
+      color: "var(--orbital)",
     },
     {
       label: "武器",
       unlocked: collection.weaponsUnlocked,
       total: collection.weaponsTotal,
       icon: Sword,
-      color: "#c8a45c",
+      color: "var(--accent)",
     },
     {
       label: "Boss",
       unlocked: collection.bossesDefeated.length,
       total: collection.bossesTotal,
       icon: Skull,
-      color: "#c84a4a",
+      color: "var(--caution)",
     },
     {
       label: "皮肤",
       unlocked: collection.skinsOwned,
       total: collection.skinsTotal,
       icon: PaintBrush,
-      color: "#5b9cf5",
+      color: "var(--primary)",
     },
   ];
 
@@ -247,9 +247,9 @@ function CollectionProgress({
       initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="bridge-panel holo-scan p-4 md:p-5"
+      className="station-panel orbital-scan p-4 md:p-5"
     >
-      <div className="bridge-panel-header -mx-4 -mt-4 mb-4 px-4 md:-mx-5 md:-mt-5 md:px-5">
+      <div className="station-panel-header -mx-4 -mt-4 mb-4 px-4 md:-mx-5 md:-mt-5 md:px-5">
         <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
           <CodesandboxLogo size={14} weight="duotone" />
           收藏进度
@@ -387,7 +387,7 @@ function AchievementCard({
                 {tierLabel}
               </span>
               {achievement.category === "secret" && !isHidden && (
-                <span className="rounded-full border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                <span className="rounded-full border border-primary/20 bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
                   隐藏
                 </span>
               )}
@@ -419,19 +419,19 @@ function AchievementCard({
             {achievement.reward && (achievement.reward.coins || achievement.reward.seasonCurrency || achievement.reward.title) && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-primary/10 pt-2">
                 {achievement.reward.coins && (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-warning/20 bg-warning/5 px-1.5 py-0.5 text-[9px] font-medium text-warning">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-warning/20 bg-warning-subtle px-1.5 py-0.5 text-[9px] font-medium text-warning">
                     <Coin size={10} weight="bold" />
                     {achievement.reward.coins.toLocaleString()}
                   </span>
                 )}
                 {achievement.reward.seasonCurrency && (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary-subtle px-1.5 py-0.5 text-[9px] font-medium text-primary">
                     <Star size={10} weight="bold" />
                     {achievement.reward.seasonCurrency}
                   </span>
                 )}
                 {achievement.reward.title && (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-anchor/20 bg-anchor/5 px-1.5 py-0.5 text-[9px] font-medium text-anchor">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-anchor/20 bg-anchor-subtle px-1.5 py-0.5 text-[9px] font-medium text-anchor">
                     <Crown size={10} weight="bold" />
                     {achievement.reward.title}
                   </span>
@@ -454,7 +454,7 @@ function AchievementCard({
 
             {isClaimed && (
               <div className="mt-2">
-                <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-success/20 bg-success/5 px-3 py-2 text-xs font-bold text-success">
+                <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-success/20 bg-success-subtle px-3 py-2 text-xs font-bold text-success">
                   <Check size={12} weight="bold" />
                   已领取
                 </span>
@@ -549,12 +549,12 @@ export default function AchievementsPage() {
   // ── Error State ──
   if (loadError) {
     return (
-      <Layout title="成就与收藏">
+      <Layout title="勋章墙">
         <div className="mx-auto flex min-h-[60dvh] max-w-7xl flex-col items-center justify-center px-4 py-12">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bridge-panel p-8 text-center"
+            className="station-panel p-8 text-center"
           >
             <WarningCircle size={40} weight="bold" className="mx-auto text-danger" />
             <h2 className="mt-3 font-display text-lg font-bold text-danger">数据加载失败</h2>
@@ -564,7 +564,7 @@ export default function AchievementsPage() {
             <button
               type="button"
               onClick={refresh}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger transition-all hover:bg-danger/20 focus-ring active:scale-95"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-danger/20 bg-danger-subtle px-4 py-2 text-sm font-semibold text-danger transition-all hover:bg-danger/20 focus-ring active:scale-95"
             >
               重试
             </button>
@@ -577,17 +577,17 @@ export default function AchievementsPage() {
   // ── Empty State (no save at all) ──
   if (!save) {
     return (
-      <Layout title="成就与收藏">
+      <Layout title="勋章墙">
         <div className="mx-auto flex min-h-[60dvh] max-w-7xl flex-col items-center justify-center px-4 py-12">
           <motion.div
             initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bridge-panel p-8 text-center"
+            className="station-panel p-8 text-center"
           >
             <Trophy size={40} weight="bold" className="mx-auto text-muted" />
             <h2 className="mt-3 font-display text-lg font-bold">暂无成就数据</h2>
             <p className="mt-1 text-sm text-muted">
-              完成一次部署后，你的成就与收藏将在此展示。
+              完成一次部署后，你的勋章与收藏将在此展示。
             </p>
           </motion.div>
         </div>
@@ -596,7 +596,7 @@ export default function AchievementsPage() {
   }
 
   return (
-    <Layout title="成就与收藏">
+    <Layout title="勋章墙">
       <div className="mx-auto min-h-[100dvh] max-w-7xl px-4 py-6 md:py-8">
         {/* Header */}
         <motion.div
@@ -609,10 +609,10 @@ export default function AchievementsPage() {
             <div>
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
                 <Trophy size={14} weight="duotone" />
-                成就与收藏
+                勋章墙
               </span>
               <h1 className="mt-2 font-display text-[clamp(1.5rem,3vw,2.25rem)] font-extrabold leading-[0.95] tracking-tight">
-                成就、
+                勋章、
                 <span className="text-gradient">收藏</span>
               </h1>
               <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
@@ -620,14 +620,14 @@ export default function AchievementsPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="bridge-panel rounded-xl px-3 py-1.5">
+              <div className="station-panel rounded-xl px-3 py-1.5">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted">总成就</p>
                 <p className="font-mono tabular-nums text-lg font-bold text-primary">
                   {completedCount}<span className="text-sm text-muted">/{ACHIEVEMENTS.length}</span>
                 </p>
               </div>
               {claimableCount > 0 && (
-                <div className="rounded-xl border border-warning/20 bg-warning/5 px-3 py-1.5">
+                <div className="rounded-xl border border-warning/20 bg-warning-subtle px-3 py-1.5">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-warning">可领取</p>
                   <p className="font-mono tabular-nums text-lg font-bold text-warning">{claimableCount}</p>
                 </div>
@@ -688,7 +688,7 @@ export default function AchievementsPage() {
               <motion.div
                 initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bridge-panel p-8 text-center"
+                className="station-panel p-8 text-center"
               >
                 <Trophy size={32} weight="bold" className="mx-auto text-muted" />
                 <p className="mt-2 text-sm text-muted">该分类下暂无成就。</p>

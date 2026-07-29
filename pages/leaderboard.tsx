@@ -105,7 +105,7 @@ function PodiumCard({
   isCompact?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
-  const colors = PODIUM_COLORS[rank] ?? { bg: "bg-panel/60", border: "border-primary/10", text: "text-foreground", glow: "bg-primary/5", icon: Trophy };
+  const colors = PODIUM_COLORS[rank] ?? { bg: "bg-panel/60", border: "border-primary/10", text: "text-foreground", glow: "bg-primary-subtle", icon: Trophy };
   const RankIcon = RANK_ICONS[rank];
 
   return (
@@ -113,7 +113,7 @@ function PodiumCard({
       initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: rank * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className={`group bridge-panel holo-scan p-3 md:p-4 ${colors.border}`}
+      className={`group station-panel orbital-scan p-3 md:p-4 ${colors.border}`}
     >
       <div className={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full ${colors.glow} blur-3xl transition-opacity duration-700 group-hover:opacity-80`} />
       <div className="relative flex items-start gap-3">
@@ -241,7 +241,7 @@ function GlobalLeaderboard({ modeFilter }: { modeFilter: string }) {
           </div>
 
           {rest.length > 0 && (
-            <div className="bridge-panel holo-scan overflow-hidden">
+            <div className="station-panel orbital-scan overflow-hidden">
               <div className="max-h-[420px] overflow-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="sticky top-0 z-10 bg-panel-raised/95 backdrop-blur-sm">
@@ -320,7 +320,7 @@ function SeasonTier({ xp }: { xp: number }) {
       { min: 4000, name: "铂金", color: "#6ec6d8", icon: Star },
       { min: 8000, name: "钻石", color: "#8b7cf0", icon: Lightning },
       { min: 15000, name: "大师", color: "#f05a7e", icon: Fire },
-      { min: 25000, name: "宗师", color: "#f59e0b", icon: Trophy },
+      { min: 25000, name: "宗师", color: "var(--warning)", icon: Trophy },
     ];
     let current = list[0];
     let next = list[1];
@@ -341,7 +341,7 @@ function SeasonTier({ xp }: { xp: number }) {
   const Icon = current.icon;
 
   return (
-    <div className="bridge-panel holo-scan p-3">
+    <div className="station-panel orbital-scan p-3">
       <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: current.color }} />
       <div className="relative flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${current.color}18`, border: `1px solid ${current.color}30` }}>
@@ -389,9 +389,9 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
-            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
+            className="group station-panel orbital-scan p-2.5 transition-colors hover:bg-panel"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity group-hover:opacity-60" />
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary-subtle blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">总出战</p>
               <Target size={16} weight="bold" className="text-muted transition-colors group-hover:text-foreground" />
@@ -403,9 +403,9 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
+            className="group station-panel orbital-scan p-2.5 transition-colors hover:bg-panel"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-danger/5 blur-3xl transition-opacity group-hover:opacity-60" />
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-danger-subtle blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">累计击杀</p>
               <Skull size={16} weight="bold" className="text-muted transition-colors group-hover:text-danger/70" />
@@ -417,9 +417,9 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
-            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
+            className="group station-panel orbital-scan p-2.5 transition-colors hover:bg-panel"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-warning/5 blur-3xl transition-opacity group-hover:opacity-60" />
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-warning-subtle blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">最佳击杀</p>
               <Trophy size={16} weight="bold" className="text-muted transition-colors group-hover:text-warning" />
@@ -431,9 +431,9 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             initial={reducedMotion ? undefined : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="group bridge-panel holo-scan p-2.5 transition-colors hover:bg-panel"
+            className="group station-panel orbital-scan p-2.5 transition-colors hover:bg-panel"
           >
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-success/5 blur-3xl transition-opacity group-hover:opacity-60" />
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-success-subtle blur-3xl transition-opacity group-hover:opacity-60" />
             <div className="relative flex items-center justify-between">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted">赛季 XP</p>
               <Star size={16} weight="bold" className="text-muted transition-colors group-hover:text-success" />
@@ -448,15 +448,15 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
           initial={reducedMotion ? undefined : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="bridge-panel holo-scan p-3"
+          className="station-panel orbital-scan p-3"
         >
-          <div className="bridge-panel-header -mx-3 -mt-3 mb-3 px-3">
+          <div className="station-panel-header -mx-3 -mt-3 mb-3 px-3">
             <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
               <Clock size={12} weight="bold" />
               最近最佳
             </span>
           </div>
-          <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
+          <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary-subtle blur-3xl" />
           <div className="relative flex items-start justify-between">
             <div>
               <p className="mt-1 text-lg font-bold">
@@ -471,7 +471,7 @@ function PersonalStatsPanel({ save }: { save: SaveData | null }) {
             </div>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                best.victory ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
+                best.victory ? "bg-success/10 text-success" : "bg-danger-subtle text-danger"
               }`}
             >
               {best.victory ? (
@@ -539,15 +539,15 @@ function SubmitPanel({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="bridge-panel holo-scan p-3"
+      className="station-panel orbital-scan p-3"
     >
-      <div className="bridge-panel-header -mx-3 -mt-3 mb-3 px-3">
+      <div className="station-panel-header -mx-3 -mt-3 mb-3 px-3">
         <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
           <Globe size={12} weight="bold" />
           提交成绩
         </span>
       </div>
-      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary-subtle blur-3xl" />
       <div className="relative">
         <div className="flex items-center gap-2">
           <Globe size={18} weight="bold" className="text-primary" />
@@ -639,6 +639,7 @@ export default function LeaderboardPage() {
     <Layout title="战绩">
       <Head>
         <title>战绩 - Project M</title>
+        <meta name="theme-color" content="#F5F2ED" />
       </Head>
       <div className="relative mx-auto max-w-7xl px-4 py-3 md:py-4">
         <div className="grid gap-3 lg:grid-cols-12 lg:gap-4">
@@ -648,7 +649,7 @@ export default function LeaderboardPage() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-4"
           >
-            <span className="inline-block rounded bg-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-primary">
+            <span className="inline-block rounded bg-primary-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-primary">
               作战记录
             </span>
             <h1 className="mt-2 text-xl font-bold leading-[1.1] tracking-tight md:text-3xl">
@@ -660,7 +661,7 @@ export default function LeaderboardPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 href="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-background shadow-lg shadow-primary/15 transition-all hover:bg-primary/90 focus-ring active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-background shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 focus-ring active:scale-95"
               >
                 <Play size={16} weight="fill" />
                 <span className="whitespace-nowrap">再开一局</span>
@@ -696,7 +697,7 @@ export default function LeaderboardPage() {
                         onClick={() => setModeFilter(opt.value)}
                         className={`flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all ${
                           isActive
-                            ? "border-primary/30 bg-primary/10 text-primary"
+                            ? "border-primary/30 bg-primary-subtle text-primary"
                             : "border-primary/10 bg-panel/60 text-muted hover:border-primary/20 hover:bg-panel hover:text-foreground"
                         }`}
                       >

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import Head from "next/head";
 import Layout from "@/components/Layout";
 import SectionHeader from "@/components/SectionHeader";
 import FeatureCard from "@/components/FeatureCard";
@@ -98,6 +99,9 @@ export default function HelpPage() {
 
   return (
     <Layout title="操作指南">
+      <Head>
+        <meta name="theme-color" content="#F5F2ED" />
+      </Head>
       <div className="relative mx-auto max-w-7xl px-4 py-3 md:py-4">
         <div className="grid gap-3 md:grid-cols-12 md:gap-4">
           <aside className="md:col-span-3">
@@ -142,7 +146,7 @@ export default function HelpPage() {
                   />
                 ))}
               </div>
-              <div className="mt-2 rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5 text-sm text-muted">
+              <div className="mt-2 rounded-2xl border border-primary/10 bg-panel/60 orbital-scan p-2.5 text-sm text-muted">
                 <div className="flex items-start gap-3">
                   <DeviceMobile size={16} className="mt-0.5 shrink-0 text-accent" />
                   <p className="text-xs leading-relaxed">
@@ -168,19 +172,19 @@ export default function HelpPage() {
                 ))}
               </div>
               <div className="mt-2 grid gap-1.5 md:grid-cols-3">
-                <div className="rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5">
+                <div className="rounded-2xl border border-primary/10 bg-panel/60 orbital-scan p-2.5">
                   <Check size={16} weight="bold" className="text-success" />
                   <p className="mt-1.5 text-xs font-semibold">完成任务</p>
                   <p className="mt-0.5 text-[11px] text-muted">
                     每局 4 个随机顺序任务，完成后撤离点激活。
                   </p>
                 </div>
-                <div className="rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5">
+                <div className="rounded-2xl border border-primary/10 bg-panel/60 orbital-scan p-2.5">
                   <Crosshair size={16} weight="bold" className="text-primary" />
                   <p className="mt-1.5 text-xs font-semibold">进入撤离点</p>
                   <p className="mt-0.5 text-[11px] text-muted">抵达撤离区域并存活至倒计时结束。</p>
                 </div>
-                <div className="rounded-2xl border border-primary/10 bg-panel/60 holo-scan p-2.5">
+                <div className="rounded-2xl border border-primary/10 bg-panel/60 orbital-scan p-2.5">
                   <Heart size={16} weight="bold" className="text-danger" />
                   <p className="mt-1.5 text-xs font-semibold">生命归零</p>
                   <p className="mt-0.5 text-[11px] text-muted">受到过多伤害或撤离超时即判定失败。</p>
@@ -281,7 +285,7 @@ export default function HelpPage() {
                   {passives.map((passive) => (
                     <div
                       key={passive.id}
-                      className="w-[180px] flex-none snap-start rounded-xl border border-primary/10 bg-panel/60 holo-scan p-2.5 transition-colors hover:bg-panel"
+                      className="w-[180px] flex-none snap-start rounded-xl border border-primary/10 bg-panel/60 orbital-scan p-2.5 transition-colors hover:bg-panel"
                     >
                       <div className="flex items-center gap-2">
                         <div

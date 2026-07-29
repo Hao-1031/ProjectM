@@ -26,7 +26,7 @@ import { HERO_DEFS } from "@/lib/game/heroes";
 import type { HeroId } from "@/lib/game/types";
 
 const CATEGORY_CONFIG: Record<ChronicleEntry["category"], { label: string; color: string; bg: string; border: string; icon: typeof Calendar }> = {
-  event: { label: "事件", color: "var(--quantum)", bg: "var(--quantum-subtle)", border: "rgba(91,156,245,0.25)", icon: Calendar },
+  event: { label: "事件", color: "var(--quantum)", bg: "var(--quantum-subtle)", border: "rgba(11,29,58,0.25)", icon: Calendar },
   discovery: { label: "发现", color: "var(--success)", bg: "rgba(74,154,110,0.1)", border: "rgba(74,154,110,0.25)", icon: MagnifyingGlass },
   battle: { label: "战役", color: "var(--entropy)", bg: "var(--entropy-subtle)", border: "rgba(200,74,74,0.25)", icon: Sword },
   character: { label: "角色", color: "#a78bfa", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.25)", icon: User },
@@ -45,7 +45,7 @@ const THREAT_CONFIG: Record<DimensionEntry["threatLevel"], { label: string; colo
   low: { label: "低威胁", color: "var(--success)", bg: "rgba(74,154,110,0.1)" },
   medium: { label: "中威胁", color: "var(--warning)", bg: "var(--anchor-subtle)" },
   high: { label: "高威胁", color: "var(--entropy)", bg: "var(--entropy-subtle)" },
-  extreme: { label: "极端威胁", color: "#ef4444", bg: "rgba(239,68,68,0.08)" },
+  extreme: { label: "极端威胁", color: "var(--caution)", bg: "rgba(200,74,74,0.08)" },
   unknown: { label: "威胁未知", color: "var(--quantum)", bg: "var(--quantum-subtle)" },
 };
 
@@ -59,7 +59,7 @@ function DimensionCard({ dim, index }: { dim: DimensionEntry; index: number }) {
       initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="group bridge-panel holo-scan p-4 transition-all hover:border-primary/25 hover:bg-panel"
+      className="group station-panel orbital-scan p-4 transition-all hover:border-primary/25 hover:bg-panel"
     >
       <div
         className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-35"
@@ -153,7 +153,7 @@ function CategoryFilter({
         onClick={() => onSelect(null)}
         className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all focus-ring ${
           selected === null
-            ? "border-primary/30 bg-primary/10 text-primary"
+            ? "border-primary/30 bg-primary-subtle text-primary"
             : "border border-primary/10 bg-panel/60 text-muted hover:border-primary/20 hover:text-foreground"
         }`}
       >
@@ -307,7 +307,7 @@ function TimelineEvent({
 
 function EmptyTimeline() {
   return (
-    <div className="bridge-panel flex flex-col items-center justify-center py-16 text-center">
+    <div className="station-panel flex flex-col items-center justify-center py-16 text-center">
       <Flashlight size={28} weight="bold" className="text-muted" />
       <p className="mt-3 text-xs text-muted">没有匹配的编年史条目。尝试切换筛选条件。</p>
     </div>
@@ -346,7 +346,7 @@ export default function ChroniclesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-subtle px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
             <Star size={10} weight="fill" />
             维度档案
           </div>
@@ -367,7 +367,7 @@ export default function ChroniclesPage() {
             transition={{ duration: 0.4, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
             className="flex items-center gap-2.5 mb-4"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-subtle">
               <Globe size={16} weight="bold" className="text-primary" />
             </div>
             <h2 className="font-display text-sm font-bold">维度概览</h2>
@@ -389,7 +389,7 @@ export default function ChroniclesPage() {
             transition={{ duration: 0.4, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             className="flex items-center gap-2.5 mb-4"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-subtle">
               <Clock size={16} weight="bold" className="text-primary" />
             </div>
             <h2 className="font-display text-sm font-bold">时间线</h2>
@@ -433,7 +433,7 @@ export default function ChroniclesPage() {
                 >
                   <div className="hidden w-[90px] shrink-0 md:block" />
                   <div className="flex shrink-0 flex-col items-center">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/20 bg-primary/5">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/20 bg-primary-subtle">
                       <Star size={10} weight="fill" className="text-primary" />
                     </div>
                   </div>

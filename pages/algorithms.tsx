@@ -52,29 +52,29 @@ import { VERSION_DISPLAY } from "@/lib/version";
 const ENGINE_GROUPS = {
   alpha: {
     id: "alpha",
-    name: "α 玩家引擎",
+    name: "α 航天员引擎",
     icon: Brain,
-    description: "适配玩家能力 · 优化成长体验 · 守护公平竞技",
+    description: "适配航天员能力 · 优化成长体验 · 守护公平竞技",
     color: "var(--primary)",
     bgColor: "var(--primary)",
     algorithmIds: ["dda", "ace", "matchmaking", "content-recommendation", "economy-balance", "reward-recommendation", "progression"] as AlgorithmId[],
   },
   beta: {
     id: "beta",
-    name: "β 敌对引擎",
+    name: "β 外敌引擎",
     icon: Eye,
     description: "动态敌潮调度 · 智能走位决策 · 战术行为模拟",
-    color: "var(--entropy)",
-    bgColor: "var(--entropy)",
+    color: "var(--caution)",
+    bgColor: "var(--caution)",
     algorithmIds: ["spawn-optimizer", "enemy-movement", "bot-ai", "pathfinding", "team-coordination", "adaptive-spawn"] as AlgorithmId[],
   },
   gamma: {
     id: "gamma",
-    name: "γ 基础设施",
+    name: "γ 轨道基础设施",
     icon: Atom,
-    description: "地图平衡审计 · 网络预测补偿 · 系统稳定性",
-    color: "var(--quantum)",
-    bgColor: "var(--quantum)",
+    description: "星图平衡审计 · 通讯预测补偿 · 系统稳定性",
+    color: "var(--orbital)",
+    bgColor: "var(--orbital)",
     algorithmIds: ["map-balance", "network-prediction"] as AlgorithmId[],
   },
 } as const;
@@ -133,7 +133,7 @@ const DEMO_RUNNERS: Record<AlgorithmId, { label: string; run: () => unknown }> =
   "content-recommendation": {
     label: "模拟推荐",
     run: () => rankContent(
-      [{ id: "c1", title: "据点防守狙击点位", tags: ["sniper", "defense"], createdAt: Date.now() - 3600000, likes: 12, views: 180 }, { id: "c2", title: "新人通关指南", tags: ["guide"], createdAt: Date.now() - 86400000 * 2, likes: 86, views: 1200 }, { id: "c3", title: "新皮肤：辐射涂装", tags: ["cosmetic"], createdAt: Date.now() - 1800000, likes: 0, views: 12 }],
+      [{ id: "c1", title: "据点防守狙击点位", tags: ["sniper", "defense"], createdAt: Date.now() - 3600000, likes: 12, views: 180 }, { id: "c2", title: "新人通关指南", tags: ["guide"], createdAt: Date.now() - 86400000 * 2, likes: 86, views: 1200 }, { id: "c3", title: "新装备：轨道涂装", tags: ["cosmetic"], createdAt: Date.now() - 1800000, likes: 0, views: 12 }],
       [{ tag: "sniper", weight: 0.85 }, { tag: "defense", weight: 0.5 }]
     ),
   },
@@ -161,7 +161,7 @@ const DEMO_RUNNERS: Record<AlgorithmId, { label: string; run: () => unknown }> =
     ),
   },
   "network-prediction": {
-    label: "模拟网络补偿",
+    label: "模拟通讯补偿",
     run: () => {
       const snapshot = { latencyMs: 145, jitterMs: 22, packetLossPercent: 1.2, serverTime: 1000, clientTime: 1150 };
       return { network: evaluateNetwork(snapshot), predicted: predictEntityState({ x: 120, y: 80, vx: 240, vy: -60, timestamp: 950 }, snapshot) };
@@ -281,12 +281,12 @@ export default function AlgorithmsPage() {
   const engine = ENGINE_GROUPS[activeEngine as keyof typeof ENGINE_GROUPS];
 
   return (
-    <Layout title="算法实验室">
+    <Layout title="深空计算中心">
       <div className="relative min-h-[100dvh]">
         <div className="noise-overlay" />
         <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute -right-[15%] top-[5%] h-[50vh] w-[50vh] rounded-full bg-primary/4 blur-[100px]" />
-          <div className="absolute -left-[10%] bottom-[10%] h-[40vh] w-[40vh] rounded-full bg-quantum/4 blur-[80px]" />
+          <div className="absolute -right-[15%] top-[5%] h-[50vh] w-[50vh] rounded-full bg-primary-subtle blur-[100px]" />
+          <div className="absolute -left-[10%] bottom-[10%] h-[40vh] w-[40vh] rounded-full bg-orbital/4 blur-[80px]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:py-12">
@@ -298,13 +298,13 @@ export default function AlgorithmsPage() {
             className="mb-8"
           >
             <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
-              <Atom weight="duotone" size={14} />{VERSION_DISPLAY} · 算法实验室
+              <Atom weight="duotone" size={14} />{VERSION_DISPLAY} · 深空计算中心
             </span>
             <h1 className="mt-2 text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
-              三引擎<br /><span className="text-gradient">维度架构</span>
+              三引擎<br /><span className="text-gradient">轨道架构</span>
             </h1>
             <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-              15 个核心算法分布于 α 玩家引擎、β 敌对引擎与 γ 基础设施引擎。
+              15 个核心算法分布于 α 航天员引擎、β 外敌引擎与 γ 轨道基础设施引擎。
               所有算法逻辑、输入输出与实时演示均在此公开，信奉可验证、可审计、可迭代的数据驱动设计。
             </p>
           </motion.div>
@@ -322,7 +322,7 @@ export default function AlgorithmsPage() {
                   initial={reducedMotion ? undefined : { opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative overflow-hidden bridge-panel holo-scan"
+                  className="relative overflow-hidden station-panel orbital-scan"
                 >
                   {/* Engine Header */}
                   <button
@@ -349,7 +349,7 @@ export default function AlgorithmsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="rounded-full border border-primary/10 bg-background/50 holo-scan px-2 py-0.5 font-mono text-[10px] text-muted">
+                      <span className="rounded-full border border-primary/10 bg-background/50 orbital-scan px-2 py-0.5 font-mono text-[10px] text-muted">
                         {algos.length} 算法
                       </span>
                       {isActive ? <CaretUp size={14} /> : <CaretDown size={14} />}
@@ -402,7 +402,7 @@ export default function AlgorithmsPage() {
                                 }}
                                 className={`flex w-full items-center gap-2.5 rounded-xl p-2.5 text-left text-xs transition-all ${
                                   isSelected
-                                    ? "border border-primary/20 bg-primary/5"
+                                    ? "border border-primary/20 bg-primary-subtle"
                                     : "border border-transparent hover:bg-panel/40"
                                 }`}
                               >
@@ -442,7 +442,7 @@ export default function AlgorithmsPage() {
               initial={reducedMotion ? undefined : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="mt-4 bridge-panel holo-scan p-4 md:p-6"
+              className="mt-4 station-panel orbital-scan p-4 md:p-6"
             >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
@@ -473,11 +473,11 @@ export default function AlgorithmsPage() {
               <p className="mb-4 text-xs leading-relaxed text-foreground/80">{activeMeta.description}</p>
 
               <div className="mb-4 grid gap-2 text-xs sm:grid-cols-2">
-                <div className="rounded-xl border border-primary/10 bg-background/50 holo-scan p-2.5">
+                <div className="rounded-xl border border-primary/10 bg-background/50 orbital-scan p-2.5">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-muted">输入参数</p>
                   <p className="mt-1 text-foreground">{activeMeta.inputs.join(" · ")}</p>
                 </div>
-                <div className="rounded-xl border border-primary/10 bg-background/50 holo-scan p-2.5">
+                <div className="rounded-xl border border-primary/10 bg-background/50 orbital-scan p-2.5">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-muted">输出结果</p>
                   <p className="mt-1 text-foreground">{activeMeta.outputs.join(" · ")}</p>
                 </div>
@@ -496,14 +496,14 @@ export default function AlgorithmsPage() {
                   initial={reducedMotion ? undefined : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={activeAlgo}
-                  className="overflow-x-auto rounded-xl border border-primary/10 bg-background/60 holo-scan p-3"
+                  className="overflow-x-auto rounded-xl border border-primary/10 bg-background/60 orbital-scan p-3"
                 >
                   <pre className="text-xs leading-relaxed text-foreground md:text-sm">
                     <code>{JSON.stringify(result, null, 2)}</code>
                   </pre>
                 </motion.div>
               ) : (
-                <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-primary/10 bg-background/40 holo-scan text-center">
+                <div className="flex h-40 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-primary/10 bg-background/40 orbital-scan text-center">
                   <BracketsCurly size={32} className="text-muted/30" />
                   <p className="text-xs text-muted">点击引擎卡片中的「运行」按钮查看实时输出</p>
                 </div>
@@ -529,7 +529,7 @@ export default function AlgorithmsPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.35 }}
-            className="mt-4 bridge-panel holo-scan p-4 md:p-6"
+            className="mt-4 station-panel orbital-scan p-4 md:p-6"
           >
             <div className="flex items-center gap-2">
               <Globe size={16} weight="bold" className="text-primary" />

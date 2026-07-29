@@ -33,7 +33,7 @@ const HERO_IMAGES: Record<string, string> = {
 };
 
 const TABS: { id: "heroes" | "skins" | "emotes" | "badges"; label: string; icon: typeof UserCircle }[] = [
-  { id: "heroes", label: "英雄", icon: UserCircle },
+  { id: "heroes", label: "船员", icon: UserCircle },
   { id: "skins", label: "皮肤", icon: PaintBrush },
   { id: "emotes", label: "表情", icon: Smiley },
   { id: "badges", label: "徽章", icon: Crown },
@@ -47,7 +47,7 @@ function TalentRow({ talent, heroColor }: { talent: HeroTalent; heroColor: strin
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3 }}
-      className="group flex items-center gap-2 rounded-lg border border-primary/10 bg-panel/60 holo-scan px-2.5 py-2 transition-colors hover:border-primary/30 hover:bg-panel"
+      className="group flex items-center gap-2 rounded-lg border border-primary/10 bg-panel/60 orbital-scan px-2.5 py-2 transition-colors hover:border-primary/30 hover:bg-panel"
     >
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold" style={{ backgroundColor: `${heroColor}18`, color: heroColor }}>
         <Star size={11} weight="fill" />
@@ -118,11 +118,11 @@ export default function HeroesPage() {
 
   const handleBuyHero = useCallback((heroId: HeroId) => {
     const success = buyHero(heroId);
-    if (success) { refresh(); showToast("英雄已解锁", "success"); } else { showToast("游戏币不足", "error"); }
+    if (success) { refresh(); showToast("船员已解锁", "success"); } else { showToast("游戏币不足", "error"); }
   }, [refresh, showToast]);
 
   const handleSelectHero = useCallback((heroId: HeroId) => {
-    setSelectedHero(heroId); setSelectedHeroId(heroId); refresh(); showToast("出战英雄已切换", "success");
+    setSelectedHero(heroId); setSelectedHeroId(heroId); refresh(); showToast("出战船员已切换", "success");
   }, [refresh, showToast]);
 
   const handleBuyCosmetic = useCallback((id: string) => {
@@ -142,31 +142,31 @@ export default function HeroesPage() {
   const getPassiveStats = (hero: typeof HERO_DEFS[keyof typeof HERO_DEFS]) => {
     const p = hero.passive;
     const parts: { label: string; value: string; icon: typeof Shield; color: string }[] = [];
-    if (p.maxHealthMul) parts.push({ label: "生命", value: `+${Math.round((p.maxHealthMul - 1) * 100)}%`, icon: Heartbeat, color: "#ef4444" });
-    if (p.speedMul) parts.push({ label: "移速", value: `+${Math.round((p.speedMul - 1) * 100)}%`, icon: Gauge, color: "#f59e0b" });
-    if (p.armorAdd) parts.push({ label: "护甲", value: `+${Math.round(p.armorAdd * 100)}%`, icon: ShieldCheck, color: "#6366f1" });
-    if (p.critAdd) parts.push({ label: "暴击", value: `+${Math.round(p.critAdd * 100)}%`, icon: Crosshair, color: "#f97316" });
-    if (p.regenAdd) parts.push({ label: "回复", value: `+${p.regenAdd}/s`, icon: Heartbeat, color: "#22c55e" });
-    if (p.cooldownReductionAdd) parts.push({ label: "冷却", value: `-${Math.round(p.cooldownReductionAdd * 100)}%`, icon: Lightning, color: "#38bdf8" });
-    if (p.areaMul) parts.push({ label: "范围", value: `+${Math.round((p.areaMul - 1) * 100)}%`, icon: Target, color: "#a855f7" });
-    if (p.rangeMul) parts.push({ label: "射程", value: `+${Math.round((p.rangeMul - 1) * 100)}%`, icon: Target, color: "#14b8a6" });
+    if (p.maxHealthMul) parts.push({ label: "生命", value: `+${Math.round((p.maxHealthMul - 1) * 100)}%`, icon: Heartbeat, color: "var(--caution)" });
+    if (p.speedMul) parts.push({ label: "移速", value: `+${Math.round((p.speedMul - 1) * 100)}%`, icon: Gauge, color: "var(--accent)" });
+    if (p.armorAdd) parts.push({ label: "护甲", value: `+${Math.round(p.armorAdd * 100)}%`, icon: ShieldCheck, color: "var(--primary)" });
+    if (p.critAdd) parts.push({ label: "暴击", value: `+${Math.round(p.critAdd * 100)}%`, icon: Crosshair, color: "var(--orbital)" });
+    if (p.regenAdd) parts.push({ label: "回复", value: `+${p.regenAdd}/s`, icon: Heartbeat, color: "var(--success)" });
+    if (p.cooldownReductionAdd) parts.push({ label: "冷却", value: `-${Math.round(p.cooldownReductionAdd * 100)}%`, icon: Lightning, color: "var(--orbital)" });
+    if (p.areaMul) parts.push({ label: "范围", value: `+${Math.round((p.areaMul - 1) * 100)}%`, icon: Target, color: "var(--primary)" });
+    if (p.rangeMul) parts.push({ label: "射程", value: `+${Math.round((p.rangeMul - 1) * 100)}%`, icon: Target, color: "var(--success)" });
     return parts;
   };
 
   return (
-    <Layout title="英雄档案">
+    <Layout title="荣誉陈列室">
       <div className="mx-auto min-h-[100dvh] max-w-7xl px-4 py-3 md:py-6">
         <motion.div initial={reducedMotion ? undefined : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="mb-4 md:mb-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
-                <Sparkle weight="duotone" size={14} />英雄档案
+                <Sparkle weight="duotone" size={14} />船员档案
               </span>
               <h1 className="mt-2 text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
-                选择你的<br /><span className="text-gradient">据点指挥官</span>
+                选择你的<br /><span className="text-gradient">深空指挥官</span>
               </h1>
               <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-                解锁英雄与外观，用局内资源兑换永久收藏。所有物品只改变外观，不影响战斗数值。
+                解锁船员与外观，用局内资源兑换永久收藏。所有物品只改变外观，不影响战斗数值。
               </p>
             </div>
             <CoinBadge coins={save?.coins ?? 0} />
@@ -203,7 +203,7 @@ export default function HeroesPage() {
                       initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                      className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                      className={`group relative overflow-hidden rounded-3xl station-panel orbital-scan transition-all hover:border-primary/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                       <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-25 transition-opacity group-hover:opacity-50" style={{ backgroundColor: hero.color }} />
                       <div className="relative p-2.5 md:p-3">
                         {isLarge && (
@@ -269,7 +269,7 @@ export default function HeroesPage() {
                         {hero.talents.length > 0 && (
                           <div className="mt-2">
                             <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-                              <Sparkle size={10} />天赋树
+                              <Sparkle size={10} />天赋模块
                             </p>
                             <div className="grid gap-1 sm:grid-cols-2">
                               {hero.talents.map((talent) => (

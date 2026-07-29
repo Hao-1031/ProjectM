@@ -1,3 +1,4 @@
+import Head from "next/head";
 import Layout from "@/components/Layout";
 import FeatureCard from "@/components/FeatureCard";
 import { motion, useReducedMotion } from "framer-motion";
@@ -55,6 +56,9 @@ export default function AboutPage() {
 
   return (
     <Layout title="关于">
+      <Head>
+        <meta name="theme-color" content="#F5F2ED" />
+      </Head>
       <div className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="absolute right-[10%] top-0 h-[600px] w-px bg-gradient-to-b from-transparent via-accent/20 to-transparent" />
@@ -87,13 +91,13 @@ export default function AboutPage() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="md:col-span-5"
             >
-              <div className="bridge-panel holo-scan p-3">
+              <div className="station-panel orbital-scan p-3">
                 <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
                 <p className="relative font-mono text-xs uppercase tracking-widest text-muted">
                   设计信条
                 </p>
                 <blockquote className="relative mt-2 text-xs font-medium leading-relaxed">
-                  “不要让界面替玩家思考。给出清晰的信息、真实的反馈、可预知的规则，然后把战场交还给他们。”
+                  &ldquo;不要让界面替玩家思考。给出清晰的信息、真实的反馈、可预知的规则，然后把战场交还给他们。&rdquo;
                 </blockquote>
               </div>
             </motion.div>
@@ -133,7 +137,7 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="md:col-span-7">
-              <div className="grid grid-flow-dense grid-cols-2 overflow-hidden bridge-panel holo-scan">
+              <div className="grid grid-flow-dense grid-cols-2 overflow-hidden station-panel orbital-scan">
                 {techStack.map((tech, index) => {
                   const Icon = tech.icon;
                   const isWide = index === 0 || index === 5;
@@ -160,7 +164,7 @@ export default function AboutPage() {
         </section>
 
         <section className="relative mx-auto max-w-7xl px-4 py-3 md:pb-4">
-          <div className="relative overflow-hidden bridge-panel holo-scan p-3 md:p-4">
+          <div className="relative overflow-hidden station-panel orbital-scan p-3 md:p-4">
             <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
             <div className="relative grid gap-3 md:grid-cols-2 md:items-center">
               <div>

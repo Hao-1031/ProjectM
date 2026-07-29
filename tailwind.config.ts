@@ -26,20 +26,20 @@ const config: Config = {
           muted: "var(--secondary-muted)",
           subtle: "var(--secondary-subtle)",
         },
-        quantum: {
-          DEFAULT: "var(--quantum)",
-          muted: "var(--quantum-muted)",
-          subtle: "var(--quantum-subtle)",
+        orbital: {
+          DEFAULT: "var(--orbital)",
+          muted: "var(--orbital-muted)",
+          subtle: "var(--orbital-subtle)",
         },
         anchor: {
           DEFAULT: "var(--anchor)",
           muted: "var(--anchor-muted)",
           subtle: "var(--anchor-subtle)",
         },
-        entropy: {
-          DEFAULT: "var(--entropy)",
-          muted: "var(--entropy-muted)",
-          subtle: "var(--entropy-subtle)",
+        caution: {
+          DEFAULT: "var(--caution)",
+          muted: "var(--caution-muted)",
+          subtle: "var(--caution-subtle)",
         },
         void: {
           DEFAULT: "var(--void)",
@@ -63,9 +63,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-cabinet)", "system-ui", "sans-serif"],
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-geist-sans)", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "SF Mono", "monospace"],
       },
       spacing: {
         "18": "4.5rem",
@@ -77,32 +76,24 @@ const config: Config = {
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "holo-scan": "holoScan 4s linear infinite",
+        "orbital-scan": "orbitalScan 6s linear infinite",
         drift: "drift 12s ease-in-out infinite",
-        geiger: "geiger 2.4s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
         "fade-in": "fadeIn 0.5s ease-out forwards",
-        "bridge-pulse": "bridgePulse 3s ease-in-out infinite",
-        "rift-open": "riftOpen 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards",
-        "anchor-rotate": "anchorRotate 20s linear infinite",
+        "station-pulse": "stationPulse 3s ease-in-out infinite",
+        "orbit-rotate": "orbitRotate 20s linear infinite",
         "data-stream": "dataStream 1s linear infinite",
         "status-pulse": "statusPulse 2s ease-in-out infinite",
-        "projection-flicker": "projectionFlicker 3s ease-in-out infinite",
+        "beacon": "beacon 4s ease-in-out infinite",
       },
       keyframes: {
-        holoScan: {
+        orbitalScan: {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" },
         },
         drift: {
           "0%, 100%": { transform: "translate(0, 0)" },
           "50%": { transform: "translate(12px, -18px)" },
-        },
-        geiger: {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "0.9" },
-          "52%": { opacity: "0.3" },
-          "54%": { opacity: "0.85" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -112,15 +103,11 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        bridgePulse: {
-          "0%, 100%": { opacity: "0.4", boxShadow: "0 0 20px rgba(139,156,247,0.15)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 40px rgba(139,156,247,0.3)" },
+        stationPulse: {
+          "0%, 100%": { opacity: "0.4", boxShadow: "0 0 30px rgba(11,29,58,0.08)" },
+          "50%": { opacity: "0.8", boxShadow: "0 0 60px rgba(11,29,58,0.15)" },
         },
-        riftOpen: {
-          "0%": { opacity: "0", transform: "scaleX(0)" },
-          "100%": { opacity: "1", transform: "scaleX(1)" },
-        },
-        anchorRotate: {
+        orbitRotate: {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
@@ -130,15 +117,11 @@ const config: Config = {
         },
         statusPulse: {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.4" },
+          "50%": { opacity: "0.35" },
         },
-        projectionFlicker: {
-          "0%, 100%": { opacity: "1" },
-          "92%": { opacity: "1" },
-          "93%": { opacity: "0.85" },
-          "94%": { opacity: "1" },
-          "96%": { opacity: "0.9" },
-          "97%": { opacity: "1" },
+        beacon: {
+          "0%, 100%": { opacity: "0.3", transform: "scale(0.95)" },
+          "50%": { opacity: "0.7", transform: "scale(1.05)" },
         },
       },
     },

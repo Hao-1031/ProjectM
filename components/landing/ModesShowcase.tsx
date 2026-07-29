@@ -28,7 +28,7 @@ const SHOWCASE_MODES = [
     tagline: "突破人类极限",
     desc: "满配开局，超频武器火力全开。面对5倍密度敌潮，只有最强者能撑过10分钟的维度风暴。",
     icon: Lightning,
-    accent: "var(--entropy)",
+    accent: "var(--danger)",
     href: "/game?mode=extreme-survival",
   },
   {
@@ -37,7 +37,7 @@ const SHOWCASE_MODES = [
     tagline: "混沌中的秩序",
     desc: "诅咒与祝福双选，每次升级都是关键抉择。构建你的专属流派，探索无限可能的Build组合。",
     icon: Brain,
-    accent: "var(--quantum)",
+    accent: "var(--orbital)",
     href: "/game?mode=survival",
   },
 ];
@@ -80,12 +80,12 @@ export default function ModesShowcase() {
             >
               <Link
                 href={mode.href}
-                className="group flex flex-col gap-4 rounded-2xl border border-border bg-panel/50 p-5 transition-all holo-scan hover:border-primary/20 hover:bg-panel hover:shadow-lg hover:shadow-primary/5 focus-ring sm:flex-row sm:items-center"
+                className="group flex flex-col gap-4 rounded-2xl border border-border bg-panel/50 p-5 transition-all orbital-scan hover:border-primary/20 hover:bg-panel hover:shadow-lg hover:shadow-primary/5 focus-ring sm:flex-row sm:items-center"
               >
                 <div className="flex items-start gap-4 sm:w-64 sm:shrink-0">
                   <span
                     className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: `${mode.accent}15`, color: mode.accent }}
+                    style={{ backgroundColor: `${mode.accent}10`, color: mode.accent }}
                   >
                     <Icon size={24} weight="bold" />
                   </span>

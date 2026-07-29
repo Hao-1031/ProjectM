@@ -12,7 +12,7 @@ export default function Document() {
         <meta name="author" content={BRAND_NAME} />
         <meta name="generator" content={VERSION_META_GENERATOR} />
         <meta name="robots" content="index, follow" />
-        <meta name="theme-color" content="#0c0a14" />
+        <meta name="theme-color" content="#F5F2ED" />
 
         <meta property="og:site_name" content={BRAND_NAME} />
         <meta property="og:locale" content="zh_CN" />

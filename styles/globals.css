@@ -3,74 +3,73 @@
 @tailwind utilities;
 
 :root {
-  /* ── Multiverse Bridge Command Deck ── */
-  /* Deep Gray + Soft Blue-Purple + Warm Gray — Professional & Gentle */
+  /* ── Multiverse Deep Space Station ── */
+  /* Off-white base + Deep Space Blue + Astro Gold — Clean, Bright, International Space */
 
-  /* Base: warm deep gray */
-  --background: #17161a;
-  --foreground: #e8e6e4;
+  /* Base: warm off-white */
+  --background: #F5F2ED;
+  --foreground: #0B1D3A;
 
-  /* Primary: Soft Blue-Purple — gentle projection energy */
-  --primary: #8b9cf7;
-  --primary-muted: #3a3d5c;
-  --primary-subtle: #1a1c2e;
+  /* Primary: Deep Space Blue — command authority */
+  --primary: #0B1D3A;
+  --primary-muted: #1A3355;
+  --primary-subtle: #E8EDF2;
 
-  /* Accent: Warm Amber — anchor point */
-  --accent: #c4a574;
-  --accent-muted: #5c4a32;
-  --accent-subtle: #261e12;
+  /* Accent: Astro Gold — anchor points */
+  --accent: #C8A45C;
+  --accent-muted: #8B7038;
+  --accent-subtle: #F5EFE0;
 
-  /* Secondary: Muted Steel Blue */
-  --secondary: #6b7894;
-  --secondary-muted: #2a2e3a;
-  --secondary-subtle: #12141a;
+  /* Secondary: Steel Blue */
+  --secondary: #4A6B8A;
+  --secondary-muted: #6B8AAA;
+  --secondary-subtle: #E4EBF2;
 
-  /* Surfaces — layered bridge deck panels */
-  --panel: #1c1a1e;
-  --panel-raised: #242226;
-  --border: #2a2830;
+  /* Surfaces — space station bulkheads */
+  --panel: #FFFFFF;
+  --panel-raised: #FAF8F5;
+  --border: #D8D4CC;
 
-  /* Quantum — gentle blue for data streams */
-  --quantum: #6b9cf5;
-  --quantum-muted: #1e345a;
-  --quantum-subtle: #0a1424;
+  /* Orbital — sky blue for data streams */
+  --orbital: #3B7DD8;
+  --orbital-muted: #A8C8F0;
+  --orbital-subtle: #EBF2FA;
 
-  /* Anchor — warm amber energy */
-  --anchor: #c4a574;
-  --anchor-muted: #5c4a32;
-  --anchor-subtle: #261e12;
+  /* Anchor — warm gold energy */
+  --anchor: #C8A45C;
+  --anchor-muted: #8B7038;
+  --anchor-subtle: #F5EFE0;
 
-  /* Entropy — warm rose warning */
-  --entropy: #c47a6a;
-  --entropy-muted: #5c2e24;
-  --entropy-subtle: #24100a;
+  /* Caution — warm coral warning */
+  --caution: #C47A6A;
+  --caution-muted: #F0D4CC;
+  --caution-subtle: #FCF5F3;
 
-  /* Void — pure absence */
-  --void: #0e0c0a;
-  --void-muted: #17161a;
+  /* Void — deep space */
+  --void: #0B1D3A;
+  --void-muted: #1A3355;
 
   /* Semantic */
-  --danger: #c47a6a;
-  --success: #5a9a6e;
-  --warning: #c4a574;
-  --muted: #6b6662;
+  --danger: #C4554A;
+  --success: #4A8C5A;
+  --warning: #C8A45C;
+  --muted: #8A8578;
 
-  /* Neutral scale — warm gray */
-  --neutral-50: #f5f4f2;
-  --neutral-100: #e8e6e4;
-  --neutral-200: #c4c0bc;
-  --neutral-300: #9a9690;
-  --neutral-400: #6b6662;
-  --neutral-500: #4a4542;
-  --neutral-600: #302c2a;
-  --neutral-700: #1e1c1a;
-  --neutral-800: #141210;
-  --neutral-900: #0c0a08;
+  /* Neutral scale — cool gray */
+  --neutral-50: #F8F7F5;
+  --neutral-100: #F0EDE8;
+  --neutral-200: #E0DBD2;
+  --neutral-300: #C4BFB4;
+  --neutral-400: #8A8578;
+  --neutral-500: #6B6660;
+  --neutral-600: #4A4540;
+  --neutral-700: #302C28;
+  --neutral-800: #1E1A18;
+  --neutral-900: #0E0C0A;
 
   /* Typography */
-  --font-cabinet: "Cabinet Grotesk", system-ui, sans-serif;
-  --font-geist-sans: "Geist Sans", system-ui, sans-serif;
-  --font-geist-mono: "Geist Mono", ui-monospace, monospace;
+  --font-geist-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
 }
 
 * {
@@ -92,19 +91,20 @@ body {
   overscroll-behavior: none;
 }
 
-/* Selection with soft blue-purple tint */
+/* Selection with deep space blue tint */
 ::selection {
-  background: rgba(139, 156, 247, 0.18);
+  background: rgba(11, 29, 58, 0.12);
+  color: var(--foreground);
 }
 
-/* Subtle scrollbar */
+/* Clean scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -113,7 +113,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neutral-600);
+  background: var(--neutral-400);
 }
 
 @layer utilities {
@@ -121,17 +121,17 @@ body {
     text-wrap: balance;
   }
 
-  /* Holographic gradient text */
+  /* Deep space gradient text */
   .text-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, #7b8cd6 40%, var(--accent) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, #1A3355 50%, var(--orbital) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Anchor gradient */
-  .text-gradient-anchor {
-    background: linear-gradient(135deg, var(--accent) 0%, #d4b87a 100%);
+  /* Gold gradient */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, var(--accent) 0%, #D4B87A 50%, var(--accent-muted) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -141,17 +141,12 @@ body {
   .bg-shimmer {
     background: linear-gradient(
       90deg,
-      var(--panel) 0%,
-      var(--panel-raised) 50%,
-      var(--panel) 100%
+      var(--neutral-100) 0%,
+      var(--neutral-50) 50%,
+      var(--neutral-100) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
-  }
-
-  /* Cabinet Grotesk heading utility */
-  .font-display {
-    font-family: var(--font-cabinet);
   }
 }
 
@@ -167,160 +162,137 @@ body {
   }
 }
 
-/* Focus ring - holographic magenta */
+/* Focus ring — deep space blue */
 .focus-ring:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--background),
     0 0 0 4px var(--primary);
+  border-radius: 0.375rem;
 }
 
-/* Texture overlay - pointer-events-none layer */
+/* Subtle noise texture overlay */
 .noise-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.025;
+  opacity: 0.015;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Grid dot texture for bridge panels */
-.dot-grid {
-  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
-  background-size: 24px 24px;
+/* Starfield dot pattern — subtle */
+.starfield {
+  background-image: radial-gradient(circle, rgba(11, 29, 58, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Bridge deck grid - larger scale */
-.bridge-grid {
+/* Space station grid — large scale */
+.station-grid {
   background-image:
-    linear-gradient(rgba(139, 156, 247, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 156, 247, 0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(11, 29, 58, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 29, 58, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
 
-/* Hazard/alert stripes - muted */
-.hazard-stripes {
+/* Orbital accent stripes */
+.orbital-stripes {
   background: repeating-linear-gradient(
     45deg,
-    rgba(196, 165, 116, 0.06),
-    rgba(196, 165, 116, 0.06) 8px,
-    rgba(196, 165, 116, 0.015) 8px,
-    rgba(196, 165, 116, 0.015) 16px
+    rgba(11, 29, 58, 0.03),
+    rgba(11, 29, 58, 0.03) 8px,
+    rgba(11, 29, 58, 0.01) 8px,
+    rgba(11, 29, 58, 0.01) 16px
   );
 }
 
-/* Bridge holographic glow */
-.bridge-glow {
+/* Space station glow */
+.station-glow {
   box-shadow:
-    0 0 40px rgba(139, 156, 247, 0.08),
-    0 0 80px rgba(139, 156, 247, 0.04),
-    inset 0 0 40px rgba(139, 156, 247, 0.02);
+    0 0 60px rgba(11, 29, 58, 0.04),
+    0 0 120px rgba(59, 125, 216, 0.03),
+    inset 0 0 60px rgba(11, 29, 58, 0.02);
 }
 
-/* Anchor pulse border */
+/* Gold anchor border */
 .anchor-border {
-  border-color: rgba(196, 165, 116, 0.2);
-  box-shadow: 0 0 20px rgba(196, 165, 116, 0.05);
+  border-color: rgba(200, 164, 92, 0.25);
+  box-shadow: 0 0 30px rgba(200, 164, 92, 0.06);
 }
 
-/* Rift divider */
-.rift-divider {
+/* Orbital divider */
+.orbital-divider {
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--primary) 20%,
-    #7b8cd6 50%,
-    var(--primary) 80%,
+    var(--orbital-muted) 20%,
+    var(--orbital) 50%,
+    var(--orbital-muted) 80%,
     transparent 100%
   );
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
-/* Holographic scan line */
-.holo-scan {
-  position: relative;
-  overflow: hidden;
-}
-
-.holo-scan::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    transparent 0%,
-    rgba(139, 156, 247, 0.015) 50%,
-    transparent 100%
-  );
-  animation: holoScan 4s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes holoScan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-/* Bridge command deck panel */
-.bridge-panel {
-  border: 1px solid rgba(139, 156, 247, 0.1);
+/* Station panel */
+.station-panel {
+  border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 1rem;
   position: relative;
   overflow: hidden;
 }
 
-.bridge-panel::before {
+.station-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(139, 156, 247, 0.03) 0%,
+    rgba(11, 29, 58, 0.02) 0%,
     transparent 50%,
-    rgba(196, 165, 116, 0.02) 100%
+    rgba(200, 164, 92, 0.015) 100%
   );
   pointer-events: none;
 }
 
-/* Bridge panel header with corner accents */
-.bridge-panel-header {
+/* Station panel header */
+.station-panel-header {
   position: relative;
-  border-bottom: 1px solid rgba(139, 156, 247, 0.08);
+  border-bottom: 1px solid var(--border);
   padding: 0.75rem 1rem;
 }
 
-.bridge-panel-header::before,
-.bridge-panel-header::after {
+.station-panel-header::before,
+.station-panel-header::after {
   content: '';
   position: absolute;
   width: 8px;
   height: 8px;
   border-color: var(--primary);
   border-style: solid;
-  opacity: 0.3;
+  opacity: 0.2;
 }
 
-.bridge-panel-header::before {
+.station-panel-header::before {
   top: -1px;
   left: -1px;
   border-width: 1px 0 0 1px;
 }
 
-.bridge-panel-header::after {
+.station-panel-header::after {
   top: -1px;
   right: -1px;
   border-width: 1px 1px 0 0;
 }
 
-/* Holographic projection ring */
-.holo-ring {
+/* Orbital ring */
+.orbital-ring {
   border-radius: 50%;
-  border: 1px solid rgba(139, 156, 247, 0.15);
+  border: 1px solid rgba(11, 29, 58, 0.1);
   box-shadow:
-    0 0 20px rgba(139, 156, 247, 0.06),
-    inset 0 0 20px rgba(139, 156, 247, 0.03);
+    0 0 30px rgba(11, 29, 58, 0.04),
+    inset 0 0 30px rgba(11, 29, 58, 0.02);
 }
 
 /* Particle field background */
@@ -332,7 +304,7 @@ body {
   overflow: hidden;
 }
 
-/* Bridge data stream animation */
+/* Data stream animation */
 @keyframes dataStream {
   0% { background-position: 0 0; }
   100% { background-position: 0 100%; }
@@ -343,8 +315,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(139, 156, 247, 0.02) 2px,
-    rgba(139, 156, 247, 0.02) 4px
+    rgba(11, 29, 58, 0.015) 2px,
+    rgba(11, 29, 58, 0.015) 4px
   );
   background-size: 100% 4px;
   animation: dataStream 1s linear infinite;
@@ -353,14 +325,38 @@ body {
 /* Status indicator pulse */
 @keyframes statusPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.35; }
 }
 
 .status-pulse {
   animation: statusPulse 2s ease-in-out infinite;
 }
 
-/* Bridge version watermark */
+/* Orbital scan line */
+.orbital-scan {
+  position: relative;
+  overflow: hidden;
+}
+
+.orbital-scan::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    transparent 0%,
+    rgba(59, 125, 216, 0.02) 50%,
+    transparent 100%
+  );
+  animation: orbitalScan 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes orbitalScan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Version watermark */
 .version-watermark {
   position: fixed;
   bottom: 0.75rem;
@@ -369,7 +365,7 @@ body {
   font-family: var(--font-geist-mono);
   font-size: 10px;
   color: var(--muted);
-  opacity: 0.3;
+  opacity: 0.25;
   letter-spacing: 0.15em;
   pointer-events: none;
 }

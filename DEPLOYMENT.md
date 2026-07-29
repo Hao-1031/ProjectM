@@ -3,7 +3,7 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「梦想家」(DR-DREAMER)；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）
+> 当前版本特性：全站 31 页面米白色中国航天风重设计；品牌名「多重宇宙 (Multiverse)」；米白色 (#F5F2ED) 底色 + 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色；版本代号「梦想家」(DR-DREAMER)；设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）
 
 ---
 
@@ -731,12 +731,15 @@ pm2 restart project-m --update-env
 - [ ] 算法页面显示三引擎架构（α / β / 基础设施）
 
 ### 视觉验证
-- [ ] 全站暗物质紫黑 (#0c0a14) 底色一致
-- [ ] 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色一致
-- [ ] 舰桥面板 (bridge-panel) 样式一致
-- [ ] 全息扫描线 (holo-scan) 动画效果正常
+- [ ] 全站米白色 (#F5F2ED) 底色一致
+- [ ] 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色一致
+- [ ] 空间站面板 (station-panel) 样式一致
+- [ ] 轨道扫描线 (orbital-scan) 动画效果正常
+- [ ] 空间站光晕 (station-glow) 辉光效果正常
+- [ ] 轨道环 (orbital-ring) 旋转动画正常
 - [ ] 页面底部版本水印「梦想家」正确显示
-- [ ] 字体为 Cabinet Grotesk / Geist / Outfit / Satoshi（非 Inter）
+- [ ] 字体为 Geist Sans / Geist Mono（非 Inter）
+- [ ] 星球式差异：每个页面保持独立视觉身份，通过品牌色和Logo串联
 
 ---
 
@@ -768,9 +771,9 @@ pm2 restart project-m --update-env
 
 | 文件 | 作用 |
 |------|------|
-| `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名「多重宇宙」、标语 |
-| `styles/globals.css` | 全局设计系统：舰桥风格 CSS 变量、动画（holoScan/dataStream/statusPulse）、工具类（bridge-panel/holo-scan/bridge-glow） |
-| `components/Layout.tsx` | 全局布局组件，版本水印渲染 |
+| `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名「多重宇宙」、标语、设计系统常量 |
+| `styles/globals.css` | 全局设计系统：米白色空间站风格 CSS 变量、动画（holoScan/dataStream/statusPulse）、工具类（station-panel/orbital-scan/station-glow/orbital-ring） |
+| `components/Layout.tsx` | 全局布局组件，航天舱段框架，版本水印渲染 |
 
 ### 15.4 游戏核心
 
@@ -863,30 +866,44 @@ pm2 restart project-m --update-env
 
 ## 16. 梦想家版本内容说明
 
-### 16.1 舰桥指挥舱设计系统
+### 16.1 米白色中国航天风设计系统
 
-「梦想家」版本全站 30 页面统一采用太空舰桥指挥舱视觉风格。
+「梦想家」版本全站 31 页面统一采用米白色中国航天风视觉风格，灵感来自中国航天空间站：亮色基调、大面积留白、极简国际化、科技感与人文温度并存。
 
 #### 配色方案
 
 | 角色 | 颜色 | CSS 变量 | 用途 |
 |------|------|----------|------|
-| 底色 | `#0c0a14` | `--background` | 暗物质紫黑，全站背景 |
-| 主强调 | `#c44dff` | `--primary` | 品红全息光，主交互元素 |
-| 辅强调 | `#c8a45c` | `--accent` | 金色锚点，高亮重要数据 |
-| 面板 | `rgba(255,255,255,0.02)` | `--panel` | 半透明面板背景 |
-| 前景 | `#e8e4f0` | `--foreground` | 主文字色 |
-| 前景次要 | `#9a95a8` | `--foreground-muted` | 次要文字色 |
+| 底色 | `#F5F2ED` | `--background` | 米白色，全站背景 |
+| 主强调 | `#0B1D3A` | `--primary` | 深空蓝，主交互元素，标题文字 |
+| 辅强调 | `#C8A45C` | `--accent` | 航天金，锚点高亮 |
+| 轨道蓝 | `#3B7DD8` | `--orbital` | 数据流、轨道线 |
+| 面板 | `#FFFFFF` | `--panel` | 白色面板背景 |
+| 面板凸起 | `#FAF8F5` | `--panel-raised` | 悬浮面板 |
+| 边框 | `#D8D4CC` | `--border` | 暖灰边框 |
+| 前景 | `#0B1D3A` | `--foreground` | 主文字色 |
+| 前景次要 | `#8A8578` | `--muted` | 次要文字色 |
+| 警示 | `#C47A6A` | `--caution` | 暖珊瑚色警告 |
+| 成功 | `#4A8C5A` | `--success` | 绿色成功状态 |
+| 危险 | `#C4554A` | `--danger` | 红色危险状态 |
+
+#### 设计旋钮
+
+| 参数 | 值 | 含义 |
+|------|------|------|
+| `DESIGN_VARIANCE` | 9 | 星球式差异：每个页面独立视觉世界，仅靠品牌色和Logo串联 |
+| `MOTION_INTENSITY` | 4 | 航天冷静克制：动画克制、沉稳、有目的性 |
+| `VISUAL_DENSITY` | 3 | 大面积留白：米白色底色 + 极简布局 |
 
 #### 核心 CSS 类
 
 | 类名 | 作用 |
 |------|------|
-| `.bridge-panel` | 舰桥面板：1px 品红边框 + 圆角 + 半透明背景 |
-| `.bridge-panel-header` | 面板标题：品红渐变文字 + 底部边框 |
-| `.holo-scan` | 全息扫描线：线性渐变 + 4s 循环动画 |
-| `.bridge-glow` | 舰桥光晕：品红 box-shadow 辉光效果 |
-| `.holo-ring` | 全息环：旋转 border 动画 |
+| `.station-panel` | 空间站面板：1px 暖灰边框 + 圆角 + 白色背景 |
+| `.station-panel-header` | 面板标题：深空蓝渐变文字 + 底部边框 |
+| `.orbital-scan` | 轨道扫描线：线性渐变 + 4s 循环动画 |
+| `.station-glow` | 空间站光晕：深空蓝 box-shadow 辉光效果 |
+| `.orbital-ring` | 轨道环：旋转 border 动画 |
 | `.status-pulse` | 状态脉冲：呼吸灯效果 |
 | `.data-stream` | 数据流：上下滚动文字动画 |
 | `.version-watermark` | 版本水印：右下角「梦想家」标记 |
@@ -895,18 +912,33 @@ pm2 restart project-m --update-env
 
 | 动画 | 效果 |
 |------|------|
-| `holoScan` | 全息扫描线从上到下 4s 循环 |
+| `holoScan` | 轨道扫描线从上到下 4s 循环 |
 | `dataStream` | 数据流滚动 1s 循环 |
 | `statusPulse` | 呼吸脉冲 2s 缓入缓出 |
-| `holoRing` | 全息环旋转 8s 线性 |
-| `bridgeGlow` | 舰桥光晕脉冲 3s 缓入缓出 |
+| `orbitalRing` | 轨道环旋转 8s 线性 |
+| `stationGlow` | 空间站光晕脉冲 3s 缓入缓出 |
 
 #### 字体栈
 
-- 标题：Cabinet Grotesk / Outfit
-- 正文：Geist / Satoshi
-- 等宽数据：JetBrains Mono (font-mono tabular-nums)
+- 标题：Geist Sans
+- 正文：Geist Sans
+- 等宽数据：Geist Mono (font-mono tabular-nums)
 - 禁止：Inter
+
+#### 页面星球式差异
+
+每个页面是独立的「星球」或「空间站」，拥有独立的视觉身份：
+
+| 页面 | 星球主题 | 视觉特征 |
+|------|----------|----------|
+| 品牌首页 (`/landing`) | 深空门户站 | 非对称 Hero、大面积品牌叙事 |
+| 指挥中心 (`/`) | 轨道指挥舱 | 全息模式选择器、维度状态指示器 |
+| 登录 (`/login`) | 气闸舱 | 航天员进入仪式感 |
+| 游戏大厅 (`/game`) | 舰队集结港 | 舰队集结状态、呼号信息 |
+| 基地 (`/base`) | 深空前哨站 | 船员名录、武器阵列、航行记录 |
+| 模式选择 (`/modes`) | 星图导航 | 星图布局、环境词缀面板 |
+| 旗舰巅峰 (`/flagship-peak`) | 旗舰舰桥 | 三阶段视觉（标准巡航→超频增压→地狱终局） |
+| 其他页面 | 独立空间站 | 各自独特的视觉主题，通过品牌色+Logo统一 |
 
 ### 16.2 版本代号机制
 
@@ -1580,4 +1612,4 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*
+*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面米白色中国航天风重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*

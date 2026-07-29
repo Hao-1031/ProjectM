@@ -33,7 +33,7 @@ import {
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import { DEFAULT_BALANCE } from "@/lib/game/balance";
-import NuclearBackground from "@/components/effects/NuclearBackground";
+import DimensionBackground from "@/components/effects/DimensionBackground";
 import type { EnemyVariant, BossId } from "@/lib/game/types";
 
 interface EnemyEntry {
@@ -57,8 +57,8 @@ const ENEMY_CATEGORIES: { id: string; label: string; icon: typeof Skull }[] = [
 ];
 
 const ENEMY_ENTRIES: EnemyEntry[] = [
-  { id: "walker", name: "步行者", role: "基础单位", description: "受核污染影响最浅的机械步行者，数量庞大但个体脆弱，是敌潮的主力填充。", threat: "低", tactic: "成群推进，利用范围武器快速清理。", category: "basic" },
-  { id: "sentinel", name: "哨兵", role: "均衡步兵", description: "装备轻型护甲的机械哨兵，攻防均衡，是中期波次的常见敌人。", threat: "中", tactic: "正常集火即可，注意不要被其吸引火力。", category: "basic" },
+  { id: "walker", name: "步行者", role: "基础单位", description: "外星星系中最常见的侦察单位，数量庞大但个体脆弱，是敌潮的主力填充。", threat: "低", tactic: "成群推进，利用范围武器快速清理。", category: "basic" },
+  { id: "sentinel", name: "哨兵", role: "均衡步兵", description: "装备轻型护甲的异星哨兵，攻防均衡，是中期波次的常见敌人。", threat: "中", tactic: "正常集火即可，注意不要被其吸引火力。", category: "basic" },
   { id: "runner", name: "疾行者", role: "快速骚扰", description: "绿色涂装的轻型单位，移动速度快但血量低，擅长突破防线干扰后排。", threat: "中", tactic: "保持移动，优先用高射速武器点杀。", category: "fast" },
   { id: "raptor", name: "猎禽", role: "极速猎杀", description: "机动性极高的突击单位，会迅速穿越战场直冲玩家。", threat: "高", tactic: "预判走位，使用范围控制技能限制其移动。", category: "fast" },
   { id: "stalker", name: "潜行者", role: "高速突袭", description: "擅长绕后突袭玩家的高速单位，出现后会在短时间内贴近目标。", threat: "高", tactic: "保持移动，使用位移或控制技能拉开距离。", category: "fast" },
@@ -149,13 +149,13 @@ export default function EnemiesPage() {
   const largeBossIds = new Set(["overlord", "titan"]);
 
   return (
-    <Layout title="威胁图鉴">
+    <Layout title="外星生物档案">
       <div className="relative min-h-[100dvh]">
-        <NuclearBackground />
+        <DimensionBackground intensity="medium" />
         <div className="noise-overlay" />
         <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute -right-[10%] top-[8%] h-[50vh] w-[50vh] rounded-full bg-danger/5 blur-[120px]" />
-          <div className="absolute -left-[10%] top-[40%] h-[45vh] w-[45vh] rounded-full bg-primary/4 blur-[100px]" />
+          <div className="absolute -right-[10%] top-[8%] h-[50vh] w-[50vh] rounded-full bg-caution-subtle blur-[120px]" />
+          <div className="absolute -left-[10%] top-[40%] h-[45vh] w-[45vh] rounded-full bg-primary-subtle blur-[100px]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-3 md:py-6">
@@ -167,14 +167,14 @@ export default function EnemiesPage() {
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-danger">
-                  <Skull weight="duotone" size={14} />威胁图鉴
+                <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">
+                  <Skull weight="duotone" size={14} />外星生物档案
                 </span>
                 <h1 className="mt-2 text-[clamp(1.5rem,4vw,2.5rem)] font-bold leading-[0.95] tracking-tight">
-                  识别<br /><span className="text-gradient">辐射区敌人</span>
+                  识别<br /><span className="text-gradient">外星生物</span>
                 </h1>
                 <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-                  核污染催生了大量机械变异体。了解每种敌人的行为模式，是在废土中存活的关键。
+                  深空探索中遭遇了多种外星生物变体。了解每种生物的行为模式，是在星域中存活的关键。
                 </p>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function EnemiesPage() {
             role="tablist"
           >
             {[
-              { id: "enemies" as const, label: "常规敌人", icon: Radioactive },
+              { id: "enemies" as const, label: "常规生物", icon: Radioactive },
               { id: "bosses" as const, label: "首领单位", icon: Crown },
               { id: "affixes" as const, label: "精英词缀", icon: Warning },
             ].map((tab) => {
@@ -197,7 +197,7 @@ export default function EnemiesPage() {
               return (
                 <button key={tab.id} type="button" role="tab" aria-selected={active}
                   onClick={() => setActiveSection(tab.id)}
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-danger bg-danger/10 text-danger" : "border-primary/10 bg-panel/60 text-muted hover:border-muted/60 hover:text-foreground"}`}>
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus-ring active:scale-95 ${active ? "border-caution bg-caution/10 text-caution" : "border-primary/10 bg-panel/60 text-muted hover:border-muted/60 hover:text-foreground"}`}>
                   <Icon size={14} weight={active ? "bold" : "regular"} />{tab.label}
                 </button>
               );
@@ -240,7 +240,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl station-panel orbital-scan transition-all hover:border-caution/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-45" style={{ backgroundColor: stats?.color ?? "#6e7870" }} />
                         <div className="relative p-2.5 md:p-3">
                           {isLarge && ENEMY_IMAGES[enemy.id] && (
@@ -274,7 +274,7 @@ export default function EnemiesPage() {
                           )}
                           <p className="text-[11px] leading-relaxed text-muted">{enemy.description}</p>
 
-                          <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-primary/10 bg-panel-raised holo-scan p-1.5">
+                          <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-primary/10 bg-panel-raised orbital-scan p-1.5">
                             <CaretRight size={11} className="mt-0.5 shrink-0 text-primary" />
                             <p className="text-[10px] leading-relaxed text-muted">{enemy.tactic}</p>
                           </div>
@@ -303,7 +303,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: Math.min(index * 0.04, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl station-panel orbital-scan transition-all hover:border-caution/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: boss.color }} />
                         <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: boss.color }} />
                         <div className="relative p-2.5 md:p-3">
@@ -350,7 +350,7 @@ export default function EnemiesPage() {
                             </p>
                             <div className="flex flex-wrap gap-1.5">
                               {boss.phases.map((phase, phaseIndex) => (
-                                <div key={phaseIndex} className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-panel-raised px-2 py-1.5 transition-colors hover:border-danger/20">
+                                <div key={phaseIndex} className="flex items-center gap-1.5 rounded-lg border border-primary/10 bg-panel-raised px-2 py-1.5 transition-colors hover:border-caution/20">
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold" style={{ backgroundColor: `${boss.color}20`, color: boss.color }}>
                                     {phaseIndex + 1}
                                   </span>
@@ -379,7 +379,7 @@ export default function EnemiesPage() {
                         initial={reducedMotion ? undefined : { opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.35), ease: [0.22, 1, 0.36, 1] }}
-                        className={`group relative overflow-hidden rounded-3xl bridge-panel holo-scan p-2.5 transition-all hover:border-danger/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
+                        className={`group relative overflow-hidden rounded-3xl station-panel orbital-scan p-2.5 transition-all hover:border-caution/30 hover:bg-panel ${isLarge ? "md:col-span-7" : "md:col-span-5"}`}>
                         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full blur-2xl opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: threatColor }} />
                         <div className="relative">
                           <div className="flex items-start justify-between">
