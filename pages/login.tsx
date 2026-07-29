@@ -19,6 +19,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { emit, GameEventType, GameEventCategory, GameEventLevel } from "@/lib/game/event-bus";
 
 interface FormState {
   email: string;
@@ -46,6 +47,7 @@ export default function LoginPage() {
     const authError = router.query.auth_error;
     if (authError && typeof authError === "string") {
       setError(authError);
+      emit(GameEventType.LOGIN_FAILURE, GameEventCategory.LOGIN, GameEventLevel.ERROR, { mode: "oauth_callback", error: authError }, "login");
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete("auth_error");
       window.history.replaceState({}, "", cleanUrl.toString());
@@ -73,6 +75,7 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    emit(GameEventType.LOGIN_REQUEST, GameEventCategory.LOGIN, GameEventLevel.INFO, { mode, email: form.email.trim() }, "login");
 
     try {
       const endpoint = mode === "login" ? "/api/auth/signin" : "/api/auth/signup";
@@ -90,13 +93,18 @@ export default function LoginPage() {
 
       if (mode === "register") {
         setSuccess("注册成功，正在进入据点...");
+        emit(GameEventType.LOGIN_SUCCESS, GameEventCategory.LOGIN, GameEventLevel.INFO, { mode: "register", email: form.email.trim() }, "login");
+      } else {
+        emit(GameEventType.LOGIN_SUCCESS, GameEventCategory.LOGIN, GameEventLevel.INFO, { mode: "login", email: form.email.trim() }, "login");
       }
 
       setTimeout(() => {
         void router.push(redirectedFrom);
       }, 400);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "未知错误");
+      const errMsg = err instanceof Error ? err.message : "未知错误";
+      setError(errMsg);
+      emit(GameEventType.LOGIN_FAILURE, GameEventCategory.LOGIN, GameEventLevel.ERROR, { mode, error: errMsg }, "login");
     } finally {
       setLoading(false);
     }
@@ -259,7 +267,10 @@ export default function LoginPage() {
               <div className="mt-4 grid gap-3">
                 <a
                   href={`/api/auth/github?next=${oauthNext}`}
-                  onClick={() => setOauthLoading(true)}
+                  onClick={() => {
+                    setOauthLoading(true);
+                    emit(GameEventType.LOGIN_REQUEST, GameEventCategory.LOGIN, GameEventLevel.INFO, { mode: "github_oauth" }, "login");
+                  }}
                   className="flex items-center justify-center gap-2 rounded-xl border border-primary/10 bg-background px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary/30 hover:bg-panel hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
                 >
                   {oauthLoading ? (

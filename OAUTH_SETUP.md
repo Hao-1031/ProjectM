@@ -2,7 +2,7 @@
 
 > 本手册说明如何配置 GitHub 第三方登录。
 > 前置条件：已完成 [`LOCAL_DEVELOPMENT.md`](./LOCAL_DEVELOPMENT.md) 或 [`DEPLOYMENT.md`](./DEPLOYMENT.md) 中的 Supabase 项目创建。
-> 当前版本：奇迹
+> 当前版本：梦想家
 
 ---
 
@@ -215,4 +215,4 @@ NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000
 
 ---
 
-*本手册对应多重宇宙「奇迹」版本 OAuth 登录配置流程。*
+*本手册对应多重宇宙「梦想家」版本 OAuth 登录配置流程。*

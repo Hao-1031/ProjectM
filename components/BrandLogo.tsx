@@ -121,7 +121,7 @@ export default function BrandLogo({
         className="text-[10px] tracking-[0.3em] text-muted"
         style={{ fontSize: size * 0.22 }}
       >
-        奇迹
+        梦想家
       </span>
     </div>
   );

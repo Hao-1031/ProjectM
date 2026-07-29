@@ -97,6 +97,7 @@ import {
 import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId, getRandomBossIdRng, getBossTemplate } from "./bosses";
 import { AlphaScheduler, generateVariantStats } from "./alpha";
 import type { AlphaEnemyStats } from "./alpha/types";
+import { emit, GameEventType, GameEventCategory, GameEventLevel } from "./event-bus";
 import { runEnemyAI, runBossAI, resetBossState } from "./ai";
 import type { AIContext } from "./ai";
 import {
@@ -1015,6 +1016,7 @@ export class GameEngine {
   start() {
     this.state.status = "running";
     this.state.lastTime = performance.now();
+    emit(GameEventType.GAME_START, GameEventCategory.LIFECYCLE, GameEventLevel.INFO, { mode: this.state.mode }, "engine");
   }
 
   setLoadout(loadout: Loadout) {
@@ -1082,9 +1084,11 @@ export class GameEngine {
   pause() {
     if (this.state.status === "running") {
       this.state.status = "paused";
+      emit(GameEventType.GAME_PAUSE, GameEventCategory.LIFECYCLE, GameEventLevel.INFO, {}, "engine");
     } else if (this.state.status === "paused") {
       this.state.status = "running";
       this.state.lastTime = performance.now();
+      emit(GameEventType.GAME_RESUME, GameEventCategory.LIFECYCLE, GameEventLevel.INFO, {}, "engine");
     }
   }
 
@@ -2086,6 +2090,7 @@ export class GameEngine {
 
     applyAffixes(enemy);
     this.state.enemies.push(enemy);
+    emit(GameEventType.BOSS_SPAWN, GameEventCategory.BOSS, GameEventLevel.WARN, { bossId, variant: bossId, health: enemy.health }, "engine");
 
     if (isAlphaMode) {
       this.alphaScheduler!.telemetry.recordSpawn(alphaPlan.snapshot.waveIndex, bossId);
@@ -2743,8 +2748,10 @@ export class GameEngine {
       ds.breakTimer -= dt;
       if (ds.breakTimer <= 0 && ds.currentWave < ds.totalWaves) {
         this.callbacks.onBreakEnd?.(this._pendingBreakPurchases);
+        emit(GameEventType.SUPPLY_END, GameEventCategory.SUPPLY, GameEventLevel.INFO, { wave: ds.currentWave + 1, purchases: this._pendingBreakPurchases }, "engine");
         ds.waveInProgress = true;
         ds.waveTimer = 0;
+        emit(GameEventType.WAVE_START, GameEventCategory.WAVE, GameEventLevel.INFO, { wave: ds.currentWave + 1, totalWaves: ds.totalWaves }, "engine");
         const startingWave = ds.waves[ds.currentWave];
         if (startingWave) {
           startingWave.spawned = 0;
@@ -2944,6 +2951,8 @@ export class GameEngine {
     ds.currentWave += 1;
     ds.breakTimer = isExtreme || isPeakChallenge || isFlagship || isFlagshipPeak ? (this.difficultyConfig ? this.difficultyConfig.breakDuration : 5) : (this.difficultyConfig ? this.difficultyConfig.breakDuration : 8);
     this.state.stats.wavesCleared = (this.state.stats.wavesCleared ?? 0) + 1;
+    emit(GameEventType.WAVE_CLEAR, GameEventCategory.WAVE, GameEventLevel.INFO, { wave: ds.currentWave, totalWaves: ds.totalWaves }, "engine");
+    emit(GameEventType.SUPPLY_OPEN, GameEventCategory.SUPPLY, GameEventLevel.INFO, { wave: ds.currentWave, breakTimer: ds.breakTimer }, "engine");
 
     if (isExtreme && run && shouldTriggerBranchChoice(waveIndex + 1, run.phase) && !this.extremeSurvivalPendingChoice) {
       this.extremeSurvivalPendingChoice = true;
@@ -3361,6 +3370,7 @@ export class GameEngine {
       recordFlagshipPeakKill(this.state, enemy.isElite || enemy.isBoss);
       if (enemy.isBoss) {
         recordFlagshipPeakBossKill(this.state);
+        emit(GameEventType.BOSS_KILL, GameEventCategory.BOSS, GameEventLevel.INFO, { variant: enemy.variant, wave: this.state.defenseState?.currentWave }, "engine");
       }
     }
     if (this.state.mode === "extreme-survival" && this.state.extremeSurvivalRun) {
@@ -3571,6 +3581,7 @@ export class GameEngine {
       mode: this.state.mode,
     };
     this.state.status = "defeat";
+    emit(GameEventType.GAME_SURRENDER, GameEventCategory.LIFECYCLE, GameEventLevel.WARN, { mode: this.state.mode, elapsed: this.state.stats.timeSurvived }, "engine");
     audio?.play("alert");
     this.callbacks.onDefeat?.(result);
   }

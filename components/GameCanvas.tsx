@@ -27,6 +27,7 @@ import OverclockChoiceModal from "./extreme-survival/OverclockChoiceModal";
 import RedBreathOverlay from "./extreme-survival/RedBreathOverlay";
 import SupplyWindow from "./game/SupplyWindow";
 import WeatherStatusIndicator from "./game/WeatherStatusIndicator";
+import EventMonitor from "./game/EventMonitor";
 import type { HeroId, WeaponId, DifficultyPreset } from "@/lib/game/types";
 
 interface GameCanvasProps {
@@ -818,6 +819,8 @@ export default function GameCanvas({ onExit, multiplayer = false, difficultyPres
         }
         intensity={1 - (engine?.state.defenseState?.core.health ?? 1) / (engine?.state.defenseState?.core.maxHealth ?? 1)}
       />
+
+      <EventMonitor />
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function FooterCTA() {
       <footer className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-border pt-5 text-xs text-muted sm:flex-row">
         <div className="flex items-center gap-2">
           <BrandLogo size={16} variant="icon" />
-          <span>公平竞技 · 无付费加成 · 多重宇宙 · 奇迹</span>
+          <span>公平竞技 · 无付费加成 · 多重宇宙 · 梦想家</span>
         </div>
         <div className="flex gap-4">
           <Link href="/about" className="transition-colors hover:text-foreground focus-ring rounded">

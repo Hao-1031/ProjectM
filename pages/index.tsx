@@ -814,7 +814,7 @@ export default function HomePage() {
             >
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                 <Globe size={10} weight="fill" />
-                维度锚点在线 · 奇迹
+                维度锚点在线 · 梦想家
               </span>
 
               <h1 className="mt-4 font-display text-[clamp(2.25rem,6vw,4rem)] font-extrabold leading-[0.9] tracking-tight">
@@ -1127,7 +1127,7 @@ export default function HomePage() {
         <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-primary/10 pt-4 text-xs text-muted sm:flex-row">
           <div className="flex items-center gap-2">
             <BrandLogo size={14} variant="icon" />
-            <span>公平竞技 · 无付费加成 · 多重宇宙 · 奇迹</span>
+            <span>公平竞技 · 无付费加成 · 多重宇宙 · 梦想家</span>
           </div>
           <div className="flex gap-4">
             <Link href="/about" className="transition-colors hover:text-foreground focus-ring rounded">
@@ -1144,7 +1144,7 @@ export default function HomePage() {
       </section>
 
       {/* Version watermark */}
-      <div className="version-watermark">奇迹 v2.0</div>
+      <div className="version-watermark">梦想家 v2.0</div>
     </div>
   );
 }

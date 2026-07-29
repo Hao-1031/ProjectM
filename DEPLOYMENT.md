@@ -1,15 +1,15 @@
-# 多重宇宙「奇迹」完整生产部署手册
+# 多重宇宙「梦想家」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）
+> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「梦想家」(DR-DREAMER)；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为「奇迹」版本一次性全部上线，包含全站 31 个页面的舰桥风格重设计及全部玩法系统。
+本次部署为「梦想家」版本一次性全部上线，包含全站 31 个页面的舰桥风格重设计及全部玩法系统。
 
 ### 1.1 全站页面清单（31 页）
 
@@ -47,7 +47,7 @@
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 版本常量 | `lib/version.ts` | 版本代号「奇迹」(MI-MIRACLE)、品牌名、标语 |
+| 版本常量 | `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名、标语 |
 | 全局设计系统 | `styles/globals.css` | 舰桥风格 CSS 变量、动画、工具类 |
 | Tailwind 配置 | `tailwind.config.ts` | 配色、字体、动画扩展 |
 | 全局布局 | `components/Layout.tsx` | 版本水印、舰桥基础结构 |
@@ -68,6 +68,8 @@
 | 英雄系统 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果，近战天赋联动 |
 | HUD 系统 | `components/Hud.tsx`, `components/game/HudDesktop.tsx`, `components/game/HudMobile.tsx`, `components/game/KillFeed.tsx` | 武器面板、击杀推送、状态效果栏 |
 | 补给窗口 | `components/game/SupplyWindow.tsx` | B/ESC 快捷键、倒计时、快速下一波 |
+| 事件总线 | `lib/game/event-bus.ts` | 统一游戏事件总线，环形缓冲区(1000条)，15分类×70+事件类型，订阅/发布/过滤/搜索/暂停/导出 |
+| 监测面板 | `components/game/EventMonitor.tsx` | ~/F1快捷键悬浮面板，实时事件流，分类过滤，关键词搜索，统计摘要，JSON导出 |
 | Supabase 后端 | `lib/supabase/`, `supabase/schema.sql` | Postgres 数据库与类型契约 |
 | 进程管理 | `ecosystem.config.cjs` | PM2 跨平台配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
@@ -733,7 +735,7 @@ pm2 restart project-m --update-env
 - [ ] 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色一致
 - [ ] 舰桥面板 (bridge-panel) 样式一致
 - [ ] 全息扫描线 (holo-scan) 动画效果正常
-- [ ] 页面底部版本水印「奇迹」正确显示
+- [ ] 页面底部版本水印「梦想家」正确显示
 - [ ] 字体为 Cabinet Grotesk / Geist / Outfit / Satoshi（非 Inter）
 
 ---
@@ -766,7 +768,7 @@ pm2 restart project-m --update-env
 
 | 文件 | 作用 |
 |------|------|
-| `lib/version.ts` | 版本代号「奇迹」(MI-MIRACLE)、品牌名「多重宇宙」、标语 |
+| `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名「多重宇宙」、标语 |
 | `styles/globals.css` | 全局设计系统：舰桥风格 CSS 变量、动画（holoScan/dataStream/statusPulse）、工具类（bridge-panel/holo-scan/bridge-glow） |
 | `components/Layout.tsx` | 全局布局组件，版本水印渲染 |
 
@@ -859,11 +861,11 @@ pm2 restart project-m --update-env
 
 ---
 
-## 16. 奇迹版本内容说明
+## 16. 梦想家版本内容说明
 
 ### 16.1 舰桥指挥舱设计系统
 
-「奇迹」版本全站 30 页面统一采用太空舰桥指挥舱视觉风格。
+「梦想家」版本全站 30 页面统一采用太空舰桥指挥舱视觉风格。
 
 #### 配色方案
 
@@ -887,7 +889,7 @@ pm2 restart project-m --update-env
 | `.holo-ring` | 全息环：旋转 border 动画 |
 | `.status-pulse` | 状态脉冲：呼吸灯效果 |
 | `.data-stream` | 数据流：上下滚动文字动画 |
-| `.version-watermark` | 版本水印：右下角「奇迹」标记 |
+| `.version-watermark` | 版本水印：右下角「梦想家」标记 |
 
 #### 动画关键帧
 
@@ -911,11 +913,11 @@ pm2 restart project-m --update-env
 `lib/version.ts` 定义全站版本常量：
 
 ```typescript
-VERSION_CODE = "MI-MIRACLE"    // 版本代码
-VERSION_DISPLAY = "奇迹"        // 显示名称
-VERSION_LABEL = "奇迹 (MI-MIRACLE)"  // 完整标签
-VERSION_META_GENERATOR = "多重宇宙 奇迹 (MI-MIRACLE)"  // meta 标签
-VERSION_WATERMARK = "奇迹"      // 页面水印
+VERSION_CODE = "DR-DREAMER"    // 版本代码
+VERSION_DISPLAY = "梦想家"        // 显示名称
+VERSION_LABEL = "梦想家 (DR-DREAMER)"  // 完整标签
+VERSION_META_GENERATOR = "多重宇宙 梦想家 (DR-DREAMER)"  // meta 标签
+VERSION_WATERMARK = "梦想家"      // 页面水印
 
 BRAND_NAME = "多重宇宙"         // 品牌名
 BRAND_NAME_EN = "Multiverse"   // 品牌英文名
@@ -1226,7 +1228,34 @@ Roguelike 模式每次升级时二选一：
 
 ## 17. 监控与日志
 
-### 17.1 PM2 进程监控
+### 17.1 游戏内事件监测面板
+
+梦想家版本内置统一游戏事件总线，运行时可通过 `~` 键或 `F1` 键呼出悬浮监测面板。
+
+**事件总线架构** (`lib/game/event-bus.ts`)：
+- 环形缓冲区：最大容量 1000 条事件
+- 事件分类：15 个分类（生命周期/登录/补给/波次/Boss/联机/技能/武器/成就/资源/网络/界面/能量/升级/奖励）
+- 事件类型：70+ 事件类型，覆盖全量游戏关键节点
+- 核心功能：订阅/发布、分类过滤、关键词搜索、暂停/恢复、JSON 导出下载
+
+**监测面板** (`components/game/EventMonitor.tsx`)：
+- 触发方式：`~` 键或 `F1` 键
+- 实时事件流：滚动显示最新事件，停留底部自动滚动
+- 分类过滤：下拉选择15个分类或全部
+- 等级过滤：DEBUG/INFO/WARN/ERROR 四级过滤
+- 关键词搜索：搜索事件类型/分类/来源/负载
+- 统计面板：展开查看各事件类型计数
+- 事件详情：展开查看事件 ID、来源模块、负载数据
+- 导出功能：一键下载 JSON 格式事件日志
+
+**事件埋点覆盖**：
+| 层级 | 模块 | 事件类型 |
+|------|------|---------|
+| 引擎层 | `engine.ts` | 游戏开始/结束/暂停/继续/投降、补给开启/结束、波次开始/肃清、Boss 出现/击杀 |
+| 认证层 | `login.tsx` | 登录请求/成功/失败、GitHub OAuth 请求、OAuth 回调错误 |
+| 网络层 | 待接入 | 联机房间创建/加入/离开、Peer 连接/断线、信令错误 |
+
+### 17.2 PM2 进程监控
 
 ```bash
 pm2 monit                  # 实时监控面板
@@ -1551,4 +1580,4 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*
+*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*

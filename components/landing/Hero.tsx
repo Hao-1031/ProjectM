@@ -62,7 +62,7 @@ export default function Hero() {
             {/* Eyebrow */}
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
               <Globe size={12} weight="bold" />
-              奇迹
+              梦想家
             </span>
 
             {/* Title */}

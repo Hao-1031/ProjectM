@@ -225,7 +225,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               </nav>
               <div className="mt-auto pb-4">
                 <div className="rounded-2xl border border-primary/10 bg-panel/60 p-4">
-                  <p className="text-xs font-medium text-primary">多重宇宙 · 奇迹</p>
+                  <p className="text-xs font-medium text-primary">多重宇宙 · 梦想家</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted">
                     多元宇宙在此交汇。据点防守、极限生存、肉鸽构筑与赛季挑战。
                   </p>
