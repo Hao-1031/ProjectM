@@ -3,7 +3,7 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰模式（三阶段25波终极挑战 + 独立结算画面 + 六维雷达评分 + 隐藏成就系统 + 波次里程碑奖励 + 阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强
+> 当前版本特性：全站 31 页面太空舰桥指挥舱风格重设计；品牌名「多重宇宙 (Multiverse)」；暗物质紫黑 (#0c0a14) 底色 + 品红全息光 (#c44dff) 主色 + 金色锚点 (#c8a45c) 强调色；版本代号「奇迹」(MI-MIRACLE)；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）
 
 ---
 
@@ -23,7 +23,7 @@
 | 模式选择 | `pages/modes.tsx` | 全部游戏模式概览 |
 | 剧情战役 | `pages/campaign.tsx` | 章节节点进度管理，全息地图风格 |
 | BossRush | `pages/boss-rush.tsx` | 首领连战模式，关卡与奖励 |
-| 旗舰巅峰 | `pages/flagship-peak.tsx` | 三阶段25波终极挑战，双轨挑战+双维度评级+统一积分制 |
+| 旗舰巅峰 | `pages/flagship-peak.tsx` | 六阶段50波终极挑战，Boss变异+技能树+武器锻造+2人联机 |
 | 顶峰挑战 | `pages/peak-challenge.tsx` | 高难度挑战内容 |
 | 极限生存 | `pages/extreme-survival/index.tsx` | 极限生存模式入口 |
 | 赛季 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
@@ -55,7 +55,8 @@
 | 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
 | BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
 | 顶峰挑战 | `lib/game/peak-challenge.ts` | 高难度挑战逻辑 |
-| 旗舰巅峰 | `lib/game/flagship-peak.ts` | 三阶段25波、双轨挑战、双维度评级、统一积分制 |
+| 旗舰巅峰 | `lib/game/flagship-peak.ts` | 六阶段50波、双轨挑战、双维度评级、统一积分制 |
+| 旗舰巅峰MAX | `lib/game/flagship-peak.ts`, `lib/game/flagship-peak-achievements.ts`, `lib/game/boss-variants.ts`, `lib/game/hero-skill-tree.ts`, `lib/game/weapon-forge.ts`, `lib/network/coop-room.ts`, `lib/network/signaling.ts`, `lib/network/peer.ts`, `signaling-server.mjs` | Boss变异系统(18种)、英雄技能树(3分支×5层)、武器改装锻造(30模块)、2人联机协作、阶段视觉变色(深渊墨→虚空白→创世极光)、11隐藏成就、10级里程碑 |
 | 成就系统 | `lib/game/achievements.ts` | 成就定义、进度、奖励 |
 | 编年史 | `lib/game/chronicles.ts` | 世界观数据 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
@@ -167,6 +168,7 @@ nano .env.local
 | `SENTRY_PROJECT` | Sentry | 否 | Sentry 项目名 |
 | `SENTRY_AUTH_TOKEN` | Sentry | 否 | 未配置时构建自动跳过 sourcemap 上传 |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry | 否 | 前端 DSN |
+| `NEXT_PUBLIC_SIGNALING_URL` | 手动 | 否 | WebSocket 信令服务器地址，跨设备组队需要；本地 `ws://localhost:3001`，生产 `wss://your-domain.com/signaling/` 或 `ws://your-ip:3001`；不配置则仅支持同设备组队 |
 
 生成 `ADMIN_KEY`：
 
@@ -259,7 +261,7 @@ node server.js
 
 默认监听 `http://0.0.0.0:3000`。
 
-### 7.2 PM2 生产守护
+### 7.2 PM2 生产守护（双进程）
 
 ```bash
 cd /var/www/project-m
@@ -272,14 +274,24 @@ pm2 startup systemd
 
 > `pm2 startup systemd` 会输出一条命令，复制并执行它以设置开机自启。
 
+`ecosystem.config.cjs` 已配置双进程：
+
+| 进程名 | 端口 | 脚本 | 说明 |
+|--------|------|------|------|
+| `project-m` | 3000 | `.next/standalone/server.js` | Next.js 应用主进程 |
+| `project-m-signaling` | 3001 | `signaling-server.mjs` | WebSocket 信令服务器 |
+
 常用命令：
 
 ```bash
 pm2 status
 pm2 logs project-m --lines 100
+pm2 logs project-m-signaling --lines 100
 pm2 restart project-m
-pm2 stop project-m
-pm2 delete project-m
+pm2 restart project-m-signaling
+pm2 restart all
+pm2 stop all
+pm2 delete all
 ```
 
 ### 7.3 更新环境变量后重启
@@ -291,6 +303,60 @@ pm2 restart project-m --update-env
 ```
 
 > 常见坑：仅执行 `pm2 restart project-m` 不会刷新 `.env.local` 中的变量，可能导致 OAuth 登录等接口读取到旧值。
+
+### 7.4 信令服务器部署（跨设备组队）
+
+信令服务器 (`signaling-server.mjs`) 是独立的 WebSocket 服务，负责 WebRTC 信令交换，支持跨设备 2 人联机协作。
+
+#### 工作原理
+
+```
+客户端A ←→ WebSocket ←→ 信令服务器(3001) ←→ WebSocket ←→ 客户端B
+                          ↓
+                    WebRTC P2P 直连
+```
+
+1. 客户端通过 WebSocket 连接到信令服务器
+2. 创建/加入房间时，信令服务器广播房间成员列表
+3. 客户端之间交换 WebRTC SDP (offer/answer) 和 ICE candidates
+4. 建立 P2P DataChannel 后，游戏数据直接传输，不再经过信令服务器
+
+#### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `SIGNALING_PORT` | `3001` | 信令服务器监听端口 |
+| `SIGNALING_HOST` | `0.0.0.0` | 信令服务器绑定地址 |
+| `NEXT_PUBLIC_SIGNALING_URL` | — | 客户端连接地址，生产环境填 `wss://your-domain.com/signaling/` 或 `ws://your-ip:3001` |
+
+#### 启动方式
+
+信令服务器已集成到 PM2 双进程配置中，随 `pm2 start ecosystem.config.cjs` 一并启动。也可单独启动：
+
+```bash
+# 直接启动（调试用）
+node signaling-server.mjs
+
+# 指定端口
+SIGNALING_PORT=3002 node signaling-server.mjs
+```
+
+#### 验证信令服务
+
+```bash
+# 检查进程
+pm2 status | grep signaling
+
+# 检查端口
+sudo ss -tlnp | grep 3001
+
+# 日志
+pm2 logs project-m-signaling --lines 50
+```
+
+#### 不配置信令服务器的影响
+
+若 `NEXT_PUBLIC_SIGNALING_URL` 未配置，游戏仍可正常运行，但联机功能降级为**同设备组队**（通过 BroadcastChannel + localStorage），不支持跨设备联机。
 
 ---
 
@@ -323,6 +389,7 @@ sudo ufw status verbose
 | HTTP | 80 | 0.0.0.0/0 |
 | HTTPS | 443 | 0.0.0.0/0 |
 | 自定义 TCP | 3000 | 127.0.0.1/32（仅本机反向代理访问） |
+| 自定义 TCP | 3001 | 127.0.0.1/32（信令服务器，仅本机反向代理访问） |
 
 ---
 
@@ -353,12 +420,39 @@ sudo systemctl reload nginx
 示例核心配置：
 
 ```nginx
+upstream project_m_app {
+    server 127.0.0.1:3000;
+    keepalive 64;
+}
+
+upstream project_m_signaling {
+    server 127.0.0.1:3001;
+    keepalive 64;
+}
+
 server {
   listen 80;
   server_name your-domain.com;
 
+  # WebSocket 信令服务器代理（跨设备组队通信）
+  location /signaling/ {
+    proxy_pass http://project_m_signaling;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+    proxy_buffering off;
+    proxy_connect_timeout 120s;
+    proxy_send_timeout 86400s;
+    proxy_read_timeout 86400s;
+  }
+
   location / {
-    proxy_pass http://127.0.0.1:3000;
+    proxy_pass http://project_m_app;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection 'upgrade';
@@ -564,7 +658,9 @@ pm2 restart project-m --update-env
 - [ ] `pnpm build` 成功并生成 `.next/standalone/`
 - [ ] `pnpm test:run` 通过
 - [ ] `node .next/standalone/server.js` 可访问 `http://localhost:3000`
-- [ ] PM2 进程运行中且状态为 `online`
+- [ ] PM2 进程运行中且状态为 `online`（两个进程：project-m + project-m-signaling）
+- [ ] 信令服务器端口 3001 监听正常（`sudo ss -tlnp | grep 3001`）
+- [ ] `NEXT_PUBLIC_SIGNALING_URL` 已配置（生产环境）
 - [ ] 修改 `.env.local` 后使用 `--update-env` 重启
 - [ ] 防火墙/安全组端口已放行
 - [ ] Nginx 反向代理配置正确
@@ -584,7 +680,7 @@ pm2 restart project-m --update-env
 - [ ] `/campaign` 剧情战役页可正常访问，章节节点显示正常
 - [ ] `/boss-rush` BossRush 页可正常访问，关卡与首领信息正常
 - [ ] `/peak-challenge` 顶峰挑战页可正常访问
-- [ ] `/flagship-peak` 旗舰巅峰页可正常访问，三阶段递进、双轨挑战、双维度评级展示正常
+- [ ] `/flagship-peak` 旗舰巅峰页可正常访问，六阶段50波递进、Boss变异、技能树、武器锻造、2人联机展示正常
 - [ ] `/extreme-survival` 极限生存页可正常访问
 - [ ] `/season` 赛季页可正常访问并领取奖励
 
@@ -610,13 +706,18 @@ pm2 restart project-m --update-env
 - [ ] `/404` 自定义 404 页面正常
 
 ### 游戏功能
-- [ ] 游戏内可选择「旗舰巅峰」，完成三阶段25波挑战
-- [ ] 旗舰巅峰结算画面正常显示：三阶段主题切换、粒子动画、扫描线效果
+- [ ] 游戏内可选择「旗舰巅峰」，完成六阶段50波挑战
+- [ ] 旗舰巅峰结算画面正常显示：六阶段主题切换、粒子动画、扫描线效果
 - [ ] 六维雷达评分图正常渲染（速度20%/完美波次20%/连击18%/首领击杀18%/击杀12%/精英击杀12%）
-- [ ] 7个隐藏成就（5普通+1稀有+1传说）正确显示与解锁
-- [ ] 波次里程碑奖励（5/10/15/20/25波）正常显示
-- [ ] 阶段完成奖励（标准/超频/地狱）正常显示
-- [ ] 阶段指示器 (PhaseIndicator) 实时切换正常（标准蓝紫→超频红→地狱紫）
+- [ ] 11个隐藏成就（8普通+2稀有+1传说）正确显示与解锁
+- [ ] 波次里程碑奖励（5/10/15/20/25/30/35/40/45/50波）正常显示
+- [ ] 阶段完成奖励（标准/超频/地狱/深渊/虚空/创世）正常显示
+- [ ] 阶段指示器 (PhaseIndicator) 实时切换正常（标准蓝紫→超频红→地狱紫→深渊墨黑→虚空纯白→创世极光）
+- [ ] 阶段视觉变色机制正常（深渊墨→虚空白→创世极光）
+- [ ] Boss变异系统正常（各阶段随机3种变异形态）
+- [ ] 英雄技能树正常（3分支×5层级，创世阶段觉醒）
+- [ ] 武器改装锻造正常（30种模块，波间锻造台）
+- [ ] 2人联机协作正常（WebSocket信令 + WebRTC P2P）
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
 - [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
 - [ ] 游戏内新手武器栏包含 2 远程 + 1 近战共 3 把武器
@@ -645,7 +746,7 @@ pm2 restart project-m --update-env
 |------|------|
 | `next.config.mjs` | 控制 standalone 输出、Sentry 自动禁用、测试文件忽略 |
 | `tailwind.config.ts` | Tailwind 配色、字体、舰桥动画扩展 |
-| `ecosystem.config.cjs` | PM2 生产进程配置（max_memory_restart: 1G, node_args: --max-old-space-size=1536） |
+| `ecosystem.config.cjs` | PM2 双进程生产配置（project-m: 1G, project-m-signaling: 256M） |
 | `.env.local` | 本地/生产环境变量 |
 | `vitest.config.ts` | 测试运行池配置（forks + maxWorkers:1） |
 
@@ -657,7 +758,8 @@ pm2 restart project-m --update-env
 | `scripts/health-check.sh` | 健康检查脚本（需手动创建） |
 | `scripts/recover.sh` | 灾难恢复脚本（需手动创建） |
 | `.github/workflows/deploy.yml` | push 到 main 自动部署 |
-| `nginx/project-m.conf` | Nginx 反向代理配置模板 |
+| `nginx/project-m.conf` | Nginx 反向代理 + WebSocket 信令代理配置模板 |
+| `signaling-server.mjs` | 独立 WebSocket 信令服务器（PM2 双进程之一） |
 | `supabase/schema.sql` | 数据库建表、RLS、触发器 |
 
 ### 15.3 核心库
@@ -686,8 +788,15 @@ pm2 restart project-m --update-env
 | `lib/game/campaign.ts` | 剧情战役：章节、节点、进度管理 |
 | `lib/game/boss-rush.ts` | BossRush：关卡、首领、奖励机制 |
 | `lib/game/peak-challenge.ts` | 顶峰挑战：高难度挑战逻辑 |
-| `lib/game/flagship-peak.ts` | 旗舰巅峰：三阶段25波、双轨挑战、双维度评级、统一积分制 |
-| `lib/game/flagship-peak-achievements.ts` | 旗舰巅峰成就：7隐藏成就、波次里程碑、阶段奖励、结算计算 |
+| `lib/game/flagship-peak.ts` | 旗舰巅峰MAX：六阶段50波、双轨挑战、双维度评级、统一积分制 |
+| `lib/game/flagship-peak-achievements.ts` | 旗舰巅峰成就：11隐藏成就、波次里程碑、阶段奖励、结算计算 |
+| `lib/game/boss-variants.ts` | Boss变异系统：6阶段×3形态共18种Boss变异配置 |
+| `lib/game/hero-skill-tree.ts` | 英雄技能树：5英雄×3分支×5层级技能及终极觉醒 |
+| `lib/game/weapon-forge.ts` | 武器改装锻造：30种改装模块、材料掉落与锻造逻辑 |
+| `lib/network/coop-room.ts` | 2人联机房间：房间管理、P2P DataChannel、数据同步 |
+| `lib/network/signaling.ts` | WebSocket信令客户端：房间创建/加入、成员广播、SDP/ICE交换 |
+| `lib/network/peer.ts` | WebRTC P2P连接：DataChannel封装、心跳、重连 |
+| `signaling-server.mjs` | 独立WebSocket信令服务器：跨设备组队信令中转 |
 | `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
 | `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
 | `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
@@ -713,8 +822,8 @@ pm2 restart project-m --update-env
 | `components/game/HudMobile.tsx` | 移动端 HUD：紧凑状态栏、触控优化 |
 | `components/game/KillFeed.tsx` | 实时击杀滚动通知（AnimatePresence + 自动过期） |
 | `components/game/SupplyWindow.tsx` | 补给窗口：B/ESC 快捷键、倒计时、快速下一波 |
-| `components/game/FlagshipPeakSettlement.tsx` | 旗舰巅峰结算画面：三阶段主题、六维雷达、隐藏成就、里程碑、粒子动画 |
-| `components/game/PhaseIndicator.tsx` | 阶段指示器：实时显示当前阶段（标准/超频/地狱），带动态切换动画 |
+| `components/game/FlagshipPeakSettlement.tsx` | 旗舰巅峰结算画面：六阶段主题、六维雷达、11隐藏成就、里程碑、粒子动画 |
+| `components/game/PhaseIndicator.tsx` | 阶段指示器：实时显示当前阶段（标准/超频/地狱/深渊/虚空/创世），带动态切换动画 |
 
 ### 15.8 页面
 
@@ -729,7 +838,7 @@ pm2 restart project-m --update-env
 | `pages/campaign.tsx` | 剧情战役 |
 | `pages/boss-rush.tsx` | BossRush |
 | `pages/peak-challenge.tsx` | 顶峰挑战 |
-| `pages/flagship-peak.tsx` | 旗舰巅峰（三阶段25波终极挑战） |
+| `pages/flagship-peak.tsx` | 旗舰巅峰MAX（六阶段50波终极挑战） |
 | `pages/extreme-survival/index.tsx` | 极限生存 |
 | `pages/season.tsx` | 赛季进度与奖励 |
 | `pages/hero-archive.tsx` | 英雄档案 |
@@ -843,26 +952,30 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 - 高难度挑战模式，含特殊规则与限制
 - 独立的挑战进度与奖励系统
 
-#### 旗舰巅峰 (Flagship Peak)
+#### 旗舰巅峰MAX (Flagship Peak MAX)
 
-`lib/game/flagship-peak.ts` + `lib/game/flagship-peak-achievements.ts` + `pages/flagship-peak.tsx` + `components/game/FlagshipPeakSettlement.tsx` + `components/game/PhaseIndicator.tsx`
+`lib/game/flagship-peak.ts` + `lib/game/flagship-peak-achievements.ts` + `lib/game/boss-variants.ts` + `lib/game/hero-skill-tree.ts` + `lib/game/weapon-forge.ts` + `lib/network/coop-room.ts` + `lib/network/signaling.ts` + `lib/network/peer.ts` + `signaling-server.mjs` + `pages/flagship-peak.tsx` + `components/game/FlagshipPeakSettlement.tsx` + `components/game/PhaseIndicator.tsx`
 
 - 旗舰与巅峰模式融合升级，11 种游戏模式中的终极防守体验
-- **三阶段25波递进**：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)
-- **双轨挑战系统**：固定挑战（每5波6个）+ 动态任务（超频/地狱阶段专属）
+- **六阶段50波递进**：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25) → 深渊(26-35) → 虚空(36-45) → 创世(46-50)
+- **阶段视觉变色**：深渊墨黑(#333333) → 虚空纯白(#e2e8f0) → 创世极光(#00ffcc)，地图背景色动态变化
+- **双轨挑战系统**：固定挑战（每5波10个）+ 动态任务（各阶段专属）
 - **双维度评级**：速度评级（青铜→钻石，1.0-1.75倍积分）+ 赛季段位（青铜→宗师）
 - **统一积分制**：击杀(10+连击)、精英(+50)、首领(+200)、波次(+50)、完美(+200)、时间奖励
-- **三阶段视觉**：舰桥蓝紫→红色警报→黑色虚空，HUD 主题动态切换
-- **首领战**：第10波 Overlord、第23波 Annihilator、第25波 Dreadnought
-- 难度系数：标准 1.0x → 超频 1.5x → 地狱 2.0x
-- 测试覆盖：98 个单元测试（`lib/game/flagship-peak.test.ts`）
+- **Boss变异系统**：每个阶段Boss有3种随机变异形态（攻击型/防御型/控制型），共18种变异配置
+- **英雄技能树**：每个英雄3分支（进攻/防御/通用）×5层级技能节点，波次奖励技能点，创世阶段觉醒终极技能
+- **武器改装锻造**：武器可附加元素/弹道/效果3种类型模块（共30种），波间锻造台改装，材料从敌人掉落
+- **2人联机协作**：基于WebSocket信令 + WebRTC P2P连接，支持房间管理、角色分工和进度共享
+- **首领战**：第10波 Overlord、第23波 Annihilator、第25波 Dreadnought、第35波深渊吞噬者、第45波虚空湮灭者、第50波创世泰坦
+- 难度系数：标准 1.0x → 超频 1.5x → 地狱 2.0x → 深渊 3.0x → 虚空 4.0x → 创世 5.0x
+- 测试覆盖：旗舰巅峰核心测试（`lib/game/flagship-peak.test.ts`）
 
 ##### 独立结算画面
 
 `components/game/FlagshipPeakSettlement.tsx` — 旗舰巅峰模式专属结算画面，电影级视觉动效：
 
-- **三阶段主题**：标准（舰桥蓝紫）→ 超频（深红警报）→ 地狱（黑色虚空），阶段切换带过场动画
-- **电影级粒子系统**：按阶段颜色动态生成浮动粒子，粒子密度随阶段递增（标准40→超频55→地狱70）
+- **六阶段主题**：标准（舰桥蓝紫）→ 超频（深红警报）→ 地狱（黑色虚空）→ 深渊（墨黑）→ 虚空（纯白）→ 创世（极光七彩），阶段切换带过场动画
+- **电影级粒子系统**：按阶段颜色动态生成浮动粒子，粒子密度随阶段递增（标准40→超频55→地狱70→深渊85→虚空100→创世120）
 - **扫描线效果**：全息扫描线动画叠加，增强科技感
 - **脉冲波纹**：阶段切换时从中心扩散的脉冲光环
 - **滚动数字计数器**：积分、经验、击杀数等数据以平滑动画滚动显示
@@ -887,17 +1000,21 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 
 ##### 隐藏成就系统
 
-`lib/game/flagship-peak-achievements.ts` — 7 个成就（5 核心 + 1 稀有 + 1 传说）：
+`lib/game/flagship-peak-achievements.ts` — 11 个成就（8 核心 + 2 稀有 + 1 传说）：
 
 | 成就 ID | 名称 | 稀有度 | 达成条件 |
 |---------|------|--------|----------|
 | `no_damage_10` | 钢铁防线 | 普通 | 前10波核心不受任何伤害 |
-| `speed_demon` | 极速传说 | 普通 | 全部25波速度评级达到S |
+| `speed_demon` | 极速传说 | 普通 | 全部50波速度评级达到S |
 | `combo_master` | 连击大师 | 普通 | 达成100+连击 |
-| `perfectionist` | 完美主义者 | 普通 | 全部6个固定挑战完成 |
-| `survivor` | 不屈意志 | 普通 | 0死亡完成全部25波 |
+| `perfectionist` | 完美主义者 | 普通 | 全部10个固定挑战完成 |
+| `survivor` | 不屈意志 | 普通 | 0死亡完成全部50波 |
+| `abyss_walker` | 深渊漫步者 | 稀有 | 在深渊阶段存活至少5波 |
+| `void_master` | 虚空主宰 | 稀有 | 在虚空阶段击败首领且核心耐久保持50%以上 |
+| `genesis_pioneer` | 创世先驱 | 普通 | 抵达创世阶段并存活至少3波 |
 | `immortal` | 不朽传奇 | 稀有 | 同时达成「钢铁防线」+「完美主义者」+「不屈意志」 |
 | `void_lord` | 虚空之主 | 传说 | 同时达成「不朽传奇」+「三阶全S」+「挑战征服者」 |
+| `genesis_god` | 创世之神 | 传说 | 同时达成「深渊漫步者」+「虚空主宰」+「创世先驱」+「不朽传奇」 |
 
 - 未解锁成就显示为灰色锁定状态
 - 解锁时带粒子爆发动画
@@ -912,6 +1029,11 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 | 15波 | 超频适应 | 高级战利品箱 |
 | 20波 | 超频通关 | 阶段宝箱（超频） |
 | 25波 | 地狱征服 | 阶段宝箱（地狱）+ 传说印记 |
+| 30波 | 深渊初探 | 深渊宝箱 + 2000 XP |
+| 35波 | 深渊征服者 | 阶段宝箱（深渊）+ 3500 XP |
+| 40波 | 虚空漫步 | 虚空宝箱 + 5000 XP |
+| 45波 | 虚空主宰 | 阶段宝箱（虚空）+ 8000 XP |
+| 50波 | 创世终局 | 阶段宝箱（创世）+ 传说印记 + 15000 XP |
 
 ##### 阶段完成奖励
 
@@ -920,6 +1042,9 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 | 标准巡航 (1-10) | 经验 + 赛季积分 + 基础宝箱 |
 | 超频增压 (11-20) | 经验(1.5x) + 赛季积分(1.5x) + 高级宝箱 |
 | 地狱终局 (21-25) | 经验(2.0x) + 赛季积分(2.0x) + 传说宝箱 + 赛季称号 |
+| 深渊 (26-35) | 经验(3.0x) + 赛季积分(3.0x) + 深渊宝箱 + 深渊称号 |
+| 虚空 (36-45) | 经验(4.0x) + 赛季积分(4.0x) + 虚空宝箱 + 虚空称号 |
+| 创世 (46-50) | 经验(5.0x) + 赛季积分(5.0x) + 创世宝箱 + 创世称号 |
 
 ##### 实时HUD显示
 
@@ -938,6 +1063,9 @@ BRAND_URL = "multiverse.game"  // 品牌域名
 - 标准阶段：蓝色图标 + 舰桥蓝紫边框
 - 超频阶段：红色图标 + 脉冲动画 + 红色警报边框
 - 地狱阶段：紫色图标 + 虚空主题 + 紫色边框
+- 深渊阶段：墨黑图标 + 视野收缩动画 + 暗黑边框
+- 虚空阶段：纯白图标 + 反色主题 + 白色边框
+- 创世阶段：极光图标 + 七彩渐变边框 + 脉动光晕
 - 阶段切换时带 scale + opacity 过渡动画
 - 支持 `prefers-reduced-motion` 无障碍适配
 
@@ -1062,8 +1190,10 @@ Roguelike 模式每次升级时二选一：
 | 连接质量 | `quality.ts` | 延迟、丢包率、带宽实时监控 |
 | 匹配队列 | `matchmaking.ts` | 基于技能分 + 延迟的匹配算法 |
 | 房间管理 | `room.ts` | 多人房间生命周期、心跳、广播 |
-| 信令服务 | `signaling.ts` | WebRTC 信令交换 |
+| 信令服务 | `signaling.ts` | WebRTC 信令交换（客户端） |
 | 点对点连接 | `peer.ts` | WebRTC DataChannel 封装 |
+| 联机房间 | `coop-room.ts` | 2人联机协作：房间管理、P2P DataChannel、进度同步 |
+| 信令服务器 | `signaling-server.mjs` | 独立 WebSocket 信令服务（服务端），跨设备组队中转 |
 
 ### 16.15 HUD 旗舰重设计
 
@@ -1352,6 +1482,7 @@ pm2 save
 echo "6. 验证..."
 sleep 3
 curl -s http://localhost:3000/api/health
+pm2 status
 
 echo "=== 恢复完成 ==="
 ```
@@ -1365,7 +1496,10 @@ echo "=== 恢复完成 ==="
 pm2 status                    # 查看进程状态
 pm2 restart project-m         # 重启应用
 pm2 restart project-m --update-env  # 刷新环境变量后重启
-pm2 logs project-m --lines 100      # 查看日志
+pm2 restart project-m-signaling      # 重启信令服务器
+pm2 restart all               # 重启全部进程
+pm2 logs project-m --lines 100      # 查看应用日志
+pm2 logs project-m-signaling --lines 100  # 查看信令日志
 pm2 flush                     # 清空日志
 
 # 构建
@@ -1373,7 +1507,7 @@ cd /var/www/project-m
 git pull origin main
 pnpm install --frozen-lockfile
 pnpm build
-pm2 restart project-m --update-env
+pm2 restart all --update-env
 
 # 系统
 htop                          # 进程监控
@@ -1417,4 +1551,4 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰三阶段25波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。*
+*本手册对应多重宇宙「奇迹」版本一次性全部上线部署流程。全站 31 页面太空舰桥指挥舱风格重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「奇迹」(MI-MIRACLE)。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*

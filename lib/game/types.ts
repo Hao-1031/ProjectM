@@ -440,6 +440,13 @@ export interface Player {
   animationTimer: number;
   // Cosmetic override for player sprite primary color
   skinColor?: string;
+  // 补给窗口购买道具临时效果
+  damageMultiplier?: number;
+  speedMultiplier?: number;
+  damageBoostTimer?: number;
+  speedBoostTimer?: number;
+  healAuraActive?: boolean;
+  healAuraTimer?: number;
 }
 
 export type AffixId =

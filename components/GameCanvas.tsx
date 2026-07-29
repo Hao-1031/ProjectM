@@ -638,6 +638,10 @@ export default function GameCanvas({ onExit, multiplayer = false, difficultyPres
     }
   }, []);
 
+  const handleBreakEnd = useCallback((purchases: Record<string, number>) => {
+    engineRef.current?.applyBreakPurchases(purchases);
+  }, []);
+
   const handleToggleShop = useCallback(() => {
     setShopOpen((prev) => !prev);
   }, []);
@@ -694,6 +698,7 @@ export default function GameCanvas({ onExit, multiplayer = false, difficultyPres
           shopOpen={shopOpen}
           onToggleShop={handleToggleShop}
           onSkipBreak={handleSkipBreak}
+          onBreakEnd={handleBreakEnd}
         />
       )}
 

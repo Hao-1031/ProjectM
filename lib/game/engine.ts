@@ -268,6 +268,7 @@ export interface GameCallbacks {
   onCurseBlessingOffer?: (pairs: CurseBlessingPair[]) => void;
   onKillStreak?: (count: number) => void;
   onBranchChoiceRequest?: () => void;
+  onBreakEnd?: (purchases: Record<string, number>) => void;
 }
 
 export interface Loadout {
@@ -303,6 +304,7 @@ export class GameEngine {
   private peakChallengePendingChoice = false;
   private _deathDelay = 0;
   private _deathAnimating = false;
+  private _pendingBreakPurchases: Record<string, number> = {};
   private difficultyPreset: DifficultyPreset | null = null;
   private difficultyConfig: DifficultyPresetConfig | null = null;
 
@@ -1104,6 +1106,53 @@ export class GameEngine {
     triggerHeroUltimate(this.state.player, this.state, this.fx);
   }
 
+  /** 应用补给窗口购买的道具到游戏状态 */
+  applyBreakPurchases(purchases: Record<string, number>) {
+    this._pendingBreakPurchases = { ...purchases };
+
+    const player = this.state.player;
+    const ds = this.state.defenseState;
+
+    Object.entries(purchases).forEach(([itemId, count]) => {
+      for (let i = 0; i < count; i++) {
+        switch (itemId) {
+          case "health_pack": {
+            const healAmount = Math.floor(player.maxHealth * 0.3);
+            player.health = Math.min(player.maxHealth, player.health + healAmount);
+            this.particlePool.spawnPreset("heal-burst", player.x, player.y, "#22c55e", { intensity: 0.6 });
+            break;
+          }
+          case "armor_plate": {
+            player.armor = (player.armor ?? 0) + 50;
+            this.particlePool.spawnPreset("shield-break", player.x, player.y, "#3b82f6", { intensity: 0.5 });
+            break;
+          }
+          case "damage_boost": {
+            player.damageMultiplier = (player.damageMultiplier ?? 1) * 1.25;
+            player.damageBoostTimer = (player.damageBoostTimer ?? 0) + 60;
+            break;
+          }
+          case "speed_boost": {
+            player.speedMultiplier = (player.speedMultiplier ?? 1) * 1.3;
+            player.speedBoostTimer = (player.speedBoostTimer ?? 0) + 60;
+            break;
+          }
+          case "core_repair": {
+            if (ds) {
+              ds.core.health = Math.min(ds.core.maxHealth, ds.core.health + Math.floor(ds.core.maxHealth * 0.15));
+            }
+            break;
+          }
+          case "heal_aura": {
+            player.healAuraActive = true;
+            player.healAuraTimer = (player.healAuraTimer ?? 0) + 30;
+            break;
+          }
+        }
+      }
+    });
+  }
+
   /** 跳过波次间补给窗口，立即开始下一波 */
   skipBreak() {
     const ds = this.state.defenseState;
@@ -1226,7 +1275,7 @@ export class GameEngine {
     player.knockbackX *= Math.max(0, 1 - dt * 6);
     player.knockbackY *= Math.max(0, 1 - dt * 6);
 
-    const effectiveSpeed = player.speed * weatherSpeedMul;
+    const effectiveSpeed = player.speed * weatherSpeedMul * (player.speedMultiplier ?? 1);
 
     if (move.x !== 0 || move.y !== 0) {
       player.knockbackX +=
@@ -1288,6 +1337,41 @@ export class GameEngine {
       }
       if (player.health <= 0) {
         this.endRun(false);
+      }
+    }
+
+    // 补给窗口临时效果计时器
+    if ((player.damageBoostTimer ?? 0) > 0) {
+      player.damageBoostTimer = (player.damageBoostTimer ?? 0) - dt;
+      if ((player.damageBoostTimer ?? 0) <= 0) {
+        player.damageMultiplier = 1;
+        player.damageBoostTimer = 0;
+      }
+    }
+    if ((player.speedBoostTimer ?? 0) > 0) {
+      player.speedBoostTimer = (player.speedBoostTimer ?? 0) - dt;
+      if ((player.speedBoostTimer ?? 0) <= 0) {
+        player.speedMultiplier = 1;
+        player.speedBoostTimer = 0;
+      }
+    }
+    if ((player.healAuraTimer ?? 0) > 0) {
+      player.healAuraTimer = (player.healAuraTimer ?? 0) - dt;
+      if (player.healAuraActive) {
+        player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.02 * dt);
+        if (this.rng() < dt * 3) {
+          this.particlePool.spawnPreset(
+            "heal-burst",
+            player.x + randomRangeRng(this.rng, -15, 15),
+            player.y + randomRangeRng(this.rng, -15, 15),
+            "#22c55e",
+            { intensity: 0.4 }
+          );
+        }
+      }
+      if ((player.healAuraTimer ?? 0) <= 0) {
+        player.healAuraActive = false;
+        player.healAuraTimer = 0;
       }
     }
   }
@@ -1561,7 +1645,7 @@ export class GameEngine {
     const isCrit = this.rng() < player.critChance;
     const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
     const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
-    let damage = weapon.damage * comboMul * critMul;
+    let damage = weapon.damage * comboMul * critMul * (player.damageMultiplier ?? 1);
     damage = this.applyDamage(enemy, damage, weapon.burnDuration, weapon.burnDuration ? weapon.damage * 0.4 : undefined);
     this.state.stats.damageDealt += damage;
 
@@ -1747,6 +1831,7 @@ export class GameEngine {
     if (fws.inBreak) {
       fws.breakTimer -= dt;
       if (fws.breakTimer <= 0) {
+        this.callbacks.onBreakEnd?.(this._pendingBreakPurchases);
         fws.inBreak = false;
         fws.spawned = 0;
         fws.killed = 0;
@@ -2657,6 +2742,7 @@ export class GameEngine {
     if (!ds.waveInProgress) {
       ds.breakTimer -= dt;
       if (ds.breakTimer <= 0 && ds.currentWave < ds.totalWaves) {
+        this.callbacks.onBreakEnd?.(this._pendingBreakPurchases);
         ds.waveInProgress = true;
         ds.waveTimer = 0;
         const startingWave = ds.waves[ds.currentWave];
@@ -2975,7 +3061,7 @@ export class GameEngine {
           const isCrit = this.rng() < this.state.player.critChance;
           const comboMul = 1 + Math.min(0.35, this.state.killCombo.count * 0.012);
           const critMul = isCrit ? DEFAULT_BALANCE.player.critDamageMultiplier : 1;
-          let damage = p.damage * comboMul * critMul;
+          let damage = p.damage * comboMul * critMul * (this.state.player.damageMultiplier ?? 1);
           damage = this.applyDamage(enemy, damage, p.burnDuration, p.burnDamage);
           p.pierce -= 1;
           this.state.stats.damageDealt += damage;

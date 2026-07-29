@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Timer,
@@ -15,6 +15,7 @@ import {
   Fire,
   FirstAid,
   Plus,
+  Warning,
 } from "@phosphor-icons/react";
 
 export interface SupplyWindowProps {
@@ -34,6 +35,8 @@ export interface SupplyWindowProps {
   onToggleShop: () => void;
   /** 跳过补给窗口，立即开始下一波 */
   onSkipBreak: () => void;
+  /** 补给窗口结束回调，传递已购买道具清单 */
+  onBreakEnd?: (purchases: Record<string, number>) => void;
 }
 
 interface ShopItem {
@@ -102,8 +105,10 @@ export default function SupplyWindow({
   shopOpen,
   onToggleShop,
   onSkipBreak,
+  onBreakEnd,
 }: SupplyWindowProps) {
   const [purchased, setPurchased] = useState<Record<string, number>>({});
+  const prevInBreak = useRef(inBreak);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -133,6 +138,17 @@ export default function SupplyWindow({
     }
   }, [inBreak]);
 
+  // 监测补给窗口结束：inBreak 从 true 变为 false 时触发回调
+  useEffect(() => {
+    if (prevInBreak.current && !inBreak) {
+      onBreakEnd?.(purchased);
+    }
+    prevInBreak.current = inBreak;
+  }, [inBreak, purchased, onBreakEnd]);
+
+  // 倒计时告警：剩余 <= 3 秒时闪烁
+  const isWarning = breakTimer <= 3 && breakTimer > 0;
+
   return (
     <AnimatePresence>
       {inBreak && (
@@ -144,15 +160,19 @@ export default function SupplyWindow({
           className="pointer-events-auto absolute bottom-4 right-4 z-30 flex flex-col gap-2"
         >
           {/* 补给窗口主面板 */}
-          <div className="flex items-center gap-2 rounded-2xl border border-success/20 bg-panel/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className={`flex items-center gap-2 rounded-2xl border bg-panel/95 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl transition-colors duration-300 ${isWarning ? "border-warning/40" : "border-success/20"}`}>
             {/* 波次信息 */}
-            <div className="flex flex-col items-center gap-0.5 rounded-xl bg-success/10 px-3 py-2">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-success">
+            <div className={`flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition-colors duration-300 ${isWarning ? "bg-warning/15" : "bg-success/10"}`}>
+              <span className={`font-mono text-[10px] uppercase tracking-widest transition-colors duration-300 ${isWarning ? "text-warning" : "text-success"}`}>
                 波次 {currentWave + 1}/{totalWaves}
               </span>
-              <span className="font-mono text-2xl font-bold tabular-nums text-success">
+              <motion.span
+                className={`font-mono text-2xl font-bold tabular-nums transition-colors duration-300 ${isWarning ? "text-warning" : "text-success"}`}
+                animate={isWarning ? { scale: [1, 1.15, 1] } : {}}
+                transition={{ duration: 0.5, repeat: isWarning ? Infinity : 0 }}
+              >
                 {Math.ceil(breakTimer)}
-              </span>
+              </motion.span>
               <span className="text-[10px] text-muted">秒</span>
             </div>
 
@@ -162,11 +182,21 @@ export default function SupplyWindow({
             {/* 补给标题 */}
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1.5">
-                <Broom size={14} weight="bold" className="text-success" />
-                <span className="text-xs font-bold text-success">补给窗口</span>
+                <Broom size={14} weight="bold" className={isWarning ? "text-warning" : "text-success"} />
+                <span className={`text-xs font-bold ${isWarning ? "text-warning" : "text-success"}`}>
+                  补给窗口
+                </span>
+                {isWarning && (
+                  <motion.span
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ duration: 0.6, repeat: Infinity }}
+                  >
+                    <Warning size={14} weight="bold" className="text-warning" />
+                  </motion.span>
+                )}
               </div>
               <p className="max-w-[180px] text-[10px] leading-relaxed text-muted">
-                波次肃清。收集资源，强化装备，准备迎接下一波敌潮。
+                {isWarning ? "补给窗口即将关闭，准备迎战下一波敌潮！" : "波次肃清。收集资源，强化装备，准备迎接下一波敌潮。"}
               </p>
             </div>
 
