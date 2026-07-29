@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Shield, Fire, Skull } from "@phosphor-icons/react";
+import { Shield, Fire, Skull, EyeSlash, Circle, Sparkle } from "@phosphor-icons/react";
 import type { FlagshipPeakPhase } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,30 @@ const PHASE_CONFIG: Record<
     accent: "text-[#a855f7]",
     bg: "bg-[#a855f7]/10",
     border: "border-[#a855f7]/40",
+    pulse: true,
+  },
+  abyss: {
+    icon: EyeSlash,
+    label: "深渊",
+    accent: "text-[#1a1a1a]",
+    bg: "bg-[#1a1a1a]/10",
+    border: "border-[#1a1a1a]/40",
+    pulse: true,
+  },
+  void: {
+    icon: Circle,
+    label: "虚空",
+    accent: "text-[#e2e8f0]",
+    bg: "bg-[#e2e8f0]/10",
+    border: "border-[#e2e8f0]/40",
+    pulse: true,
+  },
+  genesis: {
+    icon: Sparkle,
+    label: "创世",
+    accent: "text-[#00ffcc]",
+    bg: "bg-[#00ffcc]/10",
+    border: "border-[#00ffcc]/40",
     pulse: true,
   },
   victory: {

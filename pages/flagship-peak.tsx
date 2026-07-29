@@ -19,6 +19,12 @@ import {
   Target,
   Sparkle,
   Circle,
+  EyeSlash,
+  Wrench,
+  TreeStructure,
+  Users,
+  Sword,
+  Atom,
 } from "@phosphor-icons/react";
 import Layout from "@/components/Layout";
 import DimensionBackground from "@/components/effects/DimensionBackground";
@@ -47,7 +53,7 @@ const PHASES = [
     accentBg: "bg-danger/10",
     borderGlow: "hover:border-danger/30",
     glowColor: "rgba(239, 68, 68, 0.15)",
-    desc: "红色警报！敌潮密度×1.5，精英怪大规模出现。动态任务激活，挑战你的极限。",
+    desc: "红色警报！敌潮密度x1.5，精英怪大规模出现。动态任务激活，挑战极限。",
     features: ["1.5倍敌潮密度", "精英怪大规模侵入", "超频阶段动态任务", "第23波首领战"],
   },
   {
@@ -62,6 +68,45 @@ const PHASES = [
     glowColor: "rgba(168, 85, 247, 0.15)",
     desc: "黑色虚空吞噬一切。2倍难度，虚空粒子密度1.5倍，屏幕震动0.7。第25波恐惧级首领战。",
     features: ["2倍敌潮难度", "虚空粒子密度1.5倍", "屏幕震动0.7", "第25波恐惧级首领"],
+  },
+  {
+    phase: "abyss",
+    title: "深渊",
+    wave: "26-35 波",
+    icon: EyeSlash,
+    accent: "text-[#333333]",
+    accentHex: "#333333",
+    accentBg: "bg-[#333333]/10",
+    borderGlow: "hover:border-[#333333]/30",
+    glowColor: "rgba(51, 51, 51, 0.2)",
+    desc: "墨黑深渊吞噬一切光明。3倍难度，地图视野缩小40%，敌潮密度x2。第35波深渊吞噬者首领战。",
+    features: ["3倍敌潮难度", "视野缩小40%", "敌潮密度x2", "第35波深渊首领"],
+  },
+  {
+    phase: "void",
+    title: "虚空",
+    wave: "36-45 波",
+    icon: Circle,
+    accent: "text-[#e2e8f0]",
+    accentHex: "#e2e8f0",
+    accentBg: "bg-[#e2e8f0]/10",
+    borderGlow: "hover:border-[#e2e8f0]/30",
+    glowColor: "rgba(226, 232, 240, 0.2)",
+    desc: "纯白虚空湮灭一切。4倍难度，重力反转机制，时间流速不稳定。第45波虚空湮灭者首领战。",
+    features: ["4倍敌潮难度", "重力反转机制", "时间流速不稳定", "第45波虚空首领"],
+  },
+  {
+    phase: "genesis",
+    title: "创世",
+    wave: "46-50 波",
+    icon: Sparkle,
+    accent: "text-[#00ffcc]",
+    accentHex: "#00ffcc",
+    accentBg: "bg-[#00ffcc]/10",
+    borderGlow: "hover:border-[#00ffcc]/30",
+    glowColor: "rgba(0, 255, 204, 0.25)",
+    desc: "极光七彩终结之战。5倍难度，全机制融合，终极觉醒技能解锁。第50波创世泰坦首领战。",
+    features: ["5倍敌潮难度", "全机制融合", "创世觉醒技能", "第50波创世泰坦"],
   },
 ];
 
@@ -107,7 +152,7 @@ const SCORE_FORMULA = [
 ];
 
 const HERO_IMAGE =
-  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20spaceship%20bridge%20command%20center%2C%20three%20phase%20transformation%20from%20blue%20to%20red%20to%20void%20black%2C%20holographic%20tactical%20displays%2C%20massive%20mechanical%20dreadnought%20boss%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9";
+  "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20spaceship%20bridge%20six%20phase%20transformation%20blue%20to%20red%20to%20void%20black%20to%20dark%20abyss%20to%20white%20void%20to%20aurora%20colors%2C%20holographic%20tactical%20displays%2C%20massive%20mechanical%20titan%20boss%2C%20dark%20industrial%20scifi%2C%20low%20saturation%2C%20epic%20scale%2C%20no%20text&image_size=landscape_16_9";
 
 // 浮动粒子
 function HeroParticles() {
@@ -159,8 +204,8 @@ export default function FlagshipPeakPage() {
   return (
     <Layout title="旗舰巅峰">
       <Head>
-        <title>Project M 旗舰版 - 旗舰巅峰</title>
-        <meta name="description" content="Project M 旗舰巅峰：三阶段25波终极挑战。标准巡航→超频增压→地狱终局，双轨挑战+双维度评级+统一积分制。" />
+        <title>Project M 旗舰版 - 旗舰巅峰 MAX</title>
+        <meta name="description" content="Project M 旗舰巅峰MAX：六阶段50波终极挑战。标准巡航-超频增压-地狱终局-深渊-虚空-创世，Boss变异+英雄技能树+武器锻造+2人联机。" />
       </Head>
 
       <div className="relative min-h-[100dvh]">
@@ -178,15 +223,15 @@ export default function FlagshipPeakPage() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
               <Rocket size={12} weight="fill" className="status-pulse" />
-              旗舰巅峰
+              旗舰巅峰 MAX
             </span>
             <h1 className="mt-3 text-[clamp(2rem,5vw,3.5rem)] font-display font-bold leading-[0.95] tracking-tight">
-              三阶段
+              六阶段
               <br />
-              <span className="text-gradient">25波终极挑战</span>
+              <span className="text-gradient">50波终极挑战</span>
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-              旗舰与巅峰模式融合升级。标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25)，双轨挑战系统 + 双维度评级 + 统一积分制，Project M 终极防守体验。
+              标准巡航(1-10) - 超频增压(11-20) - 地狱终局(21-25) - 深渊(26-35) - 虚空(36-45) - 创世(46-50)。Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作，Project M 终局防守体验。
             </p>
           </motion.div>
 
@@ -213,7 +258,7 @@ export default function FlagshipPeakPage() {
                   className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm"
                 >
                   <Shield size={10} />
-                  25 波
+                  50 波
                 </motion.span>
                 <motion.span
                   initial={{ opacity: 0, x: -10 }}
@@ -222,16 +267,16 @@ export default function FlagshipPeakPage() {
                   className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-danger/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-danger backdrop-blur-sm"
                 >
                   <Fire size={10} />
-                  三阶段
+                  六阶段
                 </motion.span>
                 <motion.span
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.4 }}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#a855f7]/30 bg-[#a855f7]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#a855f7] backdrop-blur-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#00ffcc]/30 bg-[#00ffcc]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ffcc] backdrop-blur-sm"
                 >
-                  <Skull size={10} />
-                  地狱终局
+                  <Sparkle size={10} />
+                  创世终局
                 </motion.span>
               </div>
             </div>
@@ -246,7 +291,7 @@ export default function FlagshipPeakPage() {
             className="mb-4"
           >
             <h2 className="mb-3 font-display text-lg font-bold tracking-tight">
-              三阶段递进
+              六阶段递进
             </h2>
             <div className="grid gap-3 md:grid-cols-3">
               {PHASES.map((phase, i) => {
@@ -434,7 +479,7 @@ export default function FlagshipPeakPage() {
               <div>
                 <h2 className="text-lg font-display font-bold tracking-tight">准备就绪，舰长</h2>
                 <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-                  选择难度预设，进入旗舰巅峰。标准巡航积累资源，超频增压突破极限，地狱终局征服终极首领。
+                  选择难度预设，进入旗舰巅峰。标准巡航积累资源，超频增压突破极限，深渊虚空创世征服终极首领。
                 </p>
               </div>
               <div className="flex flex-col justify-center gap-2 sm:flex-row lg:justify-end">

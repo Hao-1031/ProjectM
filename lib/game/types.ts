@@ -965,7 +965,7 @@ export type FlagshipSpeedRank = "none" | "bronze" | "silver" | "gold" | "platinu
 // 双轨挑战 + 双维度评级 + 统一积分制
 // ========================================================================
 
-export type FlagshipPeakPhase = "standard" | "overclock" | "hell" | "victory" | "defeat";
+export type FlagshipPeakPhase = "standard" | "overclock" | "hell" | "abyss" | "void" | "genesis" | "victory" | "defeat";
 
 export interface FlagshipPeakChallenge {
   id: string;
@@ -988,6 +988,82 @@ export interface FlagshipPeakTask {
   rewardScore: number;
   /** 仅在指定阶段生效 */
   phase?: FlagshipPeakPhase;
+}
+
+// Boss变异类型
+export type BossVariantType = "aggressive" | "defensive" | "controller";
+
+export interface BossVariantConfig {
+  type: BossVariantType;
+  healthMul: number;
+  damageMul: number;
+  speedMul: number;
+  abilityType: string;
+  weaknessName: string;
+  weaknessDescription: string;
+  visualEffect: string;
+}
+
+// 武器改装
+export type WeaponModType = "element" | "ballistic" | "effect";
+
+export interface WeaponMod {
+  id: string;
+  name: string;
+  type: WeaponModType;
+  description: string;
+  rarity: "common" | "rare" | "epic" | "legendary";
+  statBonus: Partial<{ damage: number; speed: number; radius: number; cooldown: number; pierce: number }>;
+  specialEffect?: string;
+  requiredMaterials: Partial<ForgeMaterials>;
+}
+
+export interface WeaponModSlot {
+  slotType: WeaponModType;
+  installedModId: string | null;
+  locked: boolean;
+}
+
+export interface ForgeMaterials {
+  iron: number;
+  crystal: number;
+  voidEssence: number;
+  genesisCore: number;
+}
+
+// 英雄技能树
+export type SkillBranchType = "offense" | "defense" | "utility";
+
+export interface SkillNode {
+  id: string;
+  name: string;
+  branch: SkillBranchType;
+  tier: number;
+  description: string;
+  effect: Record<string, number>;
+  requiredPoints: number;
+  children: string[];
+  unlocked: boolean;
+}
+
+export interface HeroSkillTree {
+  heroId: string;
+  branches: Record<SkillBranchType, SkillNode[]>;
+  totalPoints: number;
+  maxPoints: number;
+}
+
+// 联机类型
+export interface CoopRoomState {
+  roomCode: string;
+  hostId: string;
+  guestId: string | null;
+  hostReady: boolean;
+  guestReady: boolean;
+  hostHero: string;
+  guestHero: string;
+  sharedFlagshipPeakState: FlagshipPeakState;
+  status: "waiting" | "ready" | "playing" | "finished";
 }
 
 export interface FlagshipPeakState {
@@ -1020,6 +1096,21 @@ export interface FlagshipPeakState {
   challengeStreak: number;
   /** 赛季货币 */
   seasonCurrency: number;
+  /** 技能树解锁的技能点 */
+  skillPoints: number;
+  /** 已解锁的技能ID列表 */
+  unlockedSkills: string[];
+  /** 武器改装槽位 */
+  weaponMods: WeaponModSlot[];
+  /** Boss变异记录 */
+  bossVariants: Record<string, BossVariantType>;
+  /** 锻造材料 */
+  forgeMaterials: ForgeMaterials;
+  /** 联机模式 */
+  coopMode: boolean;
+  coopPartnerId?: string;
+  /** 地图主题色偏移（用于阶段变色） */
+  mapThemePhase: FlagshipPeakPhase;
 }
 
 export interface SerializedGameState {
@@ -1156,7 +1247,11 @@ export type FlagshipPeakAchievementId =
   | "hell_survivor"
   | "zero_death_25"
   | "triple_s_rank"
-  | "void_lord";
+  | "abyss_walker"
+  | "void_master"
+  | "genesis_pioneer"
+  | "void_lord"
+  | "genesis_god";
 
 export type FlagshipPeakAchievementRarity = "common" | "rare" | "legendary";
 

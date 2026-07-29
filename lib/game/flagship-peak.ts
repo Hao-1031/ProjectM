@@ -17,10 +17,16 @@ import { uid } from "./math";
 // ========================================================================
 
 export const FLAGSHIP_PEAK_TOTAL_WAVES = 25;
+export const FLAGSHIP_PEAK_MAX_TOTAL_WAVES = 50;
 export const FLAGSHIP_PEAK_STANDARD_END = 10;
 export const FLAGSHIP_PEAK_OVERCLOCK_END = 20;
+export const FLAGSHIP_PEAK_ABYSS_END = 35;
+export const FLAGSHIP_PEAK_VOID_END = 45;
 export const FLAGSHIP_PEAK_BOSS_WAVE_1 = 10;
 export const FLAGSHIP_PEAK_BOSS_WAVE_2 = 23;
+export const FLAGSHIP_PEAK_BOSS_WAVE_3 = 35;
+export const FLAGSHIP_PEAK_BOSS_WAVE_4 = 45;
+export const FLAGSHIP_PEAK_BOSS_WAVE_FINAL = 50;
 export const FLAGSHIP_PEAK_FINAL_BOSS_WAVE = 25;
 export const FLAGSHIP_PEAK_CHALLENGE_INTERVAL = 5;
 export const FLAGSHIP_PEAK_REWARD_INTERVAL = 5;
@@ -33,7 +39,7 @@ export function createFlagshipPeakState(): FlagshipPeakState {
   return {
     phase: "standard",
     wave: 0,
-    totalWaves: FLAGSHIP_PEAK_TOTAL_WAVES,
+    totalWaves: FLAGSHIP_PEAK_MAX_TOTAL_WAVES,
     challenges: generateFlagshipPeakChallenges(1),
     tasks: [],
     score: 0,
@@ -52,6 +58,13 @@ export function createFlagshipPeakState(): FlagshipPeakState {
     comboBreakerCount: 0,
     challengeStreak: 0,
     seasonCurrency: 0,
+    skillPoints: 0,
+    unlockedSkills: [],
+    weaponMods: [],
+    bossVariants: {},
+    forgeMaterials: { iron: 0, crystal: 0, voidEssence: 0, genesisCore: 0 },
+    coopMode: false,
+    mapThemePhase: "standard",
   };
 }
 
@@ -62,7 +75,10 @@ export function createFlagshipPeakState(): FlagshipPeakState {
 export function getFlagshipPeakPhase(wave: number): FlagshipPeakPhase {
   if (wave <= FLAGSHIP_PEAK_STANDARD_END) return "standard";
   if (wave <= FLAGSHIP_PEAK_OVERCLOCK_END) return "overclock";
-  return "hell";
+  if (wave <= FLAGSHIP_PEAK_TOTAL_WAVES) return "hell";
+  if (wave <= FLAGSHIP_PEAK_ABYSS_END) return "abyss";
+  if (wave <= FLAGSHIP_PEAK_VOID_END) return "void";
+  return "genesis";
 }
 
 export function getPhaseDisplayName(phase: FlagshipPeakPhase): string {
@@ -70,6 +86,9 @@ export function getPhaseDisplayName(phase: FlagshipPeakPhase): string {
     case "standard": return "标准巡航";
     case "overclock": return "超频增压";
     case "hell": return "地狱终局";
+    case "abyss": return "深渊";
+    case "void": return "虚空";
+    case "genesis": return "创世";
     case "victory": return "胜利";
     case "defeat": return "失败";
   }
@@ -80,6 +99,9 @@ export function getPhaseOverlayColor(phase: FlagshipPeakPhase): string {
     case "standard": return "rgba(12, 10, 20, 0.15)";
     case "overclock": return "rgba(180, 30, 30, 0.12)";
     case "hell": return "rgba(0, 0, 0, 0.35)";
+    case "abyss": return "rgba(0, 0, 0, 0.45)";
+    case "void": return "rgba(255, 255, 255, 0.08)";
+    case "genesis": return "rgba(80, 200, 255, 0.12)";
     case "victory": return "rgba(20, 80, 40, 0.15)";
     case "defeat": return "rgba(80, 10, 10, 0.25)";
   }
@@ -90,6 +112,9 @@ export function getPhaseAccentColor(phase: FlagshipPeakPhase): string {
     case "standard": return "#6366f1";
     case "overclock": return "#ef4444";
     case "hell": return "#a855f7";
+    case "abyss": return "#1a1a1a";
+    case "void": return "#e2e8f0";
+    case "genesis": return "#00ffcc";
     case "victory": return "#22c55e";
     case "defeat": return "#ef4444";
   }
@@ -100,6 +125,9 @@ export function getPhaseDifficultyMultiplier(phase: FlagshipPeakPhase): number {
     case "standard": return 1.0;
     case "overclock": return 1.5;
     case "hell": return 2.0;
+    case "abyss": return 3.0;
+    case "void": return 4.0;
+    case "genesis": return 5.0;
     default: return 1.0;
   }
 }
@@ -239,6 +267,96 @@ export function generateFlagshipPeakTasks(phase: FlagshipPeakPhase, wave: number
     });
   }
 
+  if (phase === "abyss") {
+    tasks.push({
+      title: "深渊漫步",
+      description: `在深渊阶段存活 ${3 + tier} 波`,
+      target: 3 + tier,
+      progress: 0,
+      completed: false,
+      rewardScore: 600 + tier * 100,
+      phase: "abyss",
+    });
+    tasks.push({
+      title: "深渊领主",
+      description: `在深渊阶段击杀 ${1 + Math.floor(tier / 2)} 个首领`,
+      target: 1 + Math.floor(tier / 2),
+      progress: 0,
+      completed: false,
+      rewardScore: 700 + tier * 80,
+      phase: "abyss",
+    });
+    tasks.push({
+      title: "暗影坚守",
+      description: "在深渊阶段核心耐久保持 30% 以上完成一波",
+      target: 1,
+      progress: 0,
+      completed: false,
+      rewardScore: 500 + tier * 60,
+      phase: "abyss",
+    });
+  }
+
+  if (phase === "void") {
+    tasks.push({
+      title: "虚空行者",
+      description: `在虚空阶段存活 ${3 + tier} 波`,
+      target: 3 + tier,
+      progress: 0,
+      completed: false,
+      rewardScore: 800 + tier * 120,
+      phase: "void",
+    });
+    tasks.push({
+      title: "虚空主宰",
+      description: `在虚空阶段击杀 ${1 + Math.floor(tier / 2)} 个首领`,
+      target: 1 + Math.floor(tier / 2),
+      progress: 0,
+      completed: false,
+      rewardScore: 900 + tier * 100,
+      phase: "void",
+    });
+    tasks.push({
+      title: "虚空不灭",
+      description: "在虚空阶段核心耐久保持 20% 以上完成一波",
+      target: 1,
+      progress: 0,
+      completed: false,
+      rewardScore: 650 + tier * 70,
+      phase: "void",
+    });
+  }
+
+  if (phase === "genesis") {
+    tasks.push({
+      title: "创世先驱",
+      description: `在创世阶段存活 ${3 + tier} 波`,
+      target: 3 + tier,
+      progress: 0,
+      completed: false,
+      rewardScore: 1000 + tier * 150,
+      phase: "genesis",
+    });
+    tasks.push({
+      title: "创世终结",
+      description: `在创世阶段击杀 ${1 + Math.floor(tier / 2)} 个首领`,
+      target: 1 + Math.floor(tier / 2),
+      progress: 0,
+      completed: false,
+      rewardScore: 1200 + tier * 120,
+      phase: "genesis",
+    });
+    tasks.push({
+      title: "最终防线",
+      description: "在创世阶段核心耐久保持 10% 以上完成一波",
+      target: 1,
+      progress: 0,
+      completed: false,
+      rewardScore: 800 + tier * 80,
+      phase: "genesis",
+    });
+  }
+
   return tasks.map((t) => ({ ...t, id: uid("fp-ts") }));
 }
 
@@ -297,6 +415,15 @@ export function updateFlagshipPeakTasks(state: GameState, ds: DefenseState): voi
     }
     if (task.title === "地狱行者" && fp.phase === "hell") {
       task.progress = Math.max(task.progress, fp.wave - FLAGSHIP_PEAK_OVERCLOCK_END);
+    }
+    if (task.title === "深渊漫步" && fp.phase === "abyss") {
+      task.progress = Math.max(task.progress, fp.wave - FLAGSHIP_PEAK_TOTAL_WAVES);
+    }
+    if (task.title === "虚空行者" && fp.phase === "void") {
+      task.progress = Math.max(task.progress, fp.wave - FLAGSHIP_PEAK_ABYSS_END);
+    }
+    if (task.title === "创世先驱" && fp.phase === "genesis") {
+      task.progress = Math.max(task.progress, fp.wave - FLAGSHIP_PEAK_VOID_END);
     }
 
     if (task.progress >= task.target) {
@@ -368,6 +495,27 @@ export function recordFlagshipPeakKill(state: GameState, enemyIsElite: boolean):
         fp.score += task.rewardScore;
       }
     }
+    if (task.title === "深渊领主" && enemyIsElite && fp.phase === "abyss") {
+      task.progress += 1;
+      if (task.progress >= task.target) {
+        task.completed = true;
+        fp.score += task.rewardScore;
+      }
+    }
+    if (task.title === "虚空主宰" && enemyIsElite && fp.phase === "void") {
+      task.progress += 1;
+      if (task.progress >= task.target) {
+        task.completed = true;
+        fp.score += task.rewardScore;
+      }
+    }
+    if (task.title === "创世终结" && enemyIsElite && fp.phase === "genesis") {
+      task.progress += 1;
+      if (task.progress >= task.target) {
+        task.completed = true;
+        fp.score += task.rewardScore;
+      }
+    }
   }
 }
 
@@ -418,6 +566,15 @@ export function recordFlagshipPeakWaveCleared(state: GameState): void {
   if (fp.wave === FLAGSHIP_PEAK_OVERCLOCK_END + 1) {
     fp.tasks = generateFlagshipPeakTasks("hell", fp.wave);
   }
+  if (fp.wave === FLAGSHIP_PEAK_TOTAL_WAVES + 1) {
+    fp.tasks = generateFlagshipPeakTasks("abyss", fp.wave);
+  }
+  if (fp.wave === FLAGSHIP_PEAK_ABYSS_END + 1) {
+    fp.tasks = generateFlagshipPeakTasks("void", fp.wave);
+  }
+  if (fp.wave === FLAGSHIP_PEAK_VOID_END + 1) {
+    fp.tasks = generateFlagshipPeakTasks("genesis", fp.wave);
+  }
 
   // 每5波刷新固定挑战
   const nextChallengeWave = Math.floor((fp.wave - 1) / FLAGSHIP_PEAK_CHALLENGE_INTERVAL) * FLAGSHIP_PEAK_CHALLENGE_INTERVAL + 1;
@@ -453,11 +610,11 @@ export function applyFlagshipPeakEndRewards(
     return { score: 0, xp: 0, currency: 0, speedRank: "none", seasonRank: "bronze" };
   }
 
-  const waveBonus = fp.wave * 30;
-  const bossBonus = fp.bossKills * 100;
-  const comboBonus = fp.maxCombo * 20;
-  const perfectBonus = fp.perfectWaves * 200;
-  const victoryBonus = victory ? 500 : 0;
+  const waveBonus = fp.wave * 50;
+  const bossBonus = fp.bossKills * 150;
+  const comboBonus = fp.maxCombo * 30;
+  const perfectBonus = fp.perfectWaves * 300;
+  const victoryBonus = victory ? 1000 : 0;
 
   const speedMultiplier = getFlagshipPeakSpeedRankMultiplier(fp.speedRank);
 
@@ -588,6 +745,36 @@ export function getFlagshipPeakVisualConfig(phase: FlagshipPeakPhase): FlagshipP
         particleDensity: 1.5,
         screenShakeIntensity: 0.7,
       };
+    case "abyss":
+      return {
+        overlayColor: "#000000",
+        overlayOpacity: 0.55,
+        accentColor: "#1a1a1a",
+        borderGlow: "0 0 50px rgba(0, 0, 0, 0.8)",
+        hudTheme: "void",
+        particleDensity: 2.0,
+        screenShakeIntensity: 0.9,
+      };
+    case "void":
+      return {
+        overlayColor: "#e2e8f0",
+        overlayOpacity: 0.15,
+        accentColor: "#e2e8f0",
+        borderGlow: "0 0 35px rgba(226, 232, 240, 0.5)",
+        hudTheme: "bridge",
+        particleDensity: 1.2,
+        screenShakeIntensity: 0.5,
+      };
+    case "genesis":
+      return {
+        overlayColor: "#50c8ff",
+        overlayOpacity: 0.18,
+        accentColor: "#00ffcc",
+        borderGlow: "0 0 60px rgba(0, 255, 204, 0.7)",
+        hudTheme: "alert",
+        particleDensity: 2.5,
+        screenShakeIntensity: 1.0,
+      };
     case "victory":
       return {
         overlayColor: "#145028",
@@ -637,7 +824,10 @@ export function generateFlagshipPeakWaveConfig(
   let bossVariant: string | null = null;
   if (waveIndex === FLAGSHIP_PEAK_BOSS_WAVE_1) bossVariant = "overlord";
   if (waveIndex === FLAGSHIP_PEAK_BOSS_WAVE_2) bossVariant = "annihilator";
-  if (waveIndex === FLAGSHIP_PEAK_FINAL_BOSS_WAVE) bossVariant = "dreadnought";
+  if (waveIndex === FLAGSHIP_PEAK_BOSS_WAVE_3) bossVariant = "dreadnought";
+  if (waveIndex === FLAGSHIP_PEAK_BOSS_WAVE_4) bossVariant = "juggernaut";
+  if (waveIndex === FLAGSHIP_PEAK_BOSS_WAVE_FINAL) bossVariant = "devourer";
+  if (waveIndex === FLAGSHIP_PEAK_FINAL_BOSS_WAVE) bossVariant = "devourer";
 
   return {
     enemyCount: Math.floor(baseEnemyCount * phaseMul),
@@ -648,6 +838,6 @@ export function generateFlagshipPeakWaveConfig(
     healthMultiplier: 1 + waveIndex * 0.08 * phaseMul,
     damageMultiplier: 1 + waveIndex * 0.06 * phaseMul,
     spawnIntervalMultiplier: Math.max(0.3, 1 - waveIndex * 0.025 * phaseMul),
-    specialEventChance: phase === "hell" ? 0.3 : phase === "overclock" ? 0.15 : 0.05,
+    specialEventChance: phase === "genesis" ? 0.5 : phase === "void" ? 0.4 : phase === "abyss" ? 0.35 : phase === "hell" ? 0.3 : phase === "overclock" ? 0.15 : 0.05,
   };
 }

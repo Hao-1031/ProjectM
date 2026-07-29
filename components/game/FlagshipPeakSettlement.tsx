@@ -25,6 +25,8 @@ import {
   Lock,
   Sparkle,
   Circle,
+  EyeSlash,
+  Spade,
 } from "@phosphor-icons/react";
 import type {
   FlagshipPeakSettlement as FlagshipPeakSettlementType,
@@ -82,6 +84,33 @@ const PHASE_THEME: Record<string, {
     secondaryGlow: "rgba(192, 132, 252, 0.2)",
     vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.9) 100%)",
   },
+  abyss: {
+    bg: "from-[#020202] via-[#050505] to-[#000000]",
+    accent: "#333333",
+    glow: "rgba(51, 51, 51, 0.55)",
+    label: "深渊",
+    particleColor: "rgba(51,51,51,0.5)",
+    secondaryGlow: "rgba(85, 85, 85, 0.15)",
+    vignette: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.95) 100%)",
+  },
+  void: {
+    bg: "from-[#080810] via-[#101018] to-[#181820]",
+    accent: "#e2e8f0",
+    glow: "rgba(226, 232, 240, 0.45)",
+    label: "虚空",
+    particleColor: "rgba(226,232,240,0.5)",
+    secondaryGlow: "rgba(248, 250, 252, 0.15)",
+    vignette: "radial-gradient(ellipse at center, transparent 50%, rgba(16,16,24,0.85) 100%)",
+  },
+  genesis: {
+    bg: "from-[#020810] via-[#081020] to-[#000810]",
+    accent: "#00ffcc",
+    glow: "rgba(0, 255, 204, 0.6)",
+    label: "创世",
+    particleColor: "rgba(0,255,204,0.6)",
+    secondaryGlow: "rgba(0, 255, 204, 0.15)",
+    vignette: "radial-gradient(ellipse at center, transparent 45%, rgba(0,8,16,0.9) 100%)",
+  },
   victory: {
     bg: "from-[#040a04] via-[#081408] to-[#0a200a]",
     accent: "#22c55e",
@@ -110,6 +139,9 @@ const ACHIEVEMENT_ICONS: Record<string, typeof Trophy> = {
   crown: Crown,
   star: Star,
   hexagon: Hexagon,
+  eyeSlash: EyeSlash,
+  circle: Circle,
+  sparkle: Spade,
 };
 
 const ACHIEVEMENT_RARITY_COLORS: Record<string, string> = {
@@ -594,8 +626,8 @@ export default function FlagshipPeakSettlement({
                       className="mt-3 text-sm leading-relaxed text-muted"
                     >
                       {settlement.victory
-                        ? `旗舰巅峰全部25波征服，抵达${theme.label}`
-                        : `抵达${theme.label}阶段，${settlement.reachedPhase === "hell" ? "于地狱终局陨落" : "重新集结再战"}`}
+                        ? `旗舰巅峰全部50波征服，抵达${theme.label}`
+                        : `抵达${theme.label}阶段，${settlement.reachedPhase === "genesis" ? "于创世之巅陨落" : settlement.reachedPhase === "void" ? "于虚空之中消逝" : settlement.reachedPhase === "abyss" ? "被深渊吞噬" : settlement.reachedPhase === "hell" ? "于地狱终局陨落" : "重新集结再战"}`}
                     </motion.p>
                   </div>
 
@@ -759,7 +791,7 @@ export default function FlagshipPeakSettlement({
                       <h2 className="font-display text-lg font-bold tracking-tight">隐藏成就</h2>
                       {settlement.unlockedAchievements.length > 0 && (
                         <span className="font-mono text-xs text-muted">
-                          {settlement.unlockedAchievements.length}/7
+                          {settlement.unlockedAchievements.length}/11
                         </span>
                       )}
                     </div>
@@ -903,8 +935,14 @@ export default function FlagshipPeakSettlement({
                                 <Shield size={16} weight="bold" />
                               ) : pr.phase === "overclock" ? (
                                 <Fire size={16} weight="bold" />
-                              ) : (
+                              ) : pr.phase === "hell" ? (
                                 <Skull size={16} weight="bold" />
+                              ) : pr.phase === "abyss" ? (
+                                <EyeSlash size={16} weight="bold" />
+                              ) : pr.phase === "void" ? (
+                                <Circle size={16} weight="bold" />
+                              ) : (
+                                <Sparkle size={16} weight="bold" />
                               )}
                             </div>
                             <div className="flex-1">

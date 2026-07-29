@@ -185,6 +185,7 @@ import {
   updateFlagshipPeakCoreHealth,
   applyFlagshipPeakEndRewards,
   FLAGSHIP_PEAK_TOTAL_WAVES,
+  FLAGSHIP_PEAK_MAX_TOTAL_WAVES,
   getFlagshipPeakPhase,
   getPhaseDifficultyMultiplier,
   generateFlagshipPeakWaveConfig,
@@ -498,7 +499,7 @@ export class GameEngine {
     }
 
     if (mode === "flagship-peak" && state.defenseState && state.flagshipPeakState) {
-      state.defenseState.totalWaves = FLAGSHIP_PEAK_TOTAL_WAVES;
+      state.defenseState.totalWaves = FLAGSHIP_PEAK_MAX_TOTAL_WAVES;
       state.defenseState.waves = this.generateFlagshipPeakWaves(state.defenseState);
       state.flagshipPeakState.coreHealth = state.defenseState.core.health;
       state.flagshipPeakState.coreMaxHealth = state.defenseState.core.maxHealth;
@@ -602,7 +603,7 @@ export class GameEngine {
 
   private generateFlagshipPeakWaves(ds: DefenseState): DefenseWave[] {
     const waves: DefenseWave[] = [];
-    for (let i = 0; i < FLAGSHIP_PEAK_TOTAL_WAVES; i++) {
+    for (let i = 0; i < FLAGSHIP_PEAK_MAX_TOTAL_WAVES; i++) {
       const waveNumber = i + 1;
       const cfg = generateFlagshipPeakWaveConfig(waveNumber);
       waves.push({
@@ -1190,6 +1191,15 @@ export class GameEngine {
     this.handleCollisions();
     this.updateCamera();
     this.updateWeather(dt);
+
+    // 旗舰巅峰阶段切换时更新地图主题色偏移
+    if (this.state.mode === "flagship-peak" && this.state.flagshipPeakState) {
+      const fp = this.state.flagshipPeakState;
+      const currentPhase = getFlagshipPeakPhase(fp.wave);
+      if (fp.mapThemePhase !== currentPhase) {
+        fp.mapThemePhase = currentPhase;
+      }
+    }
 
     if (isDeathmatch) {
       applyDeathmatchHazardDamage(this.state, this.state.player);

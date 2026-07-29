@@ -23,6 +23,12 @@ import {
   FLAGSHIP_PEAK_BOSS_WAVE_1,
   FLAGSHIP_PEAK_BOSS_WAVE_2,
   FLAGSHIP_PEAK_FINAL_BOSS_WAVE,
+  FLAGSHIP_PEAK_BOSS_WAVE_3,
+  FLAGSHIP_PEAK_BOSS_WAVE_4,
+  FLAGSHIP_PEAK_BOSS_WAVE_FINAL,
+  FLAGSHIP_PEAK_ABYSS_END,
+  FLAGSHIP_PEAK_VOID_END,
+  FLAGSHIP_PEAK_MAX_TOTAL_WAVES,
 } from "./flagship-peak";
 import {
   calculateFlagshipPeakRadar,
@@ -97,7 +103,7 @@ describe("flagship-peak", () => {
       const state = createFlagshipPeakState();
       expect(state.phase).toBe("standard");
       expect(state.wave).toBe(0);
-      expect(state.totalWaves).toBe(25);
+      expect(state.totalWaves).toBe(50);
       expect(state.score).toBe(0);
       expect(state.combos).toBe(0);
       expect(state.maxCombo).toBe(0);
@@ -138,17 +144,33 @@ describe("flagship-peak", () => {
       expect(getFlagshipPeakPhase(20)).toBe("overclock");
     });
 
-    it("returns hell for waves 21+", () => {
+    it("returns hell for waves 21-25", () => {
       expect(getFlagshipPeakPhase(21)).toBe("hell");
       expect(getFlagshipPeakPhase(25)).toBe("hell");
-      expect(getFlagshipPeakPhase(30)).toBe("hell");
+    });
+
+    it("returns abyss for waves 26-35", () => {
+      expect(getFlagshipPeakPhase(26)).toBe("abyss");
+      expect(getFlagshipPeakPhase(30)).toBe("abyss");
+      expect(getFlagshipPeakPhase(35)).toBe("abyss");
+    });
+
+    it("returns void for waves 36-45", () => {
+      expect(getFlagshipPeakPhase(36)).toBe("void");
+      expect(getFlagshipPeakPhase(40)).toBe("void");
+      expect(getFlagshipPeakPhase(45)).toBe("void");
+    });
+
+    it("returns genesis for waves 46+", () => {
+      expect(getFlagshipPeakPhase(46)).toBe("genesis");
+      expect(getFlagshipPeakPhase(50)).toBe("genesis");
     });
   });
 
   describe("getPhaseDisplayName", () => {
     it("returns Chinese names for all phases", () => {
-      const phases: FlagshipPeakPhase[] = ["standard", "overclock", "hell", "victory", "defeat"];
-      const expected = ["标准巡航", "超频增压", "地狱终局", "胜利", "失败"];
+      const phases: FlagshipPeakPhase[] = ["standard", "overclock", "hell", "abyss", "void", "genesis", "victory", "defeat"];
+      const expected = ["标准巡航", "超频增压", "地狱终局", "深渊", "虚空", "创世", "胜利", "失败"];
       phases.forEach((p, i) => {
         expect(getPhaseDisplayName(p)).toBe(expected[i]);
       });
@@ -160,6 +182,9 @@ describe("flagship-peak", () => {
       expect(getPhaseAccentColor("standard")).toBe("#6366f1");
       expect(getPhaseAccentColor("overclock")).toBe("#ef4444");
       expect(getPhaseAccentColor("hell")).toBe("#a855f7");
+      expect(getPhaseAccentColor("abyss")).toBe("#1a1a1a");
+      expect(getPhaseAccentColor("void")).toBe("#e2e8f0");
+      expect(getPhaseAccentColor("genesis")).toBe("#00ffcc");
       expect(getPhaseAccentColor("victory")).toBe("#22c55e");
       expect(getPhaseAccentColor("defeat")).toBe("#ef4444");
     });
@@ -170,6 +195,9 @@ describe("flagship-peak", () => {
       expect(getPhaseDifficultyMultiplier("standard")).toBe(1.0);
       expect(getPhaseDifficultyMultiplier("overclock")).toBe(1.5);
       expect(getPhaseDifficultyMultiplier("hell")).toBe(2.0);
+      expect(getPhaseDifficultyMultiplier("abyss")).toBe(3.0);
+      expect(getPhaseDifficultyMultiplier("void")).toBe(4.0);
+      expect(getPhaseDifficultyMultiplier("genesis")).toBe(5.0);
     });
   });
 
@@ -474,7 +502,22 @@ describe("flagship-peak", () => {
 
     it("generates final boss at wave 25", () => {
       const config = generateFlagshipPeakWaveConfig(25);
+      expect(config.bossVariant).toBe("devourer");
+    });
+
+    it("generates boss at wave 35 (abyss boss)", () => {
+      const config = generateFlagshipPeakWaveConfig(35);
       expect(config.bossVariant).toBe("dreadnought");
+    });
+
+    it("generates boss at wave 45 (void boss)", () => {
+      const config = generateFlagshipPeakWaveConfig(45);
+      expect(config.bossVariant).toBe("juggernaut");
+    });
+
+    it("generates final boss at wave 50 (genesis)", () => {
+      const config = generateFlagshipPeakWaveConfig(50);
+      expect(config.bossVariant).toBe("devourer");
     });
 
     it("increases difficulty with wave number", () => {
@@ -493,7 +536,7 @@ describe("flagship-peak", () => {
   });
 
   describe("constants", () => {
-    it("total waves is 25", () => {
+    it("total waves is 25 (legacy) / max total waves is 50", () => {
       expect(FLAGSHIP_PEAK_TOTAL_WAVES).toBe(25);
     });
 
@@ -521,7 +564,7 @@ function makeFPState(overrides: Partial<FlagshipPeakState> = {}): FlagshipPeakSt
   return {
     phase: "standard",
     wave: 0,
-    totalWaves: 25,
+    totalWaves: 50,
     challenges: [],
     tasks: [],
     score: 0,
@@ -540,30 +583,38 @@ function makeFPState(overrides: Partial<FlagshipPeakState> = {}): FlagshipPeakSt
     comboBreakerCount: 0,
     challengeStreak: 0,
     seasonCurrency: 0,
+    skillPoints: 0,
+    unlockedSkills: [],
+    weaponMods: [],
+    bossVariants: {},
+    forgeMaterials: { iron: 0, crystal: 0, voidEssence: 0, genesisCore: 0 },
+    coopMode: false,
+    mapThemePhase: "standard",
     ...overrides,
   };
 }
 
 describe("flagship-peak-achievements", () => {
   describe("成就定义", () => {
-    it("定义了7个成就", () => {
-      expect(FLAGSHIP_PEAK_ACHIEVEMENTS).toHaveLength(7);
+    it("定义了11个成就", () => {
+      expect(FLAGSHIP_PEAK_ACHIEVEMENTS).toHaveLength(11);
     });
 
-    it("包含5个普通成就", () => {
+    it("包含3个普通成就", () => {
       const common = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "common");
       expect(common).toHaveLength(3);
     });
 
-    it("包含3个稀有成就", () => {
+    it("包含6个稀有成就", () => {
       const rare = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "rare");
-      expect(rare).toHaveLength(3);
+      expect(rare).toHaveLength(6);
     });
 
-    it("包含1个传说成就", () => {
+    it("包含2个传说成就", () => {
       const legendary = FLAGSHIP_PEAK_ACHIEVEMENTS.filter((a) => a.rarity === "legendary");
-      expect(legendary).toHaveLength(1);
-      expect(legendary[0].id).toBe("void_lord");
+      expect(legendary).toHaveLength(2);
+      expect(legendary.map((a) => a.id)).toContain("void_lord");
+      expect(legendary.map((a) => a.id)).toContain("genesis_god");
     });
 
     it("每个成就都有标题和描述", () => {
@@ -576,13 +627,13 @@ describe("flagship-peak-achievements", () => {
   });
 
   describe("里程碑定义", () => {
-    it("定义了5个里程碑", () => {
-      expect(FLAGSHIP_PEAK_MILESTONES).toHaveLength(5);
+    it("定义了10个里程碑", () => {
+      expect(FLAGSHIP_PEAK_MILESTONES).toHaveLength(10);
     });
 
-    it("里程碑波次为5/10/15/20/25", () => {
+    it("里程碑波次为5/10/15/20/25/30/35/40/45/50", () => {
       const waves = FLAGSHIP_PEAK_MILESTONES.map((m) => m.wave);
-      expect(waves).toEqual([5, 10, 15, 20, 25]);
+      expect(waves).toEqual([5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
     });
 
     it("奖励递增", () => {
@@ -594,19 +645,22 @@ describe("flagship-peak-achievements", () => {
   });
 
   describe("阶段奖励定义", () => {
-    it("定义了3个阶段奖励", () => {
+    it("定义了6个阶段奖励", () => {
       const phases = Object.keys(FLAGSHIP_PEAK_PHASE_REWARDS);
-      expect(phases).toHaveLength(3);
+      expect(phases).toHaveLength(6);
       expect(phases).toContain("standard");
       expect(phases).toContain("overclock");
       expect(phases).toContain("hell");
+      expect(phases).toContain("abyss");
+      expect(phases).toContain("void");
+      expect(phases).toContain("genesis");
     });
 
-    it("hell阶段奖励最高", () => {
-      const hellReward = FLAGSHIP_PEAK_PHASE_REWARDS.hell;
+    it("genesis阶段奖励最高", () => {
+      const genesisReward = FLAGSHIP_PEAK_PHASE_REWARDS.genesis;
       const standardReward = FLAGSHIP_PEAK_PHASE_REWARDS.standard;
-      expect(hellReward.xpReward).toBeGreaterThan(standardReward.xpReward);
-      expect(hellReward.currencyReward).toBeGreaterThan(standardReward.currencyReward);
+      expect(genesisReward.xpReward).toBeGreaterThan(standardReward.xpReward);
+      expect(genesisReward.currencyReward).toBeGreaterThan(standardReward.currencyReward);
     });
   });
 
@@ -797,8 +851,14 @@ describe("flagship-peak-achievements", () => {
       expect(reached).toHaveLength(2);
     });
 
-    it("wave=25时达成全部里程碑", () => {
+    it("wave=25时达成前5个里程碑", () => {
       const milestones = checkFlagshipPeakMilestones(25);
+      const reached = milestones.filter((m) => m.reached);
+      expect(reached).toHaveLength(5);
+    });
+
+    it("wave=50时达成全部里程碑", () => {
+      const milestones = checkFlagshipPeakMilestones(50);
       expect(milestones.every((m) => m.reached)).toBe(true);
     });
   });
@@ -818,17 +878,24 @@ describe("flagship-peak-achievements", () => {
       expect(rewards.map((r) => r.phase)).toEqual(["standard", "overclock"]);
     });
 
-    it("hell阶段解锁全部奖励", () => {
+    it("hell阶段解锁标准+超频+地狱奖励", () => {
       const fp = makeFPState({ phase: "hell" });
       const rewards = checkFlagshipPeakPhaseRewards("hell", fp);
       expect(rewards).toHaveLength(3);
       expect(rewards.map((r) => r.phase)).toEqual(["standard", "overclock", "hell"]);
     });
 
-    it("victory阶段解锁全部奖励", () => {
+    it("genesis阶段解锁全部6个奖励", () => {
+      const fp = makeFPState({ phase: "genesis" });
+      const rewards = checkFlagshipPeakPhaseRewards("genesis", fp);
+      expect(rewards).toHaveLength(6);
+      expect(rewards.map((r) => r.phase)).toEqual(["standard", "overclock", "hell", "abyss", "void", "genesis"]);
+    });
+
+    it("victory阶段解锁全部6个奖励", () => {
       const fp = makeFPState({ phase: "victory" });
       const rewards = checkFlagshipPeakPhaseRewards("victory", fp);
-      expect(rewards).toHaveLength(3);
+      expect(rewards).toHaveLength(6);
     });
 
     it("defeat阶段不解锁任何奖励", () => {

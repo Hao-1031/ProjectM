@@ -14,10 +14,13 @@ import {
   FLAGSHIP_PEAK_STANDARD_END,
   FLAGSHIP_PEAK_OVERCLOCK_END,
   FLAGSHIP_PEAK_TOTAL_WAVES,
+  FLAGSHIP_PEAK_ABYSS_END,
+  FLAGSHIP_PEAK_VOID_END,
+  FLAGSHIP_PEAK_MAX_TOTAL_WAVES,
 } from "./flagship-peak";
 
 // ========================================================================
-// 隐藏成就定义 — 5核心 + 1稀有 + 1终极
+// 隐藏成就定义 — 6核心 + 3稀有 + 1终极 = 10个
 // ========================================================================
 
 export const FLAGSHIP_PEAK_ACHIEVEMENTS: FlagshipPeakAchievement[] = [
@@ -70,6 +73,30 @@ export const FLAGSHIP_PEAK_ACHIEVEMENTS: FlagshipPeakAchievement[] = [
     unlocked: false,
   },
   {
+    id: "abyss_walker",
+    title: "深渊漫步者",
+    description: "在深渊阶段存活至少5波",
+    rarity: "rare",
+    icon: "eyeSlash",
+    unlocked: false,
+  },
+  {
+    id: "void_master",
+    title: "虚空主宰",
+    description: "在虚空阶段击败首领且核心耐久保持50%以上",
+    rarity: "rare",
+    icon: "circle",
+    unlocked: false,
+  },
+  {
+    id: "genesis_pioneer",
+    title: "创世先驱",
+    description: "抵达创世阶段并存活至少3波",
+    rarity: "rare",
+    icon: "sparkle",
+    unlocked: false,
+  },
+  {
     id: "void_lord",
     title: "虚空之主",
     description: "同时达成「不朽传奇」+「三阶全S」+「挑战征服者」",
@@ -77,10 +104,18 @@ export const FLAGSHIP_PEAK_ACHIEVEMENTS: FlagshipPeakAchievement[] = [
     icon: "hexagon",
     unlocked: false,
   },
+  {
+    id: "genesis_god",
+    title: "创世之神",
+    description: "同时达成「深渊漫步者」+「虚空主宰」+「创世先驱」+「不朽传奇」",
+    rarity: "legendary",
+    icon: "hexagon",
+    unlocked: false,
+  },
 ];
 
 // ========================================================================
-// 波次里程碑
+// 波次里程碑 — 10级
 // ========================================================================
 
 export const FLAGSHIP_PEAK_MILESTONES: FlagshipPeakMilestone[] = [
@@ -89,6 +124,11 @@ export const FLAGSHIP_PEAK_MILESTONES: FlagshipPeakMilestone[] = [
   { wave: 15, xpReward: 300, currencyReward: 60, label: "超频中段", reached: false },
   { wave: 20, xpReward: 500, currencyReward: 100, label: "超频增压完成", reached: false },
   { wave: 25, xpReward: 1000, currencyReward: 200, label: "地狱终局征服", reached: false },
+  { wave: 30, xpReward: 2000, currencyReward: 400, label: "深渊初探", reached: false },
+  { wave: 35, xpReward: 3500, currencyReward: 700, label: "深渊征服者", reached: false },
+  { wave: 40, xpReward: 5000, currencyReward: 1000, label: "虚空漫步", reached: false },
+  { wave: 45, xpReward: 8000, currencyReward: 1600, label: "虚空主宰", reached: false },
+  { wave: 50, xpReward: 15000, currencyReward: 3000, label: "创世终局", reached: false },
 ];
 
 // ========================================================================
@@ -118,6 +158,30 @@ export const FLAGSHIP_PEAK_PHASE_REWARDS: Record<string, FlagshipPeakPhaseReward
     currencyReward: 300,
     title: "地狱终局",
     description: "地狱终局阶段完成，获得「地狱行者」称号",
+    unlocked: false,
+  },
+  abyss: {
+    phase: "abyss",
+    xpReward: 3000,
+    currencyReward: 600,
+    title: "深渊曙光",
+    description: "深渊阶段完成，材料掉落率翻倍",
+    unlocked: false,
+  },
+  void: {
+    phase: "void",
+    xpReward: 6000,
+    currencyReward: 1200,
+    title: "虚空之主",
+    description: "虚空阶段完成，获得「虚空行者」称号",
+    unlocked: false,
+  },
+  genesis: {
+    phase: "genesis",
+    xpReward: 12000,
+    currencyReward: 2500,
+    title: "创世终极",
+    description: "创世阶段完成，获得「创世先驱」称号",
     unlocked: false,
   },
 };
@@ -245,6 +309,19 @@ export function checkFlagshipPeakAchievements(
           isSOrAbove(hellRank);
         break;
       }
+      case "abyss_walker":
+        r.unlocked = fp.wave > FLAGSHIP_PEAK_TOTAL_WAVES + 5;
+        break;
+      case "void_master": {
+        r.unlocked =
+          fp.bossKills >= 4 &&
+          fp.wave >= FLAGSHIP_PEAK_ABYSS_END &&
+          fp.coreHealth / fp.coreMaxHealth >= 0.5;
+        break;
+      }
+      case "genesis_pioneer":
+        r.unlocked = fp.wave > FLAGSHIP_PEAK_VOID_END + 3;
+        break;
       case "void_lord": {
         const zeroDeath = results.find((x) => x.id === "zero_death_25");
         const tripleS = results.find((x) => x.id === "triple_s_rank");
@@ -253,6 +330,18 @@ export function checkFlagshipPeakAchievements(
           (zeroDeath?.unlocked ?? false) &&
           (tripleS?.unlocked ?? false) &&
           (allChallenges?.unlocked ?? false);
+        break;
+      }
+      case "genesis_god": {
+        const abyssWalker = results.find((x) => x.id === "abyss_walker");
+        const voidMaster = results.find((x) => x.id === "void_master");
+        const genesisPioneer = results.find((x) => x.id === "genesis_pioneer");
+        const zeroDeath = results.find((x) => x.id === "zero_death_25");
+        r.unlocked =
+          (abyssWalker?.unlocked ?? false) &&
+          (voidMaster?.unlocked ?? false) &&
+          (genesisPioneer?.unlocked ?? false) &&
+          (zeroDeath?.unlocked ?? false);
         break;
       }
     }
@@ -282,12 +371,15 @@ export function checkFlagshipPeakPhaseRewards(
   reachedPhase: FlagshipPeakPhase,
   fp: FlagshipPeakState
 ): FlagshipPeakPhaseReward[] {
-  const phases: FlagshipPeakPhase[] = ["standard", "overclock", "hell"];
+  const phases: FlagshipPeakPhase[] = ["standard", "overclock", "hell", "abyss", "void", "genesis"];
   const phaseOrder: Record<string, number> = {
     standard: 0,
     overclock: 1,
     hell: 2,
-    victory: 3,
+    abyss: 3,
+    void: 4,
+    genesis: 5,
+    victory: 6,
     defeat: -1,
   };
 
