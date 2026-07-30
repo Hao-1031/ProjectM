@@ -3,7 +3,7 @@
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 31 页面米白色中国航天风重设计；品牌名「多重宇宙 (Multiverse)」；米白色 (#F5F2ED) 底色 + 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色；版本代号「梦想家」(DR-DREAMER)；设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）
+> 当前版本特性：全站 31 页面米白色中国航天风重设计；品牌名「多重宇宙 (Multiverse)」；米白色 (#F5F2ED) 底色 + 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色；版本代号「梦想家」(DR-DREAMER)；设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
 
 ---
 
@@ -1317,6 +1317,126 @@ Roguelike 模式每次升级时二选一：
 
 ---
 
+### 16.18 智能敌方 AI 系统（创世版升级）
+
+敌方 AI 从战斗策略深度、群体协作智能、学习与适应性三个维度全面重构，实现更加智能和聪明的敌方行为。
+
+#### 能力门控系统 (ability-gating.ts)
+
+波次 + 敌人类型双重解锁机制，确保难度曲线平滑递增：
+
+| 波次区间 | 阶段名 | 解锁能力 |
+|----------|--------|----------|
+| 1-10 | 标准 | 基础 AI（追逐/保持距离/侧翼/冲锋/环绕） |
+| 11-20 | 超频 | + 预判瞄准（精英/Boss）、角色分工、集火指令、编队协同 |
+| 21-25 | 地狱 | + 弹幕躲避（精英/Boss）、掩护撤退（精英/Boss）、防守习惯识别 |
+| 26-35 | 深渊 | + 武器对策（精英/Boss）、英雄对策（精英/Boss） |
+| 36-50 | 创世 | + 全部能力、地形利用（Boss） |
+
+**门控函数**：`getAbilityGate(wave, enemy)` 返回 `AbilityGate` 对象，包含所有能力的布尔开关。
+
+**参数配置函数**：
+- `getPredictiveAimConfig(wave, enemy, aggression)` — 预判瞄准参数（精度/距离衰减/移速加权）
+- `getDodgeConfig(wave, enemy, aggression)` — 弹幕躲避参数（反应时间/躲避半径/成功率）
+- `getHeroCounterConfig(wave, enemy, player)` — 英雄对策参数（策略类型/触发阈值/冷却时间）
+
+#### 战斗策略深度 (tactics.ts)
+
+**新增 AI 行为类型**：
+| 行为 | 说明 |
+|------|------|
+| `predictive_aim` | 预判玩家移动轨迹，计算提前量瞄准偏移 |
+| `dodge` | 检测威胁弹体，计算躲避方向 |
+| `cover_ally` | 掩护受伤队友，吸引火力 |
+| `focus_fire` | 集火低血量玩家 |
+| `form_up` | 编队协同移动 |
+
+**行为选择逻辑** (`selectBehavior`)：
+1. 弹幕躲避优先级最高（威胁等级 > 0.6 时触发）
+2. 低血量（< 25%）行为：有坦克队友时保持距离，有障碍时寻找掩体，否则 `keep_distance`（限制撤退范围）
+3. 据点模式：以核心为目标的直冲逻辑
+4. Boss 专属：环绕轨道行为
+5. 武器对策：根据玩家武器类型调整（侧翼/冲锋）
+6. 防守习惯：避开玩家高频驻留区域
+
+**Steering 输出扩展**：
+- `aimOffsetX/aimOffsetY` — 预判瞄准偏移量，传递至 `fireEnemyProjectile` 计算弹道
+- 撤退距离限制 `clampRetreatDistance`：防止敌方大幅度逃跑
+
+#### 群体协作系统 (coordination.ts)
+
+| 能力 | 函数 | 说明 |
+|------|------|------|
+| 角色分工 | `classifyEnemyRole` / `applyRoleDivision` | 坦克在前抵挡、输出在后射击、支援居中治疗 |
+| 集火指令 | `applyFocusFire` | 当玩家血量 < 35% 且有 3+ 队友时，集中攻击该玩家 |
+| 掩护撤退 | `applyCoverRetreat` | 受伤队友撤退时，坦克型敌人上前掩护 |
+| 编队协同 | `applyFormation` | 以编队中心为基准，保持阵型移动 |
+
+**协作上下文** (`CoordinationContext`)：
+- `focusTargetId` — 集火目标 ID
+- `needsCoverRetreat` — 是否需要掩护撤退
+- `formationCenter` — 编队中心坐标
+- `enemyRoles` — 每个敌人的角色分类
+
+#### 学习与适应系统 (learning.ts)
+
+**防守习惯识别**：
+- 热力图 (`heatmap`)：按 80×80 像素网格记录玩家高频驻留区域
+- 热区衰减 (`decayHeatmap`)：每秒衰减 0.5%，防止热区永久固化
+- 避开热区 (`getAvoidHotZoneDirection`)：计算避开玩家常驻区域的进攻方向
+
+**英雄对策**：
+- 英雄检测 (`updateHeroDetection`)：根据武器类型、技能使用频率、移动模式检测玩家英雄
+- 对策策略 (`applyHeroCounterBehavior`)：
+  - 近战英雄 → `keep_distance`（保持距离）
+  - 远程英雄 → `charge`（冲锋贴脸）
+  - 坦克英雄 → `flank`（侧翼攻击）
+
+**波次递增难度**：
+- 每波增加 0.012 攻击性加成（`waveDifficultyBonus`）
+- 每 5 波提升协作加成 0.3（`coordinationBonus`）
+
+#### Boss 状态机增强 (boss-state.ts)
+
+新增行为节点：
+| 节点 | 权重 | 触发条件 |
+|------|------|----------|
+| `predictive_aim` | 55 | Phase ≥ 2，有视线，距离 > 200px |
+| `cover_ally` | 45 | Phase ≥ 2，有队友血量 < 30%，距离 < 350px |
+| `focus_fire` | 50 | 玩家血量 < 35%，队友 ≥ 3 |
+
+#### 引擎集成 (engine.ts)
+
+- `learningMemory` 成员变量：全局唯一学习记忆实例
+- `buildAIContext` 扩展：传递 `wave`、`playerProjectiles`、`learningMemory`
+- 每帧更新学习记忆：`updateLearningMemory(memory, player, mapWidth, mapHeight, wave, dt, gate)`
+- 攻击逻辑修改：`fireEnemyProjectile(enemy, steering.aimOffsetX, steering.aimOffsetY)` 应用预判瞄准偏移
+
+#### 改动文件清单
+
+| 文件 | 改动类型 | 行数 |
+|------|----------|------|
+| `lib/game/ai/types.ts` | 修改 | 扩展 AIBehavior、SteeringOutput、AIContext，新增 AbilityGate/LearningMemory 等类型 |
+| `lib/game/ai/ability-gating.ts` | 新增 | 能力门控系统（波次 + 敌人类型双重解锁） |
+| `lib/game/ai/coordination.ts` | 新增 | 群体协作系统（角色分工/集火/掩护/编队） |
+| `lib/game/ai/learning.ts` | 新增 | 学习适应系统（热力图/英雄检测/波次递增） |
+| `lib/game/ai/tactics.ts` | 修改 | 重写 selectBehavior，新增预判瞄准/躲避/武器对策逻辑 |
+| `lib/game/ai/boss-state.ts` | 修改 | Boss 状态机新增 predictive_aim/cover_ally/focus_fire 节点 |
+| `lib/game/engine.ts` | 修改 | 集成学习记忆、传递预判瞄准偏移 |
+| `lib/game/ai/index.ts` | 修改 | 导出新模块 |
+| `lib/game/ai/integration.test.ts` | 修改 | 50 个 AI 升级测试（能力门控/协作/学习/Boss） |
+| `lib/game/ai.test.ts` | 修改 | 更新行为选择测试适配新签名 |
+
+#### 测试覆盖
+
+- 能力门控测试：波次解锁逻辑、精英/Boss 权限差异、全部能力最高波次解锁
+- 群体协作测试：角色分类、集火、掩护撤退、编队协同
+- 学习适应测试：热力图记录与热区计算、英雄检测、波次递增
+- Boss 预判瞄准：Boss phase 2 以上启用预判、偏移量合理性
+- 回归测试：旧行为选择测试适配新 API（30 测试全部通过）
+
+---
+
 ## 17. 监控与日志
 
 ### 17.1 游戏内事件监测面板
@@ -1671,4 +1791,4 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面米白色中国航天风重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统与英雄技能增强均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*
+*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面米白色中国航天风重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*

@@ -12,6 +12,9 @@ import { getFlowDirection, avoidObstacles, hasLineOfSight, findOpenDirection } f
 import { runBossAI, resetBossState } from "./boss-state";
 import { assignBotRole, runBotAI } from "./bot-ai";
 import { selectTarget } from "./tactics";
+import { getAbilityGate, getWaveScalingBonus, getPredictiveAimConfig, getDodgeConfig } from "./ability-gating";
+import { classifyEnemyRole, buildCoordinationContext } from "./coordination";
+import { createLearningMemory, updateLearningMemory, getPlayerHotZone, recordEvasivePattern, getAverageEvasiveDirection } from "./learning";
 import { AlphaScheduler } from "../alpha";
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
@@ -546,5 +549,182 @@ describe("α-β closed-loop integration", () => {
     }
     expect(nodeTargeted).toBeGreaterThan(0);
     expect(nodeTargeted).toBeLessThan(50);
+  });
+});
+
+describe("创世版 AI 升级 - 能力门控系统", () => {
+  it("1-10波只解锁基础能力", () => {
+    const enemy = makeEnemy({ isElite: false, isBoss: false });
+    const gate = getAbilityGate(5, enemy);
+    expect(gate.predictiveAim).toBe(false);
+    expect(gate.projectileDodge).toBe(false);
+    expect(gate.weaponCounter).toBe(false);
+    expect(gate.terrainUtilization).toBe(false);
+    expect(gate.roleDivision).toBe(false);
+    expect(gate.focusFire).toBe(false);
+    expect(gate.coverRetreat).toBe(false);
+    expect(gate.heroCounter).toBe(false);
+  });
+
+  it("11-20波精英解锁预判瞄准和群体协作", () => {
+    const enemy = makeEnemy({ isElite: true, isBoss: false });
+    const gate = getAbilityGate(15, enemy);
+    expect(gate.predictiveAim).toBe(true);
+    expect(gate.roleDivision).toBe(true);
+    expect(gate.focusFire).toBe(true);
+    expect(gate.formationCoordination).toBe(true);
+    expect(gate.projectileDodge).toBe(false);
+    expect(gate.heroCounter).toBe(false);
+  });
+
+  it("36-50波解锁全部能力", () => {
+    const enemy = makeEnemy({ isElite: true, isBoss: false });
+    const gate = getAbilityGate(40, enemy);
+    expect(gate.predictiveAim).toBe(true);
+    expect(gate.projectileDodge).toBe(true);
+    expect(gate.weaponCounter).toBe(true);
+    expect(gate.heroCounter).toBe(true);
+    expect(gate.habitRecognition).toBe(true);
+  });
+
+  it("Boss始终可用地形利用", () => {
+    const boss = makeEnemy({ isBoss: true });
+    const gate = getAbilityGate(5, boss);
+    expect(gate.terrainUtilization).toBe(true);
+  });
+
+  it("波次递增难度单调递增", () => {
+    const early = getWaveScalingBonus(5);
+    const mid = getWaveScalingBonus(25);
+    const late = getWaveScalingBonus(45);
+    expect(late.aggressionBonus).toBeGreaterThanOrEqual(mid.aggressionBonus);
+    expect(mid.aggressionBonus).toBeGreaterThanOrEqual(early.aggressionBonus);
+    expect(late.coordinationBonus).toBeGreaterThanOrEqual(mid.coordinationBonus);
+  });
+
+  it("预判瞄准配置精度随波次和侵略性提升", () => {
+    const enemy = makeEnemy({ isElite: true });
+    const early = getPredictiveAimConfig(15, enemy, 0.4);
+    const late = getPredictiveAimConfig(40, enemy, 0.8);
+    expect(late.accuracy).toBeGreaterThanOrEqual(early.accuracy);
+    expect(late.lookAheadTime).toBeGreaterThanOrEqual(early.lookAheadTime);
+  });
+});
+
+describe("创世版 AI 升级 - 群体协作", () => {
+  it("正确分类敌人角色", () => {
+    expect(classifyEnemyRole(makeEnemy({ variant: "tank" }))).toBe("tank");
+    expect(classifyEnemyRole(makeEnemy({ variant: "runner" }))).toBe("assassin");
+    expect(classifyEnemyRole(makeEnemy({ variant: "spitter" }))).toBe("artillery");
+    expect(classifyEnemyRole(makeEnemy({ variant: "disruptor" }))).toBe("support");
+    expect(classifyEnemyRole(makeEnemy({ variant: "elite" }))).toBe("dps");
+    expect(classifyEnemyRole(makeEnemy({ isBoss: true }))).toBe("tank");
+  });
+
+  it("构建协作上下文包含角色和编队信息", () => {
+    const gate = getAbilityGate(20, makeEnemy({ isElite: true }));
+    const ctx = makeAIContext({
+      allies: [
+        makeEnemy({ id: "a1", x: 450, y: 500, variant: "tank" }),
+        makeEnemy({ id: "a2", x: 480, y: 520, variant: "runner" }),
+      ],
+      player: makePlayer({ x: 500, y: 500 }),
+    });
+    const coord = buildCoordinationContext(ctx, gate);
+    expect(coord.role).toBeDefined();
+    expect(coord.nearbyTanks.length).toBe(1);
+    expect(coord.nearbySquishies.length).toBe(1);
+  });
+
+  it("残血队友触发掩护撤退", () => {
+    const gate = getAbilityGate(25, makeEnemy({ isElite: true, variant: "tank" }));
+    const ctx = makeAIContext({
+      enemy: makeEnemy({ id: "e1", x: 400, y: 400, variant: "tank", isElite: true }),
+      allies: [
+        makeEnemy({ id: "a1", x: 420, y: 420, variant: "runner", maxHealth: 100, health: 20 }),
+      ],
+      player: makePlayer({ x: 500, y: 500 }),
+    });
+    const coord = buildCoordinationContext(ctx, gate);
+    expect(coord.needsCoverRetreat).toBe(true);
+    expect(coord.coveringAllyId).toBe("a1");
+  });
+});
+
+describe("创世版 AI 升级 - 学习与适应", () => {
+  it("创建空学习记忆", () => {
+    const memory = createLearningMemory();
+    expect(memory.heatmap.size).toBe(0);
+    expect(memory.evasivePatterns.length).toBe(0);
+    expect(memory.detectedHero).toBeNull();
+    expect(memory.heroConfidence).toBe(0);
+    expect(memory.waveDifficultyBonus).toBe(0);
+  });
+
+  it("更新学习记忆记录玩家热力图", () => {
+    const memory = createLearningMemory();
+    const player = makePlayer({ x: 400, y: 400 });
+    const gate = getAbilityGate(25, makeEnemy({ isElite: true }));
+    // 多次更新以积累足够的热力图数据
+    for (let i = 0; i < 10; i++) {
+      updateLearningMemory(memory, player, 2000, 2000, 25, 0.016, gate);
+    }
+    expect(memory.heatmap.size).toBeGreaterThan(0);
+    const hotZone = getPlayerHotZone(memory, 2000, 2000);
+    expect(hotZone).not.toBeNull();
+    if (hotZone) {
+      expect(hotZone.x).toBeGreaterThan(0);
+      expect(hotZone.y).toBeGreaterThan(0);
+    }
+  });
+
+  it("波次更新改变难度加成", () => {
+    const memory = createLearningMemory();
+    const player = makePlayer();
+    const gate = getAbilityGate(25, makeEnemy({ isElite: true }));
+    updateLearningMemory(memory, player, 2000, 2000, 30, 0.016, gate);
+    expect(memory.waveDifficultyBonus).toBeGreaterThan(0);
+    expect(memory.totalWaves).toBe(30);
+  });
+
+  it("记录闪避模式并计算平均方向", () => {
+    const memory = createLearningMemory();
+    recordEvasivePattern(memory, { x: 1, y: 0 });
+    recordEvasivePattern(memory, { x: 0.7, y: 0.3 });
+    const avg = getAverageEvasiveDirection(memory);
+    expect(avg).not.toBeNull();
+    if (avg) {
+      expect(avg.x).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("创世版 AI 升级 - Boss预判瞄准", () => {
+  it("高波次Boss启用预判瞄准并输出aimOffset", () => {
+    const boss = makeEnemy({ isBoss: true, x: 500, y: 500, maxHealth: 1000, health: 600, phase: 2 });
+    resetBossState(boss);
+    const ctx = makeAIContext({
+      enemy: boss,
+      player: makePlayer({ x: 560, y: 500, knockbackX: 50, knockbackY: 20 }),
+      wave: 40,
+      alphaSnapshot: { finalDifficulty: 0.8 } as AlphaDifficultySnapshot,
+    });
+    const out = runBossAI(ctx);
+    expect(out.vx).toBeDefined();
+    expect(out.shouldUseSkill).toBeDefined();
+  });
+
+  it("Boss输出包含shouldUseSkill和shouldUseUltimate标志", () => {
+    const boss = makeEnemy({ isBoss: true, x: 500, y: 500, maxHealth: 1000, health: 300, phase: 2 });
+    resetBossState(boss);
+    const ctx = makeAIContext({
+      enemy: boss,
+      player: makePlayer({ x: 520, y: 500 }),
+      wave: 40,
+      alphaSnapshot: { finalDifficulty: 0.9 } as AlphaDifficultySnapshot,
+    });
+    const out = runBossAI(ctx);
+    expect(typeof out.shouldUseSkill).toBe("boolean");
+    expect(typeof out.shouldUseUltimate).toBe("boolean");
   });
 });

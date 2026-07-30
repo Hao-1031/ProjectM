@@ -20,6 +20,7 @@ import {
   assignBotRole,
   runBotAI,
   mapDifficultyToAIParams,
+  getAbilityGate,
 } from "./ai";
 import type { AIContext } from "./ai";
 
@@ -203,40 +204,42 @@ describe("pathfinding", () => {
 });
 
 describe("behavior selection", () => {
+  const gate = getAbilityGate(1, makeEnemy());
+
   it("selects chase for walker", () => {
     const ctx = makeContext();
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("chase");
+    expect(selectBehavior(ctx, params, gate)).toBe("chase");
   });
 
   it("selects strafe for spitter", () => {
     const ctx = makeContext({ enemy: makeEnemy({ variant: "spitter" }) });
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("strafe");
+    expect(selectBehavior(ctx, params, gate)).toBe("strafe");
   });
 
   it("selects charge for tank", () => {
     const ctx = makeContext({ enemy: makeEnemy({ variant: "tank" }) });
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("charge");
+    expect(selectBehavior(ctx, params, gate)).toBe("charge");
   });
 
   it("selects flank for runner", () => {
     const ctx = makeContext({ enemy: makeEnemy({ variant: "runner" }) });
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("flank");
+    expect(selectBehavior(ctx, params, gate)).toBe("flank");
   });
 
   it("selects orbit for boss", () => {
     const ctx = makeContext({ enemy: makeEnemy({ isBoss: true }) });
     const params = mapDifficultyToAIParams();
-    expect(selectBehavior(ctx, params)).toBe("orbit");
+    expect(selectBehavior(ctx, params, gate)).toBe("orbit");
   });
 
-  it("selects retreat when heavily damaged and low aggression", () => {
+  it("selects keep_distance when heavily damaged (restricted retreat)", () => {
     const ctx = makeContext({ enemy: makeEnemy({ health: 10, maxHealth: 100 }) });
     const params = mapDifficultyToAIParams({ finalDifficulty: 0.1 } as Parameters<typeof mapDifficultyToAIParams>[0]);
-    expect(selectBehavior(ctx, params)).toBe("retreat");
+    expect(selectBehavior(ctx, params, gate)).toBe("keep_distance");
   });
 });
 

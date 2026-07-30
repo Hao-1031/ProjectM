@@ -98,8 +98,8 @@ import { BOSSES, checkBossPhaseTransition, getBossAttackPattern, getRandomBossId
 import { AlphaScheduler, generateVariantStats } from "./alpha";
 import type { AlphaEnemyStats } from "./alpha/types";
 import { emit, GameEventType, GameEventCategory, GameEventLevel } from "./event-bus";
-import { runEnemyAI, runBossAI, resetBossState } from "./ai";
-import type { AIContext } from "./ai";
+import { runEnemyAI, runBossAI, resetBossState, createLearningMemory, updateLearningMemory, getAbilityGate } from "./ai";
+import type { AIContext, LearningMemory } from "./ai";
 import {
   createGameModeConfig,
   generateCampaignMissions,
@@ -309,6 +309,7 @@ export class GameEngine {
   private _pendingBreakPurchases: Record<string, number> = {};
   private difficultyPreset: DifficultyPreset | null = null;
   private difficultyConfig: DifficultyPresetConfig | null = null;
+  private learningMemory: LearningMemory = createLearningMemory();
 
   constructor(
     callbacks: GameCallbacks = {},
@@ -2269,7 +2270,7 @@ export class GameEngine {
       if ((enemy.variant === "spitter" || enemy.isElite || enemy.isBoss) && typeof enemy.attackCooldown === "number" && enemy.attackCooldown >= 0) {
         enemy.attackTimer -= dt;
         if (steering.shouldAttack && enemy.attackTimer <= 0) {
-          this.fireEnemyProjectile(enemy);
+          this.fireEnemyProjectile(enemy, steering.aimOffsetX, steering.aimOffsetY);
           enemy.attackTimer = enemy.attackCooldown;
         }
       }
@@ -2277,11 +2278,11 @@ export class GameEngine {
       // Boss 技能/终极技（由 β Boss 状态机触发）
       if (enemy.isBoss) {
         if (steering.shouldUseSkill) {
-          this.fireEnemyProjectile(enemy);
+          this.fireEnemyProjectile(enemy, steering.aimOffsetX, steering.aimOffsetY);
           enemy.attackTimer = enemy.attackCooldown;
         }
         if (steering.shouldUseUltimate && enemy.phase >= 2) {
-          this.fireEnemyProjectile(enemy);
+          this.fireEnemyProjectile(enemy, steering.aimOffsetX, steering.aimOffsetY);
           enemy.attackTimer = enemy.attackCooldown * 1.5;
         }
       }
@@ -2308,6 +2309,19 @@ export class GameEngine {
     const core = ds?.core;
     const nodes = ds?.nodes;
 
+    // 更新学习记忆
+    const wave = this.state.wave;
+    const gate = getAbilityGate(wave, enemy);
+    updateLearningMemory(
+      this.learningMemory,
+      this.state.player,
+      this.state.map.width,
+      this.state.map.height,
+      wave,
+      dt,
+      gate
+    );
+
     return {
       enemy,
       player: this.state.player,
@@ -2323,13 +2337,24 @@ export class GameEngine {
       nodes,
       alphaSnapshot: this.alphaPlanRef?.snapshot,
       rng: this.rng,
+      wave,
+      playerProjectiles: this.state.projectiles,
+      learningMemory: this.learningMemory,
     };
   }
 
-  private fireEnemyProjectile(enemy: Enemy) {
+  private fireEnemyProjectile(enemy: Enemy, aimOffsetX?: number, aimOffsetY?: number) {
     const player = this.state.player;
     const pattern = getBossAttackPattern(enemy);
-    const baseAngle = angleBetween(enemy, player);
+    let baseAngle = angleBetween(enemy, player);
+
+    // 预判瞄准偏移：调整弹道方向
+    if (aimOffsetX !== undefined && aimOffsetY !== undefined && (aimOffsetX !== 0 || aimOffsetY !== 0)) {
+      const predictedX = player.x + (aimOffsetX ?? 0);
+      const predictedY = player.y + (aimOffsetY ?? 0);
+      baseAngle = Math.atan2(predictedY - enemy.y, predictedX - enemy.x);
+    }
+
     const speed = enemy.isBoss ? 320 : 240;
     const count = pattern.projectileCount;
 
