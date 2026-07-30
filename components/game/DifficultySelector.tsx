@@ -12,6 +12,9 @@ import {
   Drop,
   Star,
   ArrowRight,
+  Fire,
+  Eye,
+  Circle,
 } from "@phosphor-icons/react";
 import type { DifficultyPreset, DifficultyPresetConfig } from "@/lib/game/types";
 import { DIFFICULTY_PRESETS } from "@/lib/game/types";
@@ -36,6 +39,17 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
   const transition = reducedMotion
     ? { duration: 0.01 }
     : { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
+
+  const DIFFICULTY_ICONS: Record<DifficultyPreset, typeof Shield> = {
+    easy: Shield,
+    normal: Circle,
+    hard: Fire,
+    hell: Skull,
+    abyss: Eye,
+    void: Lightning,
+  };
+
+  const DIFFICULTY_ORDER: DifficultyPreset[] = ["easy", "normal", "hard", "hell", "abyss", "void"];
 
   return (
     <AnimatePresence mode="wait">
@@ -82,10 +96,11 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {(["easy", "hell"] as DifficultyPreset[]).map((preset, idx) => {
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {DIFFICULTY_ORDER.map((preset, idx) => {
                     const config = DIFFICULTY_PRESETS[preset];
-                    const isHell = preset === "hell";
+                    const PresetIcon = DIFFICULTY_ICONS[preset];
+                    const isExtreme = preset === "hell" || preset === "abyss" || preset === "void";
 
                     return (
                       <motion.button
@@ -97,15 +112,17 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                         transition={{ ...transition, delay: reducedMotion ? 0 : 0.1 + idx * 0.08 }}
                         className="group relative flex flex-col items-start gap-4 rounded-2xl border p-5 text-left transition-all hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-panel active:scale-[0.98]"
                         style={{
-                          borderColor: isHell ? "var(--caution)30" : "var(--success)30",
-                          backgroundColor: isHell ? "var(--caution)08" : "var(--success)06",
+                          borderColor: isExtreme ? "var(--danger)30" : preset === "hard" ? "var(--warning)30" : "var(--success)30",
+                          backgroundColor: isExtreme ? "var(--danger)08" : preset === "hard" ? "var(--warning)06" : "var(--success)06",
                         }}
                       >
                         <div className="absolute inset-0 rounded-2xl opacity-0 transition-opacity group-hover:opacity-100"
                           style={{
-                            background: isHell
-                              ? "radial-gradient(circle at 50% -20%, var(--caution)15, transparent 70%)"
-                              : "radial-gradient(circle at 50% -20%, var(--success)10, transparent 70%)",
+                            background: isExtreme
+                              ? "radial-gradient(circle at 50% -20%, var(--danger)15, transparent 70%)"
+                              : preset === "hard"
+                                ? "radial-gradient(circle at 50% -20%, var(--warning)10, transparent 70%)"
+                                : "radial-gradient(circle at 50% -20%, var(--success)10, transparent 70%)",
                           }}
                         />
 
@@ -113,11 +130,11 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                           <span
                             className="inline-flex h-12 w-12 items-center justify-center rounded-xl"
                             style={{
-                              backgroundColor: isHell ? "var(--caution)15" : "var(--success)15",
+                              backgroundColor: isExtreme ? "var(--danger)15" : preset === "hard" ? "var(--warning)15" : "var(--success)15",
                               color: config.accentColor,
                             }}
                           >
-                            {isHell ? <Skull size={24} weight="bold" /> : <Shield size={24} weight="bold" />}
+                            <PresetIcon size={24} weight="bold" />
                           </span>
                           <div>
                             <h3 className="text-base font-bold">{config.label}</h3>
@@ -144,39 +161,39 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                             icon={Heart}
                             label="敌人血量"
                             value={`×${config.enemyHealthMultiplier}`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                           />
                           <StatRow
                             icon={Lightning}
                             label="敌人伤害"
                             value={`×${config.enemyDamageMultiplier}`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                           />
                           <StatRow
                             icon={Star}
                             label="经验倍率"
                             value={`×${config.xpMultiplier}`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                             positive
                           />
                           <StatRow
                             icon={Drop}
                             label="掉落倍率"
                             value={`×${config.dropRateMultiplier}`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                             positive
                           />
                           <StatRow
                             icon={Clock}
                             label="补给时间"
                             value={`${config.breakDuration}s`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                           />
                           <StatRow
                             icon={Gauge}
                             label="刷怪密度"
                             value={`×${(1 / config.spawnIntervalMultiplier).toFixed(1)}`}
-                            isHell={isHell}
+                            isExtreme={isExtreme}
                           />
                         </div>
 
@@ -186,11 +203,11 @@ export default function DifficultySelector({ open, onSelect, modeName = "据点�
                             className="w-full"
                             rightIcon={<ArrowRight size={14} weight="bold" />}
                             style={{
-                              background: isHell ? "var(--caution)" : "var(--success)",
+                              background: isExtreme ? "var(--danger)" : preset === "hard" ? "var(--warning)" : "var(--success)",
                               color: "#fff",
                             }}
                           >
-                            {isHell ? "突入地狱维度" : "开始标准巡航"}
+                            {preset === "easy" ? "开始标准巡航" : preset === "normal" ? "开始常规巡逻" : preset === "hard" ? "进入高压警戒" : preset === "hell" ? "突入地狱维度" : preset === "abyss" ? "降临深渊" : "湮灭虚空"}
                           </Button>
                         </div>
                       </motion.button>
@@ -215,19 +232,19 @@ function StatRow({
   icon: Icon,
   label,
   value,
-  isHell,
+  isExtreme,
   positive = false,
 }: {
   icon: typeof Shield;
   label: string;
   value: string;
-  isHell: boolean;
+  isExtreme: boolean;
   positive?: boolean;
 }) {
   const valueColor = positive
     ? "var(--success)"
-    : isHell
-    ? "var(--caution)"
+    : isExtreme
+    ? "var(--danger)"
     : "var(--success)";
 
   return (

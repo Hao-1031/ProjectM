@@ -3,53 +3,104 @@
 @tailwind utilities;
 
 :root {
-  /* ── 涅槃 · 亮色现代游戏平台 ── */
-  /* Warm off-white base + Modern Blue primary + Game Orange accent */
+  /* ═══════════════════════════════════════════
+     飞升 · 深化亮色现代游戏平台
+     DESIGN_VARIANCE=9  MOTION=6  DENSITY=5
+     ═══════════════════════════════════════════ */
 
-  --background: #F8F7F4;
-  --foreground: #18181B;
+  /* ── 基础色板 ── */
+  --background: #FAF9F6;
+  --foreground: #0D0D10;
 
-  --primary: #2563EB;
+  /* ── 主色系（蓝） ── */
+  --primary: #1A56DB;
+  --primary-hover: #1E40AF;
+  --primary-active: #1E3A8A;
   --primary-muted: #3B82F6;
   --primary-subtle: #EFF6FF;
+  --primary-surface: #DBEAFE;
 
-  --accent: #F97316;
-  --accent-muted: #FB923C;
+  /* ── 强调色系（橙） ── */
+  --accent: #EA580C;
+  --accent-hover: #C2410C;
+  --accent-active: #9A3412;
+  --accent-muted: #F97316;
   --accent-subtle: #FFF7ED;
+  --accent-surface: #FFEDD5;
 
-  --secondary: #6B7280;
-  --secondary-muted: #9CA3AF;
-  --secondary-subtle: #F9FAFB;
+  /* ── 中性色系 ── */
+  --secondary: #5B6372;
+  --secondary-muted: #787680;
+  --secondary-subtle: #F3F4F6;
 
   --panel: #FFFFFF;
-  --panel-raised: #F5F4F0;
-  --border: #E5E3DF;
+  --panel-raised: #F2F1EC;
+  --panel-subtle: #F8F7F3;
+  --border: #E2E0DA;
+  --border-strong: #C8C5BE;
+  --border-subtle: #EEEDE8;
 
-  --success: #10B981;
-  --danger: #EF4444;
-  --warning: #F59E0B;
-  --muted: #9CA3AF;
+  /* ── 语义色 ── */
+  --success: #059669;
+  --success-subtle: #ECFDF5;
+  --danger: #DC2626;
+  --danger-subtle: #FEF2F2;
+  --warning: #D97706;
+  --warning-subtle: #FFFBEB;
+  --info: #0891B2;
+  --info-subtle: #ECFEFF;
 
-  --neutral-50: #FAFAF9;
-  --neutral-100: #F5F4F0;
-  --neutral-200: #E5E3DF;
-  --neutral-300: #D1CFC9;
-  --neutral-400: #A8A6A0;
+  --muted: #787680;
+
+  /* ── 中性色级联 ── */
+  --neutral-50: #FAFAF8;
+  --neutral-100: #F2F1EC;
+  --neutral-200: #E2E0DA;
+  --neutral-300: #C8C5BE;
+  --neutral-400: #A09C94;
   --neutral-500: #787670;
   --neutral-600: #575551;
   --neutral-700: #3D3B38;
   --neutral-800: #242320;
   --neutral-900: #121110;
 
+  /* ── 排版 ── */
   --font-geist-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
   --font-geist-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+  --heading-track: -0.02em;
+  --body-track: -0.01em;
+  --mono-track: 0.02em;
 
-  /* ── 旧设计系统兼容别名（逐步迁移中） ── */
-  --void: var(--primary);
-  --orbital: var(--secondary);
-  --anchor: var(--accent);
-  --caution: var(--warning);
+  /* ── 间距 ── */
+  --space-section: 5rem;
+  --space-section-lg: 8rem;
+  --space-card: 1.5rem;
+  --space-card-dense: 1rem;
+
+  /* ── 圆角 ── */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* ── 阴影 ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-primary: 0 4px 16px rgba(26, 86, 219, 0.15);
+  --shadow-accent: 0 4px 16px rgba(234, 88, 12, 0.15);
+
+  /* ── 过渡 ── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* ═══════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════ */
 
 * {
   box-sizing: border-box;
@@ -68,10 +119,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  letter-spacing: var(--body-track);
+  line-height: 1.6;
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(26, 86, 219, 0.14);
   color: var(--foreground);
 }
 
@@ -85,13 +138,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--neutral-400);
 }
+
+/* ═══════════════════════════════════════════
+   Typography Utilities
+   ═══════════════════════════════════════════ */
 
 @layer utilities {
   .text-balance {
@@ -106,27 +163,54 @@ body {
   }
 
   .text-gradient-accent {
-    background: linear-gradient(135deg, var(--accent) 0%, #FB923C 50%, #F59E0B 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, #F97316 50%, #F59E0B 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .bg-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--neutral-100) 0%,
-      var(--neutral-50) 50%,
-      var(--neutral-100) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
+  .heading-display {
+    font-weight: 700;
+    letter-spacing: var(--heading-track);
+    line-height: 1.1;
+  }
+
+  .heading-section {
+    font-weight: 700;
+    letter-spacing: var(--heading-track);
+    line-height: 1.2;
+  }
+
+  .label-caps {
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
   }
 }
+
+/* ═══════════════════════════════════════════
+   Animations
+   ═══════════════════════════════════════════ */
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Reduced motion */
@@ -141,16 +225,22 @@ body {
   }
 }
 
-/* Focus ring */
+/* ═══════════════════════════════════════════
+   Focus Ring
+   ═══════════════════════════════════════════ */
+
 .focus-ring:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--background),
     0 0 0 4px var(--primary);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
-/* Version watermark */
+/* ═══════════════════════════════════════════
+   Version Watermark
+   ═══════════════════════════════════════════ */
+
 .version-watermark {
   position: fixed;
   bottom: 0.75rem;
@@ -159,61 +249,78 @@ body {
   font-family: var(--font-geist-mono);
   font-size: 10px;
   color: var(--muted);
-  opacity: 0.3;
+  opacity: 0.25;
   letter-spacing: 0.15em;
   pointer-events: none;
 }
 
-/* ── 游戏平台卡片 ── */
+/* ═══════════════════════════════════════════
+   Game Card System
+   ═══════════════════════════════════════════ */
+
 .game-card {
   border: 1px solid var(--border);
   background: var(--panel);
-  border-radius: 1rem;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-lg);
+  transition: all 0.25s var(--ease-spring);
 }
 
 .game-card:hover {
-  border-color: var(--neutral-300);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    0 1px 4px rgba(0, 0, 0, 0.03);
-  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .game-card:active {
   transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ── 游戏平台卡片（高亮） ── */
 .game-card-raised {
   border: 1px solid var(--border);
   background: var(--panel-raised);
-  border-radius: 1rem;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-lg);
+  transition: all 0.25s var(--ease-spring);
 }
 
 .game-card-raised:hover {
   border-color: var(--primary);
-  box-shadow:
-    0 4px 20px rgba(37, 99, 235, 0.08),
-    0 1px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
+.game-card-subtle {
+  border: 1px solid var(--border-subtle);
+  background: var(--panel-subtle);
+  border-radius: var(--radius-lg);
+  transition: all 0.25s var(--ease-spring);
+}
+
+.game-card-subtle:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-/* ── 游戏平台按钮 ── */
+/* ═══════════════════════════════════════════
+   Game Button System
+   ═══════════════════════════════════════════ */
+
 .game-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: all 0.15s ease;
+  letter-spacing: -0.01em;
+  transition: all 0.15s var(--ease-spring);
   cursor: pointer;
   border: 1px solid transparent;
   white-space: nowrap;
+  user-select: none;
 }
 
 .game-btn:hover {
@@ -221,7 +328,12 @@ body {
 }
 
 .game-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+}
+
+.game-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .game-btn-primary {
@@ -231,8 +343,12 @@ body {
 }
 
 .game-btn-primary:hover {
-  background: #1D4ED8;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-primary);
+}
+
+.game-btn-primary:active {
+  background: var(--primary-active);
 }
 
 .game-btn-accent {
@@ -242,8 +358,12 @@ body {
 }
 
 .game-btn-accent:hover {
-  background: #EA580C;
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-accent);
+}
+
+.game-btn-accent:active {
+  background: var(--accent-active);
 }
 
 .game-btn-ghost {
@@ -254,10 +374,31 @@ body {
 
 .game-btn-ghost:hover {
   background: var(--neutral-100);
-  border-color: var(--neutral-300);
+  border-color: var(--border-strong);
 }
 
-/* ── 游戏平台徽章 ── */
+.game-btn-ghost:active {
+  background: var(--neutral-200);
+}
+
+.game-btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.game-btn-outline:hover {
+  background: var(--primary-subtle);
+}
+
+.game-btn-outline:active {
+  background: var(--primary-surface);
+}
+
+/* ═══════════════════════════════════════════
+   Game Badge System
+   ═══════════════════════════════════════════ */
+
 .game-badge {
   display: inline-flex;
   align-items: center;
@@ -266,41 +407,78 @@ body {
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   border: 1px solid;
 }
 
 .game-badge-primary {
   background: var(--primary-subtle);
   color: var(--primary);
-  border-color: rgba(37, 99, 235, 0.2);
+  border-color: rgba(26, 86, 219, 0.15);
 }
 
 .game-badge-accent {
   background: var(--accent-subtle);
   color: var(--accent);
-  border-color: rgba(249, 115, 22, 0.2);
+  border-color: rgba(234, 88, 12, 0.15);
 }
 
 .game-badge-success {
-  background: #ECFDF5;
+  background: var(--success-subtle);
   color: var(--success);
-  border-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(5, 150, 105, 0.15);
 }
 
-/* ── 游戏平台分割线 ── */
+.game-badge-danger {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.15);
+}
+
+.game-badge-warning {
+  background: var(--warning-subtle);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.15);
+}
+
+.game-badge-info {
+  background: var(--info-subtle);
+  color: var(--info);
+  border-color: rgba(8, 145, 178, 0.15);
+}
+
+/* ═══════════════════════════════════════════
+   Game Divider
+   ═══════════════════════════════════════════ */
+
 .game-divider {
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent 0%,
     var(--border) 20%,
-    var(--neutral-300) 50%,
+    var(--border-strong) 50%,
     var(--border) 80%,
     transparent 100%
   );
 }
 
-/* ── 游戏平台骨架屏 ── */
+.game-divider-vertical {
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--border) 20%,
+    var(--border-strong) 50%,
+    var(--border) 80%,
+    transparent 100%
+  );
+}
+
+/* ═══════════════════════════════════════════
+   Game Skeleton
+   ═══════════════════════════════════════════ */
+
 .game-skeleton {
   background: linear-gradient(
     90deg,
@@ -310,10 +488,13 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
-/* ── 游戏平台空状态 ── */
+/* ═══════════════════════════════════════════
+   Game Empty State
+   ═══════════════════════════════════════════ */
+
 .game-empty {
   display: flex;
   flex-direction: column;
@@ -323,10 +504,14 @@ body {
   text-align: center;
   color: var(--muted);
   border: 1px dashed var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--panel-subtle);
 }
 
-/* ── 游戏平台错误状态 ── */
+/* ═══════════════════════════════════════════
+   Game Error State
+   ═══════════════════════════════════════════ */
+
 .game-error {
   display: flex;
   flex-direction: column;
@@ -334,20 +519,105 @@ body {
   justify-content: center;
   padding: 2rem;
   text-align: center;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 0.75rem;
-  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: var(--radius-md);
+  background: var(--danger-subtle);
 }
 
-/* ── 旧设计系统兼容类（涅槃迁移中，逐步替换为 game-* 类） ── */
+/* ═══════════════════════════════════════════
+   Game Input
+   ═══════════════════════════════════════════ */
+
+.game-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans);
+  font-size: 0.875rem;
+  letter-spacing: var(--body-track);
+  transition: all 0.15s var(--ease-spring);
+}
+
+.game-input::placeholder {
+  color: var(--muted);
+}
+
+.game-input:hover {
+  border-color: var(--border-strong);
+}
+
+.game-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
+}
+
+.game-input:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+  background: var(--panel-subtle);
+}
+
+/* ═══════════════════════════════════════════
+   Game Tooltip
+   ═══════════════════════════════════════════ */
+
+.game-tooltip {
+  background: var(--neutral-800);
+  color: var(--neutral-50);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: var(--body-track);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════
+   Layout Utilities
+   ═══════════════════════════════════════════ */
+
+.section-padding {
+  padding: var(--space-section) 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: var(--space-section-lg) 2rem;
+  }
+}
+
+.container-game {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-game {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-game {
+    padding: 0 2.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Legacy Compatibility (deprecated, remove in next major)
+   ═══════════════════════════════════════════ */
+
 .station-panel {
   border: 1px solid var(--border);
   background: var(--panel);
-  border-radius: 1rem;
-}
-
-.orbital-scan {
-  position: relative;
+  border-radius: var(--radius-lg);
 }
 
 .station-panel-header {
@@ -356,7 +626,7 @@ body {
 }
 
 .station-glow {
-  box-shadow: 0 0 40px rgba(37, 99, 235, 0.04), 0 0 80px rgba(37, 99, 235, 0.02);
+  box-shadow: 0 0 40px rgba(26, 86, 219, 0.04), 0 0 80px rgba(26, 86, 219, 0.02);
 }
 
 .orbital-ring {
@@ -365,22 +635,21 @@ body {
   opacity: 0.3;
 }
 
+.orbital-scan {
+  position: relative;
+}
+
 .noise-overlay {
   pointer-events: none;
   position: fixed;
   inset: 0;
   z-index: 0;
-  opacity: 0.015;
+  opacity: 0.012;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .status-pulse {
-  animation: statusPulse 2s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  animation: pulse-soft 2s ease-in-out infinite;
 }
 
 .data-stream {

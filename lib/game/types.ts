@@ -40,8 +40,14 @@ export type GameModeType =
   | "flagship-peak"
   | "pvp-arena";
 
-/** 对局开始前自主选择的难度预设 */
-export type DifficultyPreset = "easy" | "hell";
+/** 对局开始前自主选择的难度预设 -- 6阶段递进 */
+export type DifficultyPreset =
+  | "easy"      // 标准巡航
+  | "normal"    // 常规巡逻
+  | "hard"      // 高压警戒
+  | "hell"      // 地狱突入
+  | "abyss"     // 深渊降临
+  | "void";     // 虚空湮灭
 
 export interface DifficultyPresetConfig {
   preset: DifficultyPreset;
@@ -87,6 +93,36 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, DifficultyPresetConfig
     description: "降低敌人强度与密度，适合熟悉操作与地图探索。",
     accentColor: "var(--success, #22c55e)",
   },
+  normal: {
+    preset: "normal",
+    label: "常规巡逻",
+    threatLabel: "中",
+    difficultyMultiplier: 1.0,
+    enemyHealthMultiplier: 1.0,
+    enemyDamageMultiplier: 1.0,
+    xpMultiplier: 1.0,
+    dropRateMultiplier: 1.0,
+    spawnIntervalMultiplier: 1.0,
+    eliteChanceMultiplier: 1.0,
+    breakDuration: 20,
+    description: "标准难度配置，平衡的战斗体验。推荐熟练玩家。",
+    accentColor: "var(--primary, #1A56DB)",
+  },
+  hard: {
+    preset: "hard",
+    label: "高压警戒",
+    threatLabel: "高",
+    difficultyMultiplier: 1.5,
+    enemyHealthMultiplier: 1.4,
+    enemyDamageMultiplier: 1.3,
+    xpMultiplier: 1.5,
+    dropRateMultiplier: 1.4,
+    spawnIntervalMultiplier: 0.75,
+    eliteChanceMultiplier: 1.6,
+    breakDuration: 16,
+    description: "敌人强度显著提升，精英出现频率增加。需要良好装备与策略。",
+    accentColor: "var(--warning, #D97706)",
+  },
   hell: {
     preset: "hell",
     label: "地狱突入",
@@ -100,7 +136,37 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, DifficultyPresetConfig
     eliteChanceMultiplier: 2.5,
     breakDuration: 12,
     description: "敌人密度翻倍、伤害大幅提升、补给窗口缩短。仅推荐资深玩家。",
-    accentColor: "var(--danger, #ef4444)",
+    accentColor: "var(--danger, #DC2626)",
+  },
+  abyss: {
+    preset: "abyss",
+    label: "深渊降临",
+    threatLabel: "极限",
+    difficultyMultiplier: 3.0,
+    enemyHealthMultiplier: 2.8,
+    enemyDamageMultiplier: 2.5,
+    xpMultiplier: 3.5,
+    dropRateMultiplier: 3.0,
+    spawnIntervalMultiplier: 0.4,
+    eliteChanceMultiplier: 3.5,
+    breakDuration: 8,
+    description: "深渊维度全面入侵。敌人拥有随机词缀组合，补给极度稀缺。",
+    accentColor: "#7C3AED",
+  },
+  void: {
+    preset: "void",
+    label: "虚空湮灭",
+    threatLabel: "湮灭",
+    difficultyMultiplier: 4.5,
+    enemyHealthMultiplier: 4.0,
+    enemyDamageMultiplier: 3.5,
+    xpMultiplier: 5.0,
+    dropRateMultiplier: 4.0,
+    spawnIntervalMultiplier: 0.25,
+    eliteChanceMultiplier: 5.0,
+    breakDuration: 5,
+    description: "虚空彻底吞噬维度。所有敌人拥有双词缀，Boss会召唤精英增援。仅推荐顶尖玩家。",
+    accentColor: "#0D0D10",
   },
 };
 

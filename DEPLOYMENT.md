@@ -1,64 +1,72 @@
-# 多重宇宙「涅槃」完整生产部署手册
+# 多重宇宙「飞升」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 33 页面统一亮色现代游戏平台设计系统；品牌名「多重宇宙 (Multiverse)」；版本代号「涅槃」(DR-REBIRTH)；设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5；字体: Geist Sans + Geist Mono；全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）；注册/登录已启用，支持 GitHub OAuth；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；PvP 1v1 积分决斗（BO3/BO5 回合制 + 休闲匹配 + 天梯排位 + 自定义房间 + 战绩历史 + 4英雄 + 6武器 + 8地图）；混合连接网络架构（局域网自动发现 + 房间码直连 + 服务端中转）；单进程集成部署（Next.js + WebSocket 信令合并）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
+> 当前版本特性：全站 30 页面 App Router 架构 + 统一亮色现代游戏平台设计系统；品牌名「多重宇宙 (Multiverse)」；版本代号「飞升」(DR-ASCENSION)；设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=6, VISUAL_DENSITY=5；字体: Geist Sans + Geist Mono；全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）；注册/登录已启用，支持 GitHub OAuth；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；PvP 1v1 积分决斗（BO3/BO5 回合制 + 休闲匹配 + 天梯排位 + 自定义房间 + 战绩历史 + 4英雄 + 6武器 + 8地图）；混合连接网络架构（局域网自动发现 + 房间码直连 + 服务端中转）；单进程集成部署（Next.js + WebSocket 信令合并）；Roguelike冒险模式（6层关卡树 + 12种祝福/诅咒双选 + 6种强化奖励 + 独立页面）；好友系统（添加好友 + 在线状态 + 私聊 + 组队邀请 + 独立页面）；赛季通行证（50级免费/高级双轨奖励 + 皮肤/英雄/货币/表情/徽章）；6阶段难度系统（标准巡航→常规巡逻→高压警戒→地狱突入→深渊降临→虚空湮灭）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）；App Router 全量迁移（33页面→30页面 + layout.tsx + RSC/Server Actions/Streaming）；Webpack splitChunks 性能分包（游戏引擎/算法库/网络层/UI组件/动画/图标独立chunk）；全量 TypeScript 编译零错误
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为「涅槃」版本一次性全部上线，包含全站 33 个页面的统一亮色现代游戏平台设计系统及全部玩法系统。
+本次部署为「飞升」版本一次性全部上线，包含全站 30 页面 App Router 架构、统一亮色现代游戏平台设计系统、Roguelike冒险模式、好友系统、赛季通行证、6阶段难度系统及全部玩法系统。
 
-### 1.1 全站页面清单（33 页）
+### 1.1 全站页面清单（30 页，App Router）
 
 | 页面 | 路径 | 说明 |
 |------|------|------|
-| 品牌首页 | `pages/landing.tsx` | 史诗叙事品牌首页，非对称 Hero、Bento 网格、亮色游戏平台风格 |
-| 战术指挥中心 | `pages/index.tsx` | 全息模式选择器、维度跃迁状态指示器、全局公告系统，亮色游戏平台风格 |
-| 登录 | `pages/login.tsx` | GitHub OAuth + 邮箱验证码登录，舰桥面板风格 |
-| 游戏大厅 | `pages/game.tsx` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法入口 |
-| 基地 | `pages/base.tsx` | 玩家基地管理，舰桥风格面板 |
-| 模式选择 | `pages/modes.tsx` | 全部游戏模式概览 |
-| 剧情战役 | `pages/campaign.tsx` | 章节节点进度管理，全息地图风格 |
-| BossRush | `pages/boss-rush.tsx` | 首领连战模式，关卡与奖励 |
-| 旗舰巅峰 | `pages/flagship-peak.tsx` | 六阶段50波终极挑战，Boss变异+技能树+武器锻造+2人联机 |
-| 顶峰挑战 | `pages/peak-challenge.tsx` | 高难度挑战内容 |
-| 极限生存 | `pages/extreme-survival/index.tsx` | 极限生存模式入口 |
-| 赛季 | `pages/season.tsx` | 赛季进度、奖励领取与任务追踪 |
-| 英雄档案 | `pages/hero-archive.tsx` | 全部可玩英雄详细信息 |
-| 英雄收藏 | `pages/heroes.tsx` | 英雄、皮肤、表情、徽章收藏与解锁 |
-| 维度编年史 | `pages/chronicles.tsx` | 游戏历史与事件记录 |
-| 成就 | `pages/achievements.tsx` | 成就系统、进度与奖励 |
-| 排行榜 | `pages/leaderboard.tsx` | 本地最佳与全球排行榜 |
-| 公会 | `pages/guild.tsx` | 公会功能与信息展示 |
-| 世界地图 | `pages/world.tsx` | 维度网络节点连接图 |
-| 军械库 | `pages/armory.tsx` | 全部武器展示（含近战 5 把） |
-| 敌人图鉴 | `pages/enemies.tsx` | 全部敌人/Boss 信息 |
-| 算法实验室 | `pages/algorithms.tsx` | 三引擎算法仪表盘（α/β/基础设施） |
-| 关于 | `pages/about.tsx` | 项目信息与说明 |
-| 帮助 | `pages/help.tsx` | 游戏帮助与指南 |
-| 设置 | `pages/settings.tsx` | 用户个性化设置 |
-| 管理后台 | `pages/admin.tsx` | 公告管理，需 `ADMIN_KEY` |
-| 404 | `pages/404.tsx` | 自定义 404 页面 |
-| **PvP 大厅** | `pages/pvp/index.tsx` | 竞技入口：休闲匹配/自定义房间/天梯排位，战绩统计 |
-| **PvP 决斗** | `pages/pvp/duel.tsx` | 1v1 决斗画面：倒计时/英雄信息/回合结果 |
-| **PvP 匹配** | `pages/pvp/matchmaking.tsx` | 休闲匹配：英雄选择/武器选择/赛制选择 |
-| **PvP 自定义房间** | `pages/pvp/custom-room.tsx` | 自定义房间：创建/加入/设置/准备 |
-| **PvP 战绩** | `pages/pvp/history.tsx` | 战绩列表：胜负统计/段位/历史记录 |
+| 根布局 | `app/layout.tsx` | App Router 根布局，字体、元数据、上下文整合 |
+| 品牌首页 | `app/landing/page.tsx` | 史诗叙事品牌首页，非对称 Hero、Bento 网格 |
+| 战术指挥中心 | `app/page.tsx` | 全息模式选择器、维度跃迁状态指示器、全局公告系统 |
+| 登录 | `app/login/page.tsx` | GitHub OAuth + 邮箱验证码登录 |
+| 游戏大厅 | `app/game/page.tsx` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法入口 |
+| 基地 | `app/base/page.tsx` | 玩家基地管理 |
+| 模式选择 | `app/modes/page.tsx` | 全部游戏模式概览 |
+| 剧情战役 | `app/campaign/page.tsx` | 章节节点进度管理 |
+| BossRush | `app/boss-rush/page.tsx` | 首领连战模式 |
+| 旗舰巅峰 | `app/flagship-peak/page.tsx` | 六阶段50波终极挑战 |
+| 顶峰挑战 | `app/peak-challenge/page.tsx` | 高难度挑战内容 |
+| 极限生存 | `app/extreme-survival/page.tsx` | 极限生存模式入口 |
+| 赛季 | `app/season/page.tsx` | 赛季进度、奖励领取与任务追踪 |
+| 英雄档案 | `app/hero-archive/page.tsx` | 全部可玩英雄详细信息 |
+| 英雄收藏 | `app/heroes/page.tsx` | 英雄、皮肤、表情、徽章收藏 |
+| 维度编年史 | `app/chronicles/page.tsx` | 游戏历史与事件记录 |
+| 成就 | `app/achievements/page.tsx` | 成就系统、进度与奖励 |
+| 排行榜 | `app/leaderboard/page.tsx` | 本地最佳与全球排行榜 |
+| 公会 | `app/guild/page.tsx` | 公会功能与信息展示 |
+| 世界地图 | `app/world/page.tsx` | 维度网络节点连接图 |
+| 军械库 | `app/armory/page.tsx` | 全部武器展示 |
+| 敌人图鉴 | `app/enemies/page.tsx` | 全部敌人/Boss 信息 |
+| 算法实验室 | `app/algorithms/page.tsx` | 三引擎算法仪表盘 |
+| 关于 | `app/about/page.tsx` | 项目信息与说明 |
+| 帮助 | `app/help/page.tsx` | 游戏帮助与指南 |
+| 设置 | `app/settings/page.tsx` | 用户个性化设置 |
+| 管理后台 | `app/admin/page.tsx` | 公告管理 |
+| 商店 | `app/store/page.tsx` | 外观、英雄、表情、徽章兑换 |
+| PvP 大厅 | `app/pvp/page.tsx` | 竞技入口：休闲匹配/自定义房间/天梯排位 |
+| PvP 决斗 | `app/pvp/duel/page.tsx` | 1v1 决斗画面 |
+| PvP 匹配 | `app/pvp/matchmaking/page.tsx` | 休闲匹配：英雄/武器/赛制选择 |
+| PvP 自定义房间 | `app/pvp/custom-room/page.tsx` | 自定义房间：创建/加入/设置/准备 |
+| PvP 战绩 | `app/pvp/history/page.tsx` | 战绩列表：胜负统计/段位/历史记录 |
+| **Roguelike冒险** | `app/roguelike/page.tsx` | 6层关卡树 + 祝福/诅咒双选 + 强化奖励 + 可跳转至战斗 |
+| **好友系统** | `app/friends/page.tsx` | 好友列表 + 在线状态 + 私聊 + 搜索添加 + 好友请求处理 |
+| **赛季通行证** | `app/battle-pass/page.tsx` | 50级免费/高级双轨奖励 + 皮肤/英雄/货币/表情/徽章 |
+| 404 | `app/not-found.tsx` | 自定义 404 页面 |
 
 ### 1.2 核心系统模块
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 版本常量 | `lib/version.ts` | 版本代号「涅槃」(DR-REBIRTH)、品牌名、标语、统一亮色游戏平台设计系统 |
+| 版本常量 | `lib/version.ts` | 版本代号「飞升」(DR-ASCENSION)、品牌名、标语、统一亮色游戏平台设计系统 |
 | 全局设计系统 | `styles/globals.css` | 统一亮色现代游戏平台 CSS 变量、动画、游戏组件样式 |
 | Tailwind 配置 | `tailwind.config.ts` | 配色、字体、动画扩展 |
-| 全局布局 | `components/Layout.tsx` | 版本水印、导航栏（含 PvP 竞技入口），亮色游戏平台风格 |
+| App Router 架构 | `app/layout.tsx`, `app/*/page.tsx` | 全站 30 页面 App Router 架构，RSC/Server Actions/Streaming |
 | 全局状态管理 | `lib/context/GameContext.tsx` | 全局实时维度数据、用户存档贯通、公告系统、页面间导航关联 |
-| 应用提供者 | `components/Providers.tsx` | 整合 ErrorBoundary、ToastProvider、GameProvider 等上下文 |
-| 游戏核心 | `lib/game/engine.ts`, `lib/game/types.ts` | 游戏循环、类型定义 |
+| 游戏核心 | `lib/game/engine.ts`, `lib/game/types.ts` | 游戏循环、类型定义、6阶段难度系统 |
+| Roguelike冒险 | `lib/game/roguelike.ts`, `lib/game/curseBlessing.ts`, `app/roguelike/page.tsx` | 6层关卡树 + 12种祝福/诅咒双选 + 6种强化奖励 |
+| 好友系统 | `lib/guild/store.ts`, `lib/guild/types.ts`, `app/friends/page.tsx` | 好友列表 + 在线状态 + 私聊 + 搜索添加 + 好友请求处理 |
+| 赛季通行证 | `lib/game/battle-pass.ts`, `app/battle-pass/page.tsx` | 50级免费/高级双轨奖励 + 皮肤/英雄/货币/表情/徽章 |
+| 6阶段难度 | `lib/game/types.ts` (DIFFICULTY_PRESETS) | 标准巡航→常规巡逻→高压警戒→地狱突入→深渊降临→虚空湮灭 |
 | 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
 | BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
 | 顶峰挑战 | `lib/game/peak-challenge.ts` | 高难度挑战逻辑 |
@@ -84,6 +92,7 @@
 | 进程管理 | `ecosystem.config.cjs` | PM2 单进程生产配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
 | CI/CD | `.github/workflows/deploy.yml` | push 到 main 自动部署 |
+| **性能优化** | `next.config.mjs` (splitChunks) | Webpack 分包：游戏引擎/算法库/网络层/UI组件/动画/图标独立chunk |
 
 ---
 
@@ -182,7 +191,7 @@ nano .env.local
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry | 否 | 前端 DSN |
 | `NEXT_PUBLIC_SIGNALING_URL` | 手动 | 否 | WebSocket 信令服务器地址，跨设备组队和 PvP 联机需要；生产 `wss://your-domain.com/signaling/`；不配置则仅支持同设备组队 |
 
-> **涅槃版本**：WebSocket 信令已集成到主进程（端口 3000），不再需要独立端口 3001。`NEXT_PUBLIC_SIGNALING_URL` 的路径为 `/signaling/`（同域），而非独立端口。
+> **飞升版本**：WebSocket 信令已集成到主进程（端口 3000），不再需要独立端口 3001。`NEXT_PUBLIC_SIGNALING_URL` 的路径为 `/signaling/`（同域），而非独立端口。
 
 生成 `ADMIN_KEY`：
 
@@ -266,13 +275,13 @@ pnpm test:run
 
 ## 7. 启动应用
 
-### 7.1 涅槃版本架构
+### 7.1 飞升版本架构
 
-**涅槃版本沿用单进程部署架构**：WebSocket 信令服务器已集成到 Next.js 主进程中。
+**飞升版本沿用单进程部署架构**：WebSocket 信令服务器已集成到 Next.js 主进程中。
 
 ```
 旧架构（梦想家）：Next.js(:3000) + 信令服务器(:3001) = 双进程
-当前架构（涅槃）：server.mjs(:3000) = 单进程（Next.js + WebSocket 信令合并）
+当前架构（飞升）：server.mjs(:3000) = 单进程（Next.js + WebSocket 信令合并）
 ```
 
 ### 7.2 直接启动（仅调试用）
@@ -393,7 +402,7 @@ sudo ufw status verbose
 | HTTPS | 443 | 0.0.0.0/0 |
 | 自定义 TCP | 3000 | 127.0.0.1/32（仅本机反向代理访问） |
 
-> **涅槃版本**：不再需要开放端口 3001（信令已集成到 3000 端口）。
+> **飞升版本**：不再需要开放端口 3001（信令已集成到 3000 端口）。
 
 ---
 
@@ -464,7 +473,7 @@ server {
 }
 ```
 
-> **涅槃版本**：`/signaling/` 代理目标为 `project_m_app`，不再需要独立的信令 upstream。
+> **飞升版本**：`/signaling/` 代理目标为 `project_m_app`，不再需要独立的信令 upstream。
 
 ---
 
@@ -760,7 +769,7 @@ pm2 restart project-m --update-env
 - [ ] 主色 (#2563EB) 蓝色统一
 - [ ] 强调色 (#F97316) 橙色统一
 - [ ] 面板色 (#FFFFFF) 与 raised 面板 (#F5F4F0) 层次分明
-- [ ] 页面底部版本水印「涅槃」正确显示
+- [ ] 页面底部版本水印「飞升」正确显示
 - [ ] 字体为 Geist Sans / Geist Mono（非 Inter）
 - [ ] 导航栏包含「竞技」入口，指向 `/pvp`
 - [ ] 禁止纯黑 (#000000)、AI 紫色渐变、h-screen 全屏
@@ -795,7 +804,7 @@ pm2 restart project-m --update-env
 
 | 文件 | 作用 |
 |------|------|
-| `lib/version.ts` | 版本代号「涅槃」(DR-REBIRTH)、品牌名「多重宇宙」、标语、统一亮色游戏平台设计系统常量 |
+| `lib/version.ts` | 版本代号「飞升」(DR-ASCENSION)、品牌名「多重宇宙」、标语、统一亮色游戏平台设计系统常量 |
 | `styles/globals.css` | 全局设计系统：统一亮色现代游戏平台 CSS 变量、动画、游戏组件样式 |
 | `components/Layout.tsx` | 全局布局组件，导航栏（含 PvP 竞技入口），版本水印渲染 |
 | `lib/context/GameContext.tsx` | 全局状态管理：实时维度数据、用户存档贯通、公告系统 |
@@ -879,11 +888,11 @@ pm2 restart project-m --update-env
 
 ---
 
-## 16. 涅槃版本内容说明
+## 16. 飞升版本内容说明
 
 ### 16.1 统一亮色现代游戏平台设计系统
 
-「涅槃」版本推翻原有的双主题设计系统（PvE 航天风 + PvP 工业擂台风），采用全新的统一亮色现代游戏平台视觉风格。
+「飞升」版本推翻原有的双主题设计系统（PvE 航天风 + PvP 工业擂台风），采用全新的统一亮色现代游戏平台视觉风格。
 
 #### 配色方案
 
@@ -902,7 +911,7 @@ pm2 restart project-m --update-env
 | 危险 | `#EF4444` | 红色警告 |
 | 警告 | `#F59E0B` | 黄色提示 |
 
-设计旋钮：DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5
+设计旋钮：DESIGN_VARIANCE=9, MOTION_INTENSITY=6, VISUAL_DENSITY=5
 
 #### 字体栈
 
@@ -922,14 +931,14 @@ pm2 restart project-m --update-env
 `lib/version.ts` 定义全站版本常量：
 
 ```typescript
-VERSION_CODE = "DR-REBIRTH"        // 版本代码
-VERSION_DISPLAY = "涅槃"            // 显示名称
-VERSION_LABEL = "涅槃 (DR-REBIRTH)"  // 完整标签
-VERSION_META_GENERATOR = "多重宇宙 涅槃 (DR-REBIRTH)"  // meta 标签
-VERSION_WATERMARK = "涅槃"          // 页面水印
+VERSION_CODE = "DR-ASCENSION"        // 版本代码
+VERSION_DISPLAY = "飞升"            // 显示名称
+VERSION_LABEL = "飞升 (DR-ASCENSION)"  // 完整标签
+VERSION_META_GENERATOR = "多重宇宙 飞升 (DR-ASCENSION)"  // meta 标签
+VERSION_WATERMARK = "飞升"          // 页面水印
 
-PREV_VERSION_CODE = "DR-DUALITY"    // 上一个版本代码
-PREV_VERSION_DISPLAY = "双生"       // 上一个版本名称
+PREV_VERSION_CODE = "DR-REBIRTH"    // 上一个版本代码
+PREV_VERSION_DISPLAY = "涅槃"       // 上一个版本名称
 
 BRAND_NAME = "多重宇宙"             // 品牌名
 BRAND_NAME_EN = "Multiverse"       // 品牌英文名
@@ -937,18 +946,21 @@ BRAND_TAGLINE = "深空探索 · 公平竞技 · 无付费加成"  // 品牌标�
 BRAND_URL = "multiverse.game"      // 品牌域名
 ```
 
-### 16.3 涅槃版本核心变更
+### 16.3 飞升版本核心变更
 
 #### 设计系统重构
 
-| 对比项 | 双生 (DR-DUALITY) | 涅槃 (DR-REBIRTH) |
+| 对比项 | 双生 (DR-DUALITY) | 飞升 (DR-ASCENSION) |
 |--------|---------------------|---------------------|
 | 设计系统 | 双主题（PvE 航天风 + PvP 工业擂台风） | 统一亮色现代游戏平台 |
 | 底色 | PvE #F5F2ED / PvP #1A1A1E | 统一 #F8F7F4 |
 | 主色 | PvE 深空蓝 / PvP 焦橙 | 统一 #2563EB 蓝色 |
 | 强调色 | PvE 航天金 / PvP 热金 | 统一 #F97316 橙色 |
-| 设计旋钮 | PvE(9,4,3) / PvP(7,8,5) | 统一(7,6,5) |
+| 设计旋钮 | PvE(9,4,3) / PvP(7,8,5) | 统一(9,6,5) |
 | 全局样式 | 双主题 CSS 变量 | 统一亮色 CSS 变量 + 游戏组件样式 |
+| 路由架构 | Pages Router (33页) | App Router (30页) + RSC/Server Actions/Streaming |
+| 性能优化 | 基础配置 | Webpack splitChunks 分包 + modularizeImports |
+| 新增功能 | - | Roguelike冒险 + 好友系统 + 赛季通行证 + 6阶段难度 |
 
 #### 信息内容互通
 
@@ -973,9 +985,9 @@ BRAND_URL = "multiverse.game"      // 品牌域名
 
 ### 16.4 单进程集成部署（沿用）
 
-涅槃版本沿用破晓版本的单进程集成部署架构：
+飞升版本沿用破晓版本的单进程集成部署架构：
 
-| 对比项 | 梦想家 (DR-DREAMER) | 破晓/涅槃 (DR-DAYBREAK/DR-REBIRTH) |
+| 对比项 | 梦想家 (DR-DREAMER) | 破晓/飞升 (DR-DAYBREAK/DR-ASCENSION) |
 |--------|---------------------|-------------------------------------|
 | 进程数 | 2 (Next.js + 信令) | 1 (集成) |
 | 端口 | 3000 + 3001 | 3000 |
@@ -1240,6 +1252,22 @@ max_memory_restart: "1G"                          # 超过 1GB 自动重启
 node_args: "--max-old-space-size=1536 --optimize-for-size"  # V8 堆上限 1.5GB + 优化体积
 ```
 
+### 19.5 Webpack Bundle 分包
+
+`next.config.mjs` 已配置 splitChunks 策略，将大型依赖拆分为独立 chunk：
+
+| Chunk | 内容 | 优先级 |
+|-------|------|--------|
+| `game-engine` | `lib/game/` 游戏引擎核心 | 30 |
+| `algorithms` | `lib/algorithms/` 算法库 | 25 |
+| `network` | `lib/network/` 网络层 | 20 |
+| `ui-components` | `components/` UI 组件库 | 15 |
+| `animation-vendor` | framer-motion / gsap / motion | 10 |
+| `icons-vendor` | @phosphor-icons/react | 10 |
+| `vendor` | 其他 node_modules | 5 |
+
+同时启用 `experimental.optimizePackageImports` 优化 `@phosphor-icons/react`、`framer-motion`、`gsap` 的导入体积。
+
 ---
 
 ## 20. 安全加固
@@ -1395,21 +1423,21 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-## 25. 涅槃版本升级指南（从双生升级）
+## 25. 飞升版本升级指南（从涅槃升级）
 
 ### 25.1 架构变更摘要
 
-| 变更项 | 双生 (DR-DUALITY) | 涅槃 (DR-REBIRTH) |
+| 变更项 | 涅槃 (DR-REBIRTH) | 飞升 (DR-ASCENSION) |
 |--------|--------------------|---------------------|
-| 版本代号 | DR-DUALITY | DR-REBIRTH |
-| 设计系统 | 双主题（PvE 航天风 + PvP 工业擂台风） | 统一亮色现代游戏平台 |
-| 底色 | PvE #F5F2ED / PvP #1A1A1E | 统一 #F8F7F4 |
-| 主色 | PvE 深空蓝 / PvP 焦橙 | 统一 #2563EB |
-| 强调色 | PvE 航天金 / PvP 热金 | 统一 #F97316 |
-| 全局 CSS | 双主题 CSS 变量 | 统一亮色 CSS 变量 + 游戏组件样式 |
-| 全局状态 | 无 | 新增 GameContext（维度+存档+公告） |
-| 新增文件 | - | `lib/context/GameContext.tsx` |
-| 页面数 | 33 | 33（不变） |
+| 版本代号 | DR-REBIRTH | DR-ASCENSION |
+| 设计系统 | 统一亮色现代游戏平台 | 统一亮色现代游戏平台（延续） |
+| 设计旋钮 | VARIANCE=7, MOTION=6, DENSITY=5 | VARIANCE=9, MOTION=6, DENSITY=5 |
+| 路由架构 | Pages Router (33页) | App Router (30页) + RSC/Server Actions/Streaming |
+| 新增功能 | - | Roguelike冒险 + 好友系统 + 赛季通行证 + 6阶段难度 |
+| 难度系统 | 2阶段 (easy/hell) | 6阶段 (标准巡航→常规巡逻→高压警戒→地狱突入→深渊降临→虚空湮灭) |
+| 性能优化 | 基础配置 | Webpack splitChunks 分包 (游戏引擎/算法/网络/UI/动画/图标) |
+| 新增文件 | - | `lib/game/roguelike.ts`, `lib/game/battle-pass.ts`, `app/roguelike/page.tsx`, `app/friends/page.tsx`, `app/battle-pass/page.tsx` |
+| 页面数 | 33 | 30（App Router 架构精简合并） |
 | 导航栏 | 有「竞技」入口 | 保留不变 |
 | 品牌标语 | 深空探索 · 公平竞技 · 无付费加成 | 保留不变 |
 
@@ -1419,8 +1447,8 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 2. 安装依赖：`pnpm install --frozen-lockfile`
 3. 构建：`pnpm build`
 4. 重启：`pm2 restart project-m --update-env`
-5. 验证：访问首页确认亮色游戏平台风格生效，版本水印显示「涅槃」
+5. 验证：访问首页确认亮色游戏平台风格生效，版本水印显示「飞升」
 
 ---
 
-*本手册对应多重宇宙「涅槃」版本一次性全部上线部署流程。全站 33 页面统一亮色现代游戏平台设计系统，品牌名「多重宇宙 (Multiverse)」，版本代号「涅槃」(DR-REBIRTH)。设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5。新增全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战、PvP 1v1 积分决斗）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。WebSocket 信令已集成到主进程，单进程部署。*
+*本手册对应多重宇宙「飞升」版本一次性全部上线部署流程。全站 30 页面 App Router 架构 + 统一亮色现代游戏平台设计系统，品牌名「多重宇宙 (Multiverse)」，版本代号「飞升」(DR-ASCENSION)。设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=6, VISUAL_DENSITY=5。新增 Roguelike冒险模式、好友系统、赛季通行证、6阶段难度系统。全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战、PvP 1v1 积分决斗）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。WebSocket 信令已集成到主进程，单进程部署。Webpack splitChunks 性能分包（游戏引擎/算法库/网络层/UI组件/动画/图标独立chunk）。*
