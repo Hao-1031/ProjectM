@@ -110,7 +110,7 @@ export default function BrandLogo({
         className="text-[10px] tracking-[0.3em] text-muted"
         style={{ fontSize: size * 0.22 }}
       >
-        梦想家
+        破晓
       </span>
     </div>
   );

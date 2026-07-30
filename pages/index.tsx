@@ -1134,7 +1134,7 @@ export default function HomePage() {
         </footer>
       </section>
 
-      <div className="version-watermark">梦想家 v2.0</div>
+      <div className="version-watermark">破晓 v3.0</div>
     </div>
   );
 }

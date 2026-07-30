@@ -1,5 +1,5 @@
 /**
- * 梦想家版本 - 统一游戏事件总线
+ * 破晓版本 - 统一游戏事件总线
  * 运行时内存环形缓冲区，覆盖全量游戏事件，支持订阅/发布/过滤/搜索/暂停/导出
  */
 
@@ -365,7 +365,7 @@ class EventBus {
   export(): EventBusExport {
     return {
       exportedAt: Date.now(),
-      version: "DR-DREAMER",
+      version: "DR-DAYBREAK",
       totalEvents: this.buffer.length,
       paused: this.paused,
       events: [...this.buffer],

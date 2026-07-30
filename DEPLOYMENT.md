@@ -1,17 +1,17 @@
-# 多重宇宙「梦想家」完整生产部署手册
+# 多重宇宙「破晓」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 31 页面米白色中国航天风重设计；品牌名「多重宇宙 (Multiverse)」；米白色 (#F5F2ED) 底色 + 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色；版本代号「梦想家」(DR-DREAMER)；设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；WebSocket信令服务器（跨设备2人联机协作）；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
+> 当前版本特性：全站 36 页面双主题设计系统；品牌名「多重宇宙 (Multiverse)」；PvE 米白色中国航天风 + PvP 工业擂台暗色风格；版本代号「破晓」(DR-DAYBREAK)；设计旋钮: PvE(DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3) / PvP(DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5)；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；PvP 1v1 积分决斗（BO3/BO5 回合制 + 休闲匹配 + 天梯排位 + 自定义房间 + 战绩历史 + 4英雄 + 6武器 + 8地图）；混合连接网络架构（局域网自动发现 + 房间码直连 + 服务端中转）；单进程集成部署（Next.js + WebSocket 信令合并）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为「梦想家」版本一次性全部上线，包含全站 31 个页面的舰桥风格重设计及全部玩法系统。
+本次部署为「破晓」版本一次性全部上线，包含全站 36 个页面的双主题设计系统及全部玩法系统。
 
-### 1.1 全站页面清单（31 页）
+### 1.1 全站页面清单（36 页）
 
 | 页面 | 路径 | 说明 |
 |------|------|------|
@@ -42,36 +42,44 @@
 | 设置 | `pages/settings.tsx` | 用户个性化设置 |
 | 管理后台 | `pages/admin.tsx` | 公告管理，需 `ADMIN_KEY` |
 | 404 | `pages/404.tsx` | 自定义 404 页面 |
+| **PvP 大厅** | `pages/pvp/index.tsx` | 竞技入口：休闲匹配/自定义房间/天梯排位，战绩统计 |
+| **PvP 决斗** | `pages/pvp/duel.tsx` | 1v1 决斗画面：倒计时/英雄信息/回合结果 |
+| **PvP 匹配** | `pages/pvp/matchmaking.tsx` | 休闲匹配：英雄选择/武器选择/赛制选择 |
+| **PvP 自定义房间** | `pages/pvp/custom-room.tsx` | 自定义房间：创建/加入/设置/准备 |
+| **PvP 战绩** | `pages/pvp/history.tsx` | 战绩列表：胜负统计/段位/历史记录 |
 
 ### 1.2 核心系统模块
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 版本常量 | `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名、标语 |
-| 全局设计系统 | `styles/globals.css` | 舰桥风格 CSS 变量、动画、工具类 |
+| 版本常量 | `lib/version.ts` | 版本代号「破晓」(DR-DAYBREAK)、品牌名、标语、双主题设计系统 |
+| 全局设计系统 | `styles/globals.css` | 双主题 CSS 变量（PvE 航天风 + PvP 工业擂台风）、动画、工具类 |
 | Tailwind 配置 | `tailwind.config.ts` | 配色、字体、动画扩展 |
-| 全局布局 | `components/Layout.tsx` | 版本水印、舰桥基础结构 |
+| 全局布局 | `components/Layout.tsx` | 版本水印、导航栏（含 PvP 竞技入口） |
 | 游戏核心 | `lib/game/engine.ts`, `lib/game/types.ts` | 游戏循环、类型定义 |
 | 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
 | BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
 | 顶峰挑战 | `lib/game/peak-challenge.ts` | 高难度挑战逻辑 |
 | 旗舰巅峰 | `lib/game/flagship-peak.ts` | 六阶段50波、双轨挑战、双维度评级、统一积分制 |
-| 旗舰巅峰MAX | `lib/game/flagship-peak.ts`, `lib/game/flagship-peak-achievements.ts`, `lib/game/boss-variants.ts`, `lib/game/hero-skill-tree.ts`, `lib/game/weapon-forge.ts`, `lib/network/coop-room.ts`, `lib/network/signaling.ts`, `lib/network/peer.ts`, `signaling-server.mjs` | Boss变异系统(18种)、英雄技能树(3分支×5层)、武器改装锻造(30模块)、2人联机协作、阶段视觉变色(深渊墨→虚空白→创世极光)、11隐藏成就、10级里程碑 |
+| 旗舰巅峰MAX | `lib/game/flagship-peak.ts`, `lib/game/flagship-peak-achievements.ts`, `lib/game/boss-variants.ts`, `lib/game/hero-skill-tree.ts`, `lib/game/weapon-forge.ts`, `lib/network/coop-room.ts`, `lib/network/signaling.ts`, `lib/network/peer.ts` | Boss变异系统(18种)、英雄技能树(3分支×5层)、武器改装锻造(30模块)、2人联机协作、阶段视觉变色(深渊墨→虚空白→创世极光)、11隐藏成就、10级里程碑 |
 | 成就系统 | `lib/game/achievements.ts` | 成就定义、进度、奖励 |
 | 编年史 | `lib/game/chronicles.ts` | 世界观数据 |
 | 赛季系统 | `lib/game/season.ts`, `lib/game/save.ts` | 赛季等级、奖励、任务与持久化 |
 | 天气系统 | `lib/game/weather.ts` | 辐射风暴、酸雨、沙尘暴 |
 | 诅咒祝福 | `lib/game/curseBlessing.ts` | Roguelike 二选一配对系统 |
 | 三引擎架构 | `lib/engine/alpha/`, `lib/engine/beta/`, `lib/engine/infra/` | α 玩家端 / β 敌方端 / 基础设施 |
-| 多人联机 | `lib/network/` | 预测、插值、Delta、Jitter、匹配、房间、信令 |
+| 多人联机 | `lib/network/` | 预测、插值、Delta、Jitter、匹配、房间、信令、P2P |
 | 近战武器 | `lib/game/balance.ts`, `lib/game/weapons.ts` | 4 基础 + 1 进阶，扇形/突刺双机制 |
 | 英雄系统 | `lib/game/heroes.ts` | 全英雄数值/冷却/效果，近战天赋联动 |
 | HUD 系统 | `components/Hud.tsx`, `components/game/HudDesktop.tsx`, `components/game/HudMobile.tsx`, `components/game/KillFeed.tsx` | 武器面板、击杀推送、状态效果栏 |
 | 补给窗口 | `components/game/SupplyWindow.tsx` | B/ESC 快捷键、倒计时、快速下一波 |
 | 事件总线 | `lib/game/event-bus.ts` | 统一游戏事件总线，环形缓冲区(1000条)，15分类×70+事件类型，订阅/发布/过滤/搜索/暂停/导出 |
 | 监测面板 | `components/game/EventMonitor.tsx` | ~/F1快捷键悬浮面板，实时事件流，分类过滤，关键词搜索，统计摘要，JSON导出 |
+| **PvP 核心** | `lib/game/pvp/` | PvP 类型定义、英雄、武器、地图、决斗逻辑、匹配、自定义房间、战绩 |
+| **混合连接网络** | `lib/network/multiplayer-v2.ts`, `lib/network/lan-discovery.ts`, `lib/network/room-code.ts`, `lib/network/server-relay.ts` | 局域网自动发现 + 房间码直连 + 服务端中转三种混合连接模式 |
+| **集成服务器** | `server.mjs` | Next.js + WebSocket 信令单进程集成入口 |
 | Supabase 后端 | `lib/supabase/`, `supabase/schema.sql` | Postgres 数据库与类型契约 |
-| 进程管理 | `ecosystem.config.cjs` | PM2 跨平台配置 |
+| 进程管理 | `ecosystem.config.cjs` | PM2 单进程生产配置 |
 | 一键部署 | `scripts/deploy-ubuntu.sh` | Ubuntu 22.04 初始化与更新脚本 |
 | CI/CD | `.github/workflows/deploy.yml` | push 到 main 自动部署 |
 
@@ -170,7 +178,9 @@ nano .env.local
 | `SENTRY_PROJECT` | Sentry | 否 | Sentry 项目名 |
 | `SENTRY_AUTH_TOKEN` | Sentry | 否 | 未配置时构建自动跳过 sourcemap 上传 |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry | 否 | 前端 DSN |
-| `NEXT_PUBLIC_SIGNALING_URL` | 手动 | 否 | WebSocket 信令服务器地址，跨设备组队需要；本地 `ws://localhost:3001`，生产 `wss://your-domain.com/signaling/` 或 `ws://your-ip:3001`；不配置则仅支持同设备组队 |
+| `NEXT_PUBLIC_SIGNALING_URL` | 手动 | 否 | WebSocket 信令服务器地址，跨设备组队和 PvP 联机需要；生产 `wss://your-domain.com/signaling/`；不配置则仅支持同设备组队 |
+
+> **破晓版本变更**：WebSocket 信令已集成到主进程（端口 3000），不再需要独立端口 3001。`NEXT_PUBLIC_SIGNALING_URL` 的路径为 `/signaling/`（同域），而非独立端口。
 
 生成 `ADMIN_KEY`：
 
@@ -254,16 +264,25 @@ pnpm test:run
 
 ## 7. 启动应用
 
-### 7.1 直接启动（仅调试用）
+### 7.1 破晓版本架构变更
+
+**破晓版本将 WebSocket 信令服务器集成到 Next.js 主进程中，实现单进程部署。** 不再需要独立的信令服务器进程（端口 3001）。
+
+```
+旧架构（梦想家）：Next.js(:3000) + 信令服务器(:3001) = 双进程
+新架构（破晓）：  server.mjs(:3000) = 单进程（Next.js + WebSocket 信令合并）
+```
+
+### 7.2 直接启动（仅调试用）
 
 ```bash
-cd /var/www/project-m/.next/standalone
-node server.js
+cd /var/www/project-m
+node server.mjs
 ```
 
 默认监听 `http://0.0.0.0:3000`。
 
-### 7.2 PM2 生产守护（双进程）
+### 7.3 PM2 生产守护（单进程）
 
 ```bash
 cd /var/www/project-m
@@ -276,27 +295,24 @@ pm2 startup systemd
 
 > `pm2 startup systemd` 会输出一条命令，复制并执行它以设置开机自启。
 
-`ecosystem.config.cjs` 已配置双进程：
+`ecosystem.config.cjs` 已配置单进程：
 
 | 进程名 | 端口 | 脚本 | 说明 |
 |--------|------|------|------|
-| `project-m` | 3000 | `.next/standalone/server.js` | Next.js 应用主进程 |
-| `project-m-signaling` | 3001 | `signaling-server.mjs` | WebSocket 信令服务器 |
+| `project-m` | 3000 | `server.mjs` | Next.js + WebSocket 信令集成进程 |
 
 常用命令：
 
 ```bash
 pm2 status
 pm2 logs project-m --lines 100
-pm2 logs project-m-signaling --lines 100
 pm2 restart project-m
-pm2 restart project-m-signaling
 pm2 restart all
 pm2 stop all
 pm2 delete all
 ```
 
-### 7.3 更新环境变量后重启
+### 7.4 更新环境变量后重启
 
 修改 `.env.local` 后，PM2 不会自动重新加载环境变量，必须使用：
 
@@ -306,59 +322,42 @@ pm2 restart project-m --update-env
 
 > 常见坑：仅执行 `pm2 restart project-m` 不会刷新 `.env.local` 中的变量，可能导致 OAuth 登录等接口读取到旧值。
 
-### 7.4 信令服务器部署（跨设备组队）
+### 7.5 信令服务说明
 
-信令服务器 (`signaling-server.mjs`) 是独立的 WebSocket 服务，负责 WebRTC 信令交换，支持跨设备 2 人联机协作。
+信令服务已集成到 `server.mjs` 中，通过 WebSocket 升级连接处理 `/signaling/` 路径的请求。不再需要独立的信令服务器进程或端口。
 
-#### 工作原理
+**工作原理**：
 
 ```
-客户端A ←→ WebSocket ←→ 信令服务器(3001) ←→ WebSocket ←→ 客户端B
-                          ↓
-                    WebRTC P2P 直连
+客户端A ←→ WebSocket ←→ server.mjs (:3000) ←→ WebSocket ←→ 客户端B
+                              ↓
+                    /signaling/ 路径自动升级
 ```
 
-1. 客户端通过 WebSocket 连接到信令服务器
-2. 创建/加入房间时，信令服务器广播房间成员列表
-3. 客户端之间交换 WebRTC SDP (offer/answer) 和 ICE candidates
-4. 建立 P2P DataChannel 后，游戏数据直接传输，不再经过信令服务器
+1. 客户端通过 WebSocket 连接到 `wss://your-domain.com/signaling/`
+2. `server.mjs` 中的 `createSignalingServer` 处理 WebSocket 升级
+3. 创建/加入房间时，信令服务器广播房间成员列表
+4. 客户端之间交换 WebRTC SDP (offer/answer) 和 ICE candidates
+5. 建立 P2P DataChannel 后，游戏数据直接传输
 
-#### 环境变量
+**环境变量**：
 
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `SIGNALING_PORT` | `3001` | 信令服务器监听端口 |
-| `SIGNALING_HOST` | `0.0.0.0` | 信令服务器绑定地址 |
-| `NEXT_PUBLIC_SIGNALING_URL` | — | 客户端连接地址，生产环境填 `wss://your-domain.com/signaling/` 或 `ws://your-ip:3001` |
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `NEXT_PUBLIC_SIGNALING_URL` | 否 | 客户端连接地址，生产环境填 `wss://your-domain.com/signaling/`；不配置则仅支持同设备组队 |
 
-#### 启动方式
-
-信令服务器已集成到 PM2 双进程配置中，随 `pm2 start ecosystem.config.cjs` 一并启动。也可单独启动：
-
-```bash
-# 直接启动（调试用）
-node signaling-server.mjs
-
-# 指定端口
-SIGNALING_PORT=3002 node signaling-server.mjs
-```
-
-#### 验证信令服务
+**验证信令服务**：
 
 ```bash
 # 检查进程
-pm2 status | grep signaling
+pm2 status
 
 # 检查端口
-sudo ss -tlnp | grep 3001
+sudo ss -tlnp | grep 3000
 
 # 日志
-pm2 logs project-m-signaling --lines 50
+pm2 logs project-m --lines 50
 ```
-
-#### 不配置信令服务器的影响
-
-若 `NEXT_PUBLIC_SIGNALING_URL` 未配置，游戏仍可正常运行，但联机功能降级为**同设备组队**（通过 BroadcastChannel + localStorage），不支持跨设备联机。
 
 ---
 
@@ -391,7 +390,8 @@ sudo ufw status verbose
 | HTTP | 80 | 0.0.0.0/0 |
 | HTTPS | 443 | 0.0.0.0/0 |
 | 自定义 TCP | 3000 | 127.0.0.1/32（仅本机反向代理访问） |
-| 自定义 TCP | 3001 | 127.0.0.1/32（信令服务器，仅本机反向代理访问） |
+
+> **破晓版本变更**：不再需要开放端口 3001（信令已集成到 3000 端口）。
 
 ---
 
@@ -427,18 +427,13 @@ upstream project_m_app {
     keepalive 64;
 }
 
-upstream project_m_signaling {
-    server 127.0.0.1:3001;
-    keepalive 64;
-}
-
 server {
   listen 80;
   server_name your-domain.com;
 
-  # WebSocket 信令服务器代理（跨设备组队通信）
+  # WebSocket 信令服务器代理（已集成到主进程，同端口 3000）
   location /signaling/ {
-    proxy_pass http://project_m_signaling;
+    proxy_pass http://project_m_app;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -466,6 +461,8 @@ server {
   }
 }
 ```
+
+> **破晓版本变更**：`/signaling/` 代理目标已从 `project_m_signaling` 改为 `project_m_app`，不再需要独立的信令 upstream。
 
 ---
 
@@ -595,7 +592,7 @@ pm2 logs project-m --lines 200
 
 - 内存超限：调整 `max_memory_restart` 或升级服务器。
 - `.env.local` 缺失必要变量。
-- `server.js` 路径错误（未重新构建 standalone）。
+- `server.mjs` 路径错误（未重新构建 standalone）。
 
 ### 13.6 环境变量未生效
 
@@ -643,6 +640,23 @@ pm2 restart project-m --update-env
 
 修复：项目已配置 `vitest.config.ts` 使用 `pool: "forks"` + `maxWorkers: 1`，强制顺序执行以规避 Windows worker 超时。Linux CI 环境可酌情调大 `maxWorkers` 提升速度。
 
+### 13.11 信令服务不可用（PvP 联机失败）
+
+症状：PvP 匹配或自定义房间无法连接，浏览器控制台显示 WebSocket 连接失败。
+
+原因：
+
+1. `NEXT_PUBLIC_SIGNALING_URL` 未配置或配置错误。
+2. Nginx 未正确代理 `/signaling/` 路径。
+3. 防火墙阻止了 WebSocket 升级。
+
+修复：
+
+1. 确认 `.env.local` 中 `NEXT_PUBLIC_SIGNALING_URL` 配置正确：`wss://your-domain.com/signaling/`。
+2. 确认 Nginx 配置中 `/signaling/` location 已正确代理到 `project_m_app`。
+3. 确认 Nginx 配置中包含 `proxy_set_header Upgrade $http_upgrade` 和 `proxy_set_header Connection "upgrade"`。
+4. 使用 `pm2 restart project-m --update-env` 重启应用。
+
 ---
 
 ## 14. 部署检查清单
@@ -659,13 +673,12 @@ pm2 restart project-m --update-env
 - [ ] `pnpm install --frozen-lockfile` 成功
 - [ ] `pnpm build` 成功并生成 `.next/standalone/`
 - [ ] `pnpm test:run` 通过
-- [ ] `node .next/standalone/server.js` 可访问 `http://localhost:3000`
-- [ ] PM2 进程运行中且状态为 `online`（两个进程：project-m + project-m-signaling）
-- [ ] 信令服务器端口 3001 监听正常（`sudo ss -tlnp | grep 3001`）
+- [ ] `node server.mjs` 可访问 `http://localhost:3000`
+- [ ] PM2 进程运行中且状态为 `online`（单进程：project-m）
 - [ ] `NEXT_PUBLIC_SIGNALING_URL` 已配置（生产环境）
 - [ ] 修改 `.env.local` 后使用 `--update-env` 重启
-- [ ] 防火墙/安全组端口已放行
-- [ ] Nginx 反向代理配置正确
+- [ ] 防火墙/安全组端口已放行（仅需 80/443/22，不再需要 3001）
+- [ ] Nginx 反向代理配置正确（`/signaling/` 代理至 `project_m_app`）
 - [ ] HTTPS 证书已配置并可自动续期
 - [ ] Sentry 未配置时构建不报错
 - [ ] GitHub Actions Secrets 已配置，push 到 main 可自动部署
@@ -685,6 +698,13 @@ pm2 restart project-m --update-env
 - [ ] `/flagship-peak` 旗舰巅峰页可正常访问，六阶段50波递进、Boss变异、技能树、武器锻造、2人联机展示正常
 - [ ] `/extreme-survival` 极限生存页可正常访问
 - [ ] `/season` 赛季页可正常访问并领取奖励
+
+### PvP 页面（破晓新增）
+- [ ] `/pvp` PvP 大厅页面可正常访问，三种模式入口正常，战绩统计正常
+- [ ] `/pvp/duel` PvP 决斗页面可正常访问，倒计时、英雄信息、回合结果正常
+- [ ] `/pvp/matchmaking` PvP 匹配页面可正常访问，英雄/武器/赛制选择正常
+- [ ] `/pvp/custom-room` PvP 自定义房间页面可正常访问，创建/加入/设置/准备正常
+- [ ] `/pvp/history` PvP 战绩页面可正常访问，战绩列表、胜负统计、段位正常
 
 ### 归属感页面
 - [ ] `/hero-archive` 英雄档案页可正常访问，全部英雄信息正常
@@ -710,16 +730,19 @@ pm2 restart project-m --update-env
 ### 游戏功能
 - [ ] 游戏内可选择「旗舰巅峰」，完成六阶段50波挑战
 - [ ] 旗舰巅峰结算画面正常显示：六阶段主题切换、粒子动画、扫描线效果
-- [ ] 六维雷达评分图正常渲染（速度20%/完美波次20%/连击18%/首领击杀18%/击杀12%/精英击杀12%）
-- [ ] 11个隐藏成就（8普通+2稀有+1传说）正确显示与解锁
-- [ ] 波次里程碑奖励（5/10/15/20/25/30/35/40/45/50波）正常显示
-- [ ] 阶段完成奖励（标准/超频/地狱/深渊/虚空/创世）正常显示
-- [ ] 阶段指示器 (PhaseIndicator) 实时切换正常（标准蓝紫→超频红→地狱紫→深渊墨黑→虚空纯白→创世极光）
-- [ ] 阶段视觉变色机制正常（深渊墨→虚空白→创世极光）
+- [ ] 六维雷达评分图正常渲染
+- [ ] 11个隐藏成就正确显示与解锁
+- [ ] 波次里程碑奖励正常显示
+- [ ] 阶段完成奖励正常显示
+- [ ] 阶段指示器实时切换正常（标准蓝紫→超频红→地狱紫→深渊墨黑→虚空纯白→创世极光）
 - [ ] Boss变异系统正常（各阶段随机3种变异形态）
 - [ ] 英雄技能树正常（3分支×5层级，创世阶段觉醒）
 - [ ] 武器改装锻造正常（30种模块，波间锻造台）
 - [ ] 2人联机协作正常（WebSocket信令 + WebRTC P2P）
+- [ ] PvP 1v1 决斗可正常创建和进行
+- [ ] PvP 休闲匹配可正常排队并匹配
+- [ ] PvP 自定义房间可正常创建和加入
+- [ ] PvP 战绩可正常记录和查询
 - [ ] 游戏内赛季 XP 与赛季货币正确累计并持久化
 - [ ] 旗舰模式与极限生存模式成绩可提交到全球排行榜
 - [ ] 游戏内新手武器栏包含 2 远程 + 1 近战共 3 把武器
@@ -731,15 +754,13 @@ pm2 restart project-m --update-env
 - [ ] 算法页面显示三引擎架构（α / β / 基础设施）
 
 ### 视觉验证
-- [ ] 全站米白色 (#F5F2ED) 底色一致
-- [ ] 深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色一致
-- [ ] 空间站面板 (station-panel) 样式一致
-- [ ] 轨道扫描线 (orbital-scan) 动画效果正常
-- [ ] 空间站光晕 (station-glow) 辉光效果正常
-- [ ] 轨道环 (orbital-ring) 旋转动画正常
-- [ ] 页面底部版本水印「梦想家」正确显示
+- [ ] PvE 页面米白色 (#F5F2ED) 底色一致
+- [ ] PvE 页面深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色一致
+- [ ] PvP 页面暗色 (#1A1A1E) 底色一致
+- [ ] PvP 页面焦橙 (#E8652C) 主色 + 热金 (#FFB84D) 强调色一致
+- [ ] 页面底部版本水印「破晓」正确显示
 - [ ] 字体为 Geist Sans / Geist Mono（非 Inter）
-- [ ] 星球式差异：每个页面保持独立视觉身份，通过品牌色和Logo串联
+- [ ] 导航栏包含「竞技」入口，指向 `/pvp`
 
 ---
 
@@ -750,8 +771,8 @@ pm2 restart project-m --update-env
 | 文件 | 作用 |
 |------|------|
 | `next.config.mjs` | 控制 standalone 输出、Sentry 自动禁用、测试文件忽略 |
-| `tailwind.config.ts` | Tailwind 配色、字体、舰桥动画扩展 |
-| `ecosystem.config.cjs` | PM2 双进程生产配置（project-m: 1G, project-m-signaling: 256M） |
+| `tailwind.config.ts` | Tailwind 配色、字体、动画扩展 |
+| `ecosystem.config.cjs` | PM2 单进程生产配置（project-m: 1G） |
 | `.env.local` | 本地/生产环境变量 |
 | `vitest.config.ts` | 测试运行池配置（forks + maxWorkers:1） |
 
@@ -764,16 +785,16 @@ pm2 restart project-m --update-env
 | `scripts/recover.sh` | 灾难恢复脚本（需手动创建） |
 | `.github/workflows/deploy.yml` | push 到 main 自动部署 |
 | `nginx/project-m.conf` | Nginx 反向代理 + WebSocket 信令代理配置模板 |
-| `signaling-server.mjs` | 独立 WebSocket 信令服务器（PM2 双进程之一） |
+| `server.mjs` | 集成服务器入口（Next.js + WebSocket 信令合并） |
 | `supabase/schema.sql` | 数据库建表、RLS、触发器 |
 
 ### 15.3 核心库
 
 | 文件 | 作用 |
 |------|------|
-| `lib/version.ts` | 版本代号「梦想家」(DR-DREAMER)、品牌名「多重宇宙」、标语、设计系统常量 |
-| `styles/globals.css` | 全局设计系统：米白色空间站风格 CSS 变量、动画（holoScan/dataStream/statusPulse）、工具类（station-panel/orbital-scan/station-glow/orbital-ring） |
-| `components/Layout.tsx` | 全局布局组件，航天舱段框架，版本水印渲染 |
+| `lib/version.ts` | 版本代号「破晓」(DR-DAYBREAK)、品牌名「多重宇宙」、标语、双主题设计系统常量 |
+| `styles/globals.css` | 全局设计系统：PvE/PvP 双主题 CSS 变量、动画、工具类 |
+| `components/Layout.tsx` | 全局布局组件，导航栏（含 PvP 竞技入口），版本水印渲染 |
 
 ### 15.4 游戏核心
 
@@ -784,7 +805,7 @@ pm2 restart project-m --update-env
 | `lib/game/balance.ts` | 武器平衡数值与升级曲线（含近战） |
 | `lib/game/weapons.ts` | 武器创建器与新手武器栏（3 把：2 远程 + 1 近战） |
 | `lib/game/heroes.ts` | 英雄定义、技能、天赋与近战联动 |
-| `lib/game/ai/` | AI 行为（bot-ai/pathfinding/tactics） |
+| `lib/game/ai/` | AI 行为（bot-ai/pathfinding/tactics/ability-gating/coordination/learning） |
 
 ### 15.5 玩法系统
 
@@ -801,7 +822,6 @@ pm2 restart project-m --update-env
 | `lib/network/coop-room.ts` | 2人联机房间：房间管理、P2P DataChannel、数据同步 |
 | `lib/network/signaling.ts` | WebSocket信令客户端：房间创建/加入、成员广播、SDP/ICE交换 |
 | `lib/network/peer.ts` | WebRTC P2P连接：DataChannel封装、心跳、重连 |
-| `signaling-server.mjs` | 独立WebSocket信令服务器：跨设备组队信令中转 |
 | `lib/game/season.ts` | 赛季等级、奖励、任务与进度 |
 | `lib/game/save.ts` | 本地存档、赛季 XP/货币持久化 |
 | `lib/game/weather.ts` | 动态天气系统（辐射风暴、酸雨、沙尘暴） |
@@ -809,7 +829,29 @@ pm2 restart project-m --update-env
 | `lib/game/achievements.ts` | 成就系统：定义、进度、奖励 |
 | `lib/game/chronicles.ts` | 维度编年史：世界观数据 |
 
-### 15.6 引擎与网络
+### 15.6 PvP 系统（破晓新增）
+
+| 文件 | 作用 |
+|------|------|
+| `lib/game/pvp/types.ts` | PvP 类型定义：决斗/回合/英雄/武器/地图/战绩 |
+| `lib/game/pvp/pvp-heroes.ts` | PvP 英雄定义：铁拳格斗家/暗影刺客/烈焰骑士/风暴游侠 |
+| `lib/game/pvp/pvp-weapons.ts` | PvP 武器定义：指虎/十字弩/战术匕首/震击拳套/战术弓/相位匕首 |
+| `lib/game/pvp/pvp-maps.ts` | PvP 地图定义：8张竞技地图，4种主题（工业/自然/科技/古典） |
+| `lib/game/pvp/duel.ts` | 1v1 决斗逻辑：创建/开始/回合/伤害/评分 |
+| `lib/game/pvp/pvp-matchmaking.ts` | 匹配队列：玩家匹配/质量计算 |
+| `lib/game/pvp/custom-room.ts` | 自定义房间：创建/加入/设置/准备 |
+| `lib/game/pvp/battle-history.ts` | 战绩管理：创建/保存/查询/统计 |
+
+### 15.7 混合连接网络（破晓新增）
+
+| 文件 | 作用 |
+|------|------|
+| `lib/network/multiplayer-v2.ts` | 混合连接集成层：LAN/房间码/服务端中转统一管理 |
+| `lib/network/lan-discovery.ts` | 局域网自动发现：创建/加入/发现房间 |
+| `lib/network/room-code.ts` | 房间码直连：创建/加入/状态检查 |
+| `lib/network/server-relay.ts` | 服务端中转：连接/消息/重连 |
+
+### 15.8 引擎与网络
 
 | 文件 | 作用 |
 |------|------|
@@ -818,7 +860,7 @@ pm2 restart project-m --update-env
 | `lib/engine/infra/` | 基础设施引擎（地图平衡、网络预测） |
 | `lib/network/` | 多人联机基础设施（预测、插值、Delta、Jitter、匹配、房间、信令、P2P） |
 
-### 15.7 UI 组件
+### 15.9 UI 组件
 
 | 文件 | 作用 |
 |------|------|
@@ -830,93 +872,36 @@ pm2 restart project-m --update-env
 | `components/game/FlagshipPeakSettlement.tsx` | 旗舰巅峰结算画面：六阶段主题、六维雷达、11隐藏成就、里程碑、粒子动画 |
 | `components/game/PhaseIndicator.tsx` | 阶段指示器：实时显示当前阶段（标准/超频/地狱/深渊/虚空/创世），带动态切换动画 |
 
-### 15.8 页面
-
-| 文件 | 作用 |
-|------|------|
-| `pages/index.tsx` | 战术指挥中心主页（全息模式选择器、舰桥广播） |
-| `pages/landing.tsx` | 品牌首页（史诗叙事 Hero、舰桥风格） |
-| `pages/login.tsx` | 登录页（GitHub OAuth + 邮箱验证码） |
-| `pages/game.tsx` | 游戏大厅 |
-| `pages/base.tsx` | 玩家基地 |
-| `pages/modes.tsx` | 模式选择 |
-| `pages/campaign.tsx` | 剧情战役 |
-| `pages/boss-rush.tsx` | BossRush |
-| `pages/peak-challenge.tsx` | 顶峰挑战 |
-| `pages/flagship-peak.tsx` | 旗舰巅峰MAX（六阶段50波终极挑战） |
-| `pages/extreme-survival/index.tsx` | 极限生存 |
-| `pages/season.tsx` | 赛季进度与奖励 |
-| `pages/hero-archive.tsx` | 英雄档案 |
-| `pages/heroes.tsx` | 英雄收藏 |
-| `pages/chronicles.tsx` | 维度编年史 |
-| `pages/achievements.tsx` | 成就系统 |
-| `pages/leaderboard.tsx` | 战绩与全球排行榜 |
-| `pages/guild.tsx` | 公会 |
-| `pages/world.tsx` | 世界地图（维度网络） |
-| `pages/armory.tsx` | 军械库 |
-| `pages/enemies.tsx` | 敌人图鉴 |
-| `pages/algorithms.tsx` | 算法实验室（三引擎仪表盘） |
-| `pages/about.tsx` | 关于 |
-| `pages/help.tsx` | 帮助 |
-| `pages/settings.tsx` | 设置 |
-| `pages/admin.tsx` | 管理后台 |
-| `pages/404.tsx` | 自定义 404 |
-
 ---
 
-## 16. 梦想家版本内容说明
+## 16. 破晓版本内容说明
 
-### 16.1 米白色中国航天风设计系统
+### 16.1 双主题设计系统
 
-「梦想家」版本全站 31 页面统一采用米白色中国航天风视觉风格，灵感来自中国航天空间站：亮色基调、大面积留白、极简国际化、科技感与人文温度并存。
+「破晓」版本引入双主题视觉设计系统，PvE 和 PvP 模式拥有独立的视觉风格：
 
-#### 配色方案
+#### PvE 主题 — 米白色中国航天风
 
-| 角色 | 颜色 | CSS 变量 | 用途 |
-|------|------|----------|------|
-| 底色 | `#F5F2ED` | `--background` | 米白色，全站背景 |
-| 主强调 | `#0B1D3A` | `--primary` | 深空蓝，主交互元素，标题文字 |
-| 辅强调 | `#C8A45C` | `--accent` | 航天金，锚点高亮 |
-| 轨道蓝 | `#3B7DD8` | `--orbital` | 数据流、轨道线 |
-| 面板 | `#FFFFFF` | `--panel` | 白色面板背景 |
-| 面板凸起 | `#FAF8F5` | `--panel-raised` | 悬浮面板 |
-| 边框 | `#D8D4CC` | `--border` | 暖灰边框 |
-| 前景 | `#0B1D3A` | `--foreground` | 主文字色 |
-| 前景次要 | `#8A8578` | `--muted` | 次要文字色 |
-| 警示 | `#C47A6A` | `--caution` | 暖珊瑚色警告 |
-| 成功 | `#4A8C5A` | `--success` | 绿色成功状态 |
-| 危险 | `#C4554A` | `--danger` | 红色危险状态 |
-
-#### 设计旋钮
-
-| 参数 | 值 | 含义 |
+| 角色 | 颜色 | 用途 |
 |------|------|------|
-| `DESIGN_VARIANCE` | 9 | 星球式差异：每个页面独立视觉世界，仅靠品牌色和Logo串联 |
-| `MOTION_INTENSITY` | 4 | 航天冷静克制：动画克制、沉稳、有目的性 |
-| `VISUAL_DENSITY` | 3 | 大面积留白：米白色底色 + 极简布局 |
+| 底色 | `#F5F2ED` | 米白色，全站背景 |
+| 主强调 | `#0B1D3A` | 深空蓝，主交互元素 |
+| 辅强调 | `#C8A45C` | 航天金，锚点高亮 |
+| 轨道蓝 | `#3B7DD8` | 数据流、轨道线 |
 
-#### 核心 CSS 类
+设计旋钮：DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3
 
-| 类名 | 作用 |
-|------|------|
-| `.station-panel` | 空间站面板：1px 暖灰边框 + 圆角 + 白色背景 |
-| `.station-panel-header` | 面板标题：深空蓝渐变文字 + 底部边框 |
-| `.orbital-scan` | 轨道扫描线：线性渐变 + 4s 循环动画 |
-| `.station-glow` | 空间站光晕：深空蓝 box-shadow 辉光效果 |
-| `.orbital-ring` | 轨道环：旋转 border 动画 |
-| `.status-pulse` | 状态脉冲：呼吸灯效果 |
-| `.data-stream` | 数据流：上下滚动文字动画 |
-| `.version-watermark` | 版本水印：右下角「梦想家」标记 |
+#### PvP 主题 — 工业擂台暗色风
 
-#### 动画关键帧
+| 角色 | 颜色 | 用途 |
+|------|------|------|
+| 底色 | `#1A1A1E` | 暗色背景 |
+| 前景 | `#F0EDE8` | 暖白文字 |
+| 主强调 | `#E8652C` | 焦橙，竞技元素 |
+| 辅强调 | `#FFB84D` | 热金，高亮 |
+| 次要 | `#4A5568` | 灰蓝辅助 |
 
-| 动画 | 效果 |
-|------|------|
-| `holoScan` | 轨道扫描线从上到下 4s 循环 |
-| `dataStream` | 数据流滚动 1s 循环 |
-| `statusPulse` | 呼吸脉冲 2s 缓入缓出 |
-| `orbitalRing` | 轨道环旋转 8s 线性 |
-| `stationGlow` | 空间站光晕脉冲 3s 缓入缓出 |
+设计旋钮：DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5
 
 #### 字体栈
 
@@ -925,515 +910,112 @@ pm2 restart project-m --update-env
 - 等宽数据：Geist Mono (font-mono tabular-nums)
 - 禁止：Inter
 
-#### 页面星球式差异
-
-每个页面是独立的「星球」或「空间站」，拥有独立的视觉身份：
-
-| 页面 | 星球主题 | 视觉特征 |
-|------|----------|----------|
-| 品牌首页 (`/landing`) | 深空门户站 | 非对称 Hero、大面积品牌叙事 |
-| 指挥中心 (`/`) | 轨道指挥舱 | 全息模式选择器、维度状态指示器 |
-| 登录 (`/login`) | 气闸舱 | 航天员进入仪式感 |
-| 游戏大厅 (`/game`) | 舰队集结港 | 舰队集结状态、呼号信息 |
-| 基地 (`/base`) | 深空前哨站 | 船员名录、武器阵列、航行记录 |
-| 模式选择 (`/modes`) | 星图导航 | 星图布局、环境词缀面板 |
-| 旗舰巅峰 (`/flagship-peak`) | 旗舰舰桥 | 三阶段视觉（标准巡航→超频增压→地狱终局） |
-| 其他页面 | 独立空间站 | 各自独特的视觉主题，通过品牌色+Logo统一 |
-
 ### 16.2 版本代号机制
 
 `lib/version.ts` 定义全站版本常量：
 
 ```typescript
-VERSION_CODE = "DR-DREAMER"    // 版本代码
-VERSION_DISPLAY = "梦想家"        // 显示名称
-VERSION_LABEL = "梦想家 (DR-DREAMER)"  // 完整标签
-VERSION_META_GENERATOR = "多重宇宙 梦想家 (DR-DREAMER)"  // meta 标签
-VERSION_WATERMARK = "梦想家"      // 页面水印
+VERSION_CODE = "DR-DAYBREAK"       // 版本代码
+VERSION_DISPLAY = "破晓"            // 显示名称
+VERSION_LABEL = "破晓 (DR-DAYBREAK)"  // 完整标签
+VERSION_META_GENERATOR = "多重宇宙 破晓 (DR-DAYBREAK)"  // meta 标签
+VERSION_WATERMARK = "破晓"          // 页面水印
 
-BRAND_NAME = "多重宇宙"         // 品牌名
-BRAND_NAME_EN = "Multiverse"   // 品牌英文名
-BRAND_TAGLINE = "公平竞技 · 无付费加成"  // 品牌标语
-BRAND_URL = "multiverse.game"  // 品牌域名
+PREV_VERSION_CODE = "DR-DREAMER"   // 上一个版本代码
+PREV_VERSION_DISPLAY = "梦想家"     // 上一个版本名称
+
+BRAND_NAME = "多重宇宙"             // 品牌名
+BRAND_NAME_EN = "Multiverse"       // 品牌英文名
+BRAND_TAGLINE = "深空探索 · 公平竞技 · 无付费加成"  // 品牌标语
+BRAND_URL = "multiverse.game"      // 品牌域名
 ```
 
-版本水印通过 `components/Layout.tsx` 渲染在所有页面底部。
+### 16.3 破晓版本架构变更
 
-### 16.3 新增玩法系统
+#### 单进程集成部署
 
-#### 剧情战役 (Campaign)
+破晓版本将 WebSocket 信令服务器集成到 Next.js 主进程中，实现单进程部署：
 
-`lib/game/campaign.ts` + `pages/campaign.tsx`
+| 对比项 | 梦想家 (DR-DREAMER) | 破晓 (DR-DAYBREAK) |
+|--------|---------------------|---------------------|
+| 进程数 | 2 (Next.js + 信令) | 1 (集成) |
+| 端口 | 3000 + 3001 | 3000 |
+| 启动脚本 | `.next/standalone/server.js` + `signaling-server.mjs` | `server.mjs` |
+| PM2 配置 | 2 个 app | 1 个 app |
+| 信令路径 | 独立端口 3001 | 同端口 /signaling/ |
+| Nginx upstream | 2 个 (app + signaling) | 1 个 (app) |
 
-- 多章节线性叙事，每章包含多个节点
-- 节点类型：战斗、Boss、剧情、奖励
-- 进度持久化至 `SaveData.campaignProgress`
-- 全息地图风格 UI，章节节点可视化
+#### 混合连接网络
 
-#### BossRush
+网络层从 PeerJS WebRTC P2P 重构为三种混合连接模式：
 
-`lib/game/boss-rush.ts` + `pages/boss-rush.tsx`
-
-- 连续挑战 8 个首领（lancer/charger/spitter/phantom/overlord/juggernaut/weaver/nexus）
-- 每个首领有多阶段机制（phases）
-- 通关奖励与进度持久化至 `SaveData.bossRushProgress`
-- 舰桥面板风格关卡选择
-
-#### 顶峰挑战 (Peak Challenge)
-
-`lib/game/peak-challenge.ts` + `pages/peak-challenge.tsx`
-
-- 高难度挑战模式，含特殊规则与限制
-- 独立的挑战进度与奖励系统
-
-#### 旗舰巅峰MAX (Flagship Peak MAX)
-
-`lib/game/flagship-peak.ts` + `lib/game/flagship-peak-achievements.ts` + `lib/game/boss-variants.ts` + `lib/game/hero-skill-tree.ts` + `lib/game/weapon-forge.ts` + `lib/network/coop-room.ts` + `lib/network/signaling.ts` + `lib/network/peer.ts` + `signaling-server.mjs` + `pages/flagship-peak.tsx` + `components/game/FlagshipPeakSettlement.tsx` + `components/game/PhaseIndicator.tsx`
-
-- 旗舰与巅峰模式融合升级，11 种游戏模式中的终极防守体验
-- **六阶段50波递进**：标准巡航(1-10) → 超频增压(11-20) → 地狱终局(21-25) → 深渊(26-35) → 虚空(36-45) → 创世(46-50)
-- **阶段视觉变色**：深渊墨黑(#333333) → 虚空纯白(#e2e8f0) → 创世极光(#00ffcc)，地图背景色动态变化
-- **双轨挑战系统**：固定挑战（每5波10个）+ 动态任务（各阶段专属）
-- **双维度评级**：速度评级（青铜→钻石，1.0-1.75倍积分）+ 赛季段位（青铜→宗师）
-- **统一积分制**：击杀(10+连击)、精英(+50)、首领(+200)、波次(+50)、完美(+200)、时间奖励
-- **Boss变异系统**：每个阶段Boss有3种随机变异形态（攻击型/防御型/控制型），共18种变异配置
-- **英雄技能树**：每个英雄3分支（进攻/防御/通用）×5层级技能节点，波次奖励技能点，创世阶段觉醒终极技能
-- **武器改装锻造**：武器可附加元素/弹道/效果3种类型模块（共30种），波间锻造台改装，材料从敌人掉落
-- **2人联机协作**：基于WebSocket信令 + WebRTC P2P连接，支持房间管理、角色分工和进度共享
-- **首领战**：第10波 Overlord、第23波 Annihilator、第25波 Dreadnought、第35波深渊吞噬者、第45波虚空湮灭者、第50波创世泰坦
-- 难度系数：标准 1.0x → 超频 1.5x → 地狱 2.0x → 深渊 3.0x → 虚空 4.0x → 创世 5.0x
-- 测试覆盖：旗舰巅峰核心测试（`lib/game/flagship-peak.test.ts`）
-
-##### 独立结算画面
-
-`components/game/FlagshipPeakSettlement.tsx` — 旗舰巅峰模式专属结算画面，电影级视觉动效：
-
-- **六阶段主题**：标准（舰桥蓝紫）→ 超频（深红警报）→ 地狱（黑色虚空）→ 深渊（墨黑）→ 虚空（纯白）→ 创世（极光七彩），阶段切换带过场动画
-- **电影级粒子系统**：按阶段颜色动态生成浮动粒子，粒子密度随阶段递增（标准40→超频55→地狱70→深渊85→虚空100→创世120）
-- **扫描线效果**：全息扫描线动画叠加，增强科技感
-- **脉冲波纹**：阶段切换时从中心扩散的脉冲光环
-- **滚动数字计数器**：积分、经验、击杀数等数据以平滑动画滚动显示
-- **结算流程**：动画阶段 → 评分阶段 → 奖励阶段，三阶段可手动切换
-
-##### 六维雷达评分
-
-`components/game/FlagshipPeakSettlement.tsx` 内 RadarChart 组件：
-
-| 维度 | 权重 | 说明 |
-|------|------|------|
-| 速度 | 20% | 通关速度评级，越快分越高 |
-| 完美波次 | 20% | 无伤波次占比 |
-| 连击 | 18% | 最大连击数与平均连击 |
-| 首领击杀 | 18% | 首领击杀速度与效率 |
-| 击杀 | 12% | 总击杀数评分 |
-| 精英击杀 | 12% | 精英敌人击杀数评分 |
-
-- SVG 六边形雷达图，带渐变填充与动画描边
-- 各维度标签带百分比显示
-- 总分 = 各维度加权求和
-
-##### 隐藏成就系统
-
-`lib/game/flagship-peak-achievements.ts` — 11 个成就（8 核心 + 2 稀有 + 1 传说）：
-
-| 成就 ID | 名称 | 稀有度 | 达成条件 |
-|---------|------|--------|----------|
-| `no_damage_10` | 钢铁防线 | 普通 | 前10波核心不受任何伤害 |
-| `speed_demon` | 极速传说 | 普通 | 全部50波速度评级达到S |
-| `combo_master` | 连击大师 | 普通 | 达成100+连击 |
-| `perfectionist` | 完美主义者 | 普通 | 全部10个固定挑战完成 |
-| `survivor` | 不屈意志 | 普通 | 0死亡完成全部50波 |
-| `abyss_walker` | 深渊漫步者 | 稀有 | 在深渊阶段存活至少5波 |
-| `void_master` | 虚空主宰 | 稀有 | 在虚空阶段击败首领且核心耐久保持50%以上 |
-| `genesis_pioneer` | 创世先驱 | 普通 | 抵达创世阶段并存活至少3波 |
-| `immortal` | 不朽传奇 | 稀有 | 同时达成「钢铁防线」+「完美主义者」+「不屈意志」 |
-| `void_lord` | 虚空之主 | 传说 | 同时达成「不朽传奇」+「三阶全S」+「挑战征服者」 |
-| `genesis_god` | 创世之神 | 传说 | 同时达成「深渊漫步者」+「虚空主宰」+「创世先驱」+「不朽传奇」 |
-
-- 未解锁成就显示为灰色锁定状态
-- 解锁时带粒子爆发动画
-- 结算画面中按稀有度排序展示
-
-##### 波次里程碑奖励
-
-| 波次 | 里程碑 | 奖励 |
-|------|--------|------|
-| 5波 | 初战告捷 | 基础战利品箱 |
-| 10波 | 标准通关 | 阶段宝箱（标准） |
-| 15波 | 超频适应 | 高级战利品箱 |
-| 20波 | 超频通关 | 阶段宝箱（超频） |
-| 25波 | 地狱征服 | 阶段宝箱（地狱）+ 传说印记 |
-| 30波 | 深渊初探 | 深渊宝箱 + 2000 XP |
-| 35波 | 深渊征服者 | 阶段宝箱（深渊）+ 3500 XP |
-| 40波 | 虚空漫步 | 虚空宝箱 + 5000 XP |
-| 45波 | 虚空主宰 | 阶段宝箱（虚空）+ 8000 XP |
-| 50波 | 创世终局 | 阶段宝箱（创世）+ 传说印记 + 15000 XP |
-
-##### 阶段完成奖励
-
-| 阶段 | 奖励 |
-|------|------|
-| 标准巡航 (1-10) | 经验 + 赛季积分 + 基础宝箱 |
-| 超频增压 (11-20) | 经验(1.5x) + 赛季积分(1.5x) + 高级宝箱 |
-| 地狱终局 (21-25) | 经验(2.0x) + 赛季积分(2.0x) + 传说宝箱 + 赛季称号 |
-| 深渊 (26-35) | 经验(3.0x) + 赛季积分(3.0x) + 深渊宝箱 + 深渊称号 |
-| 虚空 (36-45) | 经验(4.0x) + 赛季积分(4.0x) + 虚空宝箱 + 虚空称号 |
-| 创世 (46-50) | 经验(5.0x) + 赛季积分(5.0x) + 创世宝箱 + 创世称号 |
-
-##### 实时HUD显示
-
-`components/game/HudDesktop.tsx` + `components/game/HudMobile.tsx` — 旗舰巅峰模式专属HUD面板：
-
-- 当前积分（带连击倍率显示）
-- 当前连击计数（Combo xN）
-- 活跃挑战任务（固定挑战 + 动态任务）
-- 阶段指示器（PhaseIndicator 组件，带阶段切换动画）
-- 下一波预览（波次编号 + 难度提示）
-
-##### 阶段指示器
-
-`components/game/PhaseIndicator.tsx` — 实时显示当前阶段：
-
-- 标准阶段：蓝色图标 + 舰桥蓝紫边框
-- 超频阶段：红色图标 + 脉冲动画 + 红色警报边框
-- 地狱阶段：紫色图标 + 虚空主题 + 紫色边框
-- 深渊阶段：墨黑图标 + 视野收缩动画 + 暗黑边框
-- 虚空阶段：纯白图标 + 反色主题 + 白色边框
-- 创世阶段：极光图标 + 七彩渐变边框 + 脉动光晕
-- 阶段切换时带 scale + opacity 过渡动画
-- 支持 `prefers-reduced-motion` 无障碍适配
-
-### 16.4 归属感系统
-
-#### 成就系统
-
-`lib/game/achievements.ts` + `pages/achievements.tsx`
-
-- 多类别成就定义（战斗/探索/收集/社交/赛季）
-- 进度追踪与奖励发放
-- 舰桥面板风格成就展示
-
-#### 玩家成长
-
-`pages/base.tsx`
-
-- 玩家等级、经验进度条
-- 总游戏时长、击杀数等统计数据
-- 维度跃迁状态指示器
-
-#### 收藏进度
-
-`pages/heroes.tsx` + `pages/armory.tsx` + `pages/enemies.tsx`
-
-- 已收集英雄、武器、皮肤、表情、徽章
-- 已击败 Boss 图鉴
-- 收藏完成度百分比
-
-### 16.5 世界观内容
-
-#### 英雄档案
-
-`pages/hero-archive.tsx`
-
-- 全部可玩英雄详细信息（背景故事、技能、天赋）
-- 全息卡片风格展示
-
-#### 维度编年史
-
-`lib/game/chronicles.ts` + `pages/chronicles.tsx`
-
-- 游戏世界历史事件时间线
-- 维度设定与背景叙事
-
-### 16.6 近战武器概览
-
-| 武器 ID | 名称 | 类型 | 机制 | 定位 |
-|---------|------|------|------|------|
-| `shortBlade` | 碳钢短刃 | 基础近战 | 扇形瞬发 (`arc`) | 高攻速、小范围、清杂兵 |
-| `spear` | 合金长枪 | 基础近战 | 短程弹道突刺 (`thrust`) | 中距离直线穿透 |
-| `greatsword` | 重型大剑 | 基础近战 | 短程弹道突刺 (`thrust`) | 慢速、高伤、重击破甲 |
-| `gauntlet` | 脉冲拳套 | 基础近战 | 扇形瞬发 (`arc`) | 超高速连击、大角度 |
-| `plasmaBlade` | 等离子刃·改 | 进阶近战 | 扇形瞬发 (`arc`) | 高伤能量斩击 + 灼烧 |
-
-### 16.7 双攻击机制
-
-- **扇形瞬发 (`arc`)**：短刃、拳套、等离子刃·改。以玩家面朝方向为中心，`meleeAngle` 扇形检测，命中最多 `pierce + 1` 个敌人。瞬时伤害，无飞行弹道。
-- **短程弹道突刺 (`thrust`)**：长枪、重剑。短寿命穿透弹道，沿直线命中多个敌人。
-
-### 16.8 新手武器栏
-
-```typescript
-getStarterWeapons() // [pulseRifle, shotgun, spear] = 2 远程 + 1 近战
-```
-
-### 16.9 英雄技能实用性增强
-
-关键 Bug 修复：非防御模式下技能完全无法使用（`if (!ds) return;` 守卫拦截）。修复方案：移除强制检查，改为双存储降级策略，新增全局 `deployables` 字段。
-
-| 英雄 | 技能 | 修复前 | 修复后 |
-|------|------|--------|--------|
-| 液氮 (Nitrogen) | 绝对零度 伤害 | 420 | 480 |
-| 液氮 (Nitrogen) | 绝对零度 冻结时长 | 3.2s | 3.5s |
-| 液氮 (Nitrogen) | 绝对零度 碎裂伤害 | 260 | 300 |
-| 豹 (Leopard) | 速度倍率重置 | 1.12 | 1.15 |
-| 豹 (Leopard) | 狂乱状态 暴击率 | 25% | 30% |
-| 豹 (Leopard) | 狂乱状态 速度 | 35% | 40% |
-| 豹 (Leopard) | 狂乱状态 时长 | 8s | 10s |
-| 蝰蛇 (Viper) | 毒液 DOT 每层 | 10/s | 12/s |
-| 蝰蛇 (Viper) | 尸体爆发 伤害 | 100 | 130 |
-| 猎鹰 (Recon) | 终极技能 伤害 | 420 | 500 |
-| 暮蝶 (Twilight) | 茧 治疗量 | 120 | 150 |
-
-### 16.10 近战天赋联动
-
-- **豹（leopard）- 利刃精通**：近战武器伤害 +12%，攻击范围 +8%
-- **蝰蛇（viper）- 毒刃**：近战武器伤害 +10%，近战命中附加 2 秒毒素（每秒 15 伤害）
-
-### 16.11 三引擎算法架构
-
-| 引擎 | 定位 | 包含算法 | 文件 |
-|------|------|----------|------|
-| α 引擎 | 玩家端 | DDA 动态难度、经济平衡、匹配系统、奖励推荐、内容推荐、反作弊 | `lib/engine/alpha/` |
-| β 引擎 | 敌方端 | Bot AI、生成优化、敌人移动 | `lib/engine/beta/` |
-| 基础设施引擎 | 共享 | 地图平衡、网络预测 | `lib/engine/infra/` |
-
-算法页面 `/algorithms` 以三引擎仪表盘形式展示所有引擎的实时演示。
-
-### 16.12 动态天气系统
-
-| 天气 | 视觉效果 | 玩家影响 | 敌人影响 |
-|------|----------|----------|----------|
-| 辐射风暴 | 绿色粒子、屏幕闪烁 | 移速 -15%、持续伤害 2/s | 移速 +10% |
-| 酸雨 | 蓝色下落粒子、屏幕腐蚀 | 护甲 -30%、移速 -10% | 生命回复 +5/s |
-| 沙尘暴 | 棕色粒子、视野缩小 | 视野 -40%、移速 -20% | 无影响 |
-
-### 16.13 诅咒祝福双选系统
-
-Roguelike 模式每次升级时二选一：
-
-- **诅咒（Curse）**：负面效果 + 高额奖励
-- **祝福（Blessing）**：纯正面增益
-
-### 16.14 多人联机基础设施
-
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| 网络预测 | `prediction.ts` | 客户端输入预测 + 服务端状态校正 |
-| Jitter 缓冲 | `jitter.ts` | 输入缓冲、重放、乱序处理 |
-| Delta 同步 | `delta.ts` | 增量状态编码/解码，减少带宽 |
-| 连接质量 | `quality.ts` | 延迟、丢包率、带宽实时监控 |
-| 匹配队列 | `matchmaking.ts` | 基于技能分 + 延迟的匹配算法 |
-| 房间管理 | `room.ts` | 多人房间生命周期、心跳、广播 |
-| 信令服务 | `signaling.ts` | WebRTC 信令交换（客户端） |
-| 点对点连接 | `peer.ts` | WebRTC DataChannel 封装 |
-| 联机房间 | `coop-room.ts` | 2人联机协作：房间管理、P2P DataChannel、进度同步 |
-| 信令服务器 | `signaling-server.mjs` | 独立 WebSocket 信令服务（服务端），跨设备组队中转 |
-
-### 16.15 HUD 旗舰重设计
-
-| 组件 | 文件 | 功能 |
-|------|------|------|
-| HUD 主入口 | `components/Hud.tsx` | 桌面/移动端自动路由、HUD 缩放 |
-| 桌面 HUD | `components/game/HudDesktop.tsx` | 玩家状态面板、武器面板、技能按钮、击杀推送、统计行 |
-| 移动 HUD | `components/game/HudMobile.tsx` | 紧凑状态栏、触控优化技能按钮、防守模式指示器 |
-| 击杀推送 | `components/game/KillFeed.tsx` | 实时滚动击杀通知（AnimatePresence + 自动过期） |
-| 补给窗口 | `components/game/SupplyWindow.tsx` | B/ESC 快捷键、倒计时、快速下一波 |
-
-新增特性：
-
-- **武器面板**：冷却环（SVG 圆环进度），就绪/冷却状态区分
-- **状态效果栏**：护甲、暴击、回复、范围等被动效果可视化标签
-- **渐变血条**：绿/黄/红三色渐变，低血量脉冲动画
-- **击杀推送**：滚动显示击杀者、武器、受害者，自动消失
-- **连杀指示器**：底部进度条显示连杀窗口剩余时间
-- **补给窗口**：B/ESC 快捷键控制，倒计时自动跳过，快速下一波按钮
-
-### 16.16 测试覆盖
-
-- `lib/game/weapons.test.ts`：新手武器栏、近战武器创建器
-- `lib/game/balance.test.ts`：武器平衡数值、升级曲线、弹速例外
-- `lib/game/engine.test.ts`：扇形/突刺命中判定、伤害结算
-- `lib/game/heroes.test.ts`（45 tests）：英雄技能数值、天赋应用、冻结场 tick 逻辑
-- `lib/game/ai.test.ts`：AI 行为适配近战范围
-
-### 16.17 寻飞弹全追踪系统
-
-堡垒的寻飞弹追踪特性已复制到全部带追踪描述的武器和英雄技能上，实现差异化追踪参数。
-
-#### 追踪参数说明
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `homing` | boolean | 弹体是否启用追踪 |
-| `homingRadius` | number | 搜索最近敌人的半径（像素），默认 280 |
-| `homingTurnRate` | number | 最大转向速率（rad/s），默认 3.5 |
-| `undodgeable` | boolean | 弹体无法被闪避（哨兵追踪天赋专属） |
-
-#### 7个追踪目标及差异化参数
-
-| # | 目标 | 搜索半径 | 转向速度 | 设计理由 |
-|---|------|----------|----------|----------|
-| 1 | `drone` 浮游无人机 | 240 (射程50%) | 5.0 rad/s | 小型无人机灵活转向，搜索范围限制在射程内 |
-| 2 | `swarm` 蜂群发射器 | 280 (射程50%) | 2.8 rad/s | 蜂群弹多(4-9发)，转向慢形成"蜂群包裹"效果 |
-| 3 | 工程师导弹天赋 (`engineer_offense_2`) | 320 | 4.5 rad/s | 炮台导弹大范围搜索，快速锁定，120%范围伤害 |
-| 4 | 哨兵追踪天赋 (`sentinel_utility_4`) | 280 | 3.5 rad/s | 全局被动，弹速+30%，无法被闪避 |
-| 5 | Recon 侦察无人机 (`heroId: recon`) | 220 | 4.8 rad/s | 侦察型无人机搜索范围小但反应极快 |
-| 6 | 武器锻造追踪器 (`mod_ballistic_tracker`) | 260 | 3.8 rad/s | 稀有改装件，中规中矩参数 |
-| 7 | 武器锻造制导器 (`mod_ballistic_guidance`) | 260 | 3.8 rad/s | 传说改装件，必中追踪 |
-| 8 | 钱包事件无人机 (`events.ts`) | 240 | 4.5 rad/s | 临时部署物，性能与浮游无人机相当 |
-
-#### 引擎改动
-
-- `updateProjectiles()`：搜索半径从硬编码 `280` 改为读取 `p.homingRadius ?? 280`，转向速率从硬编码 `3.5` 改为读取 `p.homingTurnRate ?? 3.5`
-- `fireWeapon()`：检测哨兵追踪天赋 (`sentinel_utility_4`)，为所有弹体附加 `homing` + `undodgeable` + 弹速 1.30x
-- `fireDrone()`：透传武器 `homing`/`homingRadius`/`homingTurnRate`，同时检测哨兵追踪天赋
-- `fireWeapon()` 锻造检测：读取 `flagshipPeakState.weaponMods` 并调用 `getInstalledModEffects()` 检查追踪器/制导器
-- 炮台导弹：`updateDeployableList` 中 `turret` case 新增 `missileTimer` 逻辑，每5秒发射一枚追踪导弹（`fireTurretMissile`）
-- 炮台常规弹体：`fireTurretProjectile` 检测工程师导弹天赋，为弹体附加 `homing`
-- Recon 无人机：`updateDeployableList` 中 `drone` case 检测 `heroId === "recon"`，按 `fireCooldown` 发射追踪弹体（`fireReconDroneProjectile`）
-
-#### 类型定义变更
-
-| 文件 | 接口/类型 | 新增字段 |
-|------|----------|----------|
-| `types.ts` | `Projectile` | `homingRadius?: number`, `homingTurnRate?: number`, `undodgeable?: boolean` |
-| `types.ts` | `Weapon` | `homingRadius?: number`, `homingTurnRate?: number` |
-| `types.ts` | `WeaponMod.statBonus` | `homing?: number` |
-| `types.ts` | `Deployable` | `missileTimer?: number` |
-| `balance.ts` | `WeaponStatBlock` | `homingRadius?: number`, `homingTurnRate?: number` |
-
-#### 改动文件清单
-
-| 文件 | 改动 |
-|------|------|
-| `lib/game/types.ts` | 4 个接口新增字段 |
-| `lib/game/balance.ts` | `drone`、`swarm` 武器添加 `homing` + 参数，`createWeaponFromBalance` 透传 |
-| `lib/game/engine.ts` | `updateProjectiles` 自定义参数，`fireWeapon` 追踪天赋 + 锻造检测，`fireDrone` 透传参数 |
-| `lib/game/heroes.ts` | `fireTurretProjectile` 检测导弹天赋，新增 `fireTurretMissile`、`fireReconDroneProjectile`，`updateDeployableList` 导弹计时 + Recon 无人机射击 |
-| `lib/game/hero-skill-tree.ts` | 导弹天赋添加 `homingRadius: 320, homingTurnRate: 4.5`，追踪天赋添加 `homingRadius: 280, homingTurnRate: 3.5` |
-| `lib/game/weapon-forge.ts` | 追踪器添加 `statBonus: { homing: 1 }`，制导器添加 `statBonus: { homing: 1 }` |
-| `lib/game/events.ts` | 钱包无人机弹体添加 `homing: true, homingRadius: 240, homingTurnRate: 4.5` |
-| `lib/game/balance.test.ts` | 验证 `drone`/`swarm` 的 homing 字段和参数 |
-
----
-
-### 16.18 智能敌方 AI 系统（创世版升级）
-
-敌方 AI 从战斗策略深度、群体协作智能、学习与适应性三个维度全面重构，实现更加智能和聪明的敌方行为。
-
-#### 能力门控系统 (ability-gating.ts)
-
-波次 + 敌人类型双重解锁机制，确保难度曲线平滑递增：
-
-| 波次区间 | 阶段名 | 解锁能力 |
-|----------|--------|----------|
-| 1-10 | 标准 | 基础 AI（追逐/保持距离/侧翼/冲锋/环绕） |
-| 11-20 | 超频 | + 预判瞄准（精英/Boss）、角色分工、集火指令、编队协同 |
-| 21-25 | 地狱 | + 弹幕躲避（精英/Boss）、掩护撤退（精英/Boss）、防守习惯识别 |
-| 26-35 | 深渊 | + 武器对策（精英/Boss）、英雄对策（精英/Boss） |
-| 36-50 | 创世 | + 全部能力、地形利用（Boss） |
-
-**门控函数**：`getAbilityGate(wave, enemy)` 返回 `AbilityGate` 对象，包含所有能力的布尔开关。
-
-**参数配置函数**：
-- `getPredictiveAimConfig(wave, enemy, aggression)` — 预判瞄准参数（精度/距离衰减/移速加权）
-- `getDodgeConfig(wave, enemy, aggression)` — 弹幕躲避参数（反应时间/躲避半径/成功率）
-- `getHeroCounterConfig(wave, enemy, player)` — 英雄对策参数（策略类型/触发阈值/冷却时间）
-
-#### 战斗策略深度 (tactics.ts)
-
-**新增 AI 行为类型**：
-| 行为 | 说明 |
-|------|------|
-| `predictive_aim` | 预判玩家移动轨迹，计算提前量瞄准偏移 |
-| `dodge` | 检测威胁弹体，计算躲避方向 |
-| `cover_ally` | 掩护受伤队友，吸引火力 |
-| `focus_fire` | 集火低血量玩家 |
-| `form_up` | 编队协同移动 |
-
-**行为选择逻辑** (`selectBehavior`)：
-1. 弹幕躲避优先级最高（威胁等级 > 0.6 时触发）
-2. 低血量（< 25%）行为：有坦克队友时保持距离，有障碍时寻找掩体，否则 `keep_distance`（限制撤退范围）
-3. 据点模式：以核心为目标的直冲逻辑
-4. Boss 专属：环绕轨道行为
-5. 武器对策：根据玩家武器类型调整（侧翼/冲锋）
-6. 防守习惯：避开玩家高频驻留区域
-
-**Steering 输出扩展**：
-- `aimOffsetX/aimOffsetY` — 预判瞄准偏移量，传递至 `fireEnemyProjectile` 计算弹道
-- 撤退距离限制 `clampRetreatDistance`：防止敌方大幅度逃跑
-
-#### 群体协作系统 (coordination.ts)
-
-| 能力 | 函数 | 说明 |
-|------|------|------|
-| 角色分工 | `classifyEnemyRole` / `applyRoleDivision` | 坦克在前抵挡、输出在后射击、支援居中治疗 |
-| 集火指令 | `applyFocusFire` | 当玩家血量 < 35% 且有 3+ 队友时，集中攻击该玩家 |
-| 掩护撤退 | `applyCoverRetreat` | 受伤队友撤退时，坦克型敌人上前掩护 |
-| 编队协同 | `applyFormation` | 以编队中心为基准，保持阵型移动 |
-
-**协作上下文** (`CoordinationContext`)：
-- `focusTargetId` — 集火目标 ID
-- `needsCoverRetreat` — 是否需要掩护撤退
-- `formationCenter` — 编队中心坐标
-- `enemyRoles` — 每个敌人的角色分类
-
-#### 学习与适应系统 (learning.ts)
-
-**防守习惯识别**：
-- 热力图 (`heatmap`)：按 80×80 像素网格记录玩家高频驻留区域
-- 热区衰减 (`decayHeatmap`)：每秒衰减 0.5%，防止热区永久固化
-- 避开热区 (`getAvoidHotZoneDirection`)：计算避开玩家常驻区域的进攻方向
-
-**英雄对策**：
-- 英雄检测 (`updateHeroDetection`)：根据武器类型、技能使用频率、移动模式检测玩家英雄
-- 对策策略 (`applyHeroCounterBehavior`)：
-  - 近战英雄 → `keep_distance`（保持距离）
-  - 远程英雄 → `charge`（冲锋贴脸）
-  - 坦克英雄 → `flank`（侧翼攻击）
-
-**波次递增难度**：
-- 每波增加 0.012 攻击性加成（`waveDifficultyBonus`）
-- 每 5 波提升协作加成 0.3（`coordinationBonus`）
-
-#### Boss 状态机增强 (boss-state.ts)
-
-新增行为节点：
-| 节点 | 权重 | 触发条件 |
-|------|------|----------|
-| `predictive_aim` | 55 | Phase ≥ 2，有视线，距离 > 200px |
-| `cover_ally` | 45 | Phase ≥ 2，有队友血量 < 30%，距离 < 350px |
-| `focus_fire` | 50 | 玩家血量 < 35%，队友 ≥ 3 |
-
-#### 引擎集成 (engine.ts)
-
-- `learningMemory` 成员变量：全局唯一学习记忆实例
-- `buildAIContext` 扩展：传递 `wave`、`playerProjectiles`、`learningMemory`
-- 每帧更新学习记忆：`updateLearningMemory(memory, player, mapWidth, mapHeight, wave, dt, gate)`
-- 攻击逻辑修改：`fireEnemyProjectile(enemy, steering.aimOffsetX, steering.aimOffsetY)` 应用预判瞄准偏移
-
-#### 改动文件清单
-
-| 文件 | 改动类型 | 行数 |
+| 模式 | 适用场景 | 说明 |
 |------|----------|------|
-| `lib/game/ai/types.ts` | 修改 | 扩展 AIBehavior、SteeringOutput、AIContext，新增 AbilityGate/LearningMemory 等类型 |
-| `lib/game/ai/ability-gating.ts` | 新增 | 能力门控系统（波次 + 敌人类型双重解锁） |
-| `lib/game/ai/coordination.ts` | 新增 | 群体协作系统（角色分工/集火/掩护/编队） |
-| `lib/game/ai/learning.ts` | 新增 | 学习适应系统（热力图/英雄检测/波次递增） |
-| `lib/game/ai/tactics.ts` | 修改 | 重写 selectBehavior，新增预判瞄准/躲避/武器对策逻辑 |
-| `lib/game/ai/boss-state.ts` | 修改 | Boss 状态机新增 predictive_aim/cover_ally/focus_fire 节点 |
-| `lib/game/engine.ts` | 修改 | 集成学习记忆、传递预判瞄准偏移 |
-| `lib/game/ai/index.ts` | 修改 | 导出新模块 |
-| `lib/game/ai/integration.test.ts` | 修改 | 50 个 AI 升级测试（能力门控/协作/学习/Boss） |
-| `lib/game/ai.test.ts` | 修改 | 更新行为选择测试适配新签名 |
+| 局域网自动发现 | 同一 WiFi/LAN | 基于 UDP 广播，零配置自动发现 |
+| 房间码直连 | 远程好友 | 输入 6 位房间码即可直连 |
+| 服务端中转 | 复杂网络环境 | 通过 WebSocket 信令服务器中转 |
 
-#### 测试覆盖
+### 16.4 PvP 1v1 积分决斗系统
 
-- 能力门控测试：波次解锁逻辑、精英/Boss 权限差异、全部能力最高波次解锁
-- 群体协作测试：角色分类、集火、掩护撤退、编队协同
-- 学习适应测试：热力图记录与热区计算、英雄检测、波次递增
-- Boss 预判瞄准：Boss phase 2 以上启用预判、偏移量合理性
-- 回归测试：旧行为选择测试适配新 API（30 测试全部通过）
+#### 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| 决斗模式 | 休闲匹配 / 天梯排位 / 自定义房间 |
+| 回合制 | BO3（三局两胜）/ BO5（五局三胜） |
+| 积分系统 | ELO 评分，胜负影响积分变化 |
+| 段位 | 青铜→白银→黄金→铂金→钻石→宗师 |
+
+#### PvP 英雄（4个）
+
+| 英雄 ID | 名称 | 角色 | 特点 |
+|---------|------|------|------|
+| `iron_fist` | 铁拳格斗家 | 近战斗士 | 高血量，高护甲，近战连击 |
+| `shadow_assassin` | 暗影刺客 | 突进刺客 | 高速度，低血量，暴击隐身 |
+| `flame_knight` | 烈焰骑士 | 均衡战士 | 中等属性，火焰范围伤害 |
+| `storm_ranger` | 风暴游侠 | 远程射手 | 高射程，低血量，风筝战术 |
+
+#### PvP 武器（6种）
+
+| 武器 ID | 名称 | 类型 | 特殊效果 |
+|---------|------|------|----------|
+| `brass_knuckles` | 指虎 | 近战 | 连击 combo |
+| `crossbow` | 十字弩 | 远程 | 蓄力 charge |
+| `combat_blade` | 战术匕首 | 近战 | 格挡 parry |
+| `shock_gauntlet` | 震击拳套 | 近战 | 冲刺 dash |
+| `tactical_bow` | 战术弓 | 远程 | 爆发 burst |
+| `phase_dagger` | 相位匕首 | 混合 | 瞬移 teleport |
+
+#### PvP 地图（8张）
+
+| 地图 ID | 名称 | 主题 | 特色 |
+|---------|------|------|------|
+| `forge_arena` | 锻炉竞技场 | 工业 | 经典对称竞技场 |
+| `pipeline_yard` | 管道工场 | 工业 | 复杂掩体 |
+| `ancient_grove` | 古木林地 | 自然 | 开阔视野 |
+| `crystal_cavern` | 水晶洞穴 | 自然 | 狭窄通道 |
+| `server_farm` | 服务器集群 | 科技 | 数据流危险区 |
+| `neon_rooftop` | 霓虹天台 | 科技 | 高低差地形 |
+| `colosseum` | 古代斗兽场 | 古典 | 圆形竞技场 |
+| `zen_garden` | 禅意庭院 | 古典 | 对称布局 |
+
+### 16.5 旗舰巅峰MAX（继承自梦想家）
+
+旗舰巅峰MAX模式完整保留，包含六阶段50波递进、Boss变异系统、英雄技能树、武器改装锻造、2人联机协作、独立结算画面、六维雷达评分、11个隐藏成就、10级波次里程碑奖励、6阶段完成奖励和实时HUD显示。
+
+详见梦想家版本部署手册第 16.3 节。
+
+### 16.6 智能敌方 AI 系统（继承自梦想家）
+
+智能敌方 AI 系统完整保留，包含能力门控（波次+敌人类型双重解锁）、群体协作（角色分工/集火/掩护/编队）、学习适应（热力图/英雄检测/波次递增）和 Boss 状态机增强。
+
+详见梦想家版本部署手册第 16.18 节。
+
+### 16.7 寻飞弹全追踪系统（继承自梦想家）
+
+寻飞弹全追踪系统完整保留，8个追踪目标差异化参数，涵盖武器、技能、天赋、锻造和事件。
+
+详见梦想家版本部署手册第 16.17 节。
 
 ---
 
@@ -1441,7 +1023,7 @@ Roguelike 模式每次升级时二选一：
 
 ### 17.1 游戏内事件监测面板
 
-梦想家版本内置统一游戏事件总线，运行时可通过 `~` 键或 `F1` 键呼出悬浮监测面板。
+破晓版本内置统一游戏事件总线，运行时可通过 `~` 键或 `F1` 键呼出悬浮监测面板。
 
 **事件总线架构** (`lib/game/event-bus.ts`)：
 - 环形缓冲区：最大容量 1000 条事件
@@ -1451,20 +1033,12 @@ Roguelike 模式每次升级时二选一：
 
 **监测面板** (`components/game/EventMonitor.tsx`)：
 - 触发方式：`~` 键或 `F1` 键
-- 实时事件流：滚动显示最新事件，停留底部自动滚动
+- 实时事件流：滚动显示最新事件
 - 分类过滤：下拉选择15个分类或全部
 - 等级过滤：DEBUG/INFO/WARN/ERROR 四级过滤
 - 关键词搜索：搜索事件类型/分类/来源/负载
 - 统计面板：展开查看各事件类型计数
-- 事件详情：展开查看事件 ID、来源模块、负载数据
 - 导出功能：一键下载 JSON 格式事件日志
-
-**事件埋点覆盖**：
-| 层级 | 模块 | 事件类型 |
-|------|------|---------|
-| 引擎层 | `engine.ts` | 游戏开始/结束/暂停/继续/投降、补给开启/结束、波次开始/肃清、Boss 出现/击杀 |
-| 认证层 | `login.tsx` | 登录请求/成功/失败、GitHub OAuth 请求、OAuth 回调错误 |
-| 网络层 | 待接入 | 联机房间创建/加入/离开、Peer 连接/断线、信令错误 |
 
 ### 17.2 PM2 进程监控
 
@@ -1475,7 +1049,7 @@ pm2 logs project-m --lines 200 --nostream  # 查看最近日志
 pm2 logs project-m --lines 0                 # 实时跟踪日志
 ```
 
-### 17.2 日志轮转
+### 17.3 日志轮转
 
 PM2 默认日志无限增长，必须配置轮转：
 
@@ -1490,7 +1064,7 @@ pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
 pm2 set pm2-logrotate:rotateModule true
 ```
 
-### 17.3 系统资源监控
+### 17.4 系统资源监控
 
 ```bash
 # 实时资源
@@ -1514,14 +1088,14 @@ SCRIPT
 chmod +x /var/www/project-m/scripts/health-check.sh
 ```
 
-### 17.4 应用层健康检查接口
+### 17.5 应用层健康检查接口
 
 ```bash
 curl http://localhost:3000/api/health
 # 预期返回: {"status":"ok","timestamp":"..."}
 ```
 
-### 17.5 告警阈值建议
+### 17.6 告警阈值建议
 
 | 指标 | 告警阈值 | 处理方式 |
 |------|----------|----------|
@@ -1736,10 +1310,7 @@ echo "=== 恢复完成 ==="
 pm2 status                    # 查看进程状态
 pm2 restart project-m         # 重启应用
 pm2 restart project-m --update-env  # 刷新环境变量后重启
-pm2 restart project-m-signaling      # 重启信令服务器
-pm2 restart all               # 重启全部进程
 pm2 logs project-m --lines 100      # 查看应用日志
-pm2 logs project-m-signaling --lines 100  # 查看信令日志
 pm2 flush                     # 清空日志
 
 # 构建
@@ -1747,7 +1318,7 @@ cd /var/www/project-m
 git pull origin main
 pnpm install --frozen-lockfile
 pnpm build
-pm2 restart all --update-env
+pm2 restart project-m --update-env
 
 # 系统
 htop                          # 进程监控
@@ -1791,4 +1362,32 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-*本手册对应多重宇宙「梦想家」版本一次性全部上线部署流程。全站 31 页面米白色中国航天风重设计，品牌名「多重宇宙 (Multiverse)」，版本代号「梦想家」(DR-DREAMER)。设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。跨设备 2 人联机协作需部署信令服务器（PM2 双进程）。*
+## 25. 破晓版本升级指南（从梦想家升级）
+
+### 25.1 架构变更摘要
+
+| 变更项 | 梦想家 | 破晓 |
+|--------|--------|------|
+| 版本代号 | DR-DREAMER | DR-DAYBREAK |
+| 进程数 | 2 | 1 |
+| 启动脚本 | `.next/standalone/server.js` | `server.mjs` |
+| 信令端口 | 3001（独立） | 3000（集成） |
+| 信令服务器文件 | `signaling-server.mjs` | 已删除（集成到 server.mjs） |
+| Nginx upstream | 2 个 | 1 个 |
+| 页面数 | 31 | 36（+5 PvP 页面） |
+| 导航栏 | 无 PvP 入口 | 新增「竞技」入口 |
+| 品牌标语 | 公平竞技 · 无付费加成 | 深空探索 · 公平竞技 · 无付费加成 |
+
+### 25.2 升级步骤
+
+1. 拉取最新代码：`git pull origin main`
+2. 安装依赖：`pnpm install --frozen-lockfile`
+3. 更新 Nginx 配置：用新版 `nginx/project-m.conf` 替换旧配置，移除 `project_m_signaling` upstream
+4. 更新 `.env.local`：确保 `NEXT_PUBLIC_SIGNALING_URL` 指向 `wss://your-domain.com/signaling/`（不再需要独立端口）
+5. 构建：`pnpm build`
+6. 停止旧进程：`pm2 delete project-m-signaling`（移除旧信令进程）
+7. 重启：`pm2 restart project-m --update-env`
+
+---
+
+*本手册对应多重宇宙「破晓」版本一次性全部上线部署流程。全站 36 页面双主题设计系统，品牌名「多重宇宙 (Multiverse)」，版本代号「破晓」(DR-DAYBREAK)。PvE 设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；PvP 设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战、PvP 1v1 积分决斗）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。WebSocket 信令已集成到主进程，单进程部署。*

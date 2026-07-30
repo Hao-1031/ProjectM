@@ -71,7 +71,7 @@ export default function PeakChallengePage() {
               <span className="text-gradient">挑战人类反应极限</span>
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-              梦想家版本核心模式。满配开局、15 分钟限时、击杀效率驱动敌潮强度，第 25 波后可进入超频极限冲击排行榜。
+              破晓版本核心模式。满配开局、15 分钟限时、击杀效率驱动敌潮强度，第 25 波后可进入超频极限冲击排行榜。
             </p>
           </motion.div>
 

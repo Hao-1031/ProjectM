@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -318,16 +318,8 @@ function AuthForm({
   onTogglePassword,
   onSubmit,
 }: AuthFormProps) {
-  const formRef = useRef<HTMLFormElement>(null);
-
-  function handleButtonClick() {
-    if (!loading && formRef.current) {
-      formRef.current.requestSubmit();
-    }
-  }
-
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
@@ -409,7 +401,7 @@ function AuthForm({
         </div>
       </div>
 
-      <Button type="button" loading={loading} onClick={handleButtonClick} className="mt-1 w-full">
+      <Button type="submit" loading={loading} className="mt-1 w-full">
         {mode === "login" ? "登录" : "注册"}
       </Button>
     </form>

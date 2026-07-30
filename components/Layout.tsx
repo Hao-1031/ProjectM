@@ -47,6 +47,7 @@ const NAV = [
   { href: "/heroes", label: "英雄", icon: Users },
   { href: "/armory", label: "军械库", icon: Sword },
   { href: "/base", label: "基地", icon: Crosshair },
+  { href: "/pvp", label: "竞技", icon: Sword },
   { href: "/leaderboard", label: "战绩", icon: Trophy },
   { href: "/help", label: "指南", icon: Question },
   { href: "/about", label: "关于", icon: Info },
@@ -225,7 +226,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               </nav>
               <div className="mt-auto pb-4">
                 <div className="rounded-2xl border border-border bg-panel/60 p-4">
-                  <p className="text-xs font-medium text-primary">多重宇宙 · 梦想家</p>
+                  <p className="text-xs font-medium text-primary">多重宇宙 · 破晓</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted">
                     深空探索 · 公平竞技 · 无付费加成
                   </p>

@@ -369,3 +369,280 @@ body {
   letter-spacing: 0.15em;
   pointer-events: none;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PvP 工业擂台主题 — DR-DAYBREAK
+   ══════════════════════════════════════════════════════════════ */
+
+.pvp-theme {
+  --pvp-bg: #1A1A1E;
+  --pvp-fg: #F0EDE8;
+  --pvp-primary: #E8652C;
+  --pvp-accent: #FFB84D;
+  --pvp-secondary: #4A5568;
+  --pvp-success: #22C55E;
+  --pvp-danger: #EF4444;
+  --pvp-warning: #F59E0B;
+  --pvp-muted: #6B7280;
+  --pvp-border: rgba(255, 255, 255, 0.06);
+  --pvp-surface: rgba(255, 255, 255, 0.03);
+  --pvp-surface-raised: rgba(255, 255, 255, 0.05);
+  --pvp-text-dim: rgba(255, 255, 255, 0.4);
+  --pvp-text-muted: rgba(255, 255, 255, 0.2);
+  --pvp-text-faint: rgba(255, 255, 255, 0.15);
+}
+
+/* PvP Rank colors */
+.pvp-rank-legend { color: #FF4500; }
+.pvp-rank-master { color: #FFD700; }
+.pvp-rank-diamond { color: #00BFFF; }
+.pvp-rank-platinum { color: #00CED1; }
+.pvp-rank-gold { color: #FFD700; }
+.pvp-rank-silver { color: #C0C0C0; }
+.pvp-rank-bronze { color: #CD7F32; }
+
+/* PvP Industrial dot grid */
+.pvp-grid {
+  background-image: radial-gradient(circle, rgba(232, 101, 44, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* PvP Welding arc glow */
+.pvp-glow {
+  box-shadow:
+    0 0 40px rgba(232, 101, 44, 0.15),
+    0 0 80px rgba(255, 184, 77, 0.08),
+    inset 0 0 40px rgba(232, 101, 44, 0.04);
+}
+
+/* PvP accent border */
+.pvp-border-accent {
+  border-color: rgba(232, 101, 44, 0.3);
+  box-shadow: 0 0 20px rgba(232, 101, 44, 0.08);
+}
+
+/* PvP Forge card */
+.pvp-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.pvp-card:hover {
+  border-color: rgba(232, 101, 44, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.01);
+}
+
+.pvp-card:active {
+  transform: scale(0.985);
+}
+
+/* PvP Health bar */
+.pvp-health-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.pvp-health-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* PvP Round indicator dots */
+.pvp-round-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.pvp-round-dot.won {
+  border-color: #22C55E;
+  background: #22C55E;
+}
+
+.pvp-round-dot.lost {
+  border-color: #EF4444;
+  background: #EF4444;
+}
+
+/* PvP Search pulse */
+@keyframes pvpSearchPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.pvp-search-pulse {
+  animation: pvpSearchPulse 2s ease-in-out infinite;
+}
+
+/* PvP Welding spark */
+@keyframes weldingSpark {
+  0% { opacity: 0; transform: translateY(0) scale(0); }
+  20% { opacity: 1; transform: translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateY(-24px) scale(0); }
+}
+
+.pvp-spark {
+  animation: weldingSpark 1.5s ease-out infinite;
+}
+
+/* PvP Scoreboard divider */
+.pvp-divider {
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(232, 101, 44, 0.3) 50%,
+    transparent 100%
+  );
+}
+
+/* PvP Loading skeleton — dark variant */
+.pvp-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  border-radius: 0.5rem;
+}
+
+/* PvP Focus ring */
+.pvp-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #1A1A1E,
+    0 0 0 4px #E8652C;
+  border-radius: 0.5rem;
+}
+
+/* PvP Button base */
+.pvp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.pvp-btn:hover {
+  transform: scale(1.02);
+}
+
+.pvp-btn:active {
+  transform: scale(0.98);
+}
+
+.pvp-btn-primary {
+  background: #E8652C;
+  color: #1A1A1E;
+  border-color: #E8652C;
+}
+
+.pvp-btn-primary:hover {
+  background: #F0733D;
+  box-shadow: 0 0 24px rgba(232, 101, 44, 0.3);
+}
+
+.pvp-btn-ghost {
+  background: transparent;
+  color: #F0EDE8;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pvp-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* PvP Map select card */
+.pvp-map-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pvp-map-card:hover {
+  border-color: rgba(232, 101, 44, 0.3);
+  transform: scale(1.02);
+}
+
+.pvp-map-card.selected {
+  border-color: #E8652C;
+  box-shadow: 0 0 20px rgba(232, 101, 44, 0.15);
+}
+
+/* PvP Hero select card */
+.pvp-hero-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pvp-hero-card:hover {
+  border-color: rgba(232, 101, 44, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.02);
+}
+
+.pvp-hero-card.selected {
+  border-color: var(--hero-color, #E8652C);
+  background: color-mix(in srgb, var(--hero-color, #E8652C) 8%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--hero-color, #E8652C) 10%, transparent);
+}
+
+/* PvP Empty state */
+.pvp-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* PvP Error state */
+.pvp-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 0.75rem;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* PvP Round transition overlay */
+@keyframes roundTransition {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.pvp-round-transition {
+  animation: roundTransition 2s ease-in-out;
+}
