@@ -226,7 +226,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               </nav>
               <div className="mt-auto pb-4">
                 <div className="rounded-2xl border border-border bg-panel/60 p-4">
-                  <p className="text-xs font-medium text-primary">多重宇宙 · 破晓</p>
+                  <p className="text-xs font-medium text-primary">多重宇宙 · 双生</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted">
                     深空探索 · 公平竞技 · 无付费加成
                   </p>

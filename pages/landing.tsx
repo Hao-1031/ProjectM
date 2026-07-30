@@ -63,7 +63,7 @@ function LeaderboardPreview() {
       {loading && <Skeleton count={5} className="h-8" />}
       {error && <ErrorState error={error} onRetry={refetch} className="py-3" />}
       {!loading && !error && entries.length === 0 && (
-        <EmptyState title="维度待启" description="破晓版本上线后首批维度行者将在这里留名" className="py-3" />
+        <EmptyState title="维度待启" description="双生版本上线后首批维度行者将在这里留名" className="py-3" />
       )}
       {!loading && !error && entries.length > 0 && (
         <div className="space-y-1">
@@ -145,7 +145,7 @@ export default function LandingPage() {
   return (
     <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
-        <title>多重宇宙 · 破晓 - 深空探索由此开始</title>
+        <title>多重宇宙 · 双生 - 深空探索由此开始</title>
         <meta name="description" content="多重宇宙是多元宇宙背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
       </Head>
 

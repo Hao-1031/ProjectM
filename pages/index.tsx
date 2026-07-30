@@ -34,6 +34,7 @@ import {
   CheckCircle,
   Fire,
   Hexagon,
+  DotsThree,
 } from "@phosphor-icons/react";
 import { loadSave, type SaveData } from "@/lib/game/save";
 import { getModeList } from "@/lib/game/modes";
@@ -126,6 +127,16 @@ const MODES: {
     accent: "accent",
     desc: "全球排行榜竞速",
     featured: false,
+    span: "lg:col-span-3",
+  },
+  {
+    type: "pvp-arena",
+    label: "PvP 竞技",
+    subtitle: "对决维度",
+    icon: Sword,
+    accent: "danger",
+    desc: "1v1 积分决斗 · 工业擂台 · BO3/BO5",
+    featured: true,
     span: "lg:col-span-3",
   },
 ];
@@ -762,6 +773,7 @@ export default function HomePage() {
         </Link>
         <nav className="flex items-center gap-1">
           {[
+            { href: "/pvp", label: "竞技", icon: Sword },
             { href: "/leaderboard", label: "战绩", icon: Trophy },
             { href: "/heroes", label: "英雄", icon: PaintBrush },
             { href: "/help", label: "指南", icon: Question },
@@ -808,7 +820,7 @@ export default function HomePage() {
             >
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                 <Globe size={10} weight="fill" />
-                维度锚点在线 · 梦想家
+                维度锚点在线 · 双生
               </span>
 
               <h1 className="mt-4 font-display text-[clamp(2.25rem,6vw,4rem)] font-extrabold leading-[0.9] tracking-tight">
@@ -945,7 +957,9 @@ export default function HomePage() {
                       ? "/game?mode=peak-challenge"
                       : mode.type === "flagship-peak"
                         ? "/game?mode=flagship-peak"
-                        : `/game?mode=${mode.type}`;
+                        : mode.type === "pvp-arena"
+                          ? "/pvp"
+                          : `/game?mode=${mode.type}`;
 
             return (
               <Link
@@ -1118,7 +1132,7 @@ export default function HomePage() {
         <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-border pt-4 text-xs text-muted sm:flex-row">
           <div className="flex items-center gap-2">
             <BrandLogo size={14} variant="icon" />
-            <span>公平竞技 · 无付费加成 · 多重宇宙 · 梦想家</span>
+            <span>公平竞技 · 无付费加成 · 多重宇宙 · 双生</span>
           </div>
           <div className="flex gap-4">
             <Link href="/about" className="transition-colors hover:text-foreground focus-ring rounded">
@@ -1134,7 +1148,7 @@ export default function HomePage() {
         </footer>
       </section>
 
-      <div className="version-watermark">破晓 v3.0</div>
+      <div className="version-watermark">双生 v3.0</div>
     </div>
   );
 }

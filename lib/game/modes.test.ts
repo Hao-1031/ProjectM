@@ -96,9 +96,9 @@ describe("modes", () => {
   });
 
   describe("getModeList", () => {
-    it("lists all eleven modes", () => {
+    it("lists all twelve modes", () => {
       const list = getModeList();
-      expect(list).toHaveLength(11);
+      expect(list).toHaveLength(12);
       expect(list.map((m) => m.type)).toContain("campaign");
       expect(list.map((m) => m.type)).toContain("endless");
       expect(list.map((m) => m.type)).toContain("daily");
@@ -110,6 +110,7 @@ describe("modes", () => {
       expect(list.map((m) => m.type)).toContain("peak-challenge");
       expect(list.map((m) => m.type)).toContain("flagship");
       expect(list.map((m) => m.type)).toContain("flagship-peak");
+      expect(list.map((m) => m.type)).toContain("pvp-arena");
     });
   });
 

@@ -1,13 +1,13 @@
-/** 版本代号「破晓」- 全站版本常量 */
-export const VERSION_CODE = "DR-DAYBREAK" as const;
-export const VERSION_DISPLAY = "破晓" as const;
+/** 版本代号「双生」- 全站版本常量 */
+export const VERSION_CODE = "DR-DUALITY" as const;
+export const VERSION_DISPLAY = "双生" as const;
 export const VERSION_LABEL = `${VERSION_DISPLAY} (${VERSION_CODE})` as const;
 export const VERSION_META_GENERATOR = `多重宇宙 ${VERSION_LABEL}` as const;
 export const VERSION_WATERMARK = VERSION_DISPLAY;
 
 /** 上一个版本代号 */
-export const PREV_VERSION_CODE = "DR-DREAMER" as const;
-export const PREV_VERSION_DISPLAY = "梦想家" as const;
+export const PREV_VERSION_CODE = "DR-DAYBREAK" as const;
+export const PREV_VERSION_DISPLAY = "破晓" as const;
 
 /** 品牌常量 */
 export const BRAND_NAME = "多重宇宙" as const;

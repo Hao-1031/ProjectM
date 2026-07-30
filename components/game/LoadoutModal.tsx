@@ -535,6 +535,7 @@ function modeName(mode: GameModeType): string {
     "peak-challenge": "巅峰挑战",
     "flagship": "旗舰模式",
     "flagship-peak": "旗舰巅峰",
+    "pvp-arena": "PvP 竞技",
   };
   return names[mode] ?? mode;
 }

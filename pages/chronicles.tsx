@@ -449,7 +449,7 @@ export default function ChroniclesPage() {
         {/* Footer anchor */}
         <div className="rift-divider mt-10" />
         <p className="mt-4 text-center font-mono text-[10px] text-muted">
-          多重宇宙 · 破晓 · 维度档案库 · {CHRONICLES.length} 条编年史记录
+          多重宇宙 · 双生 · 维度档案库 · {CHRONICLES.length} 条编年史记录
         </p>
       </div>
     </Layout>

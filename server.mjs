@@ -1,5 +1,5 @@
 /**
- * 破晓版本 - 集成服务器入口
+ * 双生版本 - 集成服务器入口
  * 将 Next.js standalone 与 WebSocket 信令服务器合并为单一进程
  * 替代原有的双进程 (Next.js + signaling-server.mjs) 架构
  */
@@ -26,8 +26,8 @@ app.prepare().then(() => {
   createSignalingServer(server);
 
   server.listen(port, hostname, () => {
-    console.log(`[破晓] 多重宇宙服务已启动 http://${hostname}:${port}`);
-    console.log(`[破晓] 模式: ${dev ? "开发" : "生产"}`);
-    console.log(`[破晓] 信令: 已集成 (端口 ${port})`);
+    console.log(`[双生] 多重宇宙服务已启动 http://${hostname}:${port}`);
+    console.log(`[双生] 模式: ${dev ? "开发" : "生产"}`);
+    console.log(`[双生] 信令: 已集成 (端口 ${port})`);
   });
 });

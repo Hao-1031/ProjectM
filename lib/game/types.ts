@@ -37,7 +37,8 @@ export type GameModeType =
   | "extreme-survival"
   | "peak-challenge"
   | "flagship"
-  | "flagship-peak";
+  | "flagship-peak"
+  | "pvp-arena";
 
 /** 对局开始前自主选择的难度预设 */
 export type DifficultyPreset = "easy" | "hell";

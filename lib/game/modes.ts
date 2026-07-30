@@ -93,6 +93,13 @@ const MODE_DEFS: Record<GameModeType, ModeDefinition> = {
     allowMissions: true,
     endless: false,
   },
+  "pvp-arena": {
+    type: "pvp-arena",
+    name: "PvP 竞技",
+    description: "1v1 积分决斗，多回合制 BO3/BO5，休闲匹配与自定义房间",
+    allowMissions: false,
+    endless: false,
+  },
 };
 
 export function getModeDefinition(type: GameModeType): ModeDefinition {
@@ -132,6 +139,7 @@ export function getModeList(): { type: GameModeType; name: string; description: 
     { type: "daily", name: "每日挑战", description: MODE_DEFS.daily.description },
     { type: "roguelike", name: "冒险模式", description: MODE_DEFS.roguelike.description },
     { type: "deathmatch", name: "个人死斗", description: MODE_DEFS.deathmatch.description },
+    { type: "pvp-arena", name: "PvP 竞技", description: MODE_DEFS["pvp-arena"].description },
   ];
 }
 
