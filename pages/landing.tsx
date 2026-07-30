@@ -50,7 +50,7 @@ function LeaderboardPreview() {
   const { entries, loading, error, refetch } = useLeaderboard({ limit: 5 });
 
   return (
-    <div className="rounded-3xl border border-border bg-panel p-3 station-glow md:p-4">
+    <div className="game-card-raised rounded-3xl p-3 md:p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-bold">
           <Trophy size={16} weight="bold" className="text-accent" />
@@ -63,7 +63,7 @@ function LeaderboardPreview() {
       {loading && <Skeleton count={5} className="h-8" />}
       {error && <ErrorState error={error} onRetry={refetch} className="py-3" />}
       {!loading && !error && entries.length === 0 && (
-        <EmptyState title="维度待启" description="双生版本上线后首批维度行者将在这里留名" className="py-3" />
+        <EmptyState title="维度待启" description="涅槃版本上线后首批维度行者将在这里留名" className="py-3" />
       )}
       {!loading && !error && entries.length > 0 && (
         <div className="space-y-1">
@@ -145,12 +145,11 @@ export default function LandingPage() {
   return (
     <div className="relative overflow-x-hidden bg-background text-foreground">
       <Head>
-        <title>多重宇宙 · 双生 - 深空探索由此开始</title>
+        <title>多重宇宙 · 涅槃 - 深空探索由此开始</title>
         <meta name="description" content="多重宇宙是多元宇宙背景的横屏动作射击 Web 游戏。据点防守、极限生存、赛季挑战、无付费加成。" />
       </Head>
 
-      <DimensionBackground intensity="medium" />
-      <div className="noise-overlay" />
+      <DimensionBackground intensity="subtle" />
 
       <header className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <Link href="/" className="group flex items-center gap-2 focus-ring rounded-lg">

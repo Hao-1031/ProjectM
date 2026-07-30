@@ -29,8 +29,7 @@ import {
 } from "@/lib/game/pvp/battle-history";
 import type { PvPBattleRecord, PvPPlayerStats } from "@/lib/game/pvp/types";
 
-const pvp = DESIGN_SYSTEM.pvp;
-const pvpColors = pvp.colors;
+const pvpColors = DESIGN_SYSTEM.colors;
 
 export default function PvPHistory() {
   const router = useRouter();
@@ -63,8 +62,7 @@ export default function PvPHistory() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden" style={{ background: pvpColors.background, color: pvpColors.foreground }}>
-      <div className="noise-overlay" />
+    <div className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0 opacity-20"
         style={{
           backgroundImage: `radial-gradient(circle, ${pvpColors.primary}15 1px, transparent 1px)`,

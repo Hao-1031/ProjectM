@@ -1,22 +1,22 @@
-# 多重宇宙「破晓」完整生产部署手册
+# 多重宇宙「涅槃」完整生产部署手册
 
 > 目标环境：阿里云 Ubuntu 22.04 LTS（64 位）
 > 技术栈：Next.js 14 + pnpm 11.9 + Node.js 20 LTS
 > 部署方式：源码构建 + standalone 输出 + PM2 守护 + Nginx 反向代理 + Certbot HTTPS + GitHub Actions 自动部署
-> 当前版本特性：全站 36 页面双主题设计系统；品牌名「多重宇宙 (Multiverse)」；PvE 米白色中国航天风 + PvP 工业擂台暗色风格；版本代号「破晓」(DR-DAYBREAK)；设计旋钮: PvE(DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3) / PvP(DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5)；字体: Geist Sans + Geist Mono；注册/登录已启用，支持 GitHub OAuth 与微信验证码登录；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；PvP 1v1 积分决斗（BO3/BO5 回合制 + 休闲匹配 + 天梯排位 + 自定义房间 + 战绩历史 + 4英雄 + 6武器 + 8地图）；混合连接网络架构（局域网自动发现 + 房间码直连 + 服务端中转）；单进程集成部署（Next.js + WebSocket 信令合并）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
+> 当前版本特性：全站 33 页面统一亮色现代游戏平台设计系统；品牌名「多重宇宙 (Multiverse)」；版本代号「涅槃」(DR-REBIRTH)；设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5；字体: Geist Sans + Geist Mono；全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）；注册/登录已启用，支持 GitHub OAuth；剧情战役 + BossRush 玩法系统；旗舰巅峰MAX模式（六阶段50波终极挑战，含Boss变异系统 + 英雄技能树 + 武器改装锻造 + 2人联机协作 + 独立结算画面 + 六维雷达评分 + 11个隐藏成就系统 + 10级波次里程碑奖励 + 6阶段完成奖励 + 实时HUD显示）；PvP 1v1 积分决斗（BO3/BO5 回合制 + 休闲匹配 + 天梯排位 + 自定义房间 + 战绩历史 + 4英雄 + 6武器 + 8地图）；混合连接网络架构（局域网自动发现 + 房间码直连 + 服务端中转）；单进程集成部署（Next.js + WebSocket 信令合并）；归属感系统（成就/成长/收藏）；世界观内容（英雄档案/维度编年史）；三引擎算法架构（α 玩家端 / β 敌方端 / 基础设施）；动态天气系统（辐射风暴、酸雨、沙尘暴）；诅咒祝福双选系统；多人联机基础设施；HUD 旗舰重设计；近战武器系统（4 基础 + 1 进阶）；英雄技能实用性增强；阶段视觉变色机制（深渊墨→虚空白→创世极光）；事件总线 + 监测面板（15分类×70+事件类型，~/F1 快捷键呼出）；智能敌方 AI 系统（能力门控 + 群体协作 + 学习适应 + Boss 状态机增强）
 
 ---
 
 ## 1. 交付物与范围
 
-本次部署为「破晓」版本一次性全部上线，包含全站 36 个页面的双主题设计系统及全部玩法系统。
+本次部署为「涅槃」版本一次性全部上线，包含全站 33 个页面的统一亮色现代游戏平台设计系统及全部玩法系统。
 
-### 1.1 全站页面清单（36 页）
+### 1.1 全站页面清单（33 页）
 
 | 页面 | 路径 | 说明 |
 |------|------|------|
-| 品牌首页 | `pages/landing.tsx` | 史诗叙事品牌首页，非对称 Hero、Bento 网格、舰桥风格 |
-| 战术指挥中心 | `pages/index.tsx` | 全息模式选择器、维度跃迁状态指示器、舰桥广播系统 |
+| 品牌首页 | `pages/landing.tsx` | 史诗叙事品牌首页，非对称 Hero、Bento 网格、亮色游戏平台风格 |
+| 战术指挥中心 | `pages/index.tsx` | 全息模式选择器、维度跃迁状态指示器、全局公告系统，亮色游戏平台风格 |
 | 登录 | `pages/login.tsx` | GitHub OAuth + 邮箱验证码登录，舰桥面板风格 |
 | 游戏大厅 | `pages/game.tsx` | 生存/据点防守/PvP/肉鸽/旗舰模式等玩法入口 |
 | 基地 | `pages/base.tsx` | 玩家基地管理，舰桥风格面板 |
@@ -52,10 +52,12 @@
 
 | 模块 | 路径/文件 | 说明 |
 |------|-----------|------|
-| 版本常量 | `lib/version.ts` | 版本代号「破晓」(DR-DAYBREAK)、品牌名、标语、双主题设计系统 |
-| 全局设计系统 | `styles/globals.css` | 双主题 CSS 变量（PvE 航天风 + PvP 工业擂台风）、动画、工具类 |
+| 版本常量 | `lib/version.ts` | 版本代号「涅槃」(DR-REBIRTH)、品牌名、标语、统一亮色游戏平台设计系统 |
+| 全局设计系统 | `styles/globals.css` | 统一亮色现代游戏平台 CSS 变量、动画、游戏组件样式 |
 | Tailwind 配置 | `tailwind.config.ts` | 配色、字体、动画扩展 |
-| 全局布局 | `components/Layout.tsx` | 版本水印、导航栏（含 PvP 竞技入口） |
+| 全局布局 | `components/Layout.tsx` | 版本水印、导航栏（含 PvP 竞技入口），亮色游戏平台风格 |
+| 全局状态管理 | `lib/context/GameContext.tsx` | 全局实时维度数据、用户存档贯通、公告系统、页面间导航关联 |
+| 应用提供者 | `components/Providers.tsx` | 整合 ErrorBoundary、ToastProvider、GameProvider 等上下文 |
 | 游戏核心 | `lib/game/engine.ts`, `lib/game/types.ts` | 游戏循环、类型定义 |
 | 剧情战役 | `lib/game/campaign.ts` | 章节、节点、进度管理 |
 | BossRush | `lib/game/boss-rush.ts` | 关卡、首领、奖励机制 |
@@ -180,7 +182,7 @@ nano .env.local
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry | 否 | 前端 DSN |
 | `NEXT_PUBLIC_SIGNALING_URL` | 手动 | 否 | WebSocket 信令服务器地址，跨设备组队和 PvP 联机需要；生产 `wss://your-domain.com/signaling/`；不配置则仅支持同设备组队 |
 
-> **破晓版本变更**：WebSocket 信令已集成到主进程（端口 3000），不再需要独立端口 3001。`NEXT_PUBLIC_SIGNALING_URL` 的路径为 `/signaling/`（同域），而非独立端口。
+> **涅槃版本**：WebSocket 信令已集成到主进程（端口 3000），不再需要独立端口 3001。`NEXT_PUBLIC_SIGNALING_URL` 的路径为 `/signaling/`（同域），而非独立端口。
 
 生成 `ADMIN_KEY`：
 
@@ -264,13 +266,13 @@ pnpm test:run
 
 ## 7. 启动应用
 
-### 7.1 破晓版本架构变更
+### 7.1 涅槃版本架构
 
-**破晓版本将 WebSocket 信令服务器集成到 Next.js 主进程中，实现单进程部署。** 不再需要独立的信令服务器进程（端口 3001）。
+**涅槃版本沿用单进程部署架构**：WebSocket 信令服务器已集成到 Next.js 主进程中。
 
 ```
 旧架构（梦想家）：Next.js(:3000) + 信令服务器(:3001) = 双进程
-新架构（破晓）：  server.mjs(:3000) = 单进程（Next.js + WebSocket 信令合并）
+当前架构（涅槃）：server.mjs(:3000) = 单进程（Next.js + WebSocket 信令合并）
 ```
 
 ### 7.2 直接启动（仅调试用）
@@ -391,7 +393,7 @@ sudo ufw status verbose
 | HTTPS | 443 | 0.0.0.0/0 |
 | 自定义 TCP | 3000 | 127.0.0.1/32（仅本机反向代理访问） |
 
-> **破晓版本变更**：不再需要开放端口 3001（信令已集成到 3000 端口）。
+> **涅槃版本**：不再需要开放端口 3001（信令已集成到 3000 端口）。
 
 ---
 
@@ -462,7 +464,7 @@ server {
 }
 ```
 
-> **破晓版本变更**：`/signaling/` 代理目标已从 `project_m_signaling` 改为 `project_m_app`，不再需要独立的信令 upstream。
+> **涅槃版本**：`/signaling/` 代理目标为 `project_m_app`，不再需要独立的信令 upstream。
 
 ---
 
@@ -699,7 +701,7 @@ pm2 restart project-m --update-env
 - [ ] `/extreme-survival` 极限生存页可正常访问
 - [ ] `/season` 赛季页可正常访问并领取奖励
 
-### PvP 页面（破晓新增）
+### PvP 页面
 - [ ] `/pvp` PvP 大厅页面可正常访问，三种模式入口正常，战绩统计正常
 - [ ] `/pvp/duel` PvP 决斗页面可正常访问，倒计时、英雄信息、回合结果正常
 - [ ] `/pvp/matchmaking` PvP 匹配页面可正常访问，英雄/武器/赛制选择正常
@@ -754,13 +756,14 @@ pm2 restart project-m --update-env
 - [ ] 算法页面显示三引擎架构（α / β / 基础设施）
 
 ### 视觉验证
-- [ ] PvE 页面米白色 (#F5F2ED) 底色一致
-- [ ] PvE 页面深空蓝 (#0B1D3A) 主色 + 航天金 (#C8A45C) 强调色 + 轨道蓝 (#3B7DD8) 数据色一致
-- [ ] PvP 页面暗色 (#1A1A1E) 底色一致
-- [ ] PvP 页面焦橙 (#E8652C) 主色 + 热金 (#FFB84D) 强调色一致
-- [ ] 页面底部版本水印「破晓」正确显示
+- [ ] 全站亮色底色 (#F8F7F4) 一致
+- [ ] 主色 (#2563EB) 蓝色统一
+- [ ] 强调色 (#F97316) 橙色统一
+- [ ] 面板色 (#FFFFFF) 与 raised 面板 (#F5F4F0) 层次分明
+- [ ] 页面底部版本水印「涅槃」正确显示
 - [ ] 字体为 Geist Sans / Geist Mono（非 Inter）
 - [ ] 导航栏包含「竞技」入口，指向 `/pvp`
+- [ ] 禁止纯黑 (#000000)、AI 紫色渐变、h-screen 全屏
 
 ---
 
@@ -792,9 +795,11 @@ pm2 restart project-m --update-env
 
 | 文件 | 作用 |
 |------|------|
-| `lib/version.ts` | 版本代号「破晓」(DR-DAYBREAK)、品牌名「多重宇宙」、标语、双主题设计系统常量 |
-| `styles/globals.css` | 全局设计系统：PvE/PvP 双主题 CSS 变量、动画、工具类 |
+| `lib/version.ts` | 版本代号「涅槃」(DR-REBIRTH)、品牌名「多重宇宙」、标语、统一亮色游戏平台设计系统常量 |
+| `styles/globals.css` | 全局设计系统：统一亮色现代游戏平台 CSS 变量、动画、游戏组件样式 |
 | `components/Layout.tsx` | 全局布局组件，导航栏（含 PvP 竞技入口），版本水印渲染 |
+| `lib/context/GameContext.tsx` | 全局状态管理：实时维度数据、用户存档贯通、公告系统 |
+| `components/Providers.tsx` | 应用提供者整合：ErrorBoundary + ToastProvider + GameProvider |
 
 ### 15.4 游戏核心
 
@@ -829,7 +834,7 @@ pm2 restart project-m --update-env
 | `lib/game/achievements.ts` | 成就系统：定义、进度、奖励 |
 | `lib/game/chronicles.ts` | 维度编年史：世界观数据 |
 
-### 15.6 PvP 系统（破晓新增）
+### 15.6 PvP 系统
 
 | 文件 | 作用 |
 |------|------|
@@ -842,7 +847,7 @@ pm2 restart project-m --update-env
 | `lib/game/pvp/custom-room.ts` | 自定义房间：创建/加入/设置/准备 |
 | `lib/game/pvp/battle-history.ts` | 战绩管理：创建/保存/查询/统计 |
 
-### 15.7 混合连接网络（破晓新增）
+### 15.7 混合连接网络
 
 | 文件 | 作用 |
 |------|------|
@@ -874,55 +879,57 @@ pm2 restart project-m --update-env
 
 ---
 
-## 16. 破晓版本内容说明
+## 16. 涅槃版本内容说明
 
-### 16.1 双主题设计系统
+### 16.1 统一亮色现代游戏平台设计系统
 
-「破晓」版本引入双主题视觉设计系统，PvE 和 PvP 模式拥有独立的视觉风格：
+「涅槃」版本推翻原有的双主题设计系统（PvE 航天风 + PvP 工业擂台风），采用全新的统一亮色现代游戏平台视觉风格。
 
-#### PvE 主题 — 米白色中国航天风
-
-| 角色 | 颜色 | 用途 |
-|------|------|------|
-| 底色 | `#F5F2ED` | 米白色，全站背景 |
-| 主强调 | `#0B1D3A` | 深空蓝，主交互元素 |
-| 辅强调 | `#C8A45C` | 航天金，锚点高亮 |
-| 轨道蓝 | `#3B7DD8` | 数据流、轨道线 |
-
-设计旋钮：DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3
-
-#### PvP 主题 — 工业擂台暗色风
+#### 配色方案
 
 | 角色 | 颜色 | 用途 |
 |------|------|------|
-| 底色 | `#1A1A1E` | 暗色背景 |
-| 前景 | `#F0EDE8` | 暖白文字 |
-| 主强调 | `#E8652C` | 焦橙，竞技元素 |
-| 辅强调 | `#FFB84D` | 热金，高亮 |
-| 次要 | `#4A5568` | 灰蓝辅助 |
+| 底色 | `#F8F7F4` | 亮色背景，全站统一 |
+| 前景 | `#18181B` | off-black 主文字 |
+| 主强调 | `#2563EB` | 蓝色，主交互元素 |
+| 辅强调 | `#F97316` | 橙色，高亮锚点 |
+| 次要 | `#6B7280` | 灰色辅助文字 |
+| 弱化 | `#9CA3AF` | 极弱化文字 |
+| 边框 | `#E5E3DF` | 卡片边框 |
+| 面板 | `#FFFFFF` | 白色面板 |
+| 凸起面板 | `#F5F4F0` | 悬浮面板 |
+| 成功 | `#10B981` | 绿色成功 |
+| 危险 | `#EF4444` | 红色警告 |
+| 警告 | `#F59E0B` | 黄色提示 |
 
-设计旋钮：DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5
+设计旋钮：DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5
 
 #### 字体栈
 
 - 标题：Geist Sans
 - 正文：Geist Sans
 - 等宽数据：Geist Mono (font-mono tabular-nums)
-- 禁止：Inter
+- 禁止：Inter、Cabinet Grotesk、Outfit、Satoshi
+
+#### 组件样式
+
+- `.game-card`：统一游戏卡片（白色面板 + 边框 + hover 抬升效果）
+- `.game-btn`：统一游戏按钮（蓝色主色 + hover 加深 + active 缩放）
+- 禁止：`station-panel`、`orbital-scan`、`noise-overlay` 等旧类名
 
 ### 16.2 版本代号机制
 
 `lib/version.ts` 定义全站版本常量：
 
 ```typescript
-VERSION_CODE = "DR-DAYBREAK"       // 版本代码
-VERSION_DISPLAY = "破晓"            // 显示名称
-VERSION_LABEL = "破晓 (DR-DAYBREAK)"  // 完整标签
-VERSION_META_GENERATOR = "多重宇宙 破晓 (DR-DAYBREAK)"  // meta 标签
-VERSION_WATERMARK = "破晓"          // 页面水印
+VERSION_CODE = "DR-REBIRTH"        // 版本代码
+VERSION_DISPLAY = "涅槃"            // 显示名称
+VERSION_LABEL = "涅槃 (DR-REBIRTH)"  // 完整标签
+VERSION_META_GENERATOR = "多重宇宙 涅槃 (DR-REBIRTH)"  // meta 标签
+VERSION_WATERMARK = "涅槃"          // 页面水印
 
-PREV_VERSION_CODE = "DR-DREAMER"   // 上一个版本代码
-PREV_VERSION_DISPLAY = "梦想家"     // 上一个版本名称
+PREV_VERSION_CODE = "DR-DUALITY"    // 上一个版本代码
+PREV_VERSION_DISPLAY = "双生"       // 上一个版本名称
 
 BRAND_NAME = "多重宇宙"             // 品牌名
 BRAND_NAME_EN = "Multiverse"       // 品牌英文名
@@ -930,14 +937,46 @@ BRAND_TAGLINE = "深空探索 · 公平竞技 · 无付费加成"  // 品牌标�
 BRAND_URL = "multiverse.game"      // 品牌域名
 ```
 
-### 16.3 破晓版本架构变更
+### 16.3 涅槃版本核心变更
 
-#### 单进程集成部署
+#### 设计系统重构
 
-破晓版本将 WebSocket 信令服务器集成到 Next.js 主进程中，实现单进程部署：
-
-| 对比项 | 梦想家 (DR-DREAMER) | 破晓 (DR-DAYBREAK) |
+| 对比项 | 双生 (DR-DUALITY) | 涅槃 (DR-REBIRTH) |
 |--------|---------------------|---------------------|
+| 设计系统 | 双主题（PvE 航天风 + PvP 工业擂台风） | 统一亮色现代游戏平台 |
+| 底色 | PvE #F5F2ED / PvP #1A1A1E | 统一 #F8F7F4 |
+| 主色 | PvE 深空蓝 / PvP 焦橙 | 统一 #2563EB 蓝色 |
+| 强调色 | PvE 航天金 / PvP 热金 | 统一 #F97316 橙色 |
+| 设计旋钮 | PvE(9,4,3) / PvP(7,8,5) | 统一(7,6,5) |
+| 全局样式 | 双主题 CSS 变量 | 统一亮色 CSS 变量 + 游戏组件样式 |
+
+#### 信息内容互通
+
+| 特性 | 说明 |
+|------|------|
+| 全局实时数据 | 在线人数、能量水平、维度状态实时同步展示 |
+| 用户数据贯通 | 玩家战绩、存档等个人数据统一访问接口 |
+| 页面间导航关联 | 页面间形成语义网络，数据跨页面共享 |
+| GameContext | 全局状态管理上下文，整合维度状态、用户存档、公告系统 |
+
+#### 全局状态管理 (GameContext)
+
+`lib/context/GameContext.tsx` 提供：
+
+- `dimension`：实时维度状态（在线人数、能量水平、稳定性等）
+- `save`：用户存档数据（战绩、进度、收藏等）
+- `announcements`：全局公告列表
+- `refreshSave()`：刷新用户存档
+- `refreshAnnouncements()`：刷新公告数据
+
+通过 `components/Providers.tsx` 整合到应用根组件，所有页面可通过 `useGame()` hook 访问。
+
+### 16.4 单进程集成部署（沿用）
+
+涅槃版本沿用破晓版本的单进程集成部署架构：
+
+| 对比项 | 梦想家 (DR-DREAMER) | 破晓/涅槃 (DR-DAYBREAK/DR-REBIRTH) |
+|--------|---------------------|-------------------------------------|
 | 进程数 | 2 (Next.js + 信令) | 1 (集成) |
 | 端口 | 3000 + 3001 | 3000 |
 | 启动脚本 | `.next/standalone/server.js` + `signaling-server.mjs` | `server.mjs` |
@@ -945,9 +984,9 @@ BRAND_URL = "multiverse.game"      // 品牌域名
 | 信令路径 | 独立端口 3001 | 同端口 /signaling/ |
 | Nginx upstream | 2 个 (app + signaling) | 1 个 (app) |
 
-#### 混合连接网络
+### 16.5 混合连接网络（沿用）
 
-网络层从 PeerJS WebRTC P2P 重构为三种混合连接模式：
+网络层支持三种混合连接模式：
 
 | 模式 | 适用场景 | 说明 |
 |------|----------|------|
@@ -955,7 +994,7 @@ BRAND_URL = "multiverse.game"      // 品牌域名
 | 房间码直连 | 远程好友 | 输入 6 位房间码即可直连 |
 | 服务端中转 | 复杂网络环境 | 通过 WebSocket 信令服务器中转 |
 
-### 16.4 PvP 1v1 积分决斗系统
+### 16.6 PvP 1v1 积分决斗系统（沿用）
 
 #### 核心特性
 
@@ -999,23 +1038,17 @@ BRAND_URL = "multiverse.game"      // 品牌域名
 | `colosseum` | 古代斗兽场 | 古典 | 圆形竞技场 |
 | `zen_garden` | 禅意庭院 | 古典 | 对称布局 |
 
-### 16.5 旗舰巅峰MAX（继承自梦想家）
+### 16.7 旗舰巅峰MAX（继承）
 
 旗舰巅峰MAX模式完整保留，包含六阶段50波递进、Boss变异系统、英雄技能树、武器改装锻造、2人联机协作、独立结算画面、六维雷达评分、11个隐藏成就、10级波次里程碑奖励、6阶段完成奖励和实时HUD显示。
 
-详见梦想家版本部署手册第 16.3 节。
-
-### 16.6 智能敌方 AI 系统（继承自梦想家）
+### 16.8 智能敌方 AI 系统（继承）
 
 智能敌方 AI 系统完整保留，包含能力门控（波次+敌人类型双重解锁）、群体协作（角色分工/集火/掩护/编队）、学习适应（热力图/英雄检测/波次递增）和 Boss 状态机增强。
 
-详见梦想家版本部署手册第 16.18 节。
-
-### 16.7 寻飞弹全追踪系统（继承自梦想家）
+### 16.9 寻飞弹全追踪系统（继承）
 
 寻飞弹全追踪系统完整保留，8个追踪目标差异化参数，涵盖武器、技能、天赋、锻造和事件。
-
-详见梦想家版本部署手册第 16.17 节。
 
 ---
 
@@ -1362,32 +1395,32 @@ curl -I https://your-domain.com  # HTTP 响应头检查
 
 ---
 
-## 25. 破晓版本升级指南（从梦想家升级）
+## 25. 涅槃版本升级指南（从双生升级）
 
 ### 25.1 架构变更摘要
 
-| 变更项 | 梦想家 | 破晓 |
-|--------|--------|------|
-| 版本代号 | DR-DREAMER | DR-DAYBREAK |
-| 进程数 | 2 | 1 |
-| 启动脚本 | `.next/standalone/server.js` | `server.mjs` |
-| 信令端口 | 3001（独立） | 3000（集成） |
-| 信令服务器文件 | `signaling-server.mjs` | 已删除（集成到 server.mjs） |
-| Nginx upstream | 2 个 | 1 个 |
-| 页面数 | 31 | 36（+5 PvP 页面） |
-| 导航栏 | 无 PvP 入口 | 新增「竞技」入口 |
-| 品牌标语 | 公平竞技 · 无付费加成 | 深空探索 · 公平竞技 · 无付费加成 |
+| 变更项 | 双生 (DR-DUALITY) | 涅槃 (DR-REBIRTH) |
+|--------|--------------------|---------------------|
+| 版本代号 | DR-DUALITY | DR-REBIRTH |
+| 设计系统 | 双主题（PvE 航天风 + PvP 工业擂台风） | 统一亮色现代游戏平台 |
+| 底色 | PvE #F5F2ED / PvP #1A1A1E | 统一 #F8F7F4 |
+| 主色 | PvE 深空蓝 / PvP 焦橙 | 统一 #2563EB |
+| 强调色 | PvE 航天金 / PvP 热金 | 统一 #F97316 |
+| 全局 CSS | 双主题 CSS 变量 | 统一亮色 CSS 变量 + 游戏组件样式 |
+| 全局状态 | 无 | 新增 GameContext（维度+存档+公告） |
+| 新增文件 | - | `lib/context/GameContext.tsx` |
+| 页面数 | 33 | 33（不变） |
+| 导航栏 | 有「竞技」入口 | 保留不变 |
+| 品牌标语 | 深空探索 · 公平竞技 · 无付费加成 | 保留不变 |
 
 ### 25.2 升级步骤
 
 1. 拉取最新代码：`git pull origin main`
 2. 安装依赖：`pnpm install --frozen-lockfile`
-3. 更新 Nginx 配置：用新版 `nginx/project-m.conf` 替换旧配置，移除 `project_m_signaling` upstream
-4. 更新 `.env.local`：确保 `NEXT_PUBLIC_SIGNALING_URL` 指向 `wss://your-domain.com/signaling/`（不再需要独立端口）
-5. 构建：`pnpm build`
-6. 停止旧进程：`pm2 delete project-m-signaling`（移除旧信令进程）
-7. 重启：`pm2 restart project-m --update-env`
+3. 构建：`pnpm build`
+4. 重启：`pm2 restart project-m --update-env`
+5. 验证：访问首页确认亮色游戏平台风格生效，版本水印显示「涅槃」
 
 ---
 
-*本手册对应多重宇宙「破晓」版本一次性全部上线部署流程。全站 36 页面双主题设计系统，品牌名「多重宇宙 (Multiverse)」，版本代号「破晓」(DR-DAYBREAK)。PvE 设计旋钮: DESIGN_VARIANCE=9, MOTION_INTENSITY=4, VISUAL_DENSITY=3；PvP 设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=8, VISUAL_DENSITY=5。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战、PvP 1v1 积分决斗）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。WebSocket 信令已集成到主进程，单进程部署。*
+*本手册对应多重宇宙「涅槃」版本一次性全部上线部署流程。全站 33 页面统一亮色现代游戏平台设计系统，品牌名「多重宇宙 (Multiverse)」，版本代号「涅槃」(DR-REBIRTH)。设计旋钮: DESIGN_VARIANCE=7, MOTION_INTENSITY=6, VISUAL_DENSITY=5。新增全局状态管理 GameContext（实时维度数据 + 用户数据贯通 + 页面间导航关联）。当前版本注册/登录功能已启用，支持 GitHub OAuth；所有游戏模式（含旗舰巅峰MAX六阶段50波终极挑战、PvP 1v1 积分决斗）、剧情战役、BossRush、成就系统、英雄档案、维度编年史、算法页面、排行榜、近战武器系统、英雄技能增强、智能敌方 AI 系统均可公开访问。WebSocket 信令已集成到主进程，单进程部署。*

@@ -72,14 +72,13 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
   return (
     <div className="relative min-h-[100dvh] flex flex-col bg-background text-foreground">
       <DimensionBackground intensity="subtle" />
-      <div className="noise-overlay pointer-events-none fixed inset-0 z-0" />
 
       {showNav && !isIndex && (
         <motion.header
           initial={reducedMotion ? undefined : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl"
+          className="sticky top-0 z-50 border-b border-border bg-panel/80 backdrop-blur-xl"
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
             <Link
@@ -152,7 +151,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
       )}
 
       {showNav && !isIndex && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-panel/85 backdrop-blur-xl md:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
             {MOBILE_NAV.map((item) => {
               const active = router.pathname === item.href;
@@ -182,7 +181,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-xl lg:hidden"
+            className="fixed inset-0 z-[60] bg-panel/95 backdrop-blur-xl lg:hidden"
           >
             <div className="flex h-full flex-col p-4">
               <div className="flex items-center justify-between">
@@ -226,7 +225,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               </nav>
               <div className="mt-auto pb-4">
                 <div className="rounded-2xl border border-border bg-panel/60 p-4">
-                  <p className="text-xs font-medium text-primary">多重宇宙 · 双生</p>
+                  <p className="text-xs font-medium text-primary">多重宇宙 · 涅槃</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted">
                     深空探索 · 公平竞技 · 无付费加成
                   </p>

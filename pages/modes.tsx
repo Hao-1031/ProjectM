@@ -160,7 +160,7 @@ export default function ModesPage() {
                   选择<br /><span className="text-gradient">深空任务</span>
                 </h1>
                 <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted">
-                  10种模式覆盖单人任务、无尽生存、PVP混战与PvE合作。据点防守为双生版本核心玩法。
+                  10种模式覆盖单人任务、无尽生存、PVP混战与PvE合作。据点防守为涅槃版本核心玩法。
                 </p>
               </div>
             </div>

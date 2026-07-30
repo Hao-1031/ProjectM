@@ -24,8 +24,7 @@ import { getPvPMap, getPvPMapName } from "@/lib/game/pvp/pvp-maps";
 import { createDuel, startDuel, startRound, endRound, dealDamage, getDuelRoundSummary, isDuelFinished, getDuelWinner, getDuelLoser } from "@/lib/game/pvp/duel";
 import type { PvPDuel, PvPHeroId, PvPWeaponId, PvPMapId, PvPRoundFormat } from "@/lib/game/pvp/types";
 
-const pvp = DESIGN_SYSTEM.pvp;
-const pvpColors = pvp.colors;
+const pvpColors = DESIGN_SYSTEM.colors;
 
 type DuelPhase = "loading" | "countdown" | "fighting" | "round_result" | "match_result";
 
@@ -131,8 +130,7 @@ export default function PvPDuelPage() {
   const p2HealthPct = (duel.player2.health / duel.player2.maxHealth) * 100;
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden" style={{ background: pvpColors.background, color: pvpColors.foreground }}>
-      <div className="noise-overlay" />
+    <div className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground">
 
       <header className="relative z-10 border-b border-white/[0.06]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">

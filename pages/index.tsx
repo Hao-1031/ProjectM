@@ -228,7 +228,7 @@ function PlayerProfileCard({ save, isAuthenticated, user }: {
   user: { provider: string; avatarUrl: string | null } | null;
 }) {
   return (
-    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
+    <div className="game-card relative overflow-hidden rounded-2xl p-5">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/[0.03] blur-3xl" />
 
@@ -250,7 +250,7 @@ function PlayerProfileCard({ save, isAuthenticated, user }: {
               <RankBadge runs={save?.totalRuns ?? 0} />
             </div>
           </div>
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-panel">
             <BrandLogo size={24} variant="icon" className="text-primary" />
           </div>
         </div>
@@ -263,7 +263,7 @@ function PlayerProfileCard({ save, isAuthenticated, user }: {
         </div>
 
         <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-          <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/50 px-3 py-2">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-panel-raised px-3 py-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
               <Coin size={16} weight="fill" />
             </span>
@@ -301,9 +301,7 @@ function HoloModeSelector({
   const orbitRadius = 140;
 
   return (
-    <div className="station-panel orbital-scan relative flex flex-col items-center justify-center rounded-2xl p-6">
-      <div className="station-panel-header absolute inset-x-0 top-0" />
-
+    <div className="game-card relative flex flex-col items-center justify-center rounded-2xl p-6">
       <div className="relative flex h-[320px] w-[320px] items-center justify-center sm:h-[360px] sm:w-[360px]">
         {/* Outer orbital rings */}
         <motion.div
@@ -454,8 +452,7 @@ function DimensionJumpStatus() {
     fleetStatus === "deployed" ? "已部署" : fleetStatus === "standby" ? "待命中" : "维护中";
 
   return (
-    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
-      <div className="station-panel-header absolute inset-x-0 top-0" />
+    <div className="game-card relative overflow-hidden rounded-2xl p-5">
       <div className="relative mt-1">
         <div className="mb-3 flex items-center gap-2">
           <Rocket size={18} weight="bold" className="text-primary" />
@@ -507,7 +504,7 @@ function DimensionJumpStatus() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-panel-raised px-3 py-2">
             <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
               <Planet size={12} weight="bold" />
               舰队部署
@@ -546,8 +543,7 @@ function OnlinePlayersPulse() {
   }, []);
 
   return (
-    <div className="station-panel orbital-scan relative overflow-hidden rounded-2xl p-5">
-      <div className="station-panel-header absolute inset-x-0 top-0" />
+    <div className="game-card relative overflow-hidden rounded-2xl p-5">
       <div className="relative mt-1">
         <div className="mb-3 flex items-center gap-2">
           <Users size={18} weight="bold" className="text-orbital" />
@@ -607,7 +603,7 @@ function BridgeBroadcast({ announcements, loading }: {
 
   if (loading) {
     return (
-      <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
+      <div className="game-card relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Broadcast size={14} weight="bold" className="text-primary animate-pulse" />
           <div className="h-3 w-64 animate-pulse rounded bg-primary/5" />
@@ -618,7 +614,7 @@ function BridgeBroadcast({ announcements, loading }: {
 
   if (announcements.length === 0) {
     return (
-      <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
+      <div className="game-card relative mx-auto max-w-7xl overflow-hidden rounded-xl px-4 py-2.5">
         <div className="flex items-center gap-2 text-xs text-muted">
           <Broadcast size={14} weight="bold" />
           <span className="font-mono">轨道广播待命中...</span>
@@ -632,7 +628,7 @@ function BridgeBroadcast({ announcements, loading }: {
     : announcements;
 
   return (
-    <div className="station-panel orbital-scan relative mx-auto max-w-7xl overflow-hidden rounded-xl">
+    <div className="game-card relative mx-auto max-w-7xl overflow-hidden rounded-xl">
       <div className="data-stream flex items-center gap-3 px-4 py-2.5">
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
           <Broadcast size={10} weight="bold" />
@@ -709,7 +705,7 @@ function EncyclopediaRow() {
           <Link
             key={item.href}
             href={item.href}
-            className="station-panel orbital-scan group flex flex-col gap-2 rounded-xl p-3 transition-all hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 focus-ring"
+            className="game-card group flex flex-col gap-2 rounded-xl p-3 transition-all hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 focus-ring"
           >
             <span
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors group-hover:scale-110"
@@ -757,8 +753,7 @@ export default function HomePage() {
       ref={scrollRef}
       className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-background text-foreground"
     >
-      <DimensionBackground intensity="medium" />
-      <div className="noise-overlay" />
+      <DimensionBackground intensity="subtle" />
 
       {/* Navigation */}
       <motion.header
@@ -820,7 +815,7 @@ export default function HomePage() {
             >
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/12 bg-primary/4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                 <Globe size={10} weight="fill" />
-                维度锚点在线 · 双生
+                维度锚点在线 · 涅槃
               </span>
 
               <h1 className="mt-4 font-display text-[clamp(2.25rem,6vw,4rem)] font-extrabold leading-[0.9] tracking-tight">
@@ -843,7 +838,7 @@ export default function HomePage() {
             >
               <Link
                 href={playHref}
-                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97] md:h-14 md:text-base"
+                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97] md:h-14 md:text-base"
               >
                 <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={20} weight="fill" />
@@ -917,7 +912,7 @@ export default function HomePage() {
             return (
               <div
                 key={stat.label}
-                className="station-panel orbital-scan flex flex-col items-center gap-1 rounded-xl p-3 text-center transition-all hover:border-primary/15"
+                className="game-card flex flex-col items-center gap-1 rounded-xl p-3 text-center transition-all hover:border-primary/15"
               >
                 <Icon size={16} weight="bold" style={{ color: stat.accent }} />
                 <span className="font-display text-lg font-bold tabular-nums">{stat.value}</span>
@@ -965,7 +960,7 @@ export default function HomePage() {
               <Link
                 key={mode.type}
                 href={href}
-                className={`station-panel orbital-scan group relative flex flex-col justify-between overflow-hidden rounded-2xl p-4 transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 focus-ring ${mode.span}`}
+                className={`game-card group relative flex flex-col justify-between overflow-hidden rounded-2xl p-4 transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 focus-ring ${mode.span}`}
                 style={{ borderColor: mode.featured ? `var(--${mode.accent})20` : undefined }}
               >
                 <div
@@ -1063,7 +1058,7 @@ export default function HomePage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Link
             href="/leaderboard"
-            className="station-panel orbital-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-primary/20 focus-ring"
+            className="game-card group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-primary/20 focus-ring"
           >
             <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <Trophy size={24} weight="bold" />
@@ -1076,7 +1071,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/settings"
-            className="station-panel orbital-scan group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-accent/20 focus-ring"
+            className="game-card group flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-accent/20 focus-ring"
           >
             <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <Gear size={24} weight="bold" />
@@ -1092,7 +1087,7 @@ export default function HomePage() {
 
       {/* Footer CTA */}
       <section className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:py-12">
-        <div className="station-panel orbital-scan relative overflow-hidden rounded-3xl p-8 station-glow md:p-12">
+        <div className="game-card-raised relative overflow-hidden rounded-3xl p-8 md:p-12">
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/[0.03] blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-accent/[0.03] blur-3xl" />
 
@@ -1112,7 +1107,7 @@ export default function HomePage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 href={playHref}
-                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-background shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97]"
+                className="group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-lg shadow-primary/12 transition-all hover:bg-primary/90 hover:shadow-primary/20 focus-ring active:scale-[0.97]"
               >
                 <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]" />
                 <Play size={18} weight="fill" />
@@ -1132,7 +1127,7 @@ export default function HomePage() {
         <footer className="mt-6 flex flex-col items-center justify-between gap-2 border-t border-border pt-4 text-xs text-muted sm:flex-row">
           <div className="flex items-center gap-2">
             <BrandLogo size={14} variant="icon" />
-            <span>公平竞技 · 无付费加成 · 多重宇宙 · 双生</span>
+            <span>公平竞技 · 无付费加成 · 多重宇宙 · 涅槃</span>
           </div>
           <div className="flex gap-4">
             <Link href="/about" className="transition-colors hover:text-foreground focus-ring rounded">
@@ -1148,7 +1143,7 @@ export default function HomePage() {
         </footer>
       </section>
 
-      <div className="version-watermark">双生 v3.0</div>
+      <div className="version-watermark">涅槃</div>
     </div>
   );
 }

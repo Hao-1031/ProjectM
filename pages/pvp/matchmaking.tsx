@@ -18,8 +18,7 @@ import { listPvPHeroIds, getPvPHero, getPvPHeroName, getPvPHeroRole } from "@/li
 import { listPvPWeaponIds, getPvPWeapon, getPvPWeaponName } from "@/lib/game/pvp/pvp-weapons";
 import type { PvPHeroId, PvPWeaponId, PvPRoundFormat } from "@/lib/game/pvp/types";
 
-const pvp = DESIGN_SYSTEM.pvp;
-const pvpColors = pvp.colors;
+const pvpColors = DESIGN_SYSTEM.colors;
 
 const HERO_IDS = listPvPHeroIds();
 const WEAPON_IDS = listPvPWeaponIds();
@@ -60,8 +59,7 @@ export default function PvPMatchmaking() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden" style={{ background: pvpColors.background, color: pvpColors.foreground }}>
-      <div className="noise-overlay" />
+    <div className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0 opacity-20"
         style={{
           backgroundImage: `radial-gradient(circle, ${pvpColors.primary}15 1px, transparent 1px)`,
