@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
@@ -34,8 +34,9 @@ interface FormState {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const reducedMotion = useReducedMotion();
-  const redirectedFrom = typeof router.query.redirectedFrom === "string" ? router.query.redirectedFrom : "/";
+  const redirectedFrom = searchParams.get("redirectedFrom") || "/";
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
@@ -50,15 +51,15 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    const authError = router.query.auth_error;
-    if (authError && typeof authError === "string") {
+    const authError = searchParams.get("auth_error");
+    if (authError) {
       setError(authError);
       emit(GameEventType.LOGIN_FAILURE, GameEventCategory.LOGIN, GameEventLevel.ERROR, { mode: "oauth_callback", error: authError }, "login");
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete("auth_error");
       window.history.replaceState({}, "", cleanUrl.toString());
     }
-  }, [router.query.auth_error]);
+  }, [searchParams]);
 
   function handleInputChange(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));

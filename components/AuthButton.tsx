@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { GithubLogo, User, SignOut, Spinner, Check } from "@phosphor-icons/react";
 import { useAuth } from "@/hooks/useAuth";
 import Button from "@/components/ui/Button";
@@ -30,6 +30,7 @@ function providerLabel(provider: string): string {
 
 export default function AuthButton() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -96,7 +97,7 @@ export default function AuthButton() {
     <Button
       variant="outline"
       size="sm"
-      onClick={() => void router.push(`/login?redirectedFrom=${encodeURIComponent(router.asPath)}`)}
+      onClick={() => void router.push(`/login?redirectedFrom=${encodeURIComponent(pathname)}`)}
       leftIcon={<User size={16} weight="bold" />}
     >
       登录

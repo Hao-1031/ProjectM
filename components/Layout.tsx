@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
@@ -64,8 +64,8 @@ const MOBILE_NAV = [
 ];
 
 export default function Layout({ children, title, showNav = true }: LayoutProps) {
-  const router = useRouter();
-  const isIndex = router.pathname === "/";
+  const pathname = usePathname();
+  const isIndex = pathname === "/";
   const reducedMotion = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -100,7 +100,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
 
             <nav className="hidden items-center gap-0.5 lg:flex">
               {NAV.map((item) => {
-                const active = router.pathname === item.href;
+                const active = pathname === item.href;
                 const Icon = item.icon;
                 return (
                   <Link
@@ -154,7 +154,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
         <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-panel/85 backdrop-blur-xl md:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
             {MOBILE_NAV.map((item) => {
-              const active = router.pathname === item.href;
+              const active = pathname === item.href;
               const Icon = item.icon;
               return (
                 <Link
@@ -204,7 +204,7 @@ export default function Layout({ children, title, showNav = true }: LayoutProps)
               </div>
               <nav className="mt-8 grid gap-1.5">
                 {NAV.map((item) => {
-                  const active = router.pathname === item.href;
+                  const active = pathname === item.href;
                   const Icon = item.icon;
                   return (
                     <Link

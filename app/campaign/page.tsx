@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {
   BookOpen, Play, Lock, Check, CaretRight, Star, Crown,
   Crosshair, Shield, Scroll, Coin, Sparkle, Sword, Skull,

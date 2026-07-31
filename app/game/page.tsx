@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState, Suspense, lazy } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
@@ -142,13 +142,15 @@ function FleetLoading({ mode }: { mode: string }) {
 
 export default function GamePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const reducedMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
   const [showDifficulty, setShowDifficulty] = useState(true);
   const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset | null>(null);
-  const multiplayer = router.query.multiplayer === "1" || router.query.room !== undefined;
+  const multiplayer = searchParams.get("multiplayer") === "1" || searchParams.get("room") !== null;
 
-  const mode = (router.query.mode as GameModeType) || "campaign";
+  const mode = (searchParams.get("mode") as GameModeType) || "campaign";
 
   const handleDifficultySelect = useCallback((preset: DifficultyPreset) => {
     setDifficultyPreset(preset);
@@ -162,7 +164,7 @@ export default function GamePage() {
   }, [showDifficulty]);
 
   const handleExit = useCallback(() => {
-    if (router.pathname === "/") return;
+    if (pathname === "/") return;
     void router.push("/");
   }, [router]);
 

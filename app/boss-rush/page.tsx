@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {
   Skull, Play, Lock, Check, CaretRight, Star, Crown,
   Crosshair, Shield, Sparkle, Sword, Trophy,
