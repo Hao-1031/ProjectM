@@ -36,7 +36,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reducedMotion = useReducedMotion();
-  const redirectedFrom = searchParams.get("redirectedFrom") || "/";
+  const redirectedFrom = searchParams?.get("redirectedFrom") || "/";
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
@@ -51,7 +51,7 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    const authError = searchParams.get("auth_error");
+    const authError = searchParams?.get("auth_error");
     if (authError) {
       setError(authError);
       emit(GameEventType.LOGIN_FAILURE, GameEventCategory.LOGIN, GameEventLevel.ERROR, { mode: "oauth_callback", error: authError }, "login");

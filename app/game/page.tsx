@@ -148,9 +148,9 @@ export default function GamePage() {
   const [ready, setReady] = useState(false);
   const [showDifficulty, setShowDifficulty] = useState(true);
   const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset | null>(null);
-  const multiplayer = searchParams.get("multiplayer") === "1" || searchParams.get("room") !== null;
+  const multiplayer = searchParams?.get("multiplayer") === "1" || searchParams?.get("room") !== null;
 
-  const mode = (searchParams.get("mode") as GameModeType) || "campaign";
+  const mode = (searchParams?.get("mode") as GameModeType) || "campaign";
 
   const handleDifficultySelect = useCallback((preset: DifficultyPreset) => {
     setDifficultyPreset(preset);
