@@ -78,7 +78,7 @@ if [ ! -f "${APP_DIR}/.env.local" ]; then
 NODE_ENV=production
 PORT=3000
 HOSTNAME=0.0.0.0
-NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000
+NEXT_PUBLIC_SITE_URL=${SITE_URL:-http://localhost:3000}
 
 # Supabase 后端（排行榜、公告）
 # NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -100,10 +100,10 @@ fi
 if [ -z "${SKIP_ENV_UPDATE:-}" ]; then
   if ! grep -q "NEXT_PUBLIC_SITE_URL" "${APP_DIR}/.env.local"; then
     echo "" >> "${APP_DIR}/.env.local"
-    echo "NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000" >> "${APP_DIR}/.env.local"
+    echo "NEXT_PUBLIC_SITE_URL=${SITE_URL:-http://localhost:3000}" >> "${APP_DIR}/.env.local"
     log "已添加 NEXT_PUBLIC_SITE_URL 配置"
   else
-    sed -i 's|^NEXT_PUBLIC_SITE_URL=.*|NEXT_PUBLIC_SITE_URL=http://121.40.218.245:3000|' "${APP_DIR}/.env.local"
+    sed -i 's|^NEXT_PUBLIC_SITE_URL=.*|NEXT_PUBLIC_SITE_URL=${SITE_URL:-http://localhost:3000}|' "${APP_DIR}/.env.local"
     log "已更新 NEXT_PUBLIC_SITE_URL 配置"
   fi
 fi

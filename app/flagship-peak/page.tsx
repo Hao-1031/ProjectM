@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -241,10 +242,14 @@ export default function FlagshipPeakPage() {
           >
             <div className="station-panel orbital-scan station-glow relative overflow-hidden">
               <HeroParticles />
-              <img
+              <Image
                 src={HERO_IMAGE}
                 alt="旗舰舰桥"
+                width={1200}
+                height={400}
                 className="h-[200px] w-full object-cover md:h-[320px]"
+                sizes="100vw"
+                unoptimized
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/40 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-2">

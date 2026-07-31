@@ -231,7 +231,7 @@ export default function EventMonitor() {
   }, [events, filterCategory, filterLevel, searchKeyword]);
 
   // 统计摘要
-  const stats = useMemo(() => eventBus.getStats(), [events]);
+  const stats = useMemo(() => eventBus.getStats(), []);
 
   return (
     <AnimatePresence>

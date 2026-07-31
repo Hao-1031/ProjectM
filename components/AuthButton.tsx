@@ -97,7 +97,7 @@ export default function AuthButton() {
     <Button
       variant="outline"
       size="sm"
-      onClick={() => void router.push(`/login?redirectedFrom=${encodeURIComponent(pathname)}`)}
+      onClick={() => void router.push(`/login?redirectedFrom=${encodeURIComponent(pathname ?? "/")}`)}
       leftIcon={<User size={16} weight="bold" />}
     >
       登录

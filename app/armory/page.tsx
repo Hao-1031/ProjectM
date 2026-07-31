@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
@@ -203,8 +204,8 @@ function WeaponCard({
       <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-25 transition-opacity group-hover:opacity-50" style={{ backgroundColor: weapon.color }} />
       <div className="relative p-2.5 md:p-3">
         {isLarge && WEAPON_IMAGES[id] && (
-          <div className="relative mb-3 overflow-hidden rounded-2xl">
-            <img src={WEAPON_IMAGES[id]} alt={weapon.name} className="h-40 w-full object-cover md:h-48" />
+          <div className="relative mb-3 h-40 overflow-hidden rounded-2xl md:h-48">
+            <Image src={WEAPON_IMAGES[id]} alt={weapon.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 58vw" unoptimized />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
               <div>

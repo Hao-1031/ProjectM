@@ -166,7 +166,7 @@ export default function GamePage() {
   const handleExit = useCallback(() => {
     if (pathname === "/") return;
     void router.push("/");
-  }, [router]);
+  }, [router, pathname]);
 
   const meta = MODE_META[mode] ?? { name: mode, threat: "中", accent: "var(--primary)", desc: "", callsign: "待命" };
 

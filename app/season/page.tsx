@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
@@ -159,11 +160,15 @@ export default function SeasonPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                   className="lg:col-span-7"
                 >
-                  <div className="station-panel orbital-scan station-glow overflow-hidden">
-                    <img
+                  <div className="station-panel orbital-scan station-glow relative overflow-hidden">
+                    <Image
                       src={HERO_IMAGE}
                       alt="第一赛季：深空黎明"
+                      width={1200}
+                      height={600}
                       className="h-full w-full object-cover"
+                      sizes="100vw"
+                      unoptimized
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/40 to-transparent" />
                     <div className="absolute bottom-4 left-4 right-4">

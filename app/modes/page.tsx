@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import React from "react";
@@ -190,8 +191,8 @@ export default function ModesPage() {
                   )}
                   <div className="relative flex h-full flex-col p-2.5 md:p-3">
                     {isLarge && meta.image && (
-                      <div className="relative mb-3 overflow-hidden rounded-2xl">
-                        <img src={meta.image} alt={mode.name} className={`object-cover w-full ${isFlagshipPeak ? "h-52 md:h-64" : "h-40 md:h-48"}`} />
+                      <div className={`relative mb-3 overflow-hidden rounded-2xl ${isFlagshipPeak ? "h-52 md:h-64" : "h-40 md:h-48"}`}>
+                        <Image src={meta.image} alt={mode.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 58vw" unoptimized />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
                         <div className="pointer-events-none absolute inset-0 data-stream opacity-30" />
                         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">

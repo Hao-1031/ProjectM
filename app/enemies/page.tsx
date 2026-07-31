@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useMemo } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
@@ -244,8 +245,8 @@ export default function EnemiesPage() {
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-45" style={{ backgroundColor: stats?.color ?? "#6e7870" }} />
                         <div className="relative p-2.5 md:p-3">
                           {isLarge && ENEMY_IMAGES[enemy.id] && (
-                            <div className="relative mb-3 overflow-hidden rounded-2xl">
-                              <img src={ENEMY_IMAGES[enemy.id]} alt={enemy.name} className="h-40 w-full object-cover md:h-48" />
+                            <div className="relative mb-3 h-40 overflow-hidden rounded-2xl md:h-48">
+                              <Image src={ENEMY_IMAGES[enemy.id]} alt={enemy.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 58vw" unoptimized />
                               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
                               <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                                 <div>
@@ -308,8 +309,8 @@ export default function EnemiesPage() {
                         <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: boss.color }} />
                         <div className="relative p-2.5 md:p-3">
                           {isLarge && ENEMY_IMAGES[boss.id] && (
-                            <div className="relative mb-3 overflow-hidden rounded-2xl">
-                              <img src={ENEMY_IMAGES[boss.id]} alt={boss.name} className="h-40 w-full object-cover md:h-48" />
+                            <div className="relative mb-3 h-40 overflow-hidden rounded-2xl md:h-48">
+                              <Image src={ENEMY_IMAGES[boss.id]} alt={boss.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 58vw" unoptimized />
                               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-transparent" />
                               <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                                 <div>
