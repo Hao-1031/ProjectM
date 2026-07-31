@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { Spinner } from "@phosphor-icons/react";
